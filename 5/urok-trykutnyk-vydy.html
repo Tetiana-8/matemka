@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Трикутник і його види</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=PT+Serif:ital,wght@1,700&display=swap">
+<style>
+/* Layout: урок-презентація — ліва панель з текстом (40%), права — креслення на «зошитовій» сітці (60%) */
+:root{
+  --bg:#ffffff; --ink:#3a2b33; --muted:#86707c;
+  --rose:#d6336c; --rose-deep:#a61e4d; --rose-soft:#fde3ec; --rose-faint:#fff2f6;
+  --panelL:#fdecf2; --panelR:#fffafc; --line:#f2c9d8; --grid:#f7dbe6;
+  --acute:#2f9e6e; --right:#2b7bbf; --obtuse:#e07a1f;
+  --iso:#d6336c; --equi:#12858a; --scal:#b8860b;
+  --ok:#2f9e6e; --bad:#d94848;
+  --f-body:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;
+  --f-letter:'PT Serif',Georgia,'Times New Roman',serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+html{font-size:clamp(15px,0.55vw + 9px,23px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--rose);outline-offset:2px}
+.L{font-family:var(--f-letter);font-style:italic;font-weight:700}
+b,strong{font-weight:800}
+
+#app{height:100%;display:flex;flex-direction:column}
+
+/* ---------- Стартовий екран ---------- */
+#start{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2rem;text-align:center;background:var(--panelL);padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#start .deco{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#start h1{position:relative;margin:0;font-weight:900;font-size:clamp(2rem,5.2vw,4.6rem);line-height:1.08;text-wrap:balance;color:#4a3340}
+#start h1 span{color:var(--rose)}
+#start .grade{position:relative;margin:-1.2rem 0 0;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;color:var(--muted)}
+.startBtn{position:relative;display:flex;align-items:center;gap:1rem;padding:.75rem .8rem .75rem 1.6rem;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--rose-deep);font-weight:900;letter-spacing:.16em;text-transform:uppercase;font-size:1rem;cursor:pointer;box-shadow:0 4px 14px rgba(214,51,108,.10);transition:transform .15s,box-shadow .2s,border-color .2s;animation:pop .45s cubic-bezier(.2,1.2,.4,1) both}
+.startBtn:hover{border-color:var(--rose);box-shadow:0 6px 18px rgba(214,51,108,.18)}
+.startBtn:active{transform:scale(.96)}
+.startBtn i{width:2.3rem;height:2.3rem;border-radius:50%;background:var(--rose-soft);display:grid;place-items:center;font-style:normal}
+.startBtn i::before{content:"";border-left:.75rem solid var(--rose-deep);border-top:.45rem solid transparent;border-bottom:.45rem solid transparent;margin-left:.2rem}
+
+/* ---------- Урок ---------- */
+#lesson{flex:1;min-height:0;display:flex}
+#left{position:relative;flex:0 0 40%;min-width:0;background:var(--panelL);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#left.full{flex-basis:100%;border-right:0}
+#leftInner{flex:1;min-height:0;overflow:auto;padding-block:clamp(16px,2vw,36px) 6.5em;padding-left:max(clamp(16px,2.2vw,40px),env(safe-area-inset-left,0px));padding-right:clamp(16px,2.2vw,40px);scrollbar-width:none}
+#leftInner::-webkit-scrollbar{display:none}
+#right{position:relative;flex:1;min-width:0;background:var(--panelR);overflow:hidden;box-shadow:inset 0 2px 10px rgba(166,30,77,.04)}
+#svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;touch-action:none;user-select:none}
+#nav{position:absolute;right:clamp(12px,1.6vw,30px);bottom:clamp(12px,1.6vw,26px);display:flex;gap:.6rem;align-items:center;z-index:5}
+.nb{border-radius:999px;padding:.55em 1.2em;font-weight:700;font-size:.95rem;cursor:pointer;border:1px solid #d9cdd3;background:#fff;color:#4b3a43;box-shadow:0 2px 6px rgba(58,43,51,.08);transition:background .2s,transform .12s;white-space:nowrap}
+.nb:hover{background:#fbf6f8}
+.nb:active{transform:scale(.95)}
+.nb.soft{border-color:var(--line);background:var(--rose-faint);color:var(--rose-deep)}
+.nb.primary{border-color:#efa9c2;background:var(--rose-soft);color:var(--rose-deep)}
+.nb.primary:hover{background:#fbd3e1}
+.nb.off{background:#f3eef0;color:#b3a6ad;border-color:#e6dde1;cursor:not-allowed;box-shadow:none;opacity:.85}
+.nb.popped{animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
+
+footer{flex:none;text-align:center;padding-block:.45rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:#fbf7f9;border-top:1px solid #efe4e9;font-size:.72rem;color:var(--muted);letter-spacing:.02em}
+footer b{color:#3a2b33}
+
+/* ---------- Блоки контенту ---------- */
+.card{background:#fff;border-radius:14px;padding:clamp(14px,1.6vw,28px);border:1px solid #f6dbe5;box-shadow:0 1px 3px rgba(166,30,77,.05);display:flex;flex-direction:column;gap:.9rem;line-height:1.5}
+.title{display:inline-flex;align-self:flex-start;align-items:center;gap:.5em;padding:.35em .9em;border-radius:10px;font-weight:900;font-size:1.25rem;line-height:1.2}
+.def{border-radius:12px;padding:.85em 1em;font-weight:700;font-size:1.05rem;line-height:1.45}
+.def em{font-style:normal}
+.note{color:#5d4a54;font-weight:600}
+.small{font-size:.86rem;color:var(--muted);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:.55rem}
+.tg{border:1.5px solid #e7d3dc;background:#fff;border-radius:999px;padding:.45em 1em;font-weight:800;cursor:pointer;transition:all .18s}
+.tg:hover{border-color:var(--rose)}
+.tg.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.info{background:var(--rose-faint);border:1px solid #f6d3df;border-radius:12px;padding:.8em 1em;font-weight:600;line-height:1.6}
+.formula{font-family:var(--f-letter);font-style:italic;font-weight:700;font-size:2.2rem;text-align:center;color:var(--rose);letter-spacing:.02em}
+.calc{font-weight:800;font-size:1.15rem;text-align:center;font-variant-numeric:tabular-nums}
+
+.acc{border:1px solid #ebdde3;border-radius:12px;background:#fbf8f9;overflow:hidden}
+.acc-h{width:100%;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.65em 1em;background:none;border:0;cursor:pointer;font-weight:800;text-align:left}
+.acc-h:hover{background:#f6eff2}
+.chev{width:1.7em;height:1.7em;border-radius:50%;background:#fff;border:1px solid #dccdd4;display:grid;place-items:center;flex:none;transition:transform .25s}
+.chev::before{content:"";width:.45em;height:.45em;border-right:2px solid #8a7480;border-bottom:2px solid #8a7480;transform:translateY(-.1em) rotate(45deg)}
+.acc.open .chev{transform:rotate(180deg)}
+.acc-b{padding:.2em 1em 1em;display:flex;flex-direction:column;gap:.45em;line-height:1.55;font-weight:600;animation:fadeUp .35s ease both}
+.ok{color:var(--ok);font-weight:900}
+
+/* стартовий огляд (крок 1) */
+.wrap1{max-width:110rem;min-height:100%;margin:0 auto;display:flex;flex-direction:column}
+.wrap1>.card{flex:1;gap:1.2rem}
+.lead{font-size:1.9rem;font-weight:800;line-height:1.35;text-wrap:balance}
+.lead span{color:var(--rose)}
+.scheme{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.branch{background:#fff;border:1px solid #f6dbe5;border-radius:14px;padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:.9rem}
+.branch h3{margin:0;font-size:1.45rem;font-weight:900;color:var(--rose-deep)}
+.kind{flex:1 1 0;min-height:4.5rem;display:flex;align-items:center;gap:1.6rem;padding:.5rem 1.4rem;border-radius:12px;font-weight:800;font-size:1.65rem}
+.kind svg{height:clamp(3.6rem,12vh,8rem);width:auto;aspect-ratio:3/2;flex:none}
+@media (max-width:640px){.scheme{grid-template-columns:1fr}}
+
+/* меню */
+.menu{max-width:66rem;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
+.mi{display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border-radius:14px;background:var(--panelR);border:1px solid #f1dbe4;cursor:pointer;text-align:left;font-weight:800;font-size:1.05rem;transition:all .18s}
+.mi:hover{border-color:#eba3bd;background:#fff;box-shadow:0 3px 10px rgba(166,30,77,.08)}
+.mi .n{width:2.6rem;height:2.6rem;border-radius:50%;background:#f3e6eb;display:grid;place-items:center;font-weight:900;color:#7b6470;flex:none;transition:all .18s}
+.mi:hover .n{background:var(--rose-soft);color:var(--rose-deep)}
+.mi.cur .n{background:var(--rose);color:#fff}
+@media (max-width:640px){.menu{grid-template-columns:1fr}}
+
+/* дослідження */
+.live{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
+.ang{background:#fbf8f9;border:1px solid #ecdfe5;border-radius:10px;padding:.5em .3em;text-align:center;font-variant-numeric:tabular-nums}
+.ang .v{font-size:1.4rem;font-weight:900}
+.ang .t{font-size:.8rem;font-weight:800}
+.verdict{text-align:center;font-size:1.2rem;font-weight:900;padding:.6em;border-radius:12px;transition:background .25s,color .25s}
+.tasks{display:flex;flex-direction:column;gap:.4rem}
+.task{display:flex;align-items:center;gap:.6rem;font-weight:700}
+.task .box{width:1.5em;height:1.5em;border-radius:50%;border:2px solid #d8c8cf;display:grid;place-items:center;flex:none;font-size:.85em;color:#fff;transition:all .25s}
+.task.done .box{background:var(--ok);border-color:var(--ok)}
+
+/* перевір себе */
+.qgroup{display:flex;flex-direction:column;gap:.5rem}
+.qgroup h4{margin:0;font-size:.95rem;font-weight:800;color:#6b5560}
+.qa{border:1.5px solid #e2d3da;background:#fff;border-radius:12px;padding:.5em .9em;font-weight:800;cursor:pointer;transition:all .18s}
+.qa:hover:not(:disabled){border-color:var(--rose)}
+.qa.good{background:var(--ok);border-color:var(--ok);color:#fff}
+.qa.wrong{background:#fdecec;border-color:var(--bad);color:var(--bad);animation:shake .35s}
+.qa:disabled:not(.good){opacity:.45;cursor:default}
+.dots{display:flex;gap:.35rem;flex-wrap:wrap}
+.dots i{width:.7rem;height:.7rem;border-radius:50%;background:#ecdbe2}
+.dots i.cur{background:var(--rose)}
+.dots i.done{background:#f0a9c2}
+.praise{background:#eaf7f0;border:1px solid #bfe5cf;color:#1f6e4b;border-radius:12px;padding:.8em 1em;font-weight:800;line-height:1.5}
+
+/* ---------- Анімації ---------- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.in{animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--d,0s)}
+.fd{animation:fade .6s ease both;animation-delay:var(--d,0s)}
+.drawn{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.3s cubic-bezier(.4,0,.2,1) forwards}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition:none!important}
+  .drawn{stroke-dashoffset:0}
+}
+
+@media (max-width:800px){
+  #lesson{flex-direction:column-reverse}
+  #left{flex:0 0 58%;border-right:0;border-top:1px solid var(--line)}
+  #left.full{flex:1 1 100%}
+  #right{flex:1 1 42%}
+}
+</style>
+
+</head>
+<body>
+<div id="app">
+  <section id="start">
+    <svg class="deco" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <polygon points="90,520 260,380 300,560" fill="#fbd9e5" opacity=".7"/>
+      <polygon points="760,120 940,140 820,260" fill="none" stroke="#f3b6cb" stroke-width="3"/>
+      <polygon points="800,560 880,420 960,560" fill="#fde7ef"/>
+      <polygon points="80,80 200,60 120,190" fill="none" stroke="#f6c7d7" stroke-width="3"/>
+    </svg>
+    <h1><span>Трикутник</span><br>і його види</h1>
+    <p class="grade">Математика · 5 клас</p>
+    <button class="startBtn" id="startBtn"><span>Почати урок</span><i></i></button>
+  </section>
+
+  <div id="lesson" hidden>
+    <aside id="left">
+      <div id="leftInner"></div>
+      <div id="nav"></div>
+    </aside>
+    <div id="right">
+      <svg id="svg" viewBox="0 0 600 450" preserveAspectRatio="xMidYMid meet" tabindex="-1" aria-label="Креслення">
+        <defs>
+          <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M30 0H0V30" fill="none" stroke="#f5d6e2" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect x="-3000" y="-3000" width="6600" height="6450" fill="url(#grid)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+  </div>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b> за технічної підтримки Claude</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const startEl=$('#start'), lessonEl=$('#lesson'), left=$('#left'), inner=$('#leftInner'), nav=$('#nav'), right=$('#right'), svg=$('#svg'), layer=$('#layer');
+
+const COL={ink:'#3a2b33',muted:'#86707c',rose:'#d6336c',acute:'#2f9e6e',right:'#2b7bbf',obtuse:'#e07a1f',iso:'#d6336c',equi:'#12858a',scal:'#b8860b',grey:'#8f7f87'};
+const NAMES={acute:'гострокутний',right:'прямокутний',obtuse:'тупокутний',iso:'рівнобедрений',equi:'рівносторонній',scal:'різносторонній'};
+const ANGNAME=d=>d<90?'гострий':(d===90?'прямий':'тупий');
+const ANGCOL=d=>d<90?COL.acute:(d===90?COL.right:COL.obtuse);
+
+/* ---------- геометрія ---------- */
+const rad=d=>d*Math.PI/180;
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]], add=(a,b)=>[a[0]+b[0],a[1]+b[1]], mul=(a,k)=>[a[0]*k,a[1]*k];
+const len=a=>Math.hypot(a[0],a[1]), unit=a=>{const l=len(a)||1;return[a[0]/l,a[1]/l]};
+const cross=(a,b)=>a[0]*b[1]-a[1]*b[0], dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+const cen=P=>[(P[0][0]+P[1][0]+P[2][0])/3,(P[0][1]+P[1][1]+P[2][1])/3];
+const f1=n=>Math.round(n*10)/10;
+
+function triFromAngles(a,b,rot){
+  const t=Math.sin(rad(b))/Math.sin(rad(a+b));
+  let P=[[0,0],[1,0],[t*Math.cos(rad(a)),t*Math.sin(rad(a))]];
+  if(rot){const r=rad(rot),c=cen(P),cs=Math.cos(r),sn=Math.sin(r);
+    P=P.map(([x,y])=>[c[0]+(x-c[0])*cs-(y-c[1])*sn,c[1]+(x-c[0])*sn+(y-c[1])*cs]);}
+  return P;
+}
+/* математичні координати (y вгору) → координати креслення */
+function fit(P,box){
+  box=box||{x:80,y:60,w:440,h:320};
+  const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+  const mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys);
+  const s=Math.min(box.w/(mxx-mnx||1),box.h/(mxy-mny||1));
+  const ox=box.x+(box.w-(mxx-mnx)*s)/2, oy=box.y+(box.h-(mxy-mny)*s)/2;
+  return P.map(([x,y])=>[ox+(x-mnx)*s,oy+(mxy-y)*s]);
+}
+
+/* ---------- малювання ---------- */
+const T=(x,y,txt,o)=>{o=o||{};return `<text x="${f1(x)}" y="${f1(y)}" text-anchor="middle" dominant-baseline="central" style="font-family:${o.letter?"'PT Serif',Georgia,serif":"Nunito,'Segoe UI',sans-serif"};font-style:${o.letter?'italic':'normal'};font-weight:${o.w||800};font-size:${o.size||18}px;fill:${o.fill||COL.ink};paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round">${txt}</text>`};
+const wrapD=(html,d)=>d==null?html:`<g class="fd" style="--d:${d}s">${html}</g>`;
+
+function angleMark(V,P,Q,deg,color,o){
+  o=o||{};
+  const u1=unit(sub(P,V)),u2=unit(sub(Q,V));
+  const r=o.r||(deg<40?50:36);
+  let s='';
+  if(deg===90){
+    const k=19,a=add(V,mul(u1,k)),b=add(a,mul(u2,k)),c=add(V,mul(u2,k));
+    s+=`<path d="M${f1(V[0])} ${f1(V[1])}L${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}L${f1(c[0])} ${f1(c[1])}Z" fill="${color}" fill-opacity=".18" stroke="${color}" stroke-width="2.2"/>`;
+  }else{
+    const a=add(V,mul(u1,r)),b=add(V,mul(u2,r)),sw=cross(u1,u2)>0?1:0,n=o.n||1;
+    s+=`<path d="M${f1(V[0])} ${f1(V[1])}L${f1(a[0])} ${f1(a[1])}A${r} ${r} 0 0 ${sw} ${f1(b[0])} ${f1(b[1])}Z" fill="${color}" fill-opacity="${o.strong?.32:.16}" stroke="none"/>`;
+    for(let k=0;k<n;k++){const rk=r+k*6,ak=add(V,mul(u1,rk)),bk=add(V,mul(u2,rk));
+      s+=`<path d="M${f1(ak[0])} ${f1(ak[1])}A${rk} ${rk} 0 0 ${sw} ${f1(bk[0])} ${f1(bk[1])}" fill="none" stroke="${color}" stroke-width="2.4"/>`;}
+  }
+  if(o.label!==false){
+    const extra=deg===90?0:((o.n||1)-1)*6;
+    const bis=unit(add(u1,u2)),dist=(deg===90?19:r)+extra+(deg<40?22:deg>100?20:22);
+    const L=add(V,mul(bis,dist));
+    s+=T(L[0],L[1],deg+'°',{fill:color,size:o.fs||18});
+  }
+  return s;
+}
+function ticks(A,B,n,color,o){
+  if(!n)return '';
+  o=o||{L:10,gap:8,w:3};
+  const M=mul(add(A,B),.5),d=unit(sub(B,A)),nn=[-d[1],d[0]];let s='';
+  for(let i=0;i<n;i++){const off=(i-(n-1)/2)*o.gap,c=add(M,mul(d,off)),p=add(c,mul(nn,o.L)),q=add(c,mul(nn,-o.L));
+    s+=`<line x1="${f1(p[0])}" y1="${f1(p[1])}" x2="${f1(q[0])}" y2="${f1(q[1])}" stroke="${color}" stroke-width="${o.w}" stroke-linecap="round"/>`;}
+  return s;
+}
+function arcs(V,P,Q,n,r0,color){
+  const u1=unit(sub(P,V)),u2=unit(sub(Q,V)),sw=cross(u1,u2)>0?1:0;let s='';
+  for(let k=0;k<n;k++){const r=r0+k*4.5,a=add(V,mul(u1,r)),b=add(V,mul(u2,r));
+    s+=`<path d="M${f1(a[0])} ${f1(a[1])}A${r} ${r} 0 0 ${sw} ${f1(b[0])} ${f1(b[1])}" fill="none" stroke="${color}" stroke-width="2"/>`;}
+  return s;
+}
+const handles=(P,c)=>P.map(v=>`<circle cx="${f1(v[0])}" cy="${f1(v[1])}" r="18" fill="${c}" fill-opacity=".12" stroke="${c}" stroke-width="2" stroke-dasharray="4 4" style="cursor:grab"/>`).join('');
+/* o: {P, names, color, angles[3], angCol, ticks[3], lens[3], hlSides[3 bool], hlAngles, hlVerts, angleDelay[3], anim} */
+function drawTri(o){
+  const P=o.P,G=cen(P),c=o.color||COL.rose;let s='';
+  const d=`M${P.map(p=>f1(p[0])+' '+f1(p[1])).join('L')}Z`;
+  s+=`<path d="${d}" fill="${c}" fill-opacity="${o.fillOp==null?.08:o.fillOp}" stroke="none"/>`;
+  // кути
+  if(o.angles||o.hlAngles){
+    const cnt=o.arcCounts||(o.multiArc&&o.angles?rankCounts(o.angles):null);
+    for(let i=0;i<3;i++){
+      const deg=o.angles?o.angles[i]:null; if(deg==null&&!o.hlAngles)continue;
+      const col=o.angleCols?o.angleCols[i]:o.hlAngles?COL.rose:(o.angCol?o.angCol(deg):c);
+      const g=angleMark(P[i],P[(i+1)%3],P[(i+2)%3],deg==null?Math.round(angsOf(P)[i]):deg,col,{label:deg!=null,strong:!!o.hlAngles,r:o.hlAngles?40:undefined,n:cnt?cnt[i]:1});
+      s+=wrapD(g,o.angleDelay?o.angleDelay[i]:null);
+    }
+  }
+  // сторони
+  for(let i=0;i<3;i++){
+    const A=P[i],B=P[(i+1)%3],hl=o.hlSides&&o.hlSides[i],sc=o.sideCols?o.sideCols[i]:null;
+    s+=`<line x1="${f1(A[0])}" y1="${f1(A[1])}" x2="${f1(B[0])}" y2="${f1(B[1])}" stroke="${sc||(hl?COL.rose:c)}" stroke-width="${hl?7:4}" stroke-linecap="round" ${o.anim&&!hl?'class="drawn" pathLength="1"':''}/>`;
+  }
+  if(o.ticks)for(let i=0;i<3;i++)s+=ticks(P[i],P[(i+1)%3],o.ticks[i],COL.ink);
+  if(o.lens)for(let i=0;i<3;i++){if(!o.lens[i])continue;const M=mul(add(P[i],P[(i+1)%3]),.5),L=add(M,mul(unit(sub(M,G)),26));s+=wrapD(T(L[0],L[1],o.lens[i],{size:18,fill:o.lensCols?o.lensCols[i]:(o.lensCol||COL.ink)}),o.lensDelay);}
+  // вершини
+  for(let i=0;i<3;i++){
+    const V=P[i],hv=o.hlVerts,vc=o.vertCols?o.vertCols[i]:(hv?COL.rose:null);
+    s+=`<circle cx="${f1(V[0])}" cy="${f1(V[1])}" r="${hv?9:5.5}" fill="${vc||c}" stroke="#fff" stroke-width="2" ${hv?'class="pulse"':''}/>`;
+    if(o.names){const L=add(V,mul(unit(sub(V,G)),36));s+=T(L[0],L[1],o.names[i],{letter:true,size:26,w:700,fill:vc||COL.ink});}
+  }
+  return s;
+}
+function setLayer(html){layer.innerHTML=html}
+/* найменший кут — 1 дуга, більший — 2, найбільший — 3; рівні кути — однаково */
+function rankCounts(A){const v=[...new Set(A.filter(d=>d!==90))].sort((a,b)=>a-b);return A.map(d=>d===90?1:v.indexOf(d)+1)}
+const EL3=['#d6336c','#2b7bbf','#2f9e6e'];
+const ISO_BASE='#1f7a8c';
+const BR_ANG='#c2185b', BR_SIDE='#1f7a8c';
+
+/* мініатюри для схеми */
+function mini(kind){
+  const D={
+    acute:{P:[[12,72],[108,72],[66,10]],c:COL.acute,arcs:[1,2,3]},
+    right:{P:[[14,72],[110,72],[14,10]],c:COL.right,right:0},
+    obtuse:{P:[[6,70],[114,70],[36,38]],c:COL.obtuse,arcs:[0,0,1]},
+    iso:{P:[[20,74],[100,74],[60,8]],c:COL.iso,tk:[0,1,1]},
+    equi:{P:[[20,74],[100,74],[60,4.7]],c:COL.equi,tk:[2,2,2]},
+    scal:{P:[[6,72],[114,72],[40,14]],c:COL.scal,tk:[1,2,3]}
+  }[kind];
+  const P=D.P,c=D.c;
+  let s=`<polygon points="${P.map(p=>p.join(',')).join(' ')}" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="2.6" stroke-linejoin="round"/>`;
+  if(D.arcs)D.arcs.forEach((n,i)=>{s+=arcs(P[i],P[(i+1)%3],P[(i+2)%3],n,10,c)});
+  if(D.right!=null){const V=P[D.right],u1=unit(sub(P[1],V)),u2=unit(sub(P[2],V)),k=11,a=add(V,mul(u1,k)),b=add(a,mul(u2,k)),q=add(V,mul(u2,k));
+    s+=`<path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}L${f1(q[0])} ${f1(q[1])}" fill="none" stroke="${c}" stroke-width="2"/>`;}
+  if(D.tk)D.tk.forEach((n,i)=>{s+=ticks(P[i],P[(i+1)%3],n,COL.ink,{L:6,gap:4.5,w:2})});
+  return `<svg viewBox="-4 -2 128 82" aria-hidden="true">${s}</svg>`;
+}
+const chip=(kind,txt)=>`<span class="title" style="background:${COL[kind]}1f;color:${COL[kind]}">${txt}</span>`;
+const defBox=(kind,html)=>`<div class="def" style="background:${COL[kind]}12;border:1px solid ${COL[kind]}40">${html}</div>`;
+const acc=(id,head,body)=>`<div class="acc" data-acc="${id}"><button class="acc-h" aria-expanded="false"><span>${head}</span><i class="chev"></i></button><div class="acc-b" hidden>${body}</div></div>`;
+
+/* ---------- кроки уроку ---------- */
+const ANG3={
+  acute:{a:[70,50,60],kind:'acute',name:'Гострокутний трикутник',def:'Якщо <b>всі кути</b> трикутника <b>гострі</b>, то його називають <em style="color:'+COL.acute+'">гострокутним трикутником</em>.'},
+  right:{a:[35,55,90],kind:'right',name:'Прямокутний трикутник',def:'Якщо <b>один із кутів</b> трикутника <b>прямий</b>, то його називають <em style="color:'+COL.right+'">прямокутним трикутником</em>.'},
+  obtuse:{a:[25,35,120],kind:'obtuse',name:'Тупокутний трикутник',def:'Якщо <b>один із кутів</b> трикутника <b>тупий</b>, то його називають <em style="color:'+COL.obtuse+'">тупокутним трикутником</em>.'}
+};
+function angleStep(key){
+  const D=ANG3[key];
+  return {
+    name:D.name, gate:'acc',
+    dragOnAcc:true,
+    left(){
+      const rows=D.a.map((d,i)=>`<div id="ar${i}">${angRow(i,d)}</div>`).join('')
+        +`<div class="small" style="margin-top:.2em">Тепер перетягуйте будь-яку вершину — трикутник залишатиметься ${{acute:'гострокутним',right:'прямокутним',obtuse:'тупокутним'}[key]}.</div>`;
+      const end={acute:'Усі три кути гострі, тому трикутник <b style="color:'+COL.acute+'">гострокутний</b>.',
+                 right:'Один кут прямий, тому трикутник <b style="color:'+COL.right+'">прямокутний</b>.',
+                 obtuse:'Один кут тупий, тому трикутник <b style="color:'+COL.obtuse+'">тупокутний</b>.'}[key];
+      return `<div class="card in">
+        ${chip(D.kind,D.name)}
+        ${defBox(D.kind,D.def)}
+        <div class="info small in" style="--d:.3s">Пригадаймо: <b style="color:${COL.acute}">гострий</b> кут менший від 90°, <b style="color:${COL.right}">прямий</b> дорівнює 90°, <b style="color:${COL.obtuse}">тупий</b> більший за 90°, але менший від 180°.</div>
+        ${acc('v1','Перевіримо кути трикутника ABC',rows+`<div style="margin-top:.3em">${end}</div>`)}
+      </div>`;
+    },
+    draw(){
+      const P=fit(triFromAngles(D.a[0],D.a[1]));
+      S.dt={kind:key,P,ri:2,orient:orientOf(P),enabled:false,color:COL[D.kind],redraw:()=>drawAngleDT(false)};
+      drawAngleDT(true);
+    }
+  };
+}
+
+const steps=[
+/* 1 */ {
+  name:'Як розрізняють трикутники', full:true, gate:'time', time:3200,
+  left(){
+    return `<div class="wrap1">
+      <div class="card in" style="padding:clamp(18px,2.4vw,40px)">
+        <p class="lead" style="margin:0">З усіх многокутників <span>трикутники</span> мають найменшу кількість сторін.</p>
+        <p class="note in" style="--d:1s;margin:0;font-size:1.15rem">Трикутники можна розрізняти <b style="color:${BR_ANG}">за видом їхніх кутів</b> і <b style="color:${BR_SIDE}">за кількістю рівних сторін</b>:</p>
+        <div class="scheme">
+          <div class="branch in" style="--d:1.8s;border:2.5px solid ${BR_ANG}"><h3 style="color:${BR_ANG}">за видом їхніх кутів</h3>
+            <div class="kind" style="background:${COL.acute}14;color:${COL.acute}">${mini('acute')}гострокутний</div>
+            <div class="kind" style="background:${COL.right}14;color:${COL.right}">${mini('right')}прямокутний</div>
+            <div class="kind" style="background:${COL.obtuse}14;color:${COL.obtuse}">${mini('obtuse')}тупокутний</div>
+          </div>
+          <div class="branch in" style="--d:2.6s;border:2.5px solid ${BR_SIDE}"><h3 style="color:${BR_SIDE}">за кількістю рівних сторін</h3>
+            <div class="kind" style="background:${COL.iso}14;color:${COL.iso}">${mini('iso')}рівнобедрений</div>
+            <div class="kind" style="background:${COL.equi}14;color:${COL.equi}">${mini('equi')}рівносторонній</div>
+            <div class="kind" style="background:${COL.scal}18;color:${COL.scal}">${mini('scal')}різносторонній</div>
+          </div>
+        </div>
+      </div></div>`;
+  }
+},
+/* 2 */ {
+  name:'Елементи трикутника', gate:'click',
+  left(){
+    return `<div class="card in">
+      <span class="title" style="background:var(--rose-soft);color:var(--rose-deep)">Трикутник <span class="L">ABC</span></span>
+      <p class="note" style="margin:0;font-size:1.05rem">У трикутника <b>три вершини</b>, <b>три сторони</b> і <b>три кути</b>.</p>
+      <p class="small" style="margin:0">Натискайте кнопки — на кресленні підсвітиться відповідний елемент.</p>
+      <div class="row" id="elBtns">
+        <button class="tg" data-el="v">Вершини</button>
+        <button class="tg" data-el="s">Сторони</button>
+        <button class="tg" data-el="a">Кути</button>
+      </div>
+      <div id="elInfo" class="info" hidden></div>
+    </div>`;
+  },
+  draw(){S.el=S.el||null;drawElements(true)}
+},
+/* 3-5 */ angleStep('acute'), angleStep('right'), angleStep('obtuse'),
+/* 6 */ {
+  name:'Дослідження: вид за кутами', gate:'free',
+  left(){
+    return `<div class="card in">
+      <span class="title" style="background:var(--rose-soft);color:var(--rose-deep)">Досліджуємо</span>
+      <p class="note" style="margin:0">Перетягуйте вершину <span class="L">C</span> по клітинках. Стежте, як змінюються кути і вид трикутника.</p>
+      <div class="live" id="live"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="info" style="padding:.7em 1em">
+        <div class="small" style="margin-bottom:.4em">Завдання: отримайте трикутник</div>
+        <div class="tasks">
+          <div class="task" data-t="acute"><span class="box">✓</span><span style="color:${COL.acute}">гострокутний</span></div>
+          <div class="task" data-t="right"><span class="box">✓</span><span style="color:${COL.right}">прямокутний</span></div>
+          <div class="task" data-t="obtuse"><span class="box">✓</span><span style="color:${COL.obtuse}">тупокутний</span></div>
+        </div>
+      </div>
+    </div>`;
+  },
+  draw(){S.C=S.C||[270,150];S.done={};drawDrag()}
+},
+/* 7 */ {
+  name:'Рівнобедрений трикутник', gate:'click',
+  left(){
+    return `<div class="card in">
+      ${chip('iso','Рівнобедрений трикутник')}
+      ${defBox('iso','Якщо <b>дві сторони</b> трикутника рівні, то його називають <em style="color:'+COL.iso+'">рівнобедреним трикутником</em>.')}
+      <p class="note" style="margin:0">У трикутника <span class="L">ABC</span>: <span class="L">AB</span> = <span class="L">BC</span>. На рисунку рівні сторони позначають <b>однаковою кількістю штрихів</b>.</p>
+      <div class="row" id="isoBtns">
+        <button class="tg" data-iso="legs">Бічні сторони</button>
+        <button class="tg" data-iso="base">Основа</button>
+      </div>
+      <div id="isoInfo" class="info" hidden></div>
+      <div class="info">
+        <div><b>Периметр</b> трикутника — це <b>сума довжин усіх його сторін</b>.</div>
+        <div class="calc" id="isoP" style="margin:.4em 0;line-height:1.5"></div>
+        <div class="small">Перетягуйте будь-яку вершину — трикутник залишається рівнобедреним, а периметр обчислюється автоматично.</div>
+      </div>
+    </div>`;
+  },
+  draw(){S.iso=null;const P=[[150,330],[300,130],[450,330]];
+    S.dt={kind:'iso',apex:1,P,orient:orientOf(P),enabled:true,redraw:()=>drawIso(false)};drawIso(true)}
+},
+/* 8 */ {
+  name:'Рівносторонній трикутник', gate:'click',
+  left(){
+    return `<div class="card in">
+      ${chip('equi','Рівносторонній трикутник')}
+      ${defBox('equi','Якщо <b>три сторони</b> трикутника рівні, то його називають <em style="color:'+COL.equi+'">рівностороннім трикутником</em>.')}
+      <p class="note" style="margin:0">На рисунку <span class="L">MN</span> = <span class="L">NE</span> = <span class="L">EM</span>.</p>
+      <div class="info" style="text-align:center">
+        <div class="small">Якщо сторона рівностороннього трикутника дорівнює <span class="L">a</span>, то його периметр</div>
+        <div class="formula" style="color:${COL.equi}">P = 3a</div>
+      </div>
+      <div class="small" style="text-align:center">Оберіть довжину сторони <span class="L">a</span>:</div>
+      <div class="row" style="justify-content:center" id="aBtns">${[3,4,5,6,7].map(v=>`<button class="tg" data-a="${v}">${v} см</button>`).join('')}</div>
+      <div class="calc" id="aCalc" hidden></div>
+      ${acc('inv','Навпаки: знаємо периметр','<div>Периметр рівностороннього трикутника дорівнює <b>24 см</b>. Чому дорівнює його сторона <span class="L">a</span>?</div><div><button class="nb primary" data-inv>Показати відповідь</button></div><div class="calc" id="invAns" hidden>a = 24 : 3 = 8 (см)</div>')}
+    </div>`;
+  },
+  draw(){S.a=null;drawEqui()}
+},
+/* 9 */ {
+  name:'Різносторонній трикутник', gate:'acc',
+  left(){
+    return `<div class="card in">
+      ${chip('scal','Різносторонній трикутник')}
+      ${defBox('scal','Якщо <b>три сторони</b> трикутника мають <b>різні довжини</b>, то його називають <em style="color:'+COL.scal+'">різностороннім трикутником</em>.')}
+      <p class="note in" style="--d:1.6s;margin:0">Трикутники, які ми розглядали на початку уроку (гострокутний, прямокутний і тупокутний), — теж різносторонні.</p>
+      ${acc('p','Периметр трикутника ABC','<div>Додаємо довжини всіх трьох сторін:</div><div class="calc">P = 4 + 5 + 6 = 15 (см)</div>')}
+    </div>`;
+  },
+  draw(){
+    const B=[27/12,Math.sqrt(16-(27/12)**2)];
+    const P=fit([[0,0],[6,0],B]);
+    // порядок A, C, B — щоб підписи сторін ішли по колу
+    setLayer(drawTri({P:[P[0],P[2],P[1]],names:['A','B','C'],color:COL.scal,anim:true,lens:['4 см','5 см','6 см'],lensDelay:1}));
+  }
+},
+/* 10 */ {
+  name:'Перевір себе', gate:'free',
+  left(){S.q=S.q||0;return quizLeft()},
+  draw(){drawQuiz()}
+}
+];
+const N=steps.length;
+
+/* ---------- крок 2: елементи ---------- */
+function drawElements(anim){
+  const P=fit(triFromAngles(62,48));
+  const e=S.el;
+  setLayer(drawTri({P,names:['A','B','C'],color:COL.grey,fillOp:.06,anim,
+    hlVerts:e==='v',vertCols:e==='v'?EL3:null,
+    hlSides:e==='s'?[1,1,1]:null,sideCols:e==='s'?EL3:null,
+    hlAngles:e==='a',angleCols:e==='a'?EL3:null,arcCounts:e==='a'?[1,2,3]:null}));
+}
+const cl=(i,t)=>`<span class="L" style="color:${EL3[i]}">${t}</span>`;
+const EL_INFO={
+  v:`<b>Вершини:</b> точки ${cl(0,'A')}, ${cl(1,'B')}, ${cl(2,'C')}.`,
+  s:`<b>Сторони:</b> відрізки ${cl(0,'AB')}, ${cl(1,'BC')}, ${cl(2,'CA')}.`,
+  a:`<b>Кути:</b> ∠${cl(0,'A')}, ∠${cl(1,'B')}, ∠${cl(2,'C')}<br><span class="small">(інакше: ∠${cl(0,'BAC')}, ∠${cl(1,'ABC')}, ∠${cl(2,'ACB')})</span><br><span class="small">Різні кути позначаємо різною кількістю дуг.</span>`
+};
+
+/* ---------- крок 6: перетягування ---------- */
+const DA=[150,360],DB=[390,360];
+function angInfo(V,P,Q){const a=sub(P,V),b=sub(Q,V),dt=dot(a,b);let deg=Math.acos(Math.max(-1,Math.min(1,dt/(len(a)*len(b)))))*180/Math.PI;
+  deg=dt===0?90:dt>0?Math.min(Math.round(deg),89):Math.max(Math.round(deg),91);return deg;}
+function drawDrag(){
+  const C=S.C,P=[DA,DB,C];
+  const angs=[angInfo(DA,DB,C),angInfo(DB,C,DA),angInfo(C,DA,DB)];
+  const mx=Math.max(...angs),kind=mx===90?'right':mx>90?'obtuse':'acute';
+  let s=drawTri({P,names:['A','B','C'],color:COL[kind],angles:angs,angCol:ANGCOL,fillOp:.1,multiArc:true});
+  s+=`<circle cx="${C[0]}" cy="${C[1]}" r="22" fill="${COL[kind]}" fill-opacity=".15" stroke="${COL[kind]}" stroke-width="2" stroke-dasharray="4 4" style="cursor:grab"/>`;
+  setLayer(s);
+  const live=$('#live');
+  if(live){
+    live.innerHTML=['A','B','C'].map((n,i)=>`<div class="ang"><div class="small">∠<span class="L">${n}</span></div><div class="v" style="color:${ANGCOL(angs[i])}">${angs[i]}°</div><div class="t" style="color:${ANGCOL(angs[i])}">${ANGNAME(angs[i])}</div></div>`).join('');
+    const v=$('#verdict');v.style.background=COL[kind]+'1c';v.style.color=COL[kind];v.textContent='Трикутник '+NAMES[kind];
+    S.done[kind]=true;
+    document.querySelectorAll('.task').forEach(t=>t.classList.toggle('done',!!S.done[t.dataset.t]));
+  }
+}
+function svgPoint(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+function moveC(x,y){
+  x=Math.round(x/30)*30;y=Math.round(y/30)*30;
+  x=Math.max(30,Math.min(570,x));y=Math.max(30,Math.min(330,y));
+  if(x!==S.C[0]||y!==S.C[1]){S.C=[x,y];drawDrag()}
+}
+let dragging=false,dragV=-1;
+svg.addEventListener('pointerdown',e=>{
+  const p=svgPoint(e);
+  if(cur().name&&cur().name.indexOf('Дослідження')===0){dragging=true;svg.setPointerCapture(e.pointerId);moveC(p.x,p.y);return}
+  const D=S.dt;if(!D||!D.enabled)return;
+  let bi=-1,bd=48;D.P.forEach((v,i)=>{const d=len(sub(v,[p.x,p.y]));if(d<bd){bd=d;bi=i}});
+  if(bi<0)return;dragV=bi;svg.setPointerCapture(e.pointerId);e.preventDefault();
+});
+svg.addEventListener('pointermove',e=>{
+  if(dragging){const p=svgPoint(e);moveC(p.x,p.y);return}
+  if(dragV>=0&&S.dt){const p=svgPoint(e);tryMove(dragV,[p.x,p.y])}
+});
+const endDrag=e=>{if(dragging||dragV>=0){dragging=false;dragV=-1;try{svg.releasePointerCapture(e.pointerId)}catch(_){}}};
+svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('keydown',e=>{if(cur().name.indexOf('Дослідження')!==0)return;const m={ArrowLeft:[-30,0],ArrowRight:[30,0],ArrowUp:[0,-30],ArrowDown:[0,30]}[e.key];if(m){e.preventDefault();moveC(S.C[0]+m[0],S.C[1]+m[1])}});
+
+/* ---------- рухомі вершини (кроки 3–5 і 7) ---------- */
+const PX_CM=50;
+const perp=u=>[-u[1],u[0]];
+function angsOf(P){return [0,1,2].map(i=>{const V=P[i],a=sub(P[(i+1)%3],V),b=sub(P[(i+2)%3],V);return Math.acos(Math.max(-1,Math.min(1,dot(a,b)/(len(a)*len(b)))))*180/Math.PI})}
+function orientOf(P){return Math.sign(cross(sub(P[1],P[0]),sub(P[2],P[0])))}
+function propose(D,i,t){
+  const P=D.P.map(p=>p.slice());
+  if(D.kind==='right'){
+    const r=D.ri;
+    if(i===r){const A=P[(r+1)%3],B=P[(r+2)%3],M=mul(add(A,B),.5),rr=len(sub(A,B))/2;P[r]=add(M,mul(unit(sub(t,M)),rr));}
+    else{const C=P[r],j=3-r-i,Y=P[j],s=Math.sign(cross(sub(P[i],C),sub(Y,C))),u=unit(sub(t,C));
+      P[i]=t;P[j]=add(C,mul(perp(u),s*len(sub(Y,C))));}
+  }else if(D.kind==='iso'){
+    const ap=D.apex,b1=(ap+1)%3,b2=(ap+2)%3;
+    if(i!==ap)P[i]=t;
+    const M=mul(add(P[b1],P[b2]),.5),d=unit(perp(sub(P[b2],P[b1]))),src=i===ap?t:P[ap];
+    P[ap]=add(M,mul(d,dot(sub(src,M),d)));
+  }else P[i]=t;
+  return P;
+}
+function valid(D,P){
+  for(const p of P)if(!isFinite(p[0])||!isFinite(p[1])||p[0]<25||p[0]>575||p[1]<25||p[1]>425)return false;
+  for(let i=0;i<3;i++)if(len(sub(P[i],P[(i+1)%3]))<55)return false;
+  if(orientOf(P)!==D.orient)return false;
+  const a=angsOf(P),mx=Math.max(...a),mn=Math.min(...a);
+  if(mn<12)return false;
+  if(D.kind==='acute'&&mx>87)return false;
+  if(D.kind==='obtuse'&&(mx<95||mx>155))return false;
+  if(D.kind==='iso'&&mx>150)return false;
+  return true;
+}
+function tryMove(i,t){
+  const D=S.dt,old=D.P[i];let c=propose(D,i,t);
+  if(!valid(D,c)){c=null;let lo=0,hi=1;
+    for(let k=0;k<14;k++){const m=(lo+hi)/2,q=propose(D,i,add(old,mul(sub(t,old),m)));if(valid(D,q)){lo=m;c=q}else hi=m}}
+  if(c){D.P=c;D.redraw();if(D.kind==='iso')unlock()}
+}
+function dispAngles(D){
+  const a=angsOf(D.P);
+  if(D.kind==='right'){const r=D.ri,i1=(r+1)%3,i2=(r+2)%3,out=[0,0,0];out[r]=90;out[i1]=Math.round(a[i1]);out[i2]=90-out[i1];return out}
+  if(D.kind==='acute')return a.map(x=>Math.min(Math.round(x),89));
+  const mi=a.indexOf(Math.max(...a));return a.map((x,i)=>i===mi?Math.max(Math.round(x),91):Math.min(Math.round(x),89));
+}
+const angRow=(i,d)=>`∠<span class="L">${'ABC'[i]}</span> = ${d}° — <b style="color:${ANGCOL(d)}">${ANGNAME(d)}</b>`;
+function drawAngleDT(anim){
+  const D=S.dt,a=dispAngles(D);
+  let s=drawTri({P:D.P,names:['A','B','C'],color:D.color,angles:a,angCol:ANGCOL,anim,multiArc:true,angleDelay:anim?[1.2,1.9,2.6]:null});
+  if(D.enabled)s+=handles(D.P,D.color);
+  setLayer(s);
+  a.forEach((d,i)=>{const el=document.getElementById('ar'+i);if(el)el.innerHTML=angRow(i,d)});
+}
+function fmtMM(mm){const c=Math.floor(mm/10),m=mm%10;return m?`${c} см ${m} мм`:`${c} см`}
+
+/* ---------- крок 7: рівнобедрений ---------- */
+function drawIso(anim){
+  const D=S.dt,P=D.P,h=S.iso;
+  const leg=Math.round((len(sub(P[1],P[0]))+len(sub(P[2],P[1])))/2/PX_CM*10),base=Math.round(len(sub(P[2],P[0]))/PX_CM*10);
+  const SC=[COL.iso,COL.iso,ISO_BASE];
+  let s=drawTri({P,names:['A','B','C'],color:COL.iso,anim,ticks:[1,1,0],lens:[fmtMM(leg),fmtMM(leg),fmtMM(base)],lensCols:SC,sideCols:SC,lensDelay:anim?1.2:null,hlSides:h==='legs'?[1,1,0]:h==='base'?[0,0,1]:null});
+  s+=handles(P,COL.iso);
+  setLayer(s);
+  const el=$('#isoP');
+  const ci=t=>`<span style="color:${COL.iso}">${t}</span>`,cb=t=>`<span style="color:${ISO_BASE}">${t}</span>`;
+  if(el)el.innerHTML=`P = ${ci('<span class="L">AB</span>')} + ${ci('<span class="L">BC</span>')} + ${cb('<span class="L">AC</span>')}<br>= ${ci(fmtMM(leg))} + ${ci(fmtMM(leg))} + ${cb(fmtMM(base))} = ${fmtMM(2*leg+base)}`;
+}
+/* ---------- крок 8: рівносторонній ---------- */
+function drawEqui(){
+  const P=fit(triFromAngles(60,60));
+  const a=S.a,l=a?a+' см':'a';
+  setLayer(drawTri({P,names:['M','E','N'],color:COL.equi,anim:!a,ticks:[1,1,1],lens:[l,l,l],lensCol:a?COL.equi:COL.ink}));
+}
+
+/* ---------- крок 10: перевір себе ---------- */
+const QUIZ=[
+  {n:'KLM',a:[60,60,60],rot:0},
+  {n:'DEF',a:[45,45,90],rot:0},
+  {n:'PRS',a:[25,40,115],rot:10},
+  {n:'ABC',a:[70,70,40],rot:0},
+  {n:'MNK',a:[90,35,55],rot:-15},
+  {n:'TOR',a:[30,30,120],rot:180},
+  {n:'XYZ',a:[50,60,70],rot:20}
+];
+function qMeta(q){
+  const [a,b,c]=q.a,mx=Math.max(a,b,c);
+  const ang=mx===90?'right':mx>90?'obtuse':'acute';
+  const side=(a===b&&b===c)?'equi':(a===b||b===c||a===c)?'iso':'scal';
+  // сторона i (між вершинами i та i+1) лежить проти кута i+2
+  const opp=[c,a,b],tk=opp.map((v,i)=>q.a.filter(x=>x===v).length>1?1:0);
+  return {ang,side,tk};
+}
+function quizLeft(){
+  const q=QUIZ[S.q],nm=q.n.split('');
+  const dots=QUIZ.map((_,i)=>`<i class="${i===S.q?'cur':i<S.q?'done':''}"></i>`).join('');
+  const grp=(id,title,opts)=>`<div class="qgroup"><h4>${title}</h4><div class="row" data-g="${id}">${opts.map(k=>`<button class="qa" data-k="${k}">${NAMES[k]}</button>`).join('')}</div></div>`;
+  return `<div class="card in">
+    <span class="title" style="background:var(--rose-soft);color:var(--rose-deep)">Перевір себе</span>
+    <div class="dots" aria-label="Трикутник ${S.q+1} з ${QUIZ.length}">${dots}</div>
+    <p class="note" style="margin:0;font-size:1.05rem">Визначте вид трикутника <span class="L">${nm.join('')}</span> залежно від виду його кутів та кількості рівних сторін.</p>
+    ${grp('ang','За видом кутів',['acute','right','obtuse'])}
+    ${grp('side','За кількістю рівних сторін',['iso','equi','scal'])}
+    <div id="qRes"></div>
+  </div>`;
+}
+function drawQuiz(){
+  const q=QUIZ[S.q],m=qMeta(q);
+  const P=fit(triFromAngles(q.a[0],q.a[1],q.rot));
+  setLayer(drawTri({P,names:q.n.split(''),color:COL.rose,angles:q.a,angCol:ANGCOL,ticks:m.tk,anim:true,fillOp:.07}));
+  S.qok={};
+}
+function quizClick(btn){
+  const g=btn.parentElement.dataset.g,k=btn.dataset.k,q=QUIZ[S.q],m=qMeta(q);
+  const right=g==='ang'?m.ang:m.side;
+  if(k===right){
+    btn.classList.remove('wrong');btn.classList.add('good');btn.textContent='✓ '+NAMES[k];
+    btn.parentElement.querySelectorAll('.qa').forEach(b=>b.disabled=true);
+    S.qok[g]=true;
+  }else{
+    btn.classList.remove('wrong');void btn.offsetWidth;btn.classList.add('wrong');
+  }
+  if(S.qok.ang&&S.qok.side){
+    const last=S.q===QUIZ.length-1;
+    $('#qRes').innerHTML=`<div class="praise in">Правильно! Трикутник <span class="L">${q.n}</span> — ${NAMES[m.ang]} і ${NAMES[m.side]}.${last?'<br>Усі трикутники визначено. Молодці!':''}</div>
+      <div class="row" style="margin-top:.7rem">${last?'<button class="nb primary" data-q="again">Пройти ще раз</button>':'<button class="nb primary" data-q="next">Наступний трикутник ➔</button>'}</div>`;
+  }
+}
+
+/* ---------- стан і навігація ---------- */
+const S={started:false,menu:false,step:0,unlocked:false,timers:[]};
+const cur=()=>steps[S.step-1]||{};
+function clearTimers(){S.timers.forEach(clearTimeout);S.timers=[]}
+
+function unlock(){if(S.unlocked)return;S.unlocked=true;renderNav(true)}
+
+function render(){
+  clearTimers();
+  if(S.menu){
+    left.classList.add('full');right.hidden=true;
+    inner.innerHTML=`<div class="menu in">${steps.map((s,i)=>`<button class="mi ${S.step===i+1?'cur':''}" data-go="${i+1}"><span class="n">${i+1}</span><span>${s.name}</span></button>`).join('')}</div>`;
+    renderNav();return;
+  }
+  const st=cur();
+  left.classList.toggle('full',!!st.full);
+  right.hidden=!!st.full;
+  inner.innerHTML=st.left();
+  inner.scrollTop=0;
+  S.unlocked=st.gate==='free';
+  if(st.gate==='time')S.timers.push(setTimeout(unlock,matchMedia('(prefers-reduced-motion: reduce)').matches?0:st.time));
+  S.dt=null;
+  if(st.draw)st.draw();
+  svg.setAttribute('tabindex',st.name&&st.name.indexOf('Дослідження')===0?'0':'-1');
+  renderNav();
+}
+function renderNav(pop){
+  let h='';
+  if(S.menu){
+    if(S.step>0)h=`<button class="nb" data-nav="back">Повернутись ➔</button>`;
+  }else{
+    h+=`<button class="nb soft" data-nav="menu">☰ Зміст</button>`;
+    if(S.step>1)h+=`<button class="nb" data-nav="prev">← Назад</button>`;
+    if(S.step<N)h+=`<button class="nb ${S.unlocked?'primary':'off'} ${pop?'popped':''}" data-nav="next" ${S.unlocked?'':'aria-disabled="true"'}>Далі ➔</button>`;
+    else h+=`<button class="nb primary" data-nav="restart">На початок</button>`;
+  }
+  nav.innerHTML=h;
+}
+function go(n){S.step=n;S.menu=false;S.el=null;S.q=0;S.C=null;render()}
+
+$('#startBtn').addEventListener('click',()=>{S.started=true;S.menu=true;S.step=0;startEl.hidden=true;lessonEl.hidden=false;render()});
+
+nav.addEventListener('click',e=>{
+  const b=e.target.closest('[data-nav]');if(!b)return;
+  const a=b.dataset.nav;
+  if(a==='menu'){S.menu=true;render()}
+  else if(a==='back'){S.menu=false;render()}
+  else if(a==='prev'){if(S.step>1)go(S.step-1)}
+  else if(a==='next'){if(S.unlocked&&S.step<N)go(S.step+1)}
+  else if(a==='restart'){S.menu=false;S.step=0;lessonEl.hidden=true;startEl.hidden=false;clearTimers()}
+});
+
+inner.addEventListener('click',e=>{
+  const go1=e.target.closest('[data-go]');if(go1){go(+go1.dataset.go);return}
+  const ah=e.target.closest('.acc-h');
+  if(ah){const box=ah.parentElement,body=box.querySelector('.acc-b'),open=body.hidden;body.hidden=!open;box.classList.toggle('open',open);ah.setAttribute('aria-expanded',open);if(cur().gate==='acc')unlock();
+    if(cur().dragOnAcc&&S.dt&&!S.dt.enabled){S.dt.enabled=true;S.dt.redraw()}
+    if(box.dataset.acc==='inv'&&open){S.a=null;document.querySelectorAll('[data-a]').forEach(b=>b.classList.remove('on'));$('#aCalc').hidden=true;$('#invAns').hidden=true;drawEqui()}
+    return}
+  const inv=e.target.closest('[data-inv]');
+  if(inv){const ans=$('#invAns');ans.hidden=false;ans.classList.remove('in');void ans.offsetWidth;ans.classList.add('in');S.a=8;drawEqui();return}
+  const el=e.target.closest('[data-el]');
+  if(el){S.el=S.el===el.dataset.el?null:el.dataset.el;
+    document.querySelectorAll('[data-el]').forEach(b=>b.classList.toggle('on',b.dataset.el===S.el));
+    const info=$('#elInfo');info.hidden=!S.el;if(S.el)info.innerHTML=EL_INFO[S.el];
+    drawElements(false);unlock();return}
+  const iso=e.target.closest('[data-iso]');
+  if(iso){S.iso=S.iso===iso.dataset.iso?null:iso.dataset.iso;
+    document.querySelectorAll('[data-iso]').forEach(b=>b.classList.toggle('on',b.dataset.iso===S.iso));
+    const info=$('#isoInfo');info.hidden=!S.iso;
+    if(S.iso)info.innerHTML=S.iso==='legs'?'Рівні сторони <span class="L">AB</span> і <span class="L">BC</span> називають <b style="color:'+COL.iso+'">бічними сторонами</b>.':'Сторону <span class="L" style="color:'+ISO_BASE+'">AC</span> називають <b style="color:'+ISO_BASE+'">основою</b> рівнобедреного трикутника <span class="L">ABC</span>.';
+    drawIso();unlock();return}
+  const ab=e.target.closest('[data-a]');
+  if(ab){S.a=+ab.dataset.a;document.querySelectorAll('[data-a]').forEach(b=>b.classList.toggle('on',b===ab));
+    const c=$('#aCalc');c.hidden=false;c.innerHTML=`P = 3 · ${S.a} = ${3*S.a} (см)`;c.classList.remove('in');void c.offsetWidth;c.classList.add('in');
+    drawEqui();unlock();return}
+  const qa=e.target.closest('.qa');if(qa&&!qa.disabled){quizClick(qa);return}
+  const qn=e.target.closest('[data-q]');
+  if(qn){S.q=qn.dataset.q==='next'?S.q+1:0;inner.innerHTML=quizLeft();inner.scrollTop=0;drawQuiz();return}
+});
+})();
+</script>
+</body>
+</html>
