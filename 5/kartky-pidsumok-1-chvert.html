@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Підсумок І чверті — картки-запитання, 5 клас</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: одна велика картка на весь екран (для проєктора), над нею — вибір тем, під нею — дві кнопки */
+:root{
+  --bg:#fbeef3; --dot:#f3d3df; --ink:#3a2633; --muted:#8c6a7d;
+  --card:#fffafc; --card-edge:#f1cbd9;
+  --front:#f2a7c3; --front-2:#e98cb0; --front-ink:#ffffff;
+  --accent:#c4467a; --accent-ink:#ffffff; --accent-soft:#fbdbe7;
+  --chip:#fffafc; --chip-edge:#efc6d6;
+  --ans-bg:#e5f5eb; --ans-ink:#1d6843; --ans-edge:#b6dfc6;
+  --fig-fill:#fde4ee; --mark:#c4467a; --line:#3a2633; --unk:#6c4fc4;
+  --f-display:"Comfortaa","Nunito",system-ui,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#231820; --dot:#33232d; --ink:#f7e8ef; --muted:#c9a6b8;
+  --card:#2e2029; --card-edge:#4a3341;
+  --front:#9b4468; --front-2:#82365a; --front-ink:#fff4f8;
+  --accent:#f08ab2; --accent-ink:#2a1520; --accent-soft:#4a2a3a;
+  --chip:#2e2029; --chip-edge:#4a3341;
+  --ans-bg:#1d3a2a; --ans-ink:#a3e3bf; --ans-edge:#2f5a41;
+  --fig-fill:#3b2733; --mark:#f08ab2; --line:#f7e8ef; --unk:#b9a4ff;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#231820; --dot:#33232d; --ink:#f7e8ef; --muted:#c9a6b8;
+  --card:#2e2029; --card-edge:#4a3341;
+  --front:#9b4468; --front-2:#82365a; --front-ink:#fff4f8;
+  --accent:#f08ab2; --accent-ink:#2a1520; --accent-soft:#4a2a3a;
+  --chip:#2e2029; --chip-edge:#4a3341;
+  --ans-bg:#1d3a2a; --ans-ink:#a3e3bf; --ans-edge:#2f5a41;
+  --fig-fill:#3b2733; --mark:#f08ab2; --line:#f7e8ef; --unk:#b9a4ff;
+  color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 1.6px,transparent 1.7px);background-size:26px 26px;color:var(--ink);font-family:var(--f-body)}
+*{box-sizing:border-box}
+.app{height:100%;max-width:1240px;margin:0 auto;display:grid;grid-template-rows:auto 1fr auto;gap:14px;
+  padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* теми */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.top h1{margin:0;font-family:var(--f-display);font-size:clamp(18px,1.6vw,24px);color:var(--accent);margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 clamp(14px,1.1vw,17px)/1 var(--f-body);padding:9px 14px;border-radius:999px;border:2px solid var(--chip-edge);
+  background:var(--chip);color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.chip:focus-visible,.btn:focus-visible,.front:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* картка */
+.stage{min-height:0;perspective:1800px;position:relative}
+.card{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,.7,.3,1)}
+.card.open{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:30px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{cursor:pointer;display:grid;place-items:center;overflow:hidden;
+  background:linear-gradient(150deg,var(--front),var(--front-2));color:var(--front-ink);
+  box-shadow:0 10px 0 -4px var(--card-edge),0 18px 40px -18px rgba(120,40,80,.45)}
+.front .q{font-family:var(--f-display);font-size:clamp(120px,22vh,260px);line-height:1;text-shadow:0 6px 0 rgba(0,0,0,.12)}
+.front .hint{position:absolute;bottom:7%;left:0;right:0;text-align:center;font-weight:800;font-size:clamp(18px,1.8vw,28px);opacity:.92}
+.front .sym{position:absolute;font-family:var(--f-display);font-size:clamp(28px,4vw,60px);opacity:.22;user-select:none}
+.back{transform:rotateY(180deg);background:var(--card);border:2px solid var(--card-edge);
+  display:flex;flex-direction:column;gap:clamp(10px,1.6vh,20px);padding:clamp(18px,3vw,42px);overflow:auto;
+  box-shadow:0 18px 40px -20px rgba(120,40,80,.35)}
+.tag{align-self:flex-start;font-weight:800;font-size:clamp(14px,1.2vw,18px);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:6px 12px;border-radius:10px}
+.qtext{font-weight:800;font-size:clamp(24px,2.3vw + 1vh,48px);line-height:1.28;text-wrap:balance}
+.qtext b{color:var(--accent)}
+.big{font-weight:900;font-size:clamp(38px,4.6vw + 1.6vh,96px);text-align:center;font-variant-numeric:tabular-nums;line-height:1.15;text-wrap:balance}
+.words{font-weight:800;font-size:clamp(28px,2.8vw + 1.2vh,60px);text-align:center;line-height:1.25;text-wrap:balance}
+.box{display:inline-block;width:.8em;height:.9em;border:.08em solid var(--accent);border-radius:.12em;vertical-align:-.1em;margin:0 .25em}
+i.v{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700}
+.figwrap{flex:1 1 0;min-height:200px;position:relative}
+.fig{position:absolute;inset:0;width:100%;height:100%}
+.spacer{flex:1 1 0}
+[hidden]{display:none!important}
+.answer{background:var(--ans-bg);border:2px solid var(--ans-edge);color:var(--ans-ink);border-radius:20px;
+  padding:clamp(12px,1.8vh,22px) clamp(16px,2vw,28px);display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.answer .lab{font:800 clamp(20px,1.7vw,28px)/1 var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--ans-ink);background:none;border:0;padding:0}
+.answer.closed{align-self:flex-start;cursor:pointer;padding:clamp(12px,1.6vh,18px) clamp(22px,2.4vw,34px)}
+.answer.closed .lab{cursor:pointer;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px}
+.answer .lab:focus-visible{outline:3px solid var(--accent);outline-offset:6px;border-radius:6px}
+.answer .val{font-weight:900;font-size:clamp(30px,3vw + 1vh,62px);font-variant-numeric:tabular-nums;line-height:1.2}
+.answer .why{flex-basis:100%;font-weight:700;font-size:clamp(18px,1.4vw + .5vh,30px);color:var(--ink);opacity:.85}
+
+/* рисунки */
+.fig text{font-family:var(--f-body);font-weight:800;font-size:28px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.fig text.deg{fill:var(--mark);font-size:26px}
+.fig text.unk{fill:var(--unk);font-size:32px}
+.fig .shape{fill:var(--fig-fill);stroke:var(--line);stroke-width:3.5;stroke-linejoin:round}
+.fig .ray{stroke:var(--line);stroke-width:3.5;stroke-linecap:round;fill:none}
+.fig .mk{fill:none;stroke:var(--mark);stroke-width:3}
+.fig .tick{stroke:var(--mark);stroke-width:3.5;stroke-linecap:round}
+.fig .dot{fill:var(--line)}
+
+/* кнопки */
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+.btn{font:800 clamp(18px,1.7vw,26px)/1 var(--f-body);padding:16px 28px;border-radius:18px;cursor:pointer;border:3px solid var(--accent)}
+.btn.show{background:var(--card);color:var(--accent)}
+.btn.next{background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default}
+
+@media (max-width:560px){.btn{flex:1 1 100%}.front .q{font-size:110px}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Підсумок І чверті · Відкрий картку</h1>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <main class="stage">
+    <div class="card" id="card">
+      <div class="face front" id="front" role="button" tabindex="0" aria-label="Відкрити картку">
+        <span class="sym" style="left:7%;top:10%">+</span>
+        <span class="sym" style="right:9%;top:14%">−</span>
+        <span class="sym" style="left:12%;bottom:22%">△</span>
+        <span class="sym" style="right:13%;bottom:26%">∠</span>
+        <span class="sym" style="left:30%;top:6%">·</span>
+        <span class="sym" style="right:32%;bottom:12%">=</span>
+        <span class="sym" style="left:4%;top:48%">°</span>
+        <span class="sym" style="right:5%;top:50%">▭</span>
+        <span class="q">?</span>
+        <span class="hint">Натисніть, щоб відкрити</span>
+      </div>
+      <div class="face back" id="back" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer class="controls">
+    <button class="btn next" id="btnNext">Наступна картка →</button>
+  </footer>
+</div>
+
+<script>
+/* ---------- допоміжне ---------- */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const R5=(a,b)=>5*R(Math.ceil(a/5),Math.floor(b/5));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const NB=' ';
+const fmt=n=>{const s=String(n);return n>=10000?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s};
+const plural=(n,one,few,many)=>{const a=n%100,b=n%10;if(a>=11&&a<=14)return many;if(b===1)return one;if(b>=2&&b<=4)return few;return many};
+const X='<i class="v">x</i>';
+
+/* назви чисел */
+const AP='’';
+const UM=['','один','два','три','чотири',`п${AP}ять`,'шість','сім','вісім',`дев${AP}ять`];
+const UF=['','одна','дві','три','чотири',`п${AP}ять`,'шість','сім','вісім',`дев${AP}ять`];
+const TEEN=['десять','одинадцять','дванадцять','тринадцять','чотирнадцять',`п${AP}ятнадцять`,'шістнадцять','сімнадцять','вісімнадцять',`дев${AP}ятнадцять`];
+const TENS=['','','двадцять','тридцять','сорок',`п${AP}ятдесят`,'шістдесят','сімдесят','вісімдесят',`дев${AP}яносто`];
+const HUN=['','сто','двісті','триста','чотириста',`п${AP}ятсот`,'шістсот','сімсот','вісімсот',`дев${AP}ятсот`];
+function w3(n,fem){const r=[],h=Math.floor(n/100),t=Math.floor(n%100/10),u=n%10;
+  if(h)r.push(HUN[h]); if(t===1)r.push(TEEN[u]); else{if(t)r.push(TENS[t]); if(u)r.push((fem?UF:UM)[u]);} return r.join(' ')}
+function words(n){if(n===0)return 'нуль';const r=[],m=Math.floor(n/1e6),t=Math.floor(n/1000)%1000,u=n%1000;
+  if(m)r.push(w3(m,false)+' '+plural(m,'мільйон','мільйони','мільйонів'));
+  if(t)r.push(w3(t,true)+' '+plural(t,'тисяча','тисячі','тисяч'));
+  if(u)r.push(w3(u,false)); return r.join(' ')}
+function genNum(d){let s=String(R(1,9));for(let i=1;i<d;i++)s+=Math.random()<.3?'0':String(R(0,9));return +s}
+
+/* ---------- геометрія ---------- */
+const P=(x,y)=>({x,y}),add=(a,b)=>P(a.x+b.x,a.y+b.y),sub=(a,b)=>P(a.x-b.x,a.y-b.y),mul=(a,k)=>P(a.x*k,a.y*k),
+  ln=a=>Math.hypot(a.x,a.y),norm=a=>mul(a,1/ln(a)),ang=(V,Q)=>Math.atan2(Q.y-V.y,Q.x-V.x),
+  dirM=d=>P(Math.cos(d*Math.PI/180),-Math.sin(d*Math.PI/180)),f=n=>n.toFixed(1),polar=(V,a,r)=>add(V,P(r*Math.cos(a),r*Math.sin(a)));
+function Fig(){const els=[],pts=[];return{
+  line(a,b,c='ray'){els.push(`<line x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}" class="${c}"/>`);pts.push(a,b)},
+  poly(ps,c='shape'){els.push(`<polygon points="${ps.map(p=>f(p.x)+','+f(p.y)).join(' ')}" class="${c}"/>`);pts.push(...ps)},
+  path(d,c,ps=[]){els.push(`<path d="${d}" class="${c}"/>`);pts.push(...ps)},
+  dot(p){els.push(`<circle cx="${f(p.x)}" cy="${f(p.y)}" r="5.5" class="dot"/>`);pts.push(p)},
+  text(p,s,c=''){els.push(`<text x="${f(p.x)}" y="${f(p.y)}" class="${c}">${s}</text>`);const w=String(s).replace(/<[^>]+>/g,'').length*8+6;pts.push(P(p.x-w,p.y-18),P(p.x+w,p.y+18))},
+  svg(pad=16){const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);const x0=Math.min(...xs)-pad,y0=Math.min(...ys)-pad,
+    w=Math.max(...xs)-x0+pad,h=Math.max(...ys)-y0+pad;
+    return `<svg class="fig" viewBox="${f(x0)} ${f(y0)} ${f(w)} ${f(h)}" role="img" aria-label="Рисунок">${els.join('')}</svg>`}}}
+function arcs(F,V,A,B,count,r0=34,gap=8){const a1=ang(V,A);let d=ang(V,B)-a1;while(d<=-Math.PI)d+=2*Math.PI;while(d>Math.PI)d-=2*Math.PI;
+  for(let i=0;i<count;i++){const r=r0+i*gap,s=polar(V,a1,r),e=polar(V,a1+d,r);F.path(`M${f(s.x)} ${f(s.y)}A${r} ${r} 0 0 ${d>0?1:0} ${f(e.x)} ${f(e.y)}`,'mk')}
+  return a1+d/2}
+function rightMark(F,V,A,B,s=24){const u=norm(sub(A,V)),w=norm(sub(B,V)),p1=add(V,mul(u,s)),p2=add(p1,mul(w,s)),p3=add(V,mul(w,s));
+  F.path(`M${f(p1.x)} ${f(p1.y)}L${f(p2.x)} ${f(p2.y)}L${f(p3.x)} ${f(p3.y)}`,'mk')}
+function ticks(F,A,B,k){const M=mul(add(A,B),.5),d=norm(sub(B,A)),n=P(-d.y,d.x);
+  for(let i=0;i<k;i++){const c=add(M,mul(d,(i-(k-1)/2)*10));F.line(add(c,mul(n,11)),sub(c,mul(n,11)),'tick')}}
+function sideLabel(F,A,B,G,s,c=''){const M=mul(add(A,B),.5),d=norm(sub(B,A));let n=P(-d.y,d.x);if((M.x-G.x)*n.x+(M.y-G.y)*n.y<0)n=mul(n,-1);F.text(add(M,mul(n,30)),s,c)}
+function fitTri(pts,size=400){const rot=R(-12,12)*Math.PI/180,fl=Math.random()<.5?-1:1;
+  let q=pts.map(p=>P(fl*p.x,p.y)).map(p=>P(p.x*Math.cos(rot)-p.y*Math.sin(rot),p.x*Math.sin(rot)+p.y*Math.cos(rot)));
+  const xs=q.map(p=>p.x),ys=q.map(p=>p.y),k=size/Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));
+  return q.map(p=>mul(p,k))}
+const triFromSides=(a,b,c)=>{const x=(b*b+c*c-a*a)/(2*c),y=Math.sqrt(Math.max(0,b*b-x*x));return[P(0,0),P(c,0),P(x,-y)]};
+const rad=d=>d*Math.PI/180;
+const TRI_N=[['A','B','C'],['M','N','K'],['D','E','F'],['K','L','M'],['P','Q','R'],['C','D','E']];
+function drawTri(F,V,N){F.poly(V);const G=mul(add(add(V[0],V[1]),V[2]),1/3);
+  V.forEach((v,i)=>F.text(add(v,mul(norm(sub(v,G)),30)),N[i]));return G}
+
+/* ---------- генератори запитань ---------- */
+const T={nums:'Назви чисел',calc:'Обчислення',eq:'Рівняння',ang:'Кути',tri:'Трикутники',rect:'Прямокутник і квадрат'};
+const G={
+nums:[
+ ()=>{const n=genNum(pick([4,5,6,6,7,7,8,9]));return{q:'Прочитайте число:',big:fmt(n),a:words(n)}},
+ ()=>{const n=genNum(pick([4,5,6,7]));return{q:'Запишіть число цифрами:',words:words(n),a:fmt(n)}},
+ ()=>{const d=R(6,7),n=genNum(d),i=R(1,d-1);
+   const ranks=['одиниць','десятків','сотень','одиниць тисяч','десятків тисяч','сотень тисяч','одиниць мільйонів'];
+   return{q:`Яка цифра стоїть у розряді <b>${ranks[i]}</b>?`,big:fmt(n),a:String(Math.floor(n/10**i)%10)}},
+ ()=>{if(Math.random()<.5){const a=R(2,999),b=R(1,99);
+     return{q:'Запишіть цифрами число, яке містить',words:`${a} ${plural(a,'тисячу','тисячі','тисяч')} і ${b} ${plural(b,'одиницю','одиниці','одиниць')}`,a:fmt(a*1000+b)}}
+   const m=R(1,9),t=R(1,99),u=R(1,999);
+   return{q:'Запишіть цифрами число, яке містить',words:`${m} ${plural(m,'мільйон','мільйони','мільйонів')} ${t} ${plural(t,'тисячу','тисячі','тисяч')} і ${u} ${plural(u,'одиницю','одиниці','одиниць')}`,a:fmt(m*1e6+t*1000+u)}},
+ ()=>{const k=R(2,4),p=R(1,99);
+   if(Math.random()<.5){const n=p*10**k+10**k-1;return{q:'Яке число йде <b>одразу після</b> числа',big:fmt(n),a:fmt(n+1)}}
+   const n=(p%10?p:p+1)*10**k;return{q:'Яке число йде <b>одразу перед</b> числом',big:fmt(n),a:fmt(n-1)}},
+ ()=>{const d=R(5,7),n=genNum(d);let s=String(n).split(''),i=R(1,d-1),o=+s[i],v;do v=R(0,9);while(v===o);s[i]=String(v);const m=+s.join('');
+   return{q:'Порівняйте числа:',big:`${fmt(n)}<span class="box"></span>${fmt(m)}`,a:`${fmt(n)} ${n>m?'&gt;':'&lt;'} ${fmt(m)}`}},
+],
+calc:[
+ ()=>{const [da,db]=pick([[3,3],[4,3],[4,4],[5,4],[5,5]]),a=R(10**(da-1),10**da-1),b=R(10**(db-1),10**db-1);
+   return{q:'Обчисліть:',big:`${fmt(a)} + ${fmt(b)}`,a:fmt(a+b)}},
+ ()=>{const [da,db]=pick([[3,3],[4,3],[4,4],[5,4]]);let a=R(10**(da-1),10**da-1),b=R(10**(db-1),10**db-1);if(b>a)[a,b]=[b,a];if(a===b)a+=R(11,99);
+   return{q:'Обчисліть:',big:`${fmt(a)} − ${fmt(b)}`,a:fmt(a-b)}},
+ ()=>{const a=R(120,899),b=R(25,299),c=R(15,a+b-10);
+   return Math.random()<.5?{q:'Обчисліть:',big:`${a} + ${b} − ${c}`,a:fmt(a+b-c)}
+     :(c<a?{q:'Обчисліть:',big:`${a} − ${c} + ${b}`,a:fmt(a-c+b)}:{q:'Обчисліть:',big:`${a} + ${b} − ${c}`,a:fmt(a+b-c)})},
+ ()=>{const rnd=pick([100,100,200,1000]);let a;do a=rnd===1000?R(101,899):R(11,rnd-11);while(a%10===0);const c=rnd-a,b=R(17,389);
+   const order=pick([[a,b,c],[a,c,b].reverse(),[c,b,a]]);
+   return{q:'Обчисліть зручним способом:',big:order.join(' + '),a:fmt(a+b+c),why:`(${a} + ${c}) + ${b} = ${rnd} + ${b} = ${fmt(a+b+c)}`}},
+ ()=>{const k=pick(['t','t','dd','tens','ten']);let a,b;
+   if(k==='t'){a=R(2,9);b=R(2,9)}else if(k==='dd'){a=R(12,49);b=R(2,5)}else if(k==='tens'){a=R(2,9)*pick([10,100]);b=R(2,9)}else{a=R(12,99);b=pick([10,100])}
+   return{q:'Обчисліть:',big:`${a} · ${b}`,a:fmt(a*b)}},
+ ()=>pick([
+   ()=>{const a=R(12,35),d=R(3,15);return{q:`Першого дня турист пройшов ${a} км, а другого — на ${d} км більше. Скільки кілометрів пройшов турист другого дня?`,a:`${a+d} км`,why:`${a} + ${d} = ${a+d} (км)`}},
+   ()=>{const a=R(120,480),d=R(15,95);return{q:`У магазин привезли ${a} кг яблук, а груш — на ${d} кг менше. Скільки кілограмів груш привезли?`,a:`${a-d} кг`,why:`${a} − ${d} = ${a-d} (кг)`}},
+   ()=>{const a=R(1200,4800),b=R(45,380);return{q:`У бібліотеці було ${fmt(a)} ${plural(a,'книжка','книжки','книжок')}. Їй подарували ще ${b} ${plural(b,'книжку','книжки','книжок')}. Скільки книжок стало в бібліотеці?`,a:fmt(a+b),why:`${fmt(a)} + ${b} = ${fmt(a+b)}`}},
+   ()=>{const a=R(3,9)*100,b=R(120,a-50);return{q:`Мама мала ${a} грн. У магазині вона витратила ${b} грн. Скільки гривень у неї залишилося?`,a:`${a-b} грн`,why:`${a} − ${b} = ${a-b} (грн)`}},
+   ()=>{const a=R(24,96),k=R(2,4);return{q:`Учні 5-А класу зібрали ${a} кг макулатури, а учні 5-Б — у ${k} ${plural(k,'раз','рази','разів')} більше. Скільки кілограмів макулатури зібрали учні 5-Б?`,a:`${a*k} кг`,why:`${a} · ${k} = ${a*k} (кг)`}},
+   ()=>{const a=R(85,320),d=R(12,60);return{q:`Довжина синьої стрічки ${a} см, а червона — на ${d} см коротша. Яка довжина червоної стрічки?`,a:`${a-d} см`,why:`${a} − ${d} = ${a-d} (см)`}},
+ ])(),
+],
+eq:[
+ ()=>{const k=pick(['x+a','a+x','x-a','a-x']);let x,a,b,eq,why;
+   if(k==='x+a'||k==='a+x'){x=R(15,480);a=R(12,350);b=x+a;eq=k==='x+a'?`${X} + ${a} = ${b}`:`${a} + ${X} = ${b}`;why=`Невідомий доданок: ${X} = ${b} − ${a}`}
+   else if(k==='x-a'){x=R(60,700);a=R(12,x-5);b=x-a;eq=`${X} − ${a} = ${b}`;why=`Невідоме зменшуване: ${X} = ${b} + ${a}`}
+   else{a=R(80,900);x=R(12,a-10);b=a-x;eq=`${a} − ${X} = ${b}`;why=`Невідомий від${AP}ємник: ${X} = ${a} − ${b}`}
+   return{q:'Розв’яжіть рівняння:',big:eq,a:`${X} = ${x}`,why}},
+ ()=>{const x=R(20,300),a=R(11,60),b=R(11,60),c=x+a+b;
+   return{q:'Розв’яжіть рівняння:',big:`${X} + ${a} + ${b} = ${c}`,a:`${X} = ${x}`,why:`${X} + ${a+b} = ${c};  ${X} = ${c} − ${a+b} = ${x}`}},
+],
+ang:[
+ ()=>{const kind=pick(['гострий','прямий','тупий','розгорнутий']);
+   const th=kind==='гострий'?R5(25,70):kind==='прямий'?90:kind==='тупий'?R5(115,160):180;
+   const [L1,Vn,L2]=pick([['A','O','B'],['M','K','N'],['C','D','E'],['P','O','Q']]);
+   const r0=th===180?R(-8,8):R(0,25),O=P(0,0),A=mul(dirM(r0),240),B=mul(dirM(r0+th),240),F=Fig();
+   F.line(O,A);F.line(O,B);F.dot(O);
+   if(th===90)rightMark(F,O,A,B,28);
+   else if(th===180){const a1=ang(O,A),s=polar(O,a1,40),e=polar(O,a1-Math.PI,40);F.path(`M${f(s.x)} ${f(s.y)}A40 40 0 0 0 ${f(e.x)} ${f(e.y)}`,'mk')}
+   else arcs(F,O,A,B,1,40);
+   F.text(add(A,mul(norm(A),26)),L1);F.text(add(B,mul(norm(B),26)),L2);
+   const bis=th===180?dirM(r0+90):norm(add(norm(A),norm(B)));F.text(add(O,mul(bis,-30)),Vn);
+   return{q:`Який вид кута ${L1}${Vn}${L2} зображено на рисунку?`,fig:F.svg(),a:kind[0].toUpperCase()+kind.slice(1)+' кут'}},
+ ()=>{if(Math.random()<.3){const k=pick(['прямий','розгорнутий']);return{q:`Скільки градусів містить ${k} кут?`,a:k==='прямий'?'90°':'180°'}}
+   const v=pick([R(5,85),R(91,179),90,180,R5(10,85),R5(95,175)]);
+   const kind=v<90?'Гострий':v===90?'Прямий':v<180?'Тупий':'Розгорнутий';
+   return{q:'Кут дорівнює',big:`${v}°`,q2:'Який це кут?',a:kind}},
+ ()=>{let p,q;do{p=R5(20,85);q=R5(20,85)}while(p+q>165||p===q);const r0=R(0,15),O=P(0,0),
+   A=mul(dirM(r0),250),C=mul(dirM(r0+p),250),B=mul(dirM(r0+p+q),250),F=Fig();
+   [A,C,B].forEach(X1=>F.line(O,X1));F.dot(O);
+   const b1=arcs(F,O,A,C,1,58),b2=arcs(F,O,C,B,2,58,8);
+   F.text(add(A,mul(norm(A),26)),'A');F.text(add(C,mul(norm(C),26)),'C');F.text(add(B,mul(norm(B),26)),'B');
+   F.text(add(O,mul(norm(add(norm(A),norm(B))),-30)),'O');
+   if(Math.random()<.5){F.text(polar(O,b1,110),p+'°','deg');F.text(polar(O,b2,110),q+'°','deg');
+     return{q:'Промінь OC ділить кут AOB на два кути. Знайдіть градусну міру кута AOB.',fig:F.svg(),a:`∠AOB = ${p+q}°`,why:`${p}° + ${q}° = ${p+q}°`}}
+   F.text(polar(O,b1,110),p+'°','deg');F.text(polar(O,b2,110),'?','unk');
+   return{q:`∠AOB = ${p+q}°. Знайдіть градусну міру кута COB.`,fig:F.svg(),a:`∠COB = ${q}°`,why:`${p+q}° − ${p}° = ${q}°`}},
+ ()=>{let p;do p=R5(25,155);while(p===90);const O=P(0,0),A=P(-260,0),B=P(260,0),C=mul(dirM(180-p),230),F=Fig();
+   F.line(A,B);F.line(O,C);F.dot(O);const b1=arcs(F,O,A,C,1,46),b2=arcs(F,O,C,B,2,46);
+   F.text(P(-260,32),'A');F.text(P(260,32),'B');F.text(add(C,mul(norm(C),26)),'C');F.text(P(0,34),'O');
+   F.text(polar(O,b1,98),p+'°','deg');F.text(polar(O,b2,98),'?','unk');
+   return{q:'Кут AOB — розгорнутий. Знайдіть градусну міру кута COB.',fig:F.svg(),a:`∠COB = ${180-p}°`,why:`180° − ${p}° = ${180-p}°`}},
+ ()=>{let p;do p=R5(15,75);while(p===45);const O=P(0,0),A=P(250,0),B=P(0,-250),C=mul(dirM(p),250),F=Fig();
+   F.line(O,A);F.line(O,B);F.line(O,C);F.dot(O);const b1=arcs(F,O,A,C,1,52),b2=arcs(F,O,C,B,2,52);
+   F.text(P(280,0),'A');F.text(P(0,-280),'B');F.text(add(C,mul(norm(C),26)),'C');F.text(P(-24,24),'O');
+   F.text(polar(O,b1,104),p+'°','deg');F.text(polar(O,b2,104),'?','unk');
+   return{q:'Кут AOB — прямий. Знайдіть градусну міру кута COB.',fig:F.svg(),a:`∠COB = ${90-p}°`,why:`90° − ${p}° = ${90-p}°`}},
+],
+tri:[
+ ()=>{const kind=pick(['гострокутний','прямокутний','тупокутний']);let A,B,C;
+   do{ if(kind==='гострокутний'){A=R5(45,80);B=R5(40,80);C=180-A-B}
+       else if(kind==='прямокутний'){C=90;A=R5(30,60);B=90-A}
+       else{C=R5(105,140);A=R5(20,180-C-20);B=180-C-A}
+   }while(C<=0||A===B||A===C||B===C||Math.min(A,B,C)<20||(kind==='гострокутний'&&Math.max(A,B,C)>=90));
+   let angs=[A,B,C];const sh=R(0,2);angs=angs.slice(sh).concat(angs.slice(0,sh));
+   const V=fitTri(triFromSides(Math.sin(rad(angs[0])),Math.sin(rad(angs[1])),Math.sin(rad(angs[2]))));
+   const N=pick(TRI_N),F=Fig();drawTri(F,V,N);
+   const order=[...angs].filter(a=>a!==90).sort((x,y)=>x-y);
+   V.forEach((v,i)=>{const a=V[(i+1)%3],b=V[(i+2)%3];
+     if(angs[i]===90){rightMark(F,v,a,b,24);const bis=Math.atan2(...(p=>[p.y,p.x])(add(norm(sub(a,v)),norm(sub(b,v)))));F.text(polar(v,bis,70),'90°','deg')}
+     else{const bis=arcs(F,v,a,b,order.indexOf(angs[i])+1,30,7);F.text(polar(v,bis,76),angs[i]+'°','deg')}});
+   return{q:'Який вид цього трикутника за кутами?',fig:F.svg(),a:kind[0].toUpperCase()+kind.slice(1)}},
+ ()=>{const kind=pick(['рівносторонній','рівнобедрений','різносторонній']);let a,b,c;
+   if(kind==='рівносторонній'){a=b=c=R(4,12)}
+   else if(kind==='рівнобедрений'){a=b=R(6,12);do c=R(3,2*a-2);while(Math.abs(c-a)<2)}
+   else{do{a=R(4,13);b=R(4,13);c=R(4,13)}while(a+b<=c||a+c<=b||b+c<=a||Math.abs(a-b)<2||Math.abs(b-c)<2||Math.abs(a-c)<2)}
+   const V=fitTri(triFromSides(a,b,c)),N=pick(TRI_N),F=Fig(),Gc=drawTri(F,V,N);
+   const sides=[[V[1],V[2],a],[V[2],V[0],b],[V[0],V[1],c]],vals=[...new Set([a,b,c])].sort((x,y)=>x-y);
+   sides.forEach(([p,q,l])=>{ticks(F,p,q,kind==='рівнобедрений'?(l===a?1:2):vals.indexOf(l)+1);sideLabel(F,p,q,Gc,l+' см')});
+   return{q:'Який вид цього трикутника за сторонами?',fig:F.svg(),a:kind[0].toUpperCase()+kind.slice(1)}},
+ ()=>{let a,b,c;do{a=R(4,15);b=R(4,15);c=R(4,15)}while(a+b<=c+1||a+c<=b+1||b+c<=a+1);
+   const V=fitTri(triFromSides(a,b,c)),N=pick(TRI_N),F=Fig(),Gc=drawTri(F,V,N);
+   [[V[1],V[2],a],[V[2],V[0],b],[V[0],V[1],c]].forEach(([p,q,l])=>sideLabel(F,p,q,Gc,l+' см'));
+   return{q:`Знайдіть периметр трикутника ${N.join('')}.`,fig:F.svg(),a:`P = ${a+b+c} см`,why:`${a} + ${b} + ${c} = ${a+b+c} (см)`}},
+ ()=>{const s=R(4,25);
+   if(Math.random()<.5){const V=fitTri(triFromSides(1,1,1)),N=pick(TRI_N),F=Fig(),Gc=drawTri(F,V,N);
+     ticks(F,V[1],V[2],1);ticks(F,V[2],V[0],1);ticks(F,V[0],V[1],1);sideLabel(F,V[0],V[1],Gc,s+' см');
+     return{q:`Трикутник ${N.join('')} — рівносторонній. Знайдіть його периметр.`,fig:F.svg(),a:`P = ${3*s} см`,why:`${s} · 3 = ${3*s} (см)`}}
+   const l=R(6,20);let bs;do bs=R(3,2*l-2);while(bs===l);
+   return{q:`Бічна сторона рівнобедреного трикутника дорівнює ${l} см, а основа — ${bs} см. Знайдіть периметр трикутника.`,a:`P = ${2*l+bs} см`,why:`${l} + ${l} + ${bs} = ${2*l+bs} (см)`}},
+ ()=>{let a,b,c;do{a=R(5,24);b=R(5,24);c=R(5,24)}while(a+b<=c+1||a+c<=b+1||b+c<=a+1);const Pm=a+b+c,N=pick(TRI_N);
+   const V=fitTri(triFromSides(a,b,c)),F=Fig(),Gc=drawTri(F,V,N);
+   sideLabel(F,V[1],V[2],Gc,a+' см');sideLabel(F,V[2],V[0],Gc,b+' см');sideLabel(F,V[0],V[1],Gc,'?','unk');
+   return{q:`Периметр трикутника ${N.join('')} дорівнює ${Pm} см. Знайдіть довжину сторони ${N[0]}${N[1]}.`,fig:F.svg(),a:`${N[0]}${N[1]} = ${c} см`,why:`${Pm} − ${a} − ${b} = ${c} (см)`}},
+ ()=>{const N=pick(TRI_N),i=R(0,2),v=N[i],o=N.filter((_,j)=>j!==i);
+   if(Math.random()<.5)return{q:`Який кут трикутника ${N.join('')} утворюють сторони ${v}${o[0]} і ${v}${o[1]}?`,a:`∠${v}  (∠${o[0]}${v}${o[1]})`};
+   return{q:`Назвіть усі сторони трикутника ${N.join('')}.`,a:`${N[0]}${N[1]}, ${N[1]}${N[2]}, ${N[2]}${N[0]}`}},
+],
+rect:[]
+};
+const RN=[['A','B','C','D'],['M','N','K','P'],['K','L','M','N'],['D','E','F','K']];
+function rectFig(a,b,N,opt){ // a — ліва (вертикальна) сторона, b — нижня
+  const k=420/Math.max(a,b),w=b*k,h=Math.max(a*k,w*.32),hh=a===b?w:h,F=Fig();
+  const V=[P(0,0),P(0,-hh),P(w,-hh),P(w,0)];F.poly(V);
+  V.forEach((v,i)=>{rightMark(F,v,V[(i+1)%4],V[(i+3)%4],20)});
+  const off=[P(-24,24),P(-24,-24),P(24,-24),P(24,24)];V.forEach((v,i)=>F.text(add(v,off[i]),N[i]));
+  if(opt.sq)V.forEach((v,i)=>ticks(F,v,V[(i+1)%4],1));
+  const Gc=P(w/2,-hh/2);opt.labels.forEach(([i,s,c])=>sideLabel(F,V[i],V[(i+1)%4],Gc,s,c||''));
+  return F.svg()}
+G.rect=[
+ ()=>{let a,b;do{a=R(2,14);b=R(3,18)}while(a===b);if(a>b)[a,b]=[b,a];const N=pick(RN);
+   return{q:`Знайдіть периметр прямокутника ${N.join('')}.`,fig:rectFig(a,b,N,{labels:[[0,a+' см'],[3,b+' см']]}),a:`P = ${2*(a+b)} см`,why:`${b} + ${a} + ${b} + ${a} = ${2*(a+b)} (см)`}},
+ ()=>{const s=R(3,25),N=pick(RN);
+   return{q:`Сторона квадрата ${N.join('')} дорівнює ${s} см. Знайдіть його периметр.`,fig:rectFig(s,s,N,{sq:1,labels:[[3,s+' см']]}),a:`P = ${4*s} см`,why:`${s} · 4 = ${4*s} (см)`}},
+ ()=>{let a,b;do{a=R(3,12);b=R(4,16)}while(a===b);if(a>b)[a,b]=[b,a];const N=pick(RN),s=(i,j)=>N[i]+N[j];
+   return{q:`У прямокутнику ${N.join('')} ${s(0,1)} = ${a} см, ${s(1,2)} = ${b} см. Знайдіть ${s(2,3)} і ${s(0,3)}.`,
+     fig:rectFig(a,b,N,{labels:[[0,a+' см'],[1,b+' см'],[2,'?','unk'],[3,'?','unk']]}),a:`${s(2,3)} = ${a} см,  ${s(0,3)} = ${b} см`,why:'Протилежні сторони прямокутника рівні.'}},
+ ()=>{const a=R(3,15),d=R(2,9),b=a+d;
+   return{q:`Одна сторона прямокутника дорівнює ${a} см, а інша — на ${d} см довша. Знайдіть периметр прямокутника.`,a:`P = ${2*(a+b)} см`,why:`${a} + ${d} = ${b} (см);  ${a} + ${b} + ${a} + ${b} = ${2*(a+b)} (см)`}},
+ ()=>pick([
+   {q:'Скільки прямих кутів має прямокутник?',a:'4'},
+   {q:'Як називають прямокутник, у якого всі сторони рівні?',a:'Квадрат'},
+   {q:'Які сторони прямокутника рівні між собою?',a:'Протилежні сторони'},
+   {q:'Чи є квадрат прямокутником?',a:'Так'},
+   {q:'Скільки вершин і скільки сторін має прямокутник?',a:'4 вершини і 4 сторони'},
+   {q:'Що таке периметр многокутника?',a:'Сума довжин усіх його сторін'},
+ ])
+];
+
+/* ---------- інтерфейс ---------- */
+const card=document.getElementById('card'),front=document.getElementById('front'),back=document.getElementById('back'),
+  btnNext=document.getElementById('btnNext'),chips=document.getElementById('chips');
+const on=new Set(Object.keys(T));let isOpen=false,shown=false,last='';
+Object.entries(T).forEach(([k,name])=>{const b=document.createElement('button');b.className='chip';b.id='chip-'+k;b.textContent=name;b.setAttribute('aria-pressed','true');
+  b.onclick=()=>{if(on.has(k)){if(on.size===1)return;on.delete(k)}else on.add(k);b.setAttribute('aria-pressed',on.has(k))};chips.appendChild(b)});
+
+function makeQ(){let topic,idx,key,tries=0;
+  do{topic=pick([...on]);idx=R(0,G[topic].length-1);key=topic+idx;tries++}while(key===last&&tries<20);last=key;
+  return{topic,...G[topic][idx]()}}
+function render(Q){
+  let h=`<span class="tag">${T[Q.topic]}</span><div class="qtext">${Q.q}</div>`;
+  if(Q.big)h+=`<div class="big">${Q.big}</div>`;
+  if(Q.words)h+=`<div class="words">${Q.words}</div>`;
+  if(Q.q2)h+=`<div class="qtext">${Q.q2}</div>`;
+  h+=Q.fig?`<div class="figwrap">${Q.fig}</div>`:'<div class="spacer"></div>';
+  h+=`<div class="answer closed" id="ans"><button class="lab" id="rev" type="button">Відповідь</button><span class="val" hidden>${Q.a}</span>${Q.why?`<span class="why" hidden>${Q.why}</span>`:''}</div>`;
+  back.innerHTML=h;back.scrollTop=0;document.getElementById('rev').onclick=showAns}
+function openCard(){if(isOpen)return;render(makeQ());isOpen=true;shown=false;card.classList.add('open');front.setAttribute('aria-hidden','true')}
+function showAns(){if(!isOpen||shown)return;shown=true;const a=document.getElementById('ans');a.classList.remove('closed');a.querySelectorAll('[hidden]').forEach(e=>e.hidden=false);document.getElementById('rev').textContent='Відповідь:';a.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function next(){if(!isOpen){openCard();return}isOpen=false;card.classList.remove('open');front.removeAttribute('aria-hidden');front.focus({preventScroll:true})}
+front.addEventListener('click',openCard);
+front.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCard()}});
+btnNext.onclick=next;
+document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('button,[role=button]'))return;
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!isOpen)openCard()}
+  else if(e.key==='ArrowRight')next()});
+</script>
+</body>
+</html>
