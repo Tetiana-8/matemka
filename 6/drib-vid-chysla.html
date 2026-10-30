@@ -292,6 +292,7 @@ span.dot{display:inline-flex;align-items:center;justify-content:center;cursor:de
       <div class="mrow">
         <button class="mbtn" id="refresh">Оновити</button>
         <button class="mbtn" id="csv">Завантажити CSV</button>
+        <button class="mbtn" id="clearAll" style="background:#DC2626">Очистити</button>
         <button class="mbtn g" id="closeB">Закрити</button>
       </div>
       <div class="tblwrap" id="tbl"></div>
@@ -821,6 +822,23 @@ async function refresh(){
   $('tbl').innerHTML=`<table>${head}${body}</table>`;
 }
 $('refresh').onclick=refresh;
+let clearTimer=null;
+$('clearAll').onclick=async()=>{
+  const b=$('clearAll');
+  if(!clearTimer){
+    b.textContent='Точно видалити все? Натисніть ще раз';
+    clearTimer=setTimeout(()=>{ clearTimer=null; b.textContent='Очистити'; },6000);
+    return;
+  }
+  clearTimeout(clearTimer); clearTimer=null; b.textContent='Видалення…'; b.disabled=true;
+  try{
+    const { db, fs } = await fb();
+    const snap = await fs.getDocs(coll(db, fs));
+    await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+    rows=[]; $('tbl').innerHTML='Результатів поки немає.';
+  }catch(e){ $('tbl').innerHTML='<span class="merr">Не вдалося очистити. Спробуйте ще раз.</span>'; }
+  b.disabled=false; b.textContent='Очистити';
+};
 $('csv').onclick=()=>{
   const lines=[['№','Прізвище та ім\'я','Дата','Бал','Максимум'].concat(Array.from({length:N_TEST},(_,i)=>String(i+1))).join(';')];
   rows.forEach((r,k)=>lines.push([k+1,r.name,dt(r.ts),r.score,r.max].concat(Array.from({length:N_TEST},(_,i)=>(r.tasks||[])[i]?'✓':'✗')).map(x=>String(x).replace(/;/g,',')).join(';')));
