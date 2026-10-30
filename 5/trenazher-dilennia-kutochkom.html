@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Тренажер: Ділення в стовпчик (Версія 31)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --cell-size: 44px;
+        }
+
+        @media (max-width: 768px) { :root { --cell-size: 40px; } }
+        @media (max-width: 640px) { :root { --cell-size: 36px; } }
+        @media (max-width: 480px) { :root { --cell-size: 32px; } }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8fafc;
+        }
+
+        .scroll-viewport {
+            width: 100%;
+            height: auto;
+            min-height: 500px;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 20px 300px 20px;
+        }
+
+        .math-grid {
+            display: grid;
+            grid-template-columns: repeat(13, var(--cell-size));
+            grid-template-rows: repeat(15, var(--cell-size));
+            gap: 1px;
+            background-color: #cbd5e1;
+            border: 3px solid #64748b;
+            width: max-content;
+            height: max-content;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: calc(var(--cell-size) * 0.65);
+            font-weight: 700;
+            border: 0.5px solid #f1f5f9;
+            position: relative;
+        }
+
+        .input-cell {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            border: none;
+            outline: none;
+            background-color: #fefce8;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            border-radius: 0;
+            -webkit-appearance: none;
+            transition: background-color 0.2s;
+        }
+
+        .input-cell:focus {
+            background-color: #fef9c3;
+            box-shadow: inset 0 0 0 2px #3b82f6;
+            z-index: 10;
+        }
+
+        .quotient-input {
+            background-color: #e0f2fe !important;
+        }
+
+        .quotient-input:focus {
+            background-color: #bae6fd !important;
+        }
+        
+        .line-bottom { border-bottom: 3px solid black !important; }
+        .line-left { border-left: 3px solid black !important; }
+        .auto-underline { border-bottom: 4px solid black !important; }
+        
+        .minus-sign::before {
+            content: "−";
+            position: absolute;
+            left: -14px;
+            font-size: calc(var(--cell-size) * 0.5);
+            font-weight: 900;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .control-panel {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .status-success { color: #16a34a; animation: bounce 0.5s ease-in-out; }
+        .status-error { color: #dc2626; }
+        .status-process { color: #3b82f6; }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <div class="max-w-6xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-xl p-3 sm:p-8 border border-slate-200 mx-auto">
+        
+        <!-- Панель керування -->
+        <div class="control-panel bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 mb-6 sm:mb-10 shadow-sm">
+            <div class="flex flex-col w-full sm:w-auto">
+                <label class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest text-center sm:text-left">Складність</label>
+                <select id="difficulty" class="w-full sm:w-56 pl-4 pr-10 py-2 text-lg border-2 border-slate-200 focus:ring-blue-500 focus:border-blue-500 rounded-xl bg-slate-50 font-bold outline-none transition-all">
+                    <option value="1000">До 1000</option>
+                    <option value="10000">До 10 000</option>
+                    <option value="50000" selected>До 50 000</option>
+                </select>
+            </div>
+
+            <div id="status-area" class="flex-1 px-4 text-center min-h-[2.5rem] flex items-center justify-center">
+                <span id="status-text" class="text-lg sm:text-xl font-black uppercase tracking-tight transition-all duration-300"></span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                <button onclick="Очистити()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-black py-3 px-4 rounded-xl transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wide">
+                    Очистити
+                </button>
+                <button onclick="РучнаПеревірка()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wide">
+                    Перевірити
+                </button>
+                <button onclick="Оновити()" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wide">
+                    Нове завдання
+                </button>
+            </div>
+        </div>
+
+        <!-- Робоча зона -->
+        <div id="exercise-area" class="w-full">
+            <div class="scroll-viewport" id="scroll-container">
+                <div id="grid-container" class="math-grid rounded-lg overflow-hidden">
+                    <!-- Клітинки генеруються JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function ВипадковеЦіле(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        let currentDividend = 0;
+        let currentDivisor = 0;
+        let currentQuotient = 0;
+        let steps = [];
+        let isFinalZeroVisible = false;
+        const startColGlobal = 2; 
+
+        function РозрахуватиКроки(dividend, divisor) {
+            let res = [];
+            let divStr = dividend.toString();
+            let currentStr = "";
+            let currentIdx = 0;
+            let qIdx = 0;
+
+            while (currentIdx < divStr.length) {
+                currentStr += divStr[currentIdx];
+                let currentVal = parseInt(currentStr);
+
+                if (currentVal >= divisor || (currentIdx === divStr.length - 1 && res.length === 0)) {
+                    let q = Math.floor(currentVal / divisor);
+                    let p = q * divisor;
+                    let r = currentVal - p;
+                    res.push({
+                        partialDividend: currentVal,
+                        digit: q,
+                        product: p,
+                        remainder: r,
+                        posInDividend: currentIdx,
+                        qIdx: qIdx
+                    });
+                    currentStr = r === 0 ? "" : r.toString();
+                    qIdx++;
+                } else if (res.length > 0) {
+                    qIdx++;
+                }
+                currentIdx++;
+            }
+            return res;
+        }
+
+        function Очистити() {
+            const inputs = document.querySelectorAll('.input-cell');
+            inputs.forEach(input => {
+                input.value = "";
+                input.style.backgroundColor = input.dataset.type === 'quotient' ? '#e0f2fe' : '#fefce8';
+                input.parentElement.classList.remove('auto-underline', 'minus-sign');
+            });
+            
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                if (cell.classList.contains('text-green-600')) {
+                    cell.innerText = "";
+                    cell.classList.remove('text-green-600', 'font-black');
+                }
+            });
+
+            isFinalZeroVisible = false;
+            document.getElementById('status-text').innerText = "";
+        }
+
+        function Оновити() {
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = "";
+            statusText.className = "text-lg sm:text-xl font-black uppercase tracking-tight text-slate-900";
+            isFinalZeroVisible = false;
+
+            const maxVal = parseInt(document.getElementById('difficulty').value);
+            
+            let attempt = 0;
+            do {
+                currentDivisor = ВипадковеЦіле(2, maxVal > 10000 ? 35 : (maxVal > 1000 ? 19 : 9));
+                if (currentDivisor === 10) currentDivisor = 11;
+                currentQuotient = ВипадковеЦіле(Math.max(11, Math.floor(maxVal/currentDivisor/4)), Math.floor(maxVal/currentDivisor));
+                currentDividend = currentDivisor * currentQuotient;
+                attempt++;
+            } while (attempt < 100 && (currentDividend % 10 === 0 || currentDividend < 100));
+
+            steps = РозрахуватиКроки(currentDividend, currentDivisor);
+            СтворитиСітку();
+            
+            const wrapper = document.getElementById('scroll-container');
+            if(wrapper) {
+                wrapper.scrollLeft = 0;
+                wrapper.scrollTop = 0;
+            }
+        }
+
+        function РозумнийФокус(element) {
+            if (!element) return;
+            element.focus({ preventScroll: true });
+            setTimeout(() => {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'center'
+                });
+            }, 50);
+        }
+
+        function ПерейтиДоНаступного(currentInput) {
+            if (currentInput.value.length === 0) return;
+
+            const row = parseInt(currentInput.dataset.row);
+            const col = parseInt(currentInput.dataset.col);
+            const idx = parseInt(currentInput.dataset.idx);
+
+            if (currentInput.dataset.type === 'quotient') {
+                const step = steps.find(s => s.qIdx === idx);
+                if (step) {
+                    const sIdx = steps.indexOf(step);
+                    const targetRow = 2 + (sIdx * 2);
+                    const pStr = step.product.toString();
+                    const targetCol = startColGlobal + step.posInDividend - (pStr.length - 1);
+                    РозумнийФокус(document.querySelector(`input[data-row="${targetRow}"][data-col="${targetCol}"]`));
+                }
+                return;
+            }
+
+            const stepIdx = Math.floor((row - 2) / 2);
+            if (stepIdx < 0 || stepIdx >= steps.length) return;
+            const currentStep = steps[stepIdx];
+
+            if (row % 2 === 0) {
+                const rowValue = getRowValue(row);
+                if (rowValue.length >= currentStep.product.toString().length) {
+                    const nextRow = row + 1;
+                    const nextStep = steps[stepIdx + 1];
+                    const targetCol = nextStep 
+                        ? (startColGlobal + nextStep.posInDividend - (nextStep.partialDividend.toString().length - 1))
+                        : col;
+                    РозумнийФокус(document.querySelector(`input[data-row="${nextRow}"][data-col="${targetCol}"]`));
+                } else {
+                    РозумнийФокус(document.querySelector(`input[data-row="${row}"][data-col="${col + 1}"]`));
+                }
+            } else {
+                const rowValue = getRowValue(row);
+                const limit = (steps[stepIdx+1]) ? steps[stepIdx+1].partialDividend.toString().length : 1;
+                
+                if (rowValue.length >= limit) {
+                    const nextStep = steps[stepIdx + 1];
+                    if (nextStep) {
+                        РозумнийФокус(document.querySelector(`input[data-type="quotient"][data-idx="${nextStep.qIdx}"]`));
+                    }
+                } else {
+                    РозумнийФокус(document.querySelector(`input[data-row="${row}"][data-col="${col + 1}"]`));
+                }
+            }
+        }
+
+        function getRowValue(row) {
+            let val = "";
+            document.querySelectorAll(`input[data-row="${row}"]`).forEach(i => val += i.value);
+            return val;
+        }
+
+        function ОбробитиКлавішу(e) {
+            if (e.key === "Backspace" && e.target.value === "") {
+                if (e.target.dataset.type === 'quotient') {
+                    const prevIdx = parseInt(e.target.dataset.idx) - 1;
+                    РозумнийФокус(document.querySelector(`input[data-type="quotient"][data-idx="${prevIdx}"]`));
+                } else {
+                    const row = parseInt(e.target.dataset.row);
+                    const col = parseInt(e.target.dataset.col);
+                    const prevInput = document.querySelector(`input[data-row="${row}"][data-col="${col - 1}"]`);
+                    if (prevInput) РозумнийФокус(prevInput);
+                }
+            }
+        }
+
+        function СтворитиСітку() {
+            const grid = document.getElementById('grid-container');
+            grid.innerHTML = '';
+            const divStr = currentDividend.toString();
+            const dvrStr = currentDivisor.toString();
+            const startCol = startColGlobal;
+            const startRow = 1;
+
+            for (let r = 0; r < 15; r++) {
+                for (let c = 0; c < 13; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${r}-${c}`;
+                    grid.appendChild(cell);
+                }
+            }
+
+            for (let i = 0; i < divStr.length; i++) {
+                document.getElementById(`cell-${startRow}-${startCol + i}`).innerText = divStr[i];
+            }
+
+            const divisorCol = startCol + divStr.length;
+            for (let r = startRow; r <= startRow + 1; r++) {
+                const cell = document.getElementById(`cell-${r}-${divisorCol}`);
+                if (cell) cell.classList.add('line-left');
+            }
+
+            for (let i = 0; i < dvrStr.length; i++) {
+                const cell = document.getElementById(`cell-${startRow}-${divisorCol + i}`);
+                if (cell) {
+                    cell.innerText = dvrStr[i];
+                    cell.classList.add('line-bottom');
+                }
+            }
+
+            const quotientStr = currentQuotient.toString();
+            for (let i = 0; i < quotientStr.length; i++) {
+                const cell = document.getElementById(`cell-${startRow + 1}-${divisorCol + i}`);
+                if (!cell) continue;
+                const input = document.createElement('input');
+                input.className = 'input-cell quotient-input';
+                input.inputMode = "numeric";
+                input.maxLength = 1;
+                input.dataset.type = 'quotient';
+                input.dataset.idx = i;
+                input.dataset.correct = quotientStr[i];
+                input.oninput = (e) => {
+                    ПеревіритиЧастку(e.target);
+                    ПерейтиДоНаступного(e.target);
+                };
+                input.onkeydown = ОбробитиКлавішу;
+                cell.appendChild(input);
+            }
+
+            for (let r = startRow + 1; r < 14; r++) {
+                for (let c = startCol - 1; c < divisorCol; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (!cell) continue;
+                    const input = document.createElement('input');
+                    input.className = 'input-cell';
+                    input.inputMode = "numeric";
+                    input.maxLength = 1;
+                    input.dataset.row = r;
+                    input.dataset.col = c;
+                    input.oninput = (e) => {
+                        ПеревіритиКрок(e.target);
+                        ПерейтиДоНаступного(e.target);
+                    };
+                    input.onkeydown = ОбробитиКлавішу;
+                    cell.appendChild(input);
+                }
+            }
+            
+            setTimeout(() => {
+                const firstInput = document.querySelector('input[data-type="quotient"][data-idx="0"]');
+                if (firstInput) РозумнийФокус(firstInput);
+            }, 300);
+        }
+
+        function ПеревіритиКрок(input) {
+            const row = parseInt(input.dataset.row);
+            const rowInputs = document.querySelectorAll(`input[data-row="${row}"]`);
+            let rowValueStr = getRowValue(row);
+
+            if (rowValueStr === "") {
+                rowInputs.forEach(i => i.parentElement.classList.remove('auto-underline', 'minus-sign'));
+                return;
+            }
+
+            const rowValueNum = parseInt(rowValueStr);
+            const isSubtractionRow = (row % 2 === 0);
+            const stepIdx = Math.floor((row - 2) / 2);
+            const currentStep = steps[stepIdx];
+
+            if (isSubtractionRow && currentStep) {
+                if (rowValueNum === currentStep.product) {
+                    rowInputs.forEach(i => {
+                        if (i.value !== "") i.parentElement.classList.add('auto-underline');
+                    });
+                    const firstFilled = Array.from(rowInputs).find(i => i.value !== "");
+                    if (firstFilled) firstFilled.parentElement.classList.add('minus-sign');
+
+                    if (stepIdx === steps.length - 1 && !isFinalZeroVisible) {
+                        setTimeout(ПоказатиФінальнийНуль, 400, row + 1, input.dataset.col);
+                    }
+                }
+            }
+        }
+
+        function ПоказатиФінальнийНуль(row, col) {
+            const cell = document.getElementById(`cell-${row}-${col}`);
+            if (cell) {
+                cell.innerHTML = "0";
+                cell.classList.add('text-green-600', 'font-black');
+                isFinalZeroVisible = true;
+                ПеревіритиЗавершення();
+            }
+        }
+
+        function ПеревіритиЧастку(input) {
+            if (input.value === "") {
+                input.style.backgroundColor = '#e0f2fe';
+                return;
+            }
+            if (input.value === input.dataset.correct) {
+                input.style.backgroundColor = '#dcfce7';
+                ПеревіритиЗавершення();
+            } else {
+                input.style.backgroundColor = '#fee2e2';
+                ПоказатиСтатус("Уважніше!", "status-error");
+            }
+        }
+
+        /**
+         * РучнаПеревірка з логікою "Ти на правильному шляху"
+         */
+        function РучнаПеревірка() {
+            const qInputs = Array.from(document.querySelectorAll('input[data-type="quotient"]'));
+            const columnInputs = Array.from(document.querySelectorAll('.input-cell:not([data-type="quotient"])'));
+            
+            let hasErrors = false;
+            let hasAnyValue = false;
+
+            // Перевірка частки
+            qInputs.forEach(input => {
+                if (input.value !== "") {
+                    hasAnyValue = true;
+                    if (input.value !== input.dataset.correct) {
+                        input.style.backgroundColor = '#fee2e2';
+                        hasErrors = true;
+                    } else {
+                        input.style.backgroundColor = '#dcfce7';
+                    }
+                }
+            });
+
+            // Перевірка стовпчика (лише наявних значень)
+            columnInputs.forEach(input => {
+                if (input.value !== "") {
+                    hasAnyValue = true;
+                    // Тут перевірка складніша, бо клітинки не мають dataset.correct
+                    // Але ми можемо викликати ПеревіритиКрок для візуалізації
+                    ПеревіритиКрок(input);
+                }
+            });
+
+            // Визначаємо статус
+            const allQuotientCorrect = qInputs.every(i => i.value === i.dataset.correct);
+            const isFullyComplete = allQuotientCorrect && isFinalZeroVisible;
+
+            if (hasErrors) {
+                ПоказатиСтатус("Є помилки, перевір уважно", "status-error");
+            } else if (isFullyComplete) {
+                ПоказатиСтатус("Відмінно! Правильно ✨", "status-success");
+            } else if (hasAnyValue) {
+                ПоказатиСтатус("Ти на правильному шляху!", "status-process");
+            } else {
+                ПоказатиСтатус("Почни розв'язувати", "text-slate-500");
+            }
+        }
+
+        function ПоказатиСтатус(text, className) {
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = text;
+            statusText.className = `text-lg sm:text-xl font-black uppercase tracking-tight ${className}`;
+        }
+
+        function ПеревіритиЗавершення() {
+            const inputs = document.querySelectorAll('input[data-type="quotient"]');
+            const allCorrect = Array.from(inputs).every(i => i.value === i.dataset.correct);
+            
+            if (allCorrect && isFinalZeroVisible) {
+                ПоказатиСтатус("Відмінно! Правильно ✨", "status-success");
+            }
+        }
+
+        window.onload = Оновити;
+    </script>
+</body>
+</html>
