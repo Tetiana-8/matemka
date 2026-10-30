@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Знаходження числа за його дробом</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  /* Колір 6 класу: помаранчевий. Усі кольори класу задано тут один раз. */
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          panelLeft: '#FFF1E3',
+          panelRight: '#FFF9F1',
+          brand: '#C2410C',
+          brandLight: '#FFEDD5',
+          brandMid: '#FED7AA',
+          brandLine: '#FDBA74',
+          accent: '#EA580C',
+        },
+        fontFamily: {
+          ui: ['Nunito', 'system-ui', 'Segoe UI', 'Arial', 'sans-serif'],
+          math: ['Lora', 'Georgia', 'Times New Roman', 'serif'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  /* Розкладка: одна колонка, один крок на екран; зверху прогрес, знизу навігація. */
+  html, body { height: 100%; margin: 0; }
+  body { background: #FFF9F1; color: #1e293b; font-family: 'Nunito', system-ui, 'Segoe UI', Arial, sans-serif; overflow: hidden; }
+  #root { height: 100%; width: 100%; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade { animation: fadeInUp .45s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(.85); } 100% { opacity: 1; transform: scale(1); } }
+  .pop { animation: popIn .4s cubic-bezier(.175,.885,.32,1.1) both; }
+  @keyframes nudge { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .nudge { animation: nudge .3s ease-in-out; }
+  input.fr::-webkit-outer-spin-button, input.fr::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #EA580C; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .fade, .pop, .nudge { animation: none; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============ Математичний запис без зовнішніх бібліотек ============
+   Токени через пробіл:  7/9 дріб · 1_2/5 мішане число · : і * — знаки дії
+   ~ перед токеном — синій (дільник), ^ — помаранчевий (значення)        */
+const COL = { '~': 'text-sky-700', '^': 'text-brand' };
+
+const Fr = ({ n, d }) => (
+  <span className="inline-flex flex-col items-center align-middle text-center leading-none mx-0.5">
+    <span className="px-1.5 pb-1" style={{ borderBottom: '0.08em solid currentColor' }}>{n}</span>
+    <span className="px-1.5 pt-1">{d}</span>
+  </span>
+);
+
+const Tok = ({ t }) => {
+  let cls = '';
+  if (COL[t[0]]) { cls = COL[t[0]]; t = t.slice(1); }
+  if (t === ':') return <b className="text-green-600 mx-0.5">:</b>;
+  if (t === '*') return <b className="text-green-600 mx-0.5">·</b>;
+  if (t === '-') return <span>−</span>;
+  const mixed = /^(\d+)_(\d+)\/(\d+)$/.exec(t);
+  if (mixed) return (
+    <span className={`inline-flex items-center ${cls}`}>
+      <span className="mr-1">{mixed[1]}</span><Fr n={mixed[2]} d={mixed[3]} />
+    </span>
+  );
+  if (t.includes('/')) {
+    const [n, d] = t.split('/');
+    return <span className={cls}><Fr n={n.replace(/\*/g, '·')} d={d.replace(/\*/g, '·')} /></span>;
+  }
+  return <span className={cls}>{t}</span>;
+};
+
+const M = ({ t }) => (
+  <span className="font-math inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 align-middle">
+    {t.split(' ').filter(Boolean).map((x, i) => <Tok key={i} t={x} />)}
+  </span>
+);
+
+// Текст із формулами у фігурних дужках: «Число, {3/4} якого дорівнюють {12}»
+const T = ({ s }) => (
+  <span>
+    {s.split(/(\{[^}]*\})/).map((p, i) => (p && p[0] === '{' ? <M key={i} t={p.slice(1, -1)} /> : <span key={i}>{p}</span>))}
+  </span>
+);
+
+/* ============ Поля введення ============ */
+const stateBorder = state =>
+  state === 'ok' ? 'border-green-500 bg-green-50' : state === 'bad' ? 'border-red-400 bg-red-50' : 'border-brandLine bg-white';
+
+const FracInput = ({ value = {}, onChange, state }) => {
+  const cls = `fr w-14 sm:w-16 lg:w-20 h-11 lg:h-14 text-center text-xl lg:text-3xl font-bold rounded-lg border-2 ${stateBorder(state)}`;
+  const set = (k, v) => onChange({ ...value, [k]: v.replace(/[^0-9]/g, '').slice(0, 4) });
+  return (
+    <span className="inline-flex flex-col items-center gap-1 align-middle">
+      <input aria-label="чисельник" className={cls} inputMode="numeric" value={value.n || ''} onChange={e => set('n', e.target.value)} />
+      <span className="block w-16 sm:w-20 lg:w-24 h-1 bg-slate-700 rounded" />
+      <input aria-label="знаменник" className={cls} inputMode="numeric" value={value.d || ''} onChange={e => set('d', e.target.value)} />
+    </span>
+  );
+};
+
+const NumInput = ({ value = '', onChange, state }) => {
+  const cls = `fr w-24 sm:w-28 lg:w-36 h-11 lg:h-14 text-center text-xl lg:text-3xl font-bold rounded-lg border-2 ${stateBorder(state)}`;
+  const set = v => {
+    let s = v.replace(/\./g, ',').replace(/[^0-9,]/g, '');
+    const k = s.indexOf(',');
+    if (k >= 0) s = s.slice(0, k + 1) + s.slice(k + 1).replace(/,/g, '');
+    onChange(s.slice(0, 8));
+  };
+  return <input aria-label="відповідь" className={cls} inputMode="decimal" value={value} onChange={e => set(e.target.value)} />;
+};
+
+const toNum = s => parseFloat(String(s == null ? '' : s).replace(',', '.'));
+const numOk = (v, a) => v !== undefined && v !== '' && Math.abs(toNum(v) - toNum(a)) < 1e-9;
+const fracOk = (v, [an, ad]) => {
+  if (!v || !v.n) return false;
+  const n = +v.n, d = v.d ? +v.d : 1;
+  if (!d) return false;
+  return n * ad === an * d;
+};
+
+/* ============ Загальні елементи ============ */
+const Btn = ({ children, onClick, kind = 'main', disabled, className = '' }) => {
+  const styles = {
+    main: 'bg-brand hover:bg-orange-800 text-white border-brand',
+    light: 'bg-brandLight hover:bg-brandMid text-brand border-brandLine',
+    grey: 'bg-white hover:bg-slate-50 text-slate-600 border-slate-300',
+  };
+  return (
+    <button disabled={disabled} onClick={onClick}
+      className={`min-h-[44px] px-5 py-2.5 lg:px-7 lg:py-3 rounded-full border-2 font-extrabold text-base lg:text-xl shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${styles[kind]} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+const Rule = ({ children }) => (
+  <div className="pop bg-brandLight border-l-8 border-accent rounded-xl px-5 py-4 lg:px-8 lg:py-6 text-lg sm:text-xl lg:text-3xl font-bold leading-snug">
+    {children}
+  </div>
+);
+
+const Title = ({ children }) => (
+  <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-brand mb-6 lg:mb-10 text-center" style={{ textWrap: 'balance' }}>{children}</h2>
+);
+
+const Sub = ({ children }) => (
+  <p className="text-center text-lg lg:text-2xl text-slate-600 mb-6 lg:mb-8 leading-relaxed">{children}</p>
+);
+
+/* ============ Смужка-схема: ціле розбито на рівні частини ============ */
+const Bar = ({ parts, shaded, top, cell, rest, bottom }) => (
+  <div className="w-full max-w-2xl mx-auto select-none">
+    <div style={{ width: `${(shaded / parts) * 100}%` }} className="text-center">
+      <div className="text-lg sm:text-xl lg:text-3xl font-extrabold text-brand min-h-[1.6em]">{top}</div>
+      <div className="h-2.5 border-2 border-b-0 border-brand rounded-t-md" />
+    </div>
+    <div className="flex mt-1.5 border-2 border-brand rounded-xl overflow-hidden bg-white">
+      {Array.from({ length: parts }).map((_, i) => (
+        <div key={i}
+          className={`flex-1 h-12 sm:h-16 lg:h-20 flex items-center justify-center text-xl lg:text-4xl font-bold font-math ${i < shaded ? 'bg-brandMid text-brand' : 'bg-white text-slate-700'} ${i ? 'border-l-2 border-brand' : ''}`}>
+          {(i < shaded ? cell : rest) ? <span className="pop">{i < shaded ? cell : rest}</span> : null}
+        </div>
+      ))}
+    </div>
+    <div className="mt-1.5 h-2.5 border-2 border-t-0 border-slate-700 rounded-b-md" />
+    <div className="text-center text-lg sm:text-xl lg:text-3xl font-extrabold text-slate-800 min-h-[1.6em]">{bottom}</div>
+  </div>
+);
+
+/* ============ Розв'язання по кроках ============ */
+const Worked = ({ examples, onAll }) => {
+  const [ex, setEx] = useState(0);
+  const [shown, setShown] = useState(1);
+  const e = examples[ex];
+  const done = shown >= e.lines.length;
+  const last = ex === examples.length - 1;
+  useEffect(() => { if (done && last && onAll) onAll(); }, [done, last]);
+  return (
+    <div className="rounded-2xl border-2 border-brandMid bg-white p-4 lg:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 lg:mb-6">
+        <p className="text-lg lg:text-2xl font-bold text-slate-600">{examples.length > 1 ? `Приклад ${ex + 1}` : 'Розв’язання'}</p>
+        {examples.length > 1 && (
+          <div className="flex gap-2">
+            {examples.map((_, i) => (
+              <button key={i} aria-label={`Приклад ${i + 1}`} onClick={() => { setEx(i); setShown(1); }}
+                className={`w-11 h-11 lg:w-12 lg:h-12 rounded-full border-2 font-extrabold lg:text-xl cursor-pointer ${i === ex ? 'bg-brand border-brand text-white' : 'bg-white border-brandMid text-brand hover:bg-brandLight'}`}>{i + 1}</button>
+            ))}
+          </div>
+        )}
+      </div>
+      {e.task && <p className="text-lg lg:text-2xl text-slate-700 leading-relaxed mb-5"><T s={e.task} /></p>}
+      <div className="space-y-5 lg:space-y-7">
+        {e.lines.slice(0, shown).map(([lbl, tex], i) => (
+          <div key={ex + '-' + i} className="fade">
+            <p className="text-lg lg:text-2xl text-slate-600 mb-2"><span className="font-extrabold text-brand mr-2">{i + 1})</span>{lbl}</p>
+            <div className="text-3xl lg:text-5xl leading-relaxed"><M t={tex} /></div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 lg:mt-8 flex flex-wrap gap-3">
+        {!done && <Btn kind="light" onClick={() => setShown(s => s + 1)}>Наступний крок ↓</Btn>}
+        {done && !last && <Btn kind="light" onClick={() => { setEx(ex + 1); setShown(1); }}>Ще приклад →</Btn>}
+      </div>
+    </div>
+  );
+};
+
+/* ============ «Спробуй сам»: кілька віконець в одному записі ============ */
+// частини: { t } текст · { frac:[n,d] } · { num:'200' } · { br:true } — новий рядок
+const TryChain = ({ parts, onDone }) => {
+  const [vals, setVals] = useState({});
+  const [sts, setSts] = useState({});
+  const isIn = p => p.frac || p.num !== undefined;
+  const okOf = (p, v) => (p.frac ? fracOk(v, p.frac) : numOk(v, p.num));
+  const check = () => {
+    const r = {}; let all = true;
+    parts.forEach((p, i) => { if (isIn(p)) { const ok = okOf(p, vals[i]); r[i] = ok ? 'ok' : 'bad'; if (!ok) all = false; } });
+    setSts(r);
+    if (all && onDone) onDone();
+  };
+  const firstBad = parts.findIndex((p, i) => sts[i] === 'bad');
+  const allOk = parts.some(isIn) && parts.every((p, i) => !isIn(p) || sts[i] === 'ok');
+  const reset = i => { setSts({}); };
+  return (
+    <div className="fade border-2 border-dashed border-brandLine bg-white rounded-2xl p-4 lg:p-8">
+      <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-4">✎ Спробуй сам</p>
+      <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-5 text-3xl lg:text-5xl">
+        {parts.map((p, i) => {
+          if (p.br) return <span key={i} className="basis-full h-0" />;
+          if (p.t) return <span key={i}><M t={p.t} /></span>;
+          return (
+            <span key={i} className="inline-flex flex-col items-center">
+              {p.frac
+                ? <FracInput value={vals[i]} onChange={x => { setVals(v => ({ ...v, [i]: x })); reset(i); }} state={sts[i]} />
+                : <NumInput value={vals[i]} onChange={x => { setVals(v => ({ ...v, [i]: x })); reset(i); }} state={sts[i]} />}
+              <span className={`block text-center text-sm lg:text-lg font-medium mt-2 leading-tight max-w-[8rem] ${p.blue ? 'text-sky-700 font-bold' : 'text-slate-500'}`}>{p.label}</span>
+            </span>
+          );
+        })}
+        <Btn onClick={check}>Перевірити</Btn>
+      </div>
+      {allOk && <p className="pop mt-4 text-center text-xl lg:text-3xl font-bold text-green-600">✓ Правильно!</p>}
+      {firstBad >= 0 && <p className="pop mt-4 text-center text-lg lg:text-2xl text-red-500">Ще раз! <span className="text-slate-600">{parts[firstBad].help}</span></p>}
+    </div>
+  );
+};
+
+/* ============ КРОКИ ПОЯСНЕННЯ ============ */
+
+// 1. Задача про вишні: схема і два кроки
+const Step1 = ({ setReady }) => {
+  const [shown, setShown] = useState(0);
+  useEffect(() => setReady(shown >= 2), [shown]);
+  const lines = [
+    ['7 частин — це 28 дерев. Знаходимо одну частину:', '^28 : 7 = 4'],
+    ['Усіх частин 9. Знаходимо всі дерева:', '4 * 9 = 36'],
+  ];
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Задача</Title>
+      <p className="text-xl lg:text-3xl leading-relaxed text-center mb-8 lg:mb-10">
+        <T s="У саду ростуть 28 вишень. Це {7/9} усіх дерев. Скільки всього дерев росте в саду?" />
+      </p>
+      <Bar parts={9} shaded={7} top="28 вишень" cell={shown >= 1 ? '4' : ''} rest={shown >= 2 ? '4' : ''} bottom={shown >= 2 ? '36 дерев' : '? дерев'} />
+      <div className="mt-8 lg:mt-10 space-y-5 lg:space-y-7">
+        {lines.slice(0, shown).map(([lbl, tex], i) => (
+          <div key={i} className="fade text-center">
+            <p className="text-lg lg:text-2xl text-slate-600 mb-2"><span className="font-extrabold text-brand mr-2">{i + 1})</span>{lbl}</p>
+            <div className="text-3xl lg:text-5xl"><M t={tex} /></div>
+          </div>
+        ))}
+        {shown >= 2 && <div className="pop text-center"><Rule>Відповідь: 36 дерев.</Rule></div>}
+      </div>
+      {shown < 2 && <div className="mt-8 text-center"><Btn kind="light" onClick={() => setShown(s => s + 1)}>Наступний крок ↓</Btn></div>}
+    </div>
+  );
+};
+
+// 2. Правило (за підручником) + приклад
+const Step2 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Правило</Title>
+      <Rule>Щоб знайти <span className="text-brand">число за заданим значенням його дробу</span>, можна дане значення <span className="text-green-600">поділити</span> на цей дріб.</Rule>
+      <p className="text-lg lg:text-2xl text-slate-600 text-center my-6 lg:my-8">Повернімося до задачі про вишні.</p>
+      <Worked onAll={() => setDone(true)} examples={[{
+        task: '28 вишень — це {7/9} усіх дерев. Скільки всього дерев?',
+        lines: [
+          ['Ділимо значення на дріб', '^28 : ~7/9 = 28/1 * ~9/7'],
+          ['Скорочуємо й рахуємо', '= 28*9/1*7 = 36'],
+        ],
+      }]} />
+    </div>
+  );
+};
+
+// 3. Множимо чи ділимо?
+const Step3 = ({ setReady }) => {
+  const items = [
+    { t: 'У класі 30 учнів. {2/5} з них — хлопці. Скільки хлопців?', op: 'mul', res: '^30 * ~2/5 = 12' },
+    { t: 'У класі 12 хлопців. Це {2/5} усіх учнів. Скільки учнів у класі?', op: 'div', res: '^12 : ~2/5 = 30' },
+    { t: 'У книзі 240 сторінок. Даринка прочитала {3/5} книги. Скільки сторінок вона прочитала?', op: 'mul', res: '^240 * ~3/5 = 144' },
+    { t: 'Даринка прочитала 144 сторінки. Це {3/5} книги. Скільки сторінок у книзі?', op: 'div', res: '^144 : ~3/5 = 240' },
+  ];
+  const [st, setSt] = useState(items.map(() => null));
+  const all = st.every(s => s === 'ok');
+  useEffect(() => setReady(all), [all]);
+  const pick = (i, op) => setSt(s => s.map((x, j) => (j === i ? (items[i].op === op ? 'ok' : 'bad') : x)));
+  return (
+    <div className="max-w-4xl mx-auto">
+      <Title>Множимо чи ділимо?</Title>
+      <Sub>Що відомо: <b>ціле</b> чи <b>частина</b>?</Sub>
+      <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
+        {items.map((it, i) => (
+          <div key={i} className={`rounded-2xl border-2 p-4 lg:p-6 bg-white ${st[i] === 'ok' ? 'border-green-300' : st[i] === 'bad' ? 'border-red-300 nudge' : 'border-brandMid'}`}>
+            <p className="text-lg lg:text-2xl leading-relaxed mb-4"><T s={it.t} /></p>
+            {st[i] === 'ok' ? (
+              <div className="pop">
+                <p className="text-base lg:text-xl text-slate-600 mb-2">{it.op === 'mul' ? 'Відоме ціле число — множимо.' : 'Відоме значення дробу — ділимо.'}</p>
+                <div className="text-3xl lg:text-4xl"><M t={it.res} /></div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex flex-wrap gap-3">
+                  <Btn kind="light" onClick={() => pick(i, 'mul')}>Множимо</Btn>
+                  <Btn kind="light" onClick={() => pick(i, 'div')}>Ділимо</Btn>
+                </div>
+                {st[i] === 'bad' && <p className="pop mt-3 text-base lg:text-xl text-red-500">Ще раз. Що відомо: ціле чи частина?</p>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// 4. Спробуй сам: дріб
+const Step4 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Спробуй сам</Title>
+      <p className="text-xl lg:text-3xl text-center leading-relaxed mb-6 lg:mb-8"><T s="Знайди число, {3/4} якого дорівнюють {12}." /></p>
+      <TryChain onDone={() => setDone(true)} parts={[
+        { t: '^12 : ~3/4 = 12/1 *' },
+        { frac: [4, 3], label: 'обернений дріб', blue: true, help: 'Переверни дільник 3/4.' },
+        { t: '=' },
+        { num: '16', label: 'число', help: 'Помнож 12 на 4 і поділи на 3.' },
+      ]} />
+    </div>
+  );
+};
+
+// 5. Приклади
+const Step5 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Приклади</Title>
+      <Worked examples={[
+        { task: 'Знайдіть число, {7/9} якого дорівнюють {63}.', lines: [
+          ['Ділимо число на цей дріб', '^63 : ~7/9 = 63/1 * ~9/7'],
+          ['Скорочуємо й рахуємо', '= 63*9/1*7 = 81'],
+        ] },
+        { task: 'Знайдіть число, {0,9} якого дорівнюють {81}.', lines: [
+          ['Записуємо 0,9 звичайним дробом', '0,9 = ~9/10'],
+          ['Ділимо число на цей дріб', '^81 : ~9/10 = 81/1 * ~10/9'],
+          ['Скорочуємо й рахуємо', '= 81*10/1*9 = 90'],
+        ] },
+        { task: 'Знайдіть число, {8/15} якого дорівнюють {40}.', lines: [
+          ['Ділимо число на цей дріб', '^40 : ~8/15 = 40/1 * ~15/8'],
+          ['Скорочуємо й рахуємо', '= 40*15/1*8 = 75'],
+        ] },
+        { task: 'Даринка прочитала 144 сторінки, що становило {3/5} сторінок книги. Скільки сторінок у книзі?', lines: [
+          ['144 сторінки — це 3/5 книги. Ділимо значення на дріб', '^144 : ~3/5 = 144/1 * ~5/3'],
+          ['Скорочуємо й рахуємо', '= 144*5/1*3 = 240'],
+          ['Відповідь', '240 сторінок'],
+        ] },
+      ]} />
+    </div>
+  );
+};
+
+// 7. Відсотки: правило + приклад про діжку
+const Step7 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Число за його відсотками</Title>
+      <Rule>Щоб знайти <span className="text-brand">число за його відсотками</span>, можна подати відсотки у вигляді дробу й <span className="text-green-600">поділити</span> значення відсотків на цей дріб.</Rule>
+      <div className="mt-6 lg:mt-8">
+        <Worked onAll={() => setDone(true)} examples={[{
+          task: 'У діжку налили 84 л води. Яким є об’єм діжки, якщо заповнено 70 % її об’єму?',
+          lines: [
+            ['Відсотки записуємо десятковим дробом', '70\u00a0% = 0,7'],
+            ['84 л — це 0,7 об’єму діжки. Ділимо', '^84 : ~0,7'],
+            ['Ділене і дільник збільшуємо в 10 разів', '84 : 0,7 = 840 : 7 = 120'],
+            ['Відповідь', '120 л'],
+          ],
+        }]} />
+      </div>
+    </div>
+  );
+};
+
+// 8. Спробуй сам: відсотки
+const Step8 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Спробуй сам</Title>
+      <p className="text-xl lg:text-3xl text-center leading-relaxed mb-6 lg:mb-8"><T s={'Знайди число, {24 %} якого дорівнюють {48}.'} /></p>
+      <TryChain onDone={() => setDone(true)} parts={[
+        { t: '24 % =' },
+        { num: '0,24', label: 'десятковий дріб', help: '24 % — це 24 сотих.' },
+        { br: true },
+        { t: '^48 : ~0,24 =' },
+        { num: '200', label: 'число', help: 'Помнож ділене і дільник на 100: 4800 : 24.' },
+      ]} />
+    </div>
+  );
+};
+
+// 9. Запам'ятай
+const Step9 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  const rows = [
+    ['Дріб від числа', '36 * ~7/9 = 28'],
+    ['Число за значенням дробу', '28 : ~7/9 = 36'],
+    ['Число за відсотками', '84 : ~0,7 = 120'],
+  ];
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Запам’ятай</Title>
+      <Rule>Відоме ціле — <span className="text-green-600">множимо</span>. Відома частина — <span className="text-green-600">ділимо</span>.</Rule>
+      <div className="mt-6 lg:mt-10 rounded-2xl border-2 border-brandMid overflow-hidden">
+        {rows.map(([a, b], i) => (
+          <div key={i} className={`fade flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 lg:px-8 lg:py-5 ${i % 2 ? 'bg-white' : 'bg-brandLight'}`} style={{ animationDelay: `${i * 0.15}s` }}>
+            <span className="text-lg lg:text-2xl font-bold text-slate-600">{a}</span>
+            <span className="text-2xl lg:text-4xl"><M t={b} /></span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-lg lg:text-2xl text-slate-600">Відсотки спочатку записуємо дробом.</p>
+    </div>
+  );
+};
+
+/* ============ Список з виразами ============ */
+const Dropdown = ({ value, options, onChange, state }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('pointerdown', h);
+    return () => document.removeEventListener('pointerdown', h);
+  }, []);
+  const border = state === 'ok' ? 'border-green-500' : state === 'bad' ? 'border-red-400' : 'border-brandLine';
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className={`min-w-[9.5rem] min-h-[3.5rem] px-4 py-1 rounded-xl border-2 ${border} bg-white flex items-center justify-between gap-3 text-xl lg:text-3xl cursor-pointer`}>
+        {value ? <M t={value} /> : <span className="text-slate-400 text-lg lg:text-xl">— обери —</span>}
+        <span className={`text-base text-accent transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div className="pop absolute z-40 left-0 mt-2 min-w-full bg-white border-2 border-brandLine rounded-xl shadow-lg py-1">
+          {options.map(o => (
+            <button key={o} type="button" onClick={() => { onChange(o); setOpen(false); }}
+              className={`block w-full text-left px-5 py-2.5 text-xl lg:text-3xl whitespace-nowrap cursor-pointer hover:bg-brandLight ${o === value ? 'bg-brandMid' : ''}`}>
+              <M t={o} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ============ ПРАКТИКУМ ============ */
+const N = ans => ({ kind: 'num', ans });
+const F = (n, d) => ({ kind: 'frac', ans: [n, d] });
+const S = (options, correct) => ({ kind: 'select', options, correct });
+
+const TASKS = [
+  {
+    title: 'Яким виразом знайти число?', level: 'Легко',
+    items: [
+      { q: 'Число, {5/6} якого дорівнюють {30}', ...S(['30 * 5/6', '30 : 5/6', '5/6 : 30'], '30 : 5/6'), tip: 'Відоме значення дробу. Шукаємо число.' },
+      { q: 'Знайти {5/6} від числа {30}', ...S(['30 * 5/6', '30 : 5/6', '5/6 : 30'], '30 * 5/6'), tip: 'Відоме ціле число. Шукаємо його частину.' },
+      { q: 'Число, {40 %} якого дорівнюють {16}', ...S(['16 * 0,4', '16 : 0,4', '0,4 : 16'], '16 : 0,4'), tip: 'Відоме значення відсотків. Шукаємо число.' },
+      { q: 'Знайти {40 %} від числа {16}', ...S(['16 : 0,4', '16 * 0,4', '0,4 : 16'], '16 * 0,4'), tip: 'Відоме ціле число. Шукаємо його частину.' },
+      { q: 'Число, {7/12} якого дорівнюють {35}', ...S(['7/12 : 35', '35 * 7/12', '35 : 7/12'], '35 : 7/12'), tip: 'Відоме значення дробу. Шукаємо число.' },
+    ],
+  },
+  {
+    title: 'Знайдіть число, якщо його дріб дорівнює 48', level: 'Легко',
+    tip: 'Значення ділимо на дріб.',
+    items: [
+      { q: '{1/3} числа дорівнюють {48}', ...N('144'), help: 'Ділимо: {48 : 1/3 = 48/1 * 3/1}' },
+      { q: '{0,4} числа дорівнюють {48}', ...N('120'), help: 'Записуємо {0,4 = 2/5}. Ділимо: {48 : 2/5}' },
+      { q: '{4/9} числа дорівнюють {48}', ...N('108'), help: 'Ділимо: {48 : 4/9 = 48/1 * 9/4}' },
+      { q: '{24/25} числа дорівнюють {48}', ...N('50'), help: 'Ділимо: {48 : 24/25 = 48/1 * 25/24}' },
+    ],
+  },
+  {
+    title: 'Знайдіть число', level: 'Середньо',
+    items: [
+      { q: 'Число, {3/4} якого дорівнюють {12}', ...N('16'), help: '{12 : 3/4 = 12/1 * 4/3}' },
+      { q: 'Число, {7/9} якого дорівнюють {63}', ...N('81'), help: '{63 : 7/9 = 63/1 * 9/7}' },
+      { q: 'Число, {0,9} якого дорівнюють {81}', ...N('90'), help: 'Записуємо {0,9 = 9/10}. Ділимо: {81 : 9/10}' },
+      { q: 'Число, {8/15} якого дорівнюють {40}', ...N('75'), help: '{40 : 8/15 = 40/1 * 15/8}' },
+      { q: 'Число, {15/8} якого дорівнюють {120}', ...N('64'), help: '{120 : 15/8 = 120/1 * 8/15}' },
+    ],
+  },
+  {
+    title: 'Розв’яжіть задачу', level: 'Задачі', words: true,
+    items: [
+      { q: 'Даринка прочитала 144 сторінки, що становило {3/5} сторінок книги. Скільки сторінок у книзі?', ...N('240'), unit: 'стор.', help: '{144 : 3/5}' },
+      { q: 'Найкращий бомбардир забив 16 голів, що становило {4/15} усіх голів команди. Скільки всього голів забила команда?', ...N('60'), unit: 'голів', help: '{16 : 4/15}' },
+      { q: 'На сніданок Вінні-Пух з’їв {6/17} меду з барильця, а на обід — решту 22 кг. Скільки кілограмів меду було в барильці?', ...N('34'), unit: 'кг', help: 'Решта — це {1 - 6/17 = 11/17} меду. Ділимо: {22 : 11/17}' },
+      { q: 'Першого дня продали {13/21} усіх груш, а другого — решту 128 кг. Скільки кілограмів груш продали за два дні?', ...N('336'), unit: 'кг', help: '128 кг — це {1 - 13/21 = 8/21} усіх груш. Ділимо: {128 : 8/21}' },
+    ],
+  },
+  {
+    title: 'Знайдіть число за його відсотками', level: 'Відсотки',
+    tip: 'Відсотки записуємо дробом. Значення ділимо на цей дріб.',
+    items: [
+      { q: '{24 %} числа дорівнюють {48}', ...N('200'), help: '{24 % = 0,24}. Ділимо: {48 : 0,24}' },
+      { q: '{13 %} числа дорівнюють {52}', ...N('400'), help: '{13 % = 0,13}. Ділимо: {52 : 0,13}' },
+      { q: '{108 %} числа дорівнюють {86,4}', ...N('80'), help: '{108 % = 1,08}. Ділимо: {86,4 : 1,08}' },
+      { q: '{75 %} числа дорівнюють {1/4}', ...F(1, 3), help: '{75 % = 0,75 = 3/4}. Ділимо: {1/4 : 3/4}' },
+      { q: '{80 %} числа дорівнюють {3/5}', ...F(3, 4), help: '{80 % = 4/5}. Ділимо: {3/5 : 4/5}' },
+    ],
+  },
+  {
+    title: 'Розв’яжіть задачу', level: 'Задачі', words: true,
+    items: [
+      { q: 'Скільки кілометрів між двома містами, якщо 36 км становлять {15 %} цієї відстані?', ...N('240'), unit: 'км', help: '{15 % = 0,15}. Ділимо: {36 : 0,15}' },
+      { q: 'На придбання словників витратили 280 грн, що становить {8 %} грошей, виділених на книжки. Яку суму виділили на книжки?', ...N('3500'), unit: 'грн', help: '{8 % = 0,08}. Ділимо: {280 : 0,08}' },
+      { q: 'У залі Міжнародного центру культури і мистецтв 1960 місць, що становить {49/92} кількості місць у палаці «Україна». Скільки місць у палаці «Україна»?', ...N('3680'), unit: 'місць', help: '{1960 : 49/92 = 1960/1 * 92/49}' },
+      { q: 'Вишні становлять {4/11} фруктових дерев, а фруктові дерева — {11/15} усіх посаджених. Вишень посадили 12. Скільки всього дерев посадили?', ...N('45'), unit: 'дерев', help: 'Спочатку знайди фруктові дерева: {12 : 4/11}' },
+    ],
+  },
+];
+
+const itemOk = (it, v) => (it.kind === 'select' ? v === it.correct : it.kind === 'frac' ? fracOk(v, it.ans) : numOk(v, it.ans));
+const itemFilled = (it, v) => (it.kind === 'select' ? !!v : it.kind === 'frac' ? !!(v && v.n) : v !== undefined && v !== '');
+
+const TaskView = ({ task, idx, answers, setAnswers, checked, setChecked }) => {
+  const right = task.items.filter((it, i) => itemOk(it, answers[i])).length;
+  const allRight = right === task.items.length;
+  const retry = () => {
+    const keep = {};
+    task.items.forEach((it, i) => { if (itemOk(it, answers[i])) keep[i] = answers[i]; });
+    setAnswers(keep); setChecked(false);
+  };
+  return (
+    <div className="fade max-w-3xl mx-auto">
+      <div className="text-center mb-6 lg:mb-8">
+        <span className="inline-block px-3 py-1 rounded-full bg-brandLight text-brand text-sm lg:text-lg font-extrabold mb-2">{task.level}</span>
+        <h3 className="text-2xl lg:text-4xl font-extrabold" style={{ textWrap: 'balance' }}>Завдання {idx + 1}. {task.title}</h3>
+        {task.tip && <p className="mt-3 text-lg lg:text-2xl text-slate-600">{task.tip}</p>}
+      </div>
+
+      <div className="space-y-3 lg:space-y-4">
+        {task.items.map((it, i) => {
+          const ok = itemOk(it, answers[i]);
+          const st = checked && itemFilled(it, answers[i]) ? (ok ? 'ok' : 'bad') : null;
+          const set = v => setAnswers({ ...answers, [i]: v });
+          return (
+            <div key={i} className={`rounded-2xl border-2 p-3 lg:p-5 ${st === 'ok' ? 'border-green-300 bg-green-50' : st === 'bad' ? 'border-red-300 bg-red-50' : 'border-brandMid bg-white'}`}>
+              <div className="flex gap-3">
+                <span className="font-extrabold text-brand text-lg lg:text-2xl shrink-0">{i + 1})</span>
+                <p className={`${task.words ? 'text-lg lg:text-2xl' : 'text-xl lg:text-3xl'} leading-relaxed min-w-0`}><T s={it.q} /></p>
+              </div>
+              <div className="mt-3 pl-8 flex flex-wrap items-center gap-3 lg:gap-5">
+                <span className="text-lg lg:text-2xl text-slate-500">{it.kind === 'select' ? 'Вираз:' : 'Відповідь:'}</span>
+                {it.kind === 'frac' && <FracInput value={answers[i]} onChange={set} state={st} />}
+                {it.kind === 'num' && <NumInput value={answers[i]} onChange={set} state={st} />}
+                {it.kind === 'select' && <Dropdown value={answers[i]} options={it.options} onChange={set} state={st} />}
+                {it.unit && <span className="text-xl lg:text-3xl">{it.unit}</span>}
+                {st && <span className={`pop text-3xl lg:text-4xl ml-auto ${ok ? 'text-green-500' : 'text-red-400'}`}>{ok ? '✓' : '✗'}</span>}
+              </div>
+              {st === 'bad' && (
+                <div className="fade mt-3 pl-8 text-lg lg:text-2xl text-slate-700">
+                  <span className="text-slate-500 mr-2">Підказка:</span>{it.help ? <T s={it.help} /> : it.tip}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 lg:mt-8 flex flex-wrap items-center justify-center gap-3 lg:gap-4">
+        {!checked
+          ? <Btn onClick={() => setChecked(true)}>✓ Перевірити відповіді</Btn>
+          : !allRight && <Btn kind="light" onClick={retry}>↺ Виправити помилки</Btn>}
+        {checked && (
+          <span className={`pop px-5 py-2.5 rounded-full text-lg lg:text-2xl font-extrabold ${allRight ? 'bg-green-100 text-green-700' : 'bg-brandLight text-brand'}`}>
+            {allRight ? '🎉 Усе правильно!' : `Правильно: ${right} з ${task.items.length}`}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const makePractice = (LIST, off) => ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  const [tab, setTab] = useState(0);
+  const [answers, setAnswers] = useState(LIST.map(() => ({})));
+  const [checked, setChecked] = useState(LIST.map(() => false));
+  const okCount = t => LIST[t].items.filter((it, i) => itemOk(it, answers[t][i])).length;
+  return (
+    <div>
+      <div className="flex flex-wrap justify-center gap-2 lg:gap-3 mb-6 lg:mb-10">
+        {LIST.map((t, i) => {
+          const full = checked[i] && okCount(i) === t.items.length;
+          return (
+            <button key={i} onClick={() => setTab(i)}
+              className={`min-h-[44px] px-4 py-2 lg:px-6 lg:py-3 rounded-full border-2 font-extrabold text-base lg:text-xl cursor-pointer transition-all ${i === tab ? 'bg-brand border-brand text-white' : 'bg-white border-brandMid text-brand hover:bg-brandLight'}`}>
+              Завдання {i + 1 + off} {full && <span>★</span>}
+            </button>
+          );
+        })}
+      </div>
+      <TaskView key={tab} task={LIST[tab]} idx={tab + off}
+        answers={answers[tab]} setAnswers={a => setAnswers(p => p.map((x, i) => (i === tab ? a : x)))}
+        checked={checked[tab]} setChecked={c => setChecked(p => p.map((x, i) => (i === tab ? c : x)))} />
+      <div className="max-w-3xl mx-auto mt-8 flex justify-between gap-3">
+        <Btn kind="grey" disabled={tab === 0} onClick={() => setTab(t => t - 1)}>← Попереднє</Btn>
+        <Btn kind="light" disabled={tab === LIST.length - 1} onClick={() => setTab(t => t + 1)}>Наступне →</Btn>
+      </div>
+    </div>
+  );
+};
+
+const Practice1 = makePractice(TASKS.slice(0, 4), 0);
+const Practice2 = makePractice(TASKS.slice(4), 4);
+
+/* ============ ДОДАТОК ============ */
+const STEPS = [
+  { name: 'Задача про вишні', C: Step1 },
+  { name: 'Правило', C: Step2 },
+  { name: 'Множимо чи ділимо?', C: Step3 },
+  { name: 'Спробуй сам: дріб', C: Step4 },
+  { name: 'Приклади', C: Step5 },
+  { name: 'Практикум: число за дробом', C: Practice1 },
+  { name: 'Число за його відсотками', C: Step7 },
+  { name: 'Спробуй сам: відсотки', C: Step8 },
+  { name: 'Запам’ятай', C: Step9 },
+  { name: 'Практикум: число за відсотками', C: Practice2 },
+];
+
+const Footer = () => (
+  <div className="shrink-0 text-center py-1.5 bg-panelLeft border-t border-brandMid text-[11px] sm:text-xs lg:text-sm text-slate-500">
+    Автор розробки <span className="font-bold text-slate-800">Ковтун Тетяна</span>
+  </div>
+);
+
+const App = () => {
+  const [started, setStarted] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [step, setStep] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [seen, setSeen] = useState(0);
+  const scroller = useRef(null);
+
+  useEffect(() => { setSeen(s => Math.max(s, step)); if (scroller.current) scroller.current.scrollTop = 0; }, [step]);
+  const canNext = ready || seen > step;
+  const go = s => { setReady(false); setStep(s); setMenu(false); };
+  const Cur = STEPS[step].C;
+
+  if (!started) return (
+    <div className="h-full flex flex-col font-ui">
+      <div className="flex-1 flex flex-col items-center justify-center bg-panelLeft p-4 text-center gap-6 lg:gap-8">
+        <div className="text-4xl sm:text-5xl lg:text-7xl pop"><M t="^28 : ~7/9 = 36" /></div>
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold fade" style={{ textWrap: 'balance' }}>
+          <span className="text-brand">Знаходження числа</span><br />за його дробом
+        </h1>
+        <p className="text-lg lg:text-2xl text-slate-500">Математика, 6 клас</p>
+        <button onClick={() => { setStarted(true); go(0); }}
+          className="flex items-center gap-4 bg-white text-brand border-2 border-brandLine rounded-full pl-2.5 pr-8 py-2.5 shadow-md hover:shadow-lg active:scale-95 transition-all cursor-pointer font-extrabold text-xl lg:text-2xl tracking-widest">
+          <span className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-brand text-white flex items-center justify-center text-lg pl-1">▶</span>
+          ПОЧАТИ
+        </button>
+      </div>
+      <Footer />
+    </div>
+  );
+
+  return (
+    <div className="h-full flex flex-col font-ui">
+      <div className="shrink-0 flex items-center gap-3 px-4 py-2 lg:px-6 lg:py-3 border-b border-brandMid bg-panelLeft">
+        <Btn kind="light" onClick={() => setMenu(m => !m)} className="!px-4 !py-1.5 !text-sm whitespace-nowrap">☰ Зміст</Btn>
+        <div className="flex-1 flex items-center justify-center gap-1.5 lg:gap-2">
+          {STEPS.map((s, i) => (
+            <span key={i} title={s.name}
+              className={`h-2.5 lg:h-3 rounded-full transition-all ${i === step ? 'w-8 lg:w-12 bg-brand' : i <= seen ? 'w-2.5 lg:w-3 bg-brandLine' : 'w-2.5 lg:w-3 bg-slate-200'}`} />
+          ))}
+        </div>
+        <span className="text-sm lg:text-lg font-extrabold text-brand whitespace-nowrap">{step + 1} / {STEPS.length}</span>
+      </div>
+
+      <div ref={scroller} className="flex-1 overflow-y-auto bg-panelRight px-4 py-6 lg:px-10 lg:py-12">
+        {menu ? (
+          <div className="fade max-w-3xl mx-auto">
+            <Title>Зміст уроку</Title>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {STEPS.map((s, i) => (
+                <button key={i} onClick={() => go(i)}
+                  className={`flex items-center gap-4 p-3 lg:p-5 rounded-xl border-2 text-left cursor-pointer transition-all hover:border-accent hover:bg-brandLight ${i === step ? 'border-accent bg-brandLight' : 'border-brandMid bg-white'}`}>
+                  <span className="w-10 h-10 lg:w-12 lg:h-12 shrink-0 rounded-full bg-brandMid text-brand font-extrabold flex items-center justify-center lg:text-xl">
+                    {s.name.startsWith('Практикум') ? '✎' : i + 1}
+                  </span>
+                  <span className="text-lg lg:text-2xl font-bold">{s.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div key={step} className="fade"><Cur setReady={setReady} /></div>
+        )}
+      </div>
+
+      {!menu && (
+        <div className="shrink-0 flex justify-between items-center gap-3 px-4 py-2 lg:px-6 lg:py-4 border-t border-brandMid bg-panelLeft">
+          <Btn kind="grey" disabled={step === 0} onClick={() => go(step - 1)}>← Назад</Btn>
+          {step < STEPS.length - 1
+            ? <Btn disabled={!canNext} onClick={() => go(step + 1)}>Далі →</Btn>
+            : <Btn kind="light" onClick={() => setStarted(false)}>На початок</Btn>}
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
