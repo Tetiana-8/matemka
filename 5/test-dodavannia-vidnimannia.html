@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Тест. Додавання і віднімання натуральних чисел (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,500;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;--acc:#be185d;--acc2:#db2777;
+  --ok:#1e9e62;--okbg:#e6f7ee;--bad:#e0464e;--badbg:#fdecee;
+  --card:#ffffff;--line:#f5d0e3;--soft:#fdeff5;--sel:#fde1ee;
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:linear-gradient(135deg,#fbcfe8 0%,#fda4af 28%,#f9a8d4 52%,#d8b4fe 78%,#a5f3fc 100%) fixed}
+html,body{margin:0}
+body{
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);min-height:100vh;
+  background:linear-gradient(135deg,#fbcfe8 0%,#fda4af 28%,#f9a8d4 52%,#d8b4fe 78%,#a5f3fc 100%);
+  background-attachment:fixed;
+}
+.wrap{max-width:860px;margin:0 auto;padding:26px 16px 40px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 10px 30px rgba(120,20,70,.16);padding:22px 24px;margin-bottom:18px}
+header.card{text-align:center;padding:26px 24px}
+h1{margin:0;font-size:clamp(1.4rem,3.8vw,2.1rem);font-weight:900;line-height:1.25;
+  background:linear-gradient(90deg,#be185d,#db2777 55%,#9333ea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.student{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.student label{display:block;font-weight:800;font-size:.9rem;color:var(--muted);text-align:left;margin-bottom:4px}
+.student input{width:100%;font:inherit;font-size:1.05rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;outline:none;background:var(--soft)}
+.student input:focus{border-color:var(--acc);background:#fff}
+.student input.need{border-color:var(--bad);background:var(--badbg)}
+.studentMsg{color:var(--bad);font-weight:800;margin-top:8px;min-height:1.2em}
+
+.q{position:relative;transition:box-shadow .2s}
+.qh{display:flex;gap:14px;align-items:flex-start}
+.num{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:1.15rem;
+  background:linear-gradient(135deg,#be185d,#ec4899)}
+.qt{flex:1;font-size:1.1rem;font-weight:700;line-height:1.5;padding-top:6px}
+.qt i,.opt i,.lbl i,.plbl i{font-family:"Times New Roman",Georgia,serif;font-size:1.12em}
+.expr{display:block;text-align:center;font-size:1.35rem;font-weight:800;margin:10px 0 2px;letter-spacing:.02em}
+.mark{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:none;place-items:center;font-size:1.4rem;font-weight:900;color:#fff}
+.q.ok .mark{display:grid;background:var(--ok)}
+.q.bad .mark{display:grid;background:var(--bad)}
+.q.ok{box-shadow:0 0 0 3px var(--ok),0 10px 30px rgba(120,20,70,.16)}
+.q.bad{box-shadow:0 0 0 3px var(--bad),0 10px 30px rgba(120,20,70,.16)}
+.fig{display:flex;justify-content:center;margin:12px 0 4px}
+.fig svg{width:100%;max-width:380px;height:auto}
+.part{margin-top:14px}
+.plbl{font-weight:800;color:var(--ink);margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.opt{font:inherit;font-weight:700;font-size:1.02rem;padding:10px 16px;border-radius:14px;border:2px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer;transition:.15s}
+.opt:hover{border-color:#f0a3c8}
+.opt.sel{border-color:var(--acc);background:var(--sel);box-shadow:0 0 0 3px rgba(190,24,93,.16)}
+.numrow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-weight:800;font-size:1.1rem}
+.numrow .lbl{color:var(--ink)}
+.numrow input{width:120px;font:inherit;font-size:1.15rem;font-weight:800;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--soft);outline:none;text-align:center}
+.numrow input.s{width:84px}
+.numrow input:focus{border-color:var(--acc);background:#fff}
+.numrow .u{color:var(--muted)}
+.locked .opt{cursor:default}
+.locked .opt:hover{border-color:var(--line)}
+.locked .opt.sel:hover{border-color:var(--acc)}
+
+.actions{text-align:center}
+.btn{font:inherit;font-weight:900;font-size:1.15rem;border:0;border-radius:16px;padding:14px 34px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#be185d,#ec4899);box-shadow:0 8px 20px rgba(190,24,93,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:#fff;color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.warn{color:var(--bad);font-weight:800;margin:0 0 12px}
+.warn:empty{display:none}
+.result{text-align:center}
+.result .big{font-size:clamp(2.4rem,8vw,3.4rem);font-weight:900;margin:4px 0;
+  background:linear-gradient(90deg,#be185d,#9333ea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .who{font-weight:800;color:var(--muted);font-size:1.1rem}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:14px 0 18px}
+.chip{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:.95rem}
+.chip.y{background:var(--ok)}.chip.n{background:var(--bad)}
+footer{text-align:center;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(90,20,60,.45);margin-top:8px;font-size:.95rem}
+
+/* журнал учителя */
+#keyBtn{position:fixed;top:10px;right:12px;z-index:20;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.55);font-size:1.05rem;cursor:pointer;opacity:.7}
+#keyBtn:hover{opacity:1}
+#overlay{position:fixed;inset:0;background:rgba(60,15,45,.5);z-index:30;display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+#overlay.on{display:flex}
+.modal{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:1150px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal h2{margin:0 0 12px;font-weight:900}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.modal input{font:inherit;font-size:1.05rem;padding:9px 12px;border:2px solid var(--line);border-radius:12px;outline:none}
+.sbtn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:9px 16px;cursor:pointer;background:var(--acc);color:#fff}
+.sbtn.g{background:#fbe4ef;color:var(--acc)}
+.sbtn.r{background:var(--bad)}
+.tblwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{background:var(--soft);position:sticky;top:0;font-weight:900}
+td.nm{text-align:left;font-weight:700;cursor:pointer;color:var(--acc)}
+td.y{color:var(--ok);font-weight:900}td.n{color:var(--bad);font-weight:900}
+tr.det td{white-space:normal;text-align:left;background:#fffafd;font-size:.92rem}
+tr.det table{font-size:.9rem}
+tr.det th{position:static}
+.pmsg{color:var(--bad);font-weight:800}
+
+@media (max-width:640px){
+  .card{padding:18px 16px}
+  .student{grid-template-columns:1fr}
+  .num,.mark{width:34px;height:34px}
+  .qt{font-size:1.02rem;padding-top:4px}
+  .expr{font-size:1.15rem}
+}
+</style>
+</head>
+<body>
+<button id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+
+<div class="wrap">
+  <header class="card">
+    <h1>Тест. Додавання і віднімання натуральних чисел (5 клас)</h1>
+    <div class="student">
+      <div><label for="sur">Прізвище</label><input id="sur" autocomplete="off"></div>
+      <div><label for="nam">Ім'я</label><input id="nam" autocomplete="off"></div>
+    </div>
+    <div class="studentMsg" id="studentMsg"></div>
+  </header>
+
+  <main id="questions"></main>
+
+  <div class="card actions" id="actions">
+    <p class="warn" id="warn"></p>
+    <button class="btn" id="checkBtn">Перевірити</button>
+  </div>
+
+  <div class="card result" id="result" hidden></div>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b> за технічної підтримки Claude</footer>
+</div>
+
+<div id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== Firebase (база math-5-892a5) ===================== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain:"math-5-892a5.firebaseapp.com",
+  projectId:"math-5-892a5",
+  storageBucket:"math-5-892a5.firebasestorage.app",
+  messagingSenderId:"163114803328",
+  appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId:"G-E06VKZ2GP5"
+};
+const APP_ID='default-app-id';
+const COLLECTION='results_addsub_5';
+const TEACHER_PASSWORD='8019';
+const FBV='10.12.2';
+const TEST_NAME='Додавання і віднімання натуральних чисел (5 клас)';
+
+let fbPromise=null;
+function fb(){
+  if(!fbPromise){
+    fbPromise=(async()=>{
+      const [appM,authM,fs]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app=appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return {db:fs.getFirestore(app),fs};
+    })();
+    fbPromise.catch(()=>{fbPromise=null});
+  }
+  return fbPromise;
+}
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){
+  try{const {db,fs}=await fb();await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}
+  catch(e){console.warn('save failed',e)}
+}
+async function loadResults(){
+  const {db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  const out=[];snap.forEach(d=>out.push(d.data()));
+  return out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+async function clearResults(list){
+  const {db,fs}=await fb();
+  for(const r of list){await fs.deleteDoc(fs.doc(coll(db,fs),r.id));}
+}
+fb().catch(()=>{}); // підключаємося заздалегідь
+
+/* ===================== Випадкові числа ===================== */
+/* Кожен учень отримує свій варіант. Щоб відкрити один і той самий варіант, додайте до адреси ?v=число */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function newSeed(){
+  let v=null;try{v=new URLSearchParams(location.search).get('v')}catch(e){}
+  if(v&&/^\d+$/.test(v))return +v;
+  return (Date.now()^Math.floor(Math.random()*4294967296))>>>0;
+}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[ri(0,a.length-1)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const fmt=n=>n>=10000?String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00A0'):String(n);
+const I=s=>`<i>${s}</i>`;
+const plain=h=>String(h).replace(/<br\s*\/?>/g,' ').replace(/<[^>]+>/g,'').replace(/&nbsp;|\u00A0/g,' ').replace(/&minus;/g,'−').replace(/\s+/g,' ').trim();
+
+/* ===================== Рисунки ===================== */
+const RAD=Math.PI/180;
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]], sub=(a,b)=>[a[0]-b[0],a[1]-b[1]], mul=(a,k)=>[a[0]*k,a[1]*k];
+const len=a=>Math.hypot(a[0],a[1]), unit=a=>{const l=len(a)||1;return[a[0]/l,a[1]/l]};
+const f1=n=>(+n).toFixed(1);
+const FIG='#7a2a62', FILL='#fdeff5', TICK='#3a1736', TXT='#3a1736';
+function txt(p,t,o={}){
+  return `<text x="${f1(p[0])}" y="${f1(p[1])}" text-anchor="middle" dominant-baseline="central" font-family="${o.serif?'Times New Roman,Georgia,serif':'Nunito,sans-serif'}" font-size="${o.size||16}" font-weight="${o.w||800}" ${o.it?'font-style="italic"':''} fill="${o.fill||TXT}">${t}</text>`;
+}
+function triSides(s0,s1,s2){ /* AB=s0, BC=s1, CA=s2 */
+  const x=(s0*s0+s2*s2-s1*s1)/(2*s0), y=Math.sqrt(Math.max(0,s2*s2-x*x));
+  return [[0,0],[s0,0],[x,-y]];
+}
+function fit(P,W,H,pad){
+  const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const k=Math.min((W-2*pad)/((x1-x0)||1),(H-2*pad)/((y1-y0)||1));
+  const ox=(W-(x1-x0)*k)/2-x0*k, oy=(H-(y1-y0)*k)/2-y0*k;
+  return P.map(p=>[p[0]*k+ox,p[1]*k+oy]);
+}
+function ticks(P1,P2,n){
+  const M=mul(add(P1,P2),.5),d=unit(sub(P2,P1)),nn=[-d[1],d[0]];
+  let s='';
+  for(let k=0;k<n;k++){
+    const c=add(M,mul(d,(k-(n-1)/2)*6)),a=add(c,mul(nn,7)),b=add(c,mul(nn,-7));
+    s+=`<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="${TICK}" stroke-width="2.4" stroke-linecap="round"/>`;
+  }
+  return s;
+}
+/* рівнобедрений трикутник ABC: AB = BC (бічні), AC — основа */
+function figIso(s,b){
+  const W=380,H=230;
+  const P=fit(triSides(b,s,s),W,H,52);           /* P0=A, P1=C, P2=B (вершина) */
+  const G=mul(add(add(P[0],P[1]),P[2]),1/3);
+  let o=`<polygon points="${P.map(p=>f1(p[0])+','+f1(p[1])).join(' ')}" fill="${FILL}" stroke="${FIG}" stroke-width="3" stroke-linejoin="round"/>`;
+  o+=ticks(P[0],P[2],1)+ticks(P[1],P[2],1);
+  P.forEach(V=>{o+=`<circle cx="${f1(V[0])}" cy="${f1(V[1])}" r="4" fill="${FIG}"/>`});
+  const names=['A','C','B'];
+  P.forEach((V,i)=>{o+=txt(add(V,mul(unit(sub(V,G)),20)),names[i],{size:22,w:700,serif:true,it:true})});
+  const M=mul(add(P[0],P[1]),.5);
+  o+=txt([M[0],M[1]+24],`${b} см`,{size:16});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Рівнобедрений трикутник ABC">${o}</svg>`;
+}
+/* розгорнутий кут MKP, промені KB і KA; ∠MKB = x°, ∠AKP = y° */
+function figAngle(x,y){
+  const W=380,H=215,K=[190,182],R=150,L=138;
+  const C1='#7c3aed',C2='#be185d';
+  const dir=d=>[Math.cos(d*RAD),-Math.sin(d*RAD)];
+  const pt=(d,r)=>add(K,mul(dir(d),r));
+  const tB=180-x,tA=y;
+  const M=pt(180,R),P=pt(0,R),B=pt(tB,L),A=pt(tA,L);
+  let o=`<line x1="${f1(M[0])}" y1="${f1(M[1])}" x2="${f1(P[0])}" y2="${f1(P[1])}" stroke="${FIG}" stroke-width="3" stroke-linecap="round"/>`;
+  [B,A].forEach(E=>{o+=`<line x1="${K[0]}" y1="${K[1]}" x2="${f1(E[0])}" y2="${f1(E[1])}" stroke="${FIG}" stroke-width="3" stroke-linecap="round"/>`});
+  const arc=(r,d1,d2,sw,col)=>{const a=pt(d1,r),b=pt(d2,r);return `<path d="M${f1(a[0])} ${f1(a[1])}A${r} ${r} 0 0 ${sw} ${f1(b[0])} ${f1(b[1])}" fill="none" stroke="${col}" stroke-width="2.4"/>`};
+  o+=arc(52,0,tA,0,C1);          /* ∠AKP */
+  o+=arc(92,180,tB,1,C2);        /* ∠MKB */
+  o+=arc(26,tB,tA,0,TXT);        /* ∠AKB */
+  o+=txt(pt(tB/2,76),`${y}°`,{size:16,fill:C1});
+  o+=txt(pt((180+tA)/2,114),`${x}°`,{size:16,fill:C2});
+  o+=txt(pt((tA+tB)/2,44),'?',{size:16,fill:TXT});
+  [M,P,K,A,B].forEach(V=>{o+=`<circle cx="${f1(V[0])}" cy="${f1(V[1])}" r="4" fill="${FIG}"/>`});
+  const lab=(p,t,dx,dy)=>txt([p[0]+dx,p[1]+dy],t,{size:22,w:700,serif:true,it:true});
+  o+=lab(M,'M',-4,20)+lab(P,'P',4,20)+lab(K,'K',0,22);
+  o+=txt(add(A,mul(dir(tA),16)),'A',{size:22,w:700,serif:true,it:true});
+  o+=txt(add(B,mul(dir(tB),16)),'B',{size:22,w:700,serif:true,it:true});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Розгорнутий кут MKP з променями KA і KB">${o}</svg>`;
+}
+
+/* ===================== Завдання (кожне — з випадковими числами) ===================== */
+/* Частини: num — число, time — год і хв, choice — вибір відповіді */
+const hm=(h,m)=>`${h} год ${m} хв`;
+function genTasks(){
+  const T=[];
+
+  /* 1. п. 7. Зручне обчислення суми */
+  {
+    const a=ri(120,880),b=1000-a,z=ri(110,890);
+    const expr=ri(0,1)?`(${a} + ${z}) + ${b}`:`${a} + (${z} + ${b})`;
+    T.push({t:`Знайдіть значення виразу, обираючи зручний порядок обчислень:<span class="expr">${expr}</span>`,
+      parts:[{k:'num',lbl:'Відповідь:',ans:a+z+b}]});
+  }
+
+  /* 2. пп. 7–8. Додавання і віднімання часу */
+  {
+    const m1=ri(31,59),m2=ri(61-m1,59),h1=ri(2,9),h2=ri(2,9);
+    const dm=ri(25,59),am=ri(1,dm-5),dh=ri(6,14),ah=dh+ri(2,5);
+    const diff=(ah*60+am)-(dh*60+dm);
+    T.push({t:`а) Знайдіть суму: ${hm(h1,m1)} + ${hm(h2,m2)}.<br>б) Поїзд відходить від станції о ${hm(dh,dm)} і в той самий день прибуває о ${hm(ah,am)}. Скільки часу рухається поїзд?`,
+      parts:[{k:'time',lbl:'а)',ans:[h1+h2+1,m1+m2-60]},{k:'time',lbl:'б)',ans:[Math.floor(diff/60),diff%60]}]});
+  }
+
+  /* 3. п. 8. Віднімання багатоцифрових чисел */
+  {
+    const a=ri(300000,999999),b=ri(100000,a-10000);
+    T.push({t:`Виконайте віднімання:<span class="expr">${fmt(a)} − ${fmt(b)}</span>`,
+      parts:[{k:'num',lbl:'Відповідь:',ans:a-b}]});
+  }
+
+  /* 4. п. 9. Буквений вираз */
+  {
+    const [p,q]=pick([['a','b'],['m','n'],['x','y']]);
+    const c1=ri(3,9),c2=pick([10,15,20,25,30,40,50]);
+    const right=`${c1}${I(p)} + ${c2}${I(q)}`;
+    const opts=[right,`${c1} + ${I(p)} + ${c2}${I(q)}`,`${c1}${I(p)} + ${c2} + ${I(q)}`,`${c1}${I(p)} · ${c2}${I(q)}`];
+    T.push({t:`Барвінок розклав яблука у ${c1} ящиків по ${I(p)} кг і в ${I(q)} ящиків по ${c2} кг. Яким виразом можна знайти, скільки кілограмів яблук розклав Барвінок?`,
+      parts:[{k:'choice',opts,order:shuffle([0,1,2,3]),ans:0}]});
+  }
+
+  /* 5. п. 9. Формула */
+  {
+    const u=pick([10,12,15,18,20]),w=pick([2,3,4,5]),t=pick([10,15,20,25,30]);
+    const opts=[`${I('P')} = ${w}${I('t')} + ${u}`,`${I('P')} = ${u}${I('t')} + ${w}`,`${I('P')} = (${u} + ${w})${I('t')}`,`${I('P')} = ${u} + ${w} + ${I('t')}`];
+    T.push({t:`Щоб орендувати електросамокат, потрібно спочатку сплатити ${u} грн за розблокування, а потім ${w} грн за кожну хвилину користування. Загальну вартість оренди позначимо ${I('P')} грн, а час користування — ${I('t')} хв.`,
+      parts:[{k:'choice',lbl:'а) Яка формула правильна?',opts,order:shuffle([0,1,2,3]),ans:0},
+             {k:'num',lbl:`б) Обчисліть вартість оренди, якщо ${I('t')} = ${t}:`,unit:'грн',ans:u+w*t}]});
+  }
+
+  /* 6. п. 10. Корінь рівняння */
+  {
+    const r=ri(40,160),a=ri(15,Math.min(90,r-5)),b=ri(15,90),c=r-a+b;
+    const bad=shuffle([c-a-b,c+a+b,c-b,c+a]).filter(v=>v>0&&v!==r).slice(0,3);
+    const opts=shuffle([r].concat(bad)).map(String);
+    T.push({t:`Яке з чисел є коренем рівняння<span class="expr">(${I('x')} − ${a}) + ${b} = ${c}</span>`,
+      parts:[{k:'choice',opts,order:[0,1,2,3],ans:opts.indexOf(String(r))}]});
+  }
+
+  /* 7. п. 10. Розв'язування рівнянь */
+  {
+    const [L1,L2]=shuffle(['x','y','a','m','k']).slice(0,2);
+    let eq1,x1;
+    const f=ri(0,2);
+    if(f===0){const a=ri(100,800);x1=ri(120,900);eq1=`${I(L1)} + ${a} = ${x1+a}`}
+    else if(f===1){x1=ri(500,1500);const a=ri(100,x1-100);eq1=`${I(L1)} − ${a} = ${x1-a}`}
+    else{const a=ri(500,1500);x1=ri(100,a-100);eq1=`${a} − ${I(L1)} = ${a-x1}`}
+    const x2=ri(100,400),n=x2+ri(50,500),m=ri(800,1500),c2=m-(n-x2);
+    const eq2=`${m} − (${n} − ${I(L2)}) = ${c2}`;
+    T.push({t:`Розв’яжіть рівняння.`,
+      parts:[{k:'num',lbl:`а) ${eq1}, ${I(L1)} =`,ans:x1},{k:'num',lbl:`б) ${eq2}, ${I(L2)} =`,ans:x2}]});
+  }
+
+  /* 8. пп. 11–12. Величина кута */
+  {
+    const x=ri(100,160),y=ri(Math.max(100,200-x),165);
+    T.push({t:`На рисунку кут ${I('MKP')} розгорнутий. Знайдіть градусну міру кута ${I('AKB')}, якщо ∠${I('MKB')} = ${x}°, ∠${I('AKP')} = ${y}°.`,
+      fig:figAngle(x,y),parts:[{k:'num',lbl:`∠${I('AKB')} =`,unit:'°',ans:x+y-180}]});
+  }
+
+  /* 9. п. 12. Види кутів */
+  {
+    const k=ri(1,3);
+    const obt=shuffle(Array.from({length:81},(_,i)=>95+i)).slice(0,k);
+    const acu=shuffle(Array.from({length:69},(_,i)=>20+i)).slice(0,4-k);
+    const vals=shuffle(obt.concat(acu,[90,180]));
+    const L=shuffle(['A','B','D','E','M','Q','R','S']).slice(0,6);
+    const list=vals.map((v,i)=>`∠${L[i]} = ${v}°`).join(', ');
+    T.push({t:`Дано кути: ${list}. Скільки серед них тупих?`,
+      parts:[{k:'num',lbl:'Відповідь:',ans:k}]});
+  }
+
+  /* 10. п. 13. Периметр многокутника */
+  {
+    const a=ri(8,14),m=ri(3,4),d1=ri(5,9),d2=ri(4,9);
+    const s2=m*a,s3=s2-d1,s4=s3-d2;
+    T.push({t:`Одна сторона чотирикутника дорівнює ${a} см, друга сторона у ${m} рази більша за першу, третя — на ${d1} см менша від другої та на ${d2} см більша за четверту. Обчисліть периметр чотирикутника.`,
+      parts:[{k:'num',lbl:`${I('P')} =`,unit:'см',ans:a+s2+s3+s4}]});
+  }
+
+  /* 11. п. 14. Рівнобедрений трикутник */
+  {
+    const s=ri(8,24);let b=ri(6,2*s-3);if(b===s)b=s+1;
+    T.push({t:`Периметр рівнобедреного трикутника ${I('ABC')} дорівнює ${b+2*s} см, а його основа ${I('AC')} — ${b} см. Знайдіть бічну сторону трикутника.`,
+      fig:figIso(s,b),parts:[{k:'num',lbl:`${I('AB')} =`,unit:'см',ans:s}]});
+  }
+
+  /* 12. п. 15. Квадрат і прямокутник */
+  {
+    const s=ri(8,20);let a=ri(4,2*s-3);if(a===s)a=s+1;
+    T.push({t:`Квадрат зі стороною ${s} см і прямокутник, одна зі сторін якого дорівнює ${a} см, мають рівні периметри. Знайдіть сусідню сторону прямокутника.`,
+      parts:[{k:'num',lbl:'Відповідь:',unit:'см',ans:2*s-a}]});
+  }
+
+  return T;
+}
+
+/* ===================== Побудова тесту ===================== */
+const $=s=>document.querySelector(s);
+const qWrap=$('#questions');
+let TASKS=[],N=0,state=null;
+
+function parseNum(s){
+  s=String(s).replace(/[\s\u00A0]/g,'').replace(',','.');
+  if(!/^-?\d+(\.\d+)?$/.test(s))return NaN;
+  return Number(s);
+}
+function partRight(p,a){
+  if(a===null||a===undefined)return false;
+  if(p.k==='choice')return a===p.ans;
+  if(p.k==='num')return parseNum(a)===p.ans;
+  if(p.k==='time')return parseNum(a.h)===p.ans[0]&&parseNum(a.m)===p.ans[1];
+  return false;
+}
+function partAnsText(p,a){
+  if(a===null||a===undefined)return '';
+  if(p.k==='choice')return plain(p.opts[a]);
+  if(p.k==='num')return String(a);
+  return `${a.h||''} год ${a.m||''} хв`;
+}
+function partCorrectText(p){
+  if(p.k==='choice')return plain(p.opts[p.ans]);
+  if(p.k==='num')return String(p.ans);
+  return hm(p.ans[0],p.ans[1]);
+}
+
+function partHTML(qi,pi,p){
+  const lbl=p.lbl?`<span class="${p.k==='choice'?'plbl':'lbl'}">${p.lbl}</span>`:'';
+  if(p.k==='choice'){
+    return `<div class="part">${p.lbl?`<div class="plbl">${p.lbl}</div>`:''}<div class="opts">${p.order.map(i=>`<button class="opt" data-q="${qi}" data-p="${pi}" data-i="${i}">${p.opts[i]}</button>`).join('')}</div></div>`;
+  }
+  if(p.k==='time'){
+    return `<div class="part numrow">${lbl}<input class="s" data-q="${qi}" data-p="${pi}" data-f="h" inputmode="numeric" autocomplete="off" aria-label="години"><span class="u">год</span><input class="s" data-q="${qi}" data-p="${pi}" data-f="m" inputmode="numeric" autocomplete="off" aria-label="хвилини"><span class="u">хв</span></div>`;
+  }
+  return `<div class="part numrow">${lbl}<input data-q="${qi}" data-p="${pi}" inputmode="numeric" autocomplete="off" aria-label="Відповідь">${p.unit?`<span class="u">${p.unit}</span>`:''}</div>`;
+}
+
+function build(){
+  rnd=mulberry32(newSeed());
+  TASKS=genTasks();N=TASKS.length;
+  state={ans:TASKS.map(t=>t.parts.map(()=>null)),checked:false};
+  qWrap.innerHTML='';
+  TASKS.forEach((q,qi)=>{
+    const el=document.createElement('section');
+    el.className='card q';el.id='q'+qi;
+    let h=`<div class="qh"><span class="num">${qi+1}</span><div class="qt">${q.t}</div><span class="mark"></span></div>`;
+    if(q.fig)h+=`<div class="fig">${q.fig}</div>`;
+    h+=q.parts.map((p,pi)=>partHTML(qi,pi,p)).join('');
+    el.innerHTML=h;
+    qWrap.appendChild(el);
+  });
+  $('#result').hidden=true;
+  $('#actions').hidden=false;
+  clearWarn();
+}
+qWrap.addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b||state.checked)return;
+  const qi=+b.dataset.q,pi=+b.dataset.p;
+  b.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');state.ans[qi][pi]=+b.dataset.i;clearWarn();
+});
+qWrap.addEventListener('input',e=>{
+  const inp=e.target.closest('input');if(!inp||state.checked)return;
+  const qi=+inp.dataset.q,pi=+inp.dataset.p,p=TASKS[qi].parts[pi];
+  if(p.k==='time'){
+    const cur=state.ans[qi][pi]||{h:'',m:''};
+    cur[inp.dataset.f]=inp.value.trim();
+    state.ans[qi][pi]=(cur.h===''&&cur.m==='')?null:cur;
+  }else{
+    const v=inp.value.trim();state.ans[qi][pi]=v===''?null:v;
+  }
+  clearWarn();
+});
+
+let warnedEmpty=false;
+function clearWarn(){$('#warn').textContent='';warnedEmpty=false;$('#checkBtn').textContent='Перевірити'}
+['#sur','#nam'].forEach(s=>$(s).addEventListener('input',e=>{e.target.classList.remove('need');$('#studentMsg').textContent=''}));
+function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+$('#checkBtn').addEventListener('click',()=>{
+  const sur=$('#sur').value.trim(),nam=$('#nam').value.trim();
+  if(!sur||!nam){
+    if(!sur)$('#sur').classList.add('need');
+    if(!nam)$('#nam').classList.add('need');
+    $('#studentMsg').textContent='Введіть прізвище та ім\u2019я, щоб перевірити тест.';
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  const empty=state.ans.filter(a=>a.some(x=>x===null)).length;
+  if(empty&&!warnedEmpty){
+    warnedEmpty=true;
+    $('#warn').textContent=`Ви відповіли не на всі запитання: ${empty} ${plural(empty,'завдання','завдання','завдань')}.`;
+    $('#checkBtn').textContent='Все одно перевірити';
+    return;
+  }
+  finish(sur,nam);
+});
+
+function finish(sur,nam){
+  state.checked=true;
+  const marks=TASKS.map((q,i)=>q.parts.every((p,pi)=>partRight(p,state.ans[i][pi]))?1:0);
+  const score=marks.reduce((s,x)=>s+x,0);
+  TASKS.forEach((q,i)=>{
+    const el=$('#q'+i);el.classList.add('locked',marks[i]?'ok':'bad');
+    el.querySelector('.mark').textContent=marks[i]?'✓':'✗';
+    el.querySelectorAll('input').forEach(x=>x.readOnly=true);
+  });
+  $('#sur').readOnly=$('#nam').readOnly=true;
+  $('#actions').hidden=true;
+  const r=$('#result');
+  r.innerHTML=`<div class="who">${esc(sur)} ${esc(nam)}</div>
+    <div class="big">${score} з ${N}</div>
+    <div style="font-weight:800;color:var(--muted)">${plural(score,'бал','бали','балів')}</div>
+    <div class="chips">${marks.map((m,i)=>`<span class="chip ${m?'y':'n'}">${i+1}</span>`).join('')}</div>
+    <button class="btn ghost" id="againBtn">Пройти ще раз</button>`;
+  r.hidden=false;
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  $('#againBtn').addEventListener('click',()=>{
+    $('#sur').readOnly=$('#nam').readOnly=false;
+    build();window.scrollTo({top:0,behavior:'smooth'});
+  });
+  const now=Date.now();
+  saveResult({
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${sur} ${nam}`,surname:sur,firstName:nam,
+    ts:now,date:new Date(now).toISOString(),
+    score,max:N,tasks:marks,
+    qtext:TASKS.map(q=>plain(q.t)),
+    answers:TASKS.map((q,i)=>q.parts.map((p,pi)=>partAnsText(p,state.ans[i][pi])).join(' | ')),
+    correct:TASKS.map(q=>q.parts.map(partCorrectText).join(' | ')),
+    test:TEST_NAME
+  });
+}
+
+/* ===================== Журнал учителя ===================== */
+const overlay=$('#overlay'),modal=$('#modal');
+let rows=[];
+$('#keyBtn').addEventListener('click',()=>{
+  modal.innerHTML=`<h2>🔑 Журнал учителя</h2>
+    <div class="row"><input type="password" id="pw" placeholder="Пароль" autocomplete="off">
+    <button class="sbtn" id="pwOk">Увійти</button><button class="sbtn g" id="close1">Закрити</button></div>
+    <div class="pmsg" id="pmsg"></div>`;
+  overlay.classList.add('on');
+  const pw=$('#pw');pw.focus();
+  const go=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else{$('#pmsg').textContent='Невірний пароль';pw.select()}};
+  $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
+  $('#close1').onclick=closeModal;
+});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
+function closeModal(){overlay.classList.remove('on');modal.innerHTML=''}
+const fmtDate=ts=>new Date(ts).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const NT=12;
+
+async function showJournal(msg){
+  modal.innerHTML=`<h2>🔑 Журнал учителя — «Додавання і віднімання натуральних чисел»</h2>
+    <div class="row"><button class="sbtn" id="refresh">Оновити</button><button class="sbtn g" id="csv">Завантажити CSV</button><button class="sbtn r" id="clr">Очистити</button><button class="sbtn g" id="close2">Закрити</button><span id="cnt" style="font-weight:800;color:var(--muted)"></span></div>
+    <div class="pmsg" id="jmsg">${msg?esc(msg):''}</div>
+    <div id="jbody">Завантаження…</div>`;
+  $('#close2').onclick=closeModal;$('#refresh').onclick=()=>showJournal();$('#csv').onclick=downloadCSV;
+  $('#clr').onclick=()=>{
+    $('#jmsg').innerHTML=`Видалити всі результати? <button class="sbtn r" id="clrYes">Так, очистити</button> <button class="sbtn g" id="clrNo">Ні</button>`;
+    $('#clrNo').onclick=()=>{$('#jmsg').textContent=''};
+    $('#clrYes').onclick=async()=>{
+      $('#jmsg').textContent='Видалення…';
+      try{await clearResults(rows);showJournal('Результати видалено.')}
+      catch(e){$('#jmsg').textContent='Не вдалося видалити результати.'}
+    };
+  };
+  try{rows=await loadResults()}catch(e){$('#jbody').innerHTML='<div class="pmsg">Не вдалося підключитися до бази результатів.</div>';return}
+  $('#cnt').textContent=`Записів: ${rows.length}`;
+  if(!rows.length){$('#jbody').innerHTML='<p>Результатів поки немає.</p>';return}
+  const cols=NT+4;
+  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th>Бал</th>${Array.from({length:NT},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
+  const body=rows.map((r,k)=>`<tr data-k="${k}"><td>${k+1}</td><td class="nm" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td><td><b>${r.score}/${r.max||NT}</b></td>${
+    Array.from({length:NT},(_,i)=>{const m=(r.tasks||[])[i];return m?'<td class="y">✓</td>':'<td class="n">✗</td>'}).join('')}</tr>`).join('');
+  $('#jbody').innerHTML=`<div class="tblwrap"><table id="jt">${head}${body}</table></div>`;
+  $('#jt').addEventListener('click',e=>{
+    const td=e.target.closest('td.nm');if(!td)return;
+    const tr=td.parentNode,nx=tr.nextSibling;
+    if(nx&&nx.classList&&nx.classList.contains('det')){nx.remove();return}
+    const r=rows[+tr.dataset.k];
+    const det=document.createElement('tr');det.className='det';
+    det.innerHTML=`<td colspan="${cols}"><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th></tr>${
+      (r.qtext||[]).map((t,i)=>`<tr><td>${i+1}</td><td style="text-align:left;white-space:normal">${esc(t)}</td><td>${esc((r.answers||[])[i]||'—')}</td><td>${esc((r.correct||[])[i]||'')}</td></tr>`).join('')}</table></td>`;
+    tr.after(det);
+  });
+}
+function downloadCSV(){
+  if(!rows.length)return;
+  const hdr=['Прізвище та ім\'я','Дата','Бал',...Array.from({length:NT},(_,i)=>'Завд. '+(i+1))];
+  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),`${r.score}/${r.max||NT}`,...Array.from({length:NT},(_,i)=>(r.tasks||[])[i]?'+':'-')]));
+  const csv='\ufeff'+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Додавання_віднімання_5клас_результати.csv';a.click();
+}
+
+build();
+})();
+</script>
+</body>
+</html>
