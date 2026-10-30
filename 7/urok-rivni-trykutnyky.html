@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Рівні трикутники. Висота, медіана, бісектриса трикутника</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        :root { font-size: clamp(12px, 0.5vw + 10px, 20px); }
+        .panel-container { container-type: inline-size; container-name: panel; }
+
+        .text-\[11px\] { font-size: clamp(0.6rem, 1.2vh, 0.8rem) !important; }
+        .text-\[14px\] { font-size: clamp(0.7rem, 1.5vh, 0.95rem) !important; }
+        .text-\[15px\] { font-size: clamp(0.75rem, 1.6vh, 1rem) !important; }
+        .text-\[16px\] { font-size: clamp(0.8rem, 1.7vh, 1.05rem) !important; line-height: 1.35 !important; }
+        .text-\[17px\] { font-size: clamp(0.85rem, 1.8vh, 1.15rem) !important; line-height: 1.35 !important; }
+        .text-\[18px\] { font-size: clamp(0.9rem, 1.9vh, 1.25rem) !important; line-height: 1.35 !important; }
+        .text-\[20px\] { font-size: clamp(1rem, 2.1vh, 1.4rem) !important; line-height: 1.35 !important; }
+
+        .touch-btn { position: relative; }
+        @media (pointer: coarse) {
+            .touch-btn::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 44px; min-height: 44px; z-index: 10; }
+        }
+        @container panel (min-width: 900px) { .menu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+
+        @keyframes bounceY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+        .bounce-y { animation: bounceY 1s ease-in-out infinite; }
+        input[type=range] { accent-color: #0E7490; }
+        svg text { user-select: none; -webkit-user-select: none; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        graphite: '#2C3E50',
+                        panelLeft: '#E6F8F9',
+                        panelRight: '#F3FCFC',
+                        brand: '#0E7490',
+                        brandLight: '#CFFAFE',
+                    },
+                    fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 overflow-hidden text-graphite selection:bg-cyan-700 selection:text-white font-sans h-screen w-screen relative">
+
+<div id="root" class="h-full w-full"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+/* ===================== ГЕОМЕТРІЯ ===================== */
+const V = (x, y) => ({ x, y });
+const sub = (a, b) => V(a.x - b.x, a.y - b.y);
+const add = (a, b) => V(a.x + b.x, a.y + b.y);
+const mul = (a, k) => V(a.x * k, a.y * k);
+const dot = (a, b) => a.x * b.x + a.y * b.y;
+const cross = (a, b) => a.x * b.y - a.y * b.x;
+const len = a => Math.hypot(a.x, a.y);
+const norm = a => { const l = len(a) || 1; return V(a.x / l, a.y / l); };
+const mid = (a, b) => V((a.x + b.x) / 2, (a.y + b.y) / 2);
+const dist = (a, b) => len(sub(a, b));
+const lerp = (a, b, t) => add(a, mul(sub(b, a), t));
+const r1 = n => Math.round(n * 10) / 10;
+
+// основа перпендикуляра з точки P на пряму QR
+function foot(P, Q, R) {
+    const d = sub(R, Q);
+    const t = dot(sub(P, Q), d) / dot(d, d);
+    return { pt: add(Q, mul(d, t)), t };
+}
+function inter(p1, p2, p3, p4) {
+    const d1 = sub(p2, p1), d2 = sub(p4, p3);
+    const den = cross(d1, d2);
+    if (Math.abs(den) < 1e-9) return null;
+    const t = cross(sub(p3, p1), d2) / den;
+    return add(p1, mul(d1, t));
+}
+function arcPath(P, u1, u2, r) {
+    const a = add(P, mul(u1, r)), b = add(P, mul(u2, r));
+    const sw = cross(u1, u2) > 0 ? 1 : 0;
+    return `M ${r1(a.x)} ${r1(a.y)} A ${r} ${r} 0 0 ${sw} ${r1(b.x)} ${r1(b.y)}`;
+}
+
+const NAMES = ['A', 'B', 'C'];
+const FEET = ['A₁', 'B₁', 'C₁'];
+const FEETL = ['A_1', 'B_1', 'C_1'];
+const COL = { H: '#7C3AED', M: '#2563EB', B: '#DB2777' };      // висоти, медіани, бісектриси
+const SIDEC = ['#7C3AED', '#2563EB', '#DB2777'];                 // сторони AB, BC, CA (рівні трикутники)
+const ANGC = ['#D97706', '#4D7C0F', '#0369A1'];                  // кути A, B, C
+
+function geom(T) {
+    const H = [], M = [], B = [];
+    for (let i = 0; i < 3; i++) {
+        const Vv = T[i], Q = T[(i + 1) % 3], R = T[(i + 2) % 3];
+        const f = foot(Vv, Q, R);
+        H.push({ v: i, foot: f.pt, t: f.t, Q, R });
+        M.push({ v: i, foot: mid(Q, R), t: 0.5, Q, R });
+        const q = dist(Vv, Q), r = dist(Vv, R);
+        const tt = q / (q + r);
+        B.push({ v: i, foot: lerp(Q, R, tt), t: tt, Q, R });
+    }
+    const G = mul(add(add(T[0], T[1]), T[2]), 1 / 3);
+    const a = dist(T[1], T[2]), b = dist(T[0], T[2]), c = dist(T[0], T[1]);
+    const I = V((a * T[0].x + b * T[1].x + c * T[2].x) / (a + b + c), (a * T[0].y + b * T[1].y + c * T[2].y) / (a + b + c));
+    const Ho = inter(T[0], H[0].foot, T[1], H[1].foot) || G;
+    return { H, M, B, pts: { H: Ho, M: G, B: I }, G };
+}
+
+function hLocation(T, g) {
+    const O = g.pts.H;
+    for (let i = 0; i < 3; i++) if (dist(O, T[i]) < 8) return { kind: 'vertex', i };
+    const s = [0, 1, 2].map(i => cross(sub(T[(i + 1) % 3], T[i]), sub(O, T[i])));
+    return { kind: (s.every(x => x > 0) || s.every(x => x < 0)) ? 'in' : 'out' };
+}
+function hText(h) {
+    const e = 3 / dist(h.Q, h.R);
+    const Vn = NAMES[h.v];
+    if (Math.abs(h.t) <= e) return `збігається зі стороною ${Vn}${NAMES[(h.v + 1) % 3]}`;
+    if (Math.abs(h.t - 1) <= e) return `збігається зі стороною ${Vn}${NAMES[(h.v + 2) % 3]}`;
+    if (h.t < 0 || h.t > 1) return 'лежить поза трикутником';
+    return 'лежить усередині трикутника';
+}
+
+const PRESETS = {
+    acute:  () => [V(250, 70), V(100, 360), V(520, 320)],
+    right:  () => [V(110, 80), V(110, 360), V(520, 360)],
+    obtuse: () => [V(70, 390), V(160, 250), V(540, 390)],
+    isos:   () => [V(300, 70), V(150, 370), V(450, 370)],
+    equi:   () => [V(300, 60), V(135, 346), V(465, 346)],
+};
+
+/* ===================== KaTeX ===================== */
+const Latex = ({ math, block = false }) => {
+    const ref = useRef(null);
+    useEffect(() => {
+        if (ref.current && window.katex) window.katex.render(math, ref.current, { displayMode: block, throwOnError: false });
+    }, [math, block]);
+    return <span ref={ref} />;
+};
+
+const halo = { paintOrder: 'stroke', stroke: '#fff', strokeWidth: 4, strokeLinejoin: 'round' };
+
+/* ===================== ДОШКА З ВИСОТАМИ / МЕДІАНАМИ / БІСЕКТРИСАМИ ===================== */
+const Board = ({ T, setT, show, vertex = null, feet = true, ticks = false, arcs = false, pts = {}, handles = true }) => {
+    const svgRef = useRef(null);
+    const drag = useRef(null);
+    const g = useMemo(() => geom(T), [T]);
+    const G = g.G;
+    const kinds = ['H', 'M', 'B'].filter(k => show[k]);
+    const multi = kinds.length > 1;
+    const idxs = vertex === null ? [0, 1, 2] : [vertex];
+    const W = { H: multi ? 8 : 4.5, M: multi ? 5 : 4.5, B: multi ? 2.5 : 4.5 };
+    const OP = { H: multi ? 0.5 : 1, M: multi ? 0.8 : 1, B: 1 };
+
+    const toSvg = e => {
+        const svg = svgRef.current;
+        const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+        const q = p.matrixTransform(svg.getScreenCTM().inverse());
+        return V(q.x, q.y);
+    };
+    const onMove = e => {
+        if (drag.current === null || !setT) return;
+        const p = toSvg(e);
+        const q = V(Math.min(570, Math.max(30, p.x)), Math.min(410, Math.max(45, p.y)));
+        const nt = T.map((v, i) => i === drag.current ? q : v);
+        const area = Math.abs(cross(sub(nt[1], nt[0]), sub(nt[2], nt[0]))) / 2;
+        if (area < 3000) return;
+        setT(nt);
+    };
+    const onDown = i => e => {
+        drag.current = i;
+        try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+    };
+    const onUp = () => { drag.current = null; };
+
+    const groups = [];
+    ['H', 'M', 'B'].forEach(k => {
+        if (!(show[k] && pts[k])) return;
+        const p = g.pts[k];
+        const grp = groups.find(x => dist(x.p, p) < 6);
+        if (grp) grp.k.push(k); else groups.push({ p, k: [k] });
+    });
+    const PL = { H: 'H', M: 'M', B: 'I' };
+    const OFF = { H: [14, -12], M: [14, 26], B: [-14, -12] };
+
+    const nearVertex = p => T.some(v => dist(v, p) < 10);
+
+    return (
+        <svg ref={svgRef} className="w-full h-full max-h-[100%] overflow-hidden z-20 select-none" style={{ touchAction: 'none' }}
+             viewBox="0 0 600 440" onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+            <polygon points={T.map(p => `${r1(p.x)},${r1(p.y)}`).join(' ')} fill="rgba(14,116,144,0.07)" stroke="none" />
+
+            {/* продовження сторін для висот поза трикутником */}
+            {show.H && idxs.map(i => {
+                const h = g.H[i];
+                if (h.t >= 0 && h.t <= 1) return null;
+                const from = h.t < 0 ? h.Q : h.R;
+                return <line key={'ext' + i} x1={from.x} y1={from.y} x2={h.foot.x} y2={h.foot.y} stroke="#94A3B8" strokeWidth="2.5" strokeDasharray="6 5" />;
+            })}
+
+            {/* продовження висот до точки перетину */}
+            {show.H && pts.H && vertex === null && idxs.map(i => {
+                const h = g.H[i], Vv = T[i];
+                const d = sub(h.foot, Vv);
+                const s = dot(sub(g.pts.H, Vv), d) / dot(d, d);
+                if (s > 1.001) return <line key={'hx' + i} x1={h.foot.x} y1={h.foot.y} x2={g.pts.H.x} y2={g.pts.H.y} stroke={COL.H} strokeWidth="2.5" strokeDasharray="6 5" />;
+                if (s < -0.001) return <line key={'hx' + i} x1={Vv.x} y1={Vv.y} x2={g.pts.H.x} y2={g.pts.H.y} stroke={COL.H} strokeWidth="2.5" strokeDasharray="6 5" />;
+                return null;
+            })}
+
+            {/* відрізки */}
+            {kinds.map(k => idxs.map(i => (
+                <line key={k + i} x1={T[i].x} y1={T[i].y} x2={g[k][i].foot.x} y2={g[k][i].foot.y}
+                      stroke={COL[k]} strokeWidth={W[k]} strokeOpacity={OP[k]} strokeLinecap="round" />
+            )))}
+
+            {/* прямі кути в основах висот */}
+            {show.H && idxs.map(i => {
+                const h = g.H[i];
+                const s = 12;
+                const e1 = norm(sub(T[i], h.foot));
+                let d = norm(sub(h.R, h.Q));
+                if (dot(d, sub(mid(h.Q, h.R), h.foot)) < 0) d = mul(d, -1);
+                const a = add(h.foot, mul(e1, s)), b = add(a, mul(d, s)), c = add(h.foot, mul(d, s));
+                return <path key={'ra' + i} d={`M ${r1(a.x)} ${r1(a.y)} L ${r1(b.x)} ${r1(b.y)} L ${r1(c.x)} ${r1(c.y)}`} fill="none" stroke={COL.H} strokeWidth="2.5" />;
+            })}
+
+            {/* рівні половини медіани */}
+            {ticks && show.M && idxs.map(i => {
+                const m = g.M[i];
+                const n = mul(norm(V(-(m.R.y - m.Q.y), m.R.x - m.Q.x)), 8);
+                return [mid(m.Q, m.foot), mid(m.foot, m.R)].map((c, j) => (
+                    <line key={'tk' + i + j} x1={c.x - n.x} y1={c.y - n.y} x2={c.x + n.x} y2={c.y + n.y} stroke={COL.M} strokeWidth="3" />
+                ));
+            })}
+
+            {/* рівні кути бісектриси */}
+            {arcs && show.B && idxs.map(i => {
+                const b = g.B[i], Vv = T[i];
+                const u1 = norm(sub(b.Q, Vv)), um = norm(sub(b.foot, Vv)), u2 = norm(sub(b.R, Vv));
+                return [36, 44].map(r => (
+                    <g key={'ar' + i + r}>
+                        <path d={arcPath(Vv, u1, um, r)} fill="none" stroke={COL.B} strokeWidth="2.5" />
+                        <path d={arcPath(Vv, um, u2, r)} fill="none" stroke={COL.B} strokeWidth="2.5" />
+                    </g>
+                ));
+            })}
+
+            {/* контур трикутника */}
+            <polygon points={T.map(p => `${r1(p.x)},${r1(p.y)}`).join(' ')} fill="none" stroke="#475569" strokeWidth="3.5" strokeLinejoin="round" />
+
+            {/* основи */}
+            {feet && kinds.map(k => idxs.map(i => {
+                const f = g[k][i].foot;
+                if (nearVertex(f)) return null;
+                const lp = add(f, mul(norm(sub(f, G)), 22));
+                return (
+                    <g key={'ft' + k + i}>
+                        <circle cx={f.x} cy={f.y} r="4.5" fill={COL[k]} />
+                        <text x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="font-serif italic font-bold" fontSize="20" fill={COL[k]} style={halo}>{FEET[i]}</text>
+                    </g>
+                );
+            }))}
+
+            {/* точки перетину */}
+            {groups.map((gr, gi) => (
+                <g key={'gp' + gi} className="animate-pop">
+                    {gr.k.map((k, j) => <circle key={k} cx={gr.p.x} cy={gr.p.y} r={5 + 3 * (gr.k.length - 1 - j)} fill={COL[k]} stroke="#fff" strokeWidth="1.5" />)}
+                    <text x={gr.p.x + (gr.k.length === 1 ? OFF[gr.k[0]][0] : 16)} y={gr.p.y + (gr.k.length === 1 ? OFF[gr.k[0]][1] : -14)} textAnchor={gr.k.length === 1 && gr.k[0] === 'B' ? 'end' : 'start'} className="font-serif italic font-extrabold" fontSize="21" fill="#1E293B" style={halo}>{gr.k.map(k => PL[k]).join(' = ')}</text>
+                </g>
+            ))}
+
+            {/* вершини */}
+            {T.map((p, i) => {
+                const lp = add(p, mul(norm(sub(p, G)), 30));
+                return (
+                    <g key={'v' + i}>
+                        {handles
+                            ? <>
+                                <circle cx={p.x} cy={p.y} r="24" fill="transparent" style={{ cursor: 'grab', touchAction: 'none' }} onPointerDown={onDown(i)} />
+                                <circle cx={p.x} cy={p.y} r="10" fill="#F97316" stroke="#fff" strokeWidth="3" style={{ pointerEvents: 'none' }} />
+                              </>
+                            : <circle cx={p.x} cy={p.y} r="5.5" fill="#2C3E50" />}
+                        <text x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="font-serif italic font-bold" fontSize="26" fill="#2C3E50" style={halo}>{NAMES[i]}</text>
+                    </g>
+                );
+            })}
+        </svg>
+    );
+};
+
+/* ===================== РІВНІ ТРИКУТНИКИ ===================== */
+const EQ_T = [V(70, 330), V(250, 380), V(150, 170)];
+const EQ_G = mul(add(add(EQ_T[0], EQ_T[1]), EQ_T[2]), 1 / 3);
+const EQ_OFF = V(288, -58);
+const EQ_ANG = -2.4;
+
+function eqSecond(t) {
+    const th = EQ_ANG * (1 - t), c = Math.cos(th), s = Math.sin(th);
+    return EQ_T.map(P => {
+        const d = sub(P, EQ_G);
+        const rd = V(c * d.x - s * d.y, s * d.x + c * d.y);
+        return add(add(EQ_G, rd), mul(EQ_OFF, 1 - t));
+    });
+}
+
+const Marked = ({ P, label, subs = '', dashed = false, hideLabels = false, labelText }) => {
+    const G = mul(add(add(P[0], P[1]), P[2]), 1 / 3);
+    return (
+        <g>
+            <polygon points={P.map(p => `${r1(p.x)},${r1(p.y)}`).join(' ')} fill={dashed ? 'rgba(249,115,22,0.10)' : 'rgba(14,116,144,0.10)'} stroke="none" />
+            {[0, 1, 2].map(i => {
+                const a = P[i], b = P[(i + 1) % 3];
+                const m = mid(a, b), u = norm(sub(b, a)), n = V(-u.y, u.x);
+                const cnt = i + 1;
+                return (
+                    <g key={'s' + i}>
+                        <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={SIDEC[i]} strokeWidth="4.5" strokeLinecap="round" strokeDasharray={dashed ? '9 5' : undefined} />
+                        {Array.from({ length: cnt }).map((_, k) => {
+                            const off = (k - (cnt - 1) / 2) * 8;
+                            const c = add(m, mul(u, off));
+                            return <line key={k} x1={c.x - n.x * 9} y1={c.y - n.y * 9} x2={c.x + n.x * 9} y2={c.y + n.y * 9} stroke={SIDEC[i]} strokeWidth="3" />;
+                        })}
+                    </g>
+                );
+            })}
+            {[0, 1, 2].map(i => {
+                const p = P[i], u1 = norm(sub(P[(i + 1) % 3], p)), u2 = norm(sub(P[(i + 2) % 3], p));
+                return Array.from({ length: i + 1 }).map((_, k) => (
+                    <path key={'a' + i + k} d={arcPath(p, u1, u2, 24 + 7 * k)} fill="none" stroke={ANGC[i]} strokeWidth="3" />
+                ));
+            })}
+            {!hideLabels && P.map((p, i) => {
+                const lp = add(p, mul(norm(sub(p, G)), 30));
+                return <text key={'l' + i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="font-serif italic font-bold" fontSize="24" fill="#2C3E50" style={halo}>{labelText ? labelText[i] : NAMES[i] + subs}</text>;
+            })}
+        </g>
+    );
+};
+
+const EqualBoard = ({ t }) => {
+    const P2 = eqSecond(t);
+    const near = t > 0.96;
+    return (
+        <svg className="w-full h-full max-h-[100%] overflow-hidden z-20 select-none" viewBox="0 0 600 440">
+            <Marked P={EQ_T} labelText={near ? ['A = A₁', 'B = B₁', 'C = C₁'] : NAMES} />
+            <Marked P={P2} dashed hideLabels={near} labelText={FEET.map((_, i) => NAMES[i] + '₁')} />
+        </svg>
+    );
+};
+
+/* ===================== ДОПОМІЖНІ КОМПОНЕНТИ ===================== */
+const Def = ({ title, children }) => (
+    <div className="rounded-xl border-2 border-brand bg-brandLight/40 p-[clamp(0.75rem,2vh,1.25rem)] space-y-1">
+        <h2 className="font-extrabold text-brand text-[18px]">{title}</h2>
+        <p className="font-bold text-slate-800 text-[18px] leading-snug">{children}</p>
+    </div>
+);
+const Conclusion = ({ children }) => (
+    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-[clamp(0.75rem,2vh,1.25rem)] animate-pop">
+        <div className="font-extrabold text-amber-800 text-[16px] mb-1"><i className="fa-solid fa-star mr-2"></i>Важливий висновок</div>
+        <div className="font-bold text-slate-800 text-[18px] leading-snug">{children}</div>
+    </div>
+);
+const Hint = () => (
+    <div className="flex items-center gap-2 text-slate-600 text-[16px] font-semibold">
+        <i className="fa-solid fa-hand-pointer" style={{ color: '#F97316' }}></i> Рухай помаранчеві точки
+    </div>
+);
+const Chip = ({ active, onClick, children }) => (
+    <button onClick={onClick} className={`touch-btn px-4 h-11 rounded-xl font-bold text-[16px] border-2 transition cursor-pointer ${active ? 'bg-brand text-white border-brand' : 'bg-white text-brand border-brandLight hover:border-brand'}`}>{children}</button>
+);
+const VertexTabs = ({ value, onPick }) => (
+    <div className="flex flex-wrap items-center gap-2">
+        <span className="font-bold text-slate-600 text-[16px]">Вершина:</span>
+        {[0, 1, 2].map(i => (
+            <button key={i} onClick={() => onPick(i)} className={`touch-btn w-11 h-11 rounded-xl font-serif italic font-extrabold text-[20px] border-2 transition cursor-pointer ${value === i ? 'bg-brand text-white border-brand' : 'bg-white text-brand border-brandLight hover:border-brand'}`}>{NAMES[i]}</button>
+        ))}
+        <Chip active={value === 3} onClick={() => onPick(3)}>Усі три</Chip>
+    </div>
+);
+const Card = ({ children }) => (
+    <div className="bg-white rounded-[clamp(0.75rem,2cqi,1.5rem)] p-[clamp(0.75rem,2vh,1.5rem)] shadow-sm space-y-[clamp(0.5rem,1.5vh,1rem)] animate-fade-in">{children}</div>
+);
+const Row = ({ children }) => (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[17px] text-slate-800">{children}</div>
+);
+const Toggle = ({ on, color, onClick, children }) => (
+    <button onClick={onClick} className={`touch-btn flex items-center gap-2 px-3 h-11 rounded-xl font-bold text-[16px] border-2 transition cursor-pointer ${on ? 'bg-white' : 'bg-slate-100 text-slate-400 border-slate-200'}`} style={on ? { borderColor: color, color: '#1E293B' } : {}}>
+        <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[11px]" style={{ background: on ? color : '#CBD5E1' }}>{on && <i className="fa-solid fa-check"></i>}</span>
+        {children}
+    </button>
+);
+
+const TOPICS = [
+    'Рівні трикутники',
+    'Висота трикутника',
+    'Медіана трикутника',
+    'Бісектриса трикутника',
+    'Точки перетину висот, медіан і бісектрис',
+];
+const TYPES5 = [
+    ['acute', 'Гострокутний'], ['right', 'Прямокутний'], ['obtuse', 'Тупокутний'], ['isos', 'Рівнобедрений'], ['equi', 'Рівносторонній'],
+];
+
+/* ===================== ДОДАТОК ===================== */
+const App = () => {
+    const [started, setStarted] = useState(false);
+    const [menu, setMenu] = useState(false);
+    const [step, setStep] = useState(1);
+
+    // 1. рівні трикутники
+    const [tt, setTt] = useState(0);
+    const [overlaid, setOverlaid] = useState(false);
+    const [showElems, setShowElems] = useState(false);
+    const animRef = useRef(null);
+
+    // 2–4
+    const [Tm, setTm] = useState(PRESETS.acute());
+    const [vtx, setVtx] = useState({ H: 0, M: 0, B: 0 });
+    const [seen, setSeen] = useState({ H: [true, false, false], M: [true, false, false], B: [true, false, false] });
+    const gM = useMemo(() => geom(Tm), [Tm]);
+
+    // 5
+    const [T5, setT5] = useState(PRESETS.acute());
+    const [type5, setType5] = useState('acute');
+    const [on5, setOn5] = useState({ H: true, M: true, B: true });
+    const [showSum, setShowSum] = useState(false);
+    const g5 = useMemo(() => geom(T5), [T5]);
+
+    const pickV = (k, v) => {
+        setVtx(p => ({ ...p, [k]: v }));
+        setSeen(p => {
+            const a = [...p[k]];
+            if (v === 3) { a[0] = a[1] = a[2] = true; } else a[v] = true;
+            return { ...p, [k]: a };
+        });
+    };
+
+    const animate = target => {
+        cancelAnimationFrame(animRef.current);
+        const from = tt, t0 = performance.now();
+        const dur = 2000 * Math.abs(target - from) + 200;
+        const tick = now => {
+            const k = Math.min(1, (now - t0) / dur);
+            const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+            const v = from + (target - from) * e;
+            setTt(v);
+            if (v >= 0.99) setOverlaid(true);
+            if (k < 1) animRef.current = requestAnimationFrame(tick);
+        };
+        animRef.current = requestAnimationFrame(tick);
+    };
+    const onSlider = e => {
+        cancelAnimationFrame(animRef.current);
+        const v = parseFloat(e.target.value);
+        setTt(v);
+        if (v >= 0.99) setOverlaid(true);
+    };
+
+    const choose5 = id => { setType5(id); setT5(PRESETS[id]()); };
+    const drag5 = nt => { setT5(nt); setType5(null); };
+
+    const handleReset = () => {
+        if (step === 1) { cancelAnimationFrame(animRef.current); setTt(0); }
+        else if (step <= 4) setTm(PRESETS.acute());
+        else { setT5(PRESETS[type5 || 'acute']()); if (!type5) setType5('acute'); }
+    };
+
+    const ready = step === 1 ? overlaid : step === 5 ? true : seen[['', '', 'H', 'M', 'B'][step]].every(Boolean);
+
+    /* ---------- ліва панель ---------- */
+    const renderStep1 = () => (
+        <Card>
+            <Def title="Означення">Два трикутники називають рівними, якщо їх можна сумістити накладанням.</Def>
+            <div className="bg-white border-2 border-slate-200 rounded-xl p-3 text-center text-[20px]">
+                <Latex math={'\\triangle ABC = \\triangle A_1B_1C_1'} block />
+            </div>
+            {!showElems ? (
+                <button onClick={() => setShowElems(true)} className="touch-btn px-5 h-11 bg-brand hover:bg-cyan-800 text-white font-bold rounded-xl shadow-sm cursor-pointer inline-flex items-center gap-2 text-[16px]">
+                    <i className="fa-solid fa-list-check"></i> Відповідні елементи
+                </button>
+            ) : (
+                <div className="space-y-3 animate-fade-in">
+                    <Row>
+                        Відповідні вершини: <Latex math="A" /> і <Latex math="A_1" />, <Latex math="B" /> і <Latex math="B_1" />, <Latex math="C" /> і <Latex math="C_1" />.
+                    </Row>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Row>
+                            <div className="font-bold text-slate-600 mb-1">Відповідні сторони</div>
+                            <div className="space-y-1">
+                                <div><Latex math={'\\textcolor{#7C3AED}{AB} = \\textcolor{#7C3AED}{A_1B_1}'} /></div>
+                                <div><Latex math={'\\textcolor{#2563EB}{BC} = \\textcolor{#2563EB}{B_1C_1}'} /></div>
+                                <div><Latex math={'\\textcolor{#DB2777}{CA} = \\textcolor{#DB2777}{C_1A_1}'} /></div>
+                            </div>
+                        </Row>
+                        <Row>
+                            <div className="font-bold text-slate-600 mb-1">Відповідні кути</div>
+                            <div className="space-y-1">
+                                <div><Latex math={'\\textcolor{#D97706}{\\angle A} = \\textcolor{#D97706}{\\angle A_1}'} /></div>
+                                <div><Latex math={'\\textcolor{#4D7C0F}{\\angle B} = \\textcolor{#4D7C0F}{\\angle B_1}'} /></div>
+                                <div><Latex math={'\\textcolor{#0369A1}{\\angle C} = \\textcolor{#0369A1}{\\angle C_1}'} /></div>
+                            </div>
+                        </Row>
+                    </div>
+                    <Conclusion>У рівних трикутниках проти відповідних кутів лежать відповідні сторони, і навпаки.</Conclusion>
+                </div>
+            )}
+        </Card>
+    );
+
+    const cevianResult = (k) => {
+        const v = vtx[k];
+        const one = i => {
+            const Vn = NAMES[i], Q = NAMES[(i + 1) % 3], R = NAMES[(i + 2) % 3];
+            if (k === 'H') return <div key={i}><Latex math={`${Vn}${FEETL[i]}`} /> — висота. Вона {hText(gM.H[i])}.</div>;
+            if (k === 'M') return <div key={i}><Latex math={`${Vn}${FEETL[i]}`} /> — медіана, <Latex math={`${Q}${FEETL[i]} = ${FEETL[i]}${R}`} />.</div>;
+            return <div key={i}><Latex math={`${Vn}${FEETL[i]}`} /> — бісектриса, <Latex math={`\\angle ${Q}${Vn}${FEETL[i]} = \\angle ${FEETL[i]}${Vn}${R}`} />.</div>;
+        };
+        return <Row><div className="space-y-1">{v === 3 ? [0, 1, 2].map(one) : one(v)}</div></Row>;
+    };
+
+    const renderCevian = (k) => {
+        const defs = {
+            H: ['Висота трикутника', 'Перпендикуляр, опущений з вершини трикутника на пряму, яка містить протилежну сторону, називають висотою трикутника.', 'Кожний трикутник має три висоти.'],
+            M: ['Медіана трикутника', 'Відрізок, який сполучає вершину трикутника із серединою протилежної сторони, називають медіаною трикутника.', 'Кожний трикутник має три медіани. Медіана завжди лежить усередині трикутника.'],
+            B: ['Бісектриса трикутника', 'Відрізок бісектриси кута трикутника, який сполучає вершину трикутника з точкою протилежної сторони, називають бісектрисою трикутника.', 'Кожний трикутник має три бісектриси. Бісектриса завжди лежить усередині трикутника.'],
+        }[k];
+        return (
+            <Card>
+                <Def title={defs[0]}>{defs[1]}</Def>
+                <VertexTabs value={vtx[k]} onPick={v => pickV(k, v)} />
+                {k === 'H' && (
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-slate-600 text-[16px]">Трикутник:</span>
+                        <Chip onClick={() => setTm(PRESETS.acute())}>Гострокутний</Chip>
+                        <Chip onClick={() => setTm(PRESETS.right())}>Прямокутний</Chip>
+                        <Chip onClick={() => setTm(PRESETS.obtuse())}>Тупокутний</Chip>
+                    </div>
+                )}
+                {cevianResult(k)}
+                <Hint />
+                {seen[k].every(Boolean) && <Conclusion>{defs[2]}</Conclusion>}
+            </Card>
+        );
+    };
+
+    const renderStep5 = () => {
+        const loc = hLocation(T5, g5);
+        const hLoc = loc.kind === 'vertex' ? `у вершині ${NAMES[loc.i]}` : loc.kind === 'in' ? 'усередині трикутника' : 'поза трикутником (перетинаються продовження висот)';
+        return (
+            <Card>
+                <div className="flex flex-wrap items-center gap-2">
+                    {TYPES5.map(([id, name]) => <Chip key={id} active={type5 === id} onClick={() => choose5(id)}>{name}</Chip>)}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Toggle on={on5.H} color={COL.H} onClick={() => setOn5(p => ({ ...p, H: !p.H }))}>Висоти</Toggle>
+                    <Toggle on={on5.M} color={COL.M} onClick={() => setOn5(p => ({ ...p, M: !p.M }))}>Медіани</Toggle>
+                    <Toggle on={on5.B} color={COL.B} onClick={() => setOn5(p => ({ ...p, B: !p.B }))}>Бісектриси</Toggle>
+                </div>
+                <div className="space-y-2">
+                    {on5.H && <Row><span className="inline-block w-3 h-3 rounded-full mr-2" style={{ background: COL.H }}></span>Точка перетину висот <Latex math="H" /> — <b>{hLoc}</b>.</Row>}
+                    {on5.M && <Row><span className="inline-block w-3 h-3 rounded-full mr-2" style={{ background: COL.M }}></span>Точка перетину медіан <Latex math="M" /> — <b>усередині трикутника</b>.</Row>}
+                    {on5.B && <Row><span className="inline-block w-3 h-3 rounded-full mr-2" style={{ background: COL.B }}></span>Точка перетину бісектрис <Latex math="I" /> — <b>усередині трикутника</b>.</Row>}
+                </div>
+                {type5 === 'isos' && <Row>У рівнобедреному трикутнику бісектриса, висота й медіана, проведені до основи, збігаються.</Row>}
+                {type5 === 'equi' && <Row>У рівносторонньому трикутнику бісектриса, висота й медіана, проведені з однієї вершини, збігаються. Точки <Latex math="H" />, <Latex math="M" />, <Latex math="I" /> збігаються.</Row>}
+                <Hint />
+                <div>
+                    <button onClick={() => setShowSum(s => !s)} className="touch-btn w-full flex items-center justify-between px-4 h-11 bg-white border-2 border-brandLight hover:border-brand rounded-xl font-bold text-brand text-[16px] cursor-pointer">
+                        <span>Підсумок</span>
+                        <i className={`fa-solid fa-chevron-down transition-transform ${showSum ? 'rotate-180' : ''}`}></i>
+                    </button>
+                    {showSum && (
+                        <div className="mt-2 overflow-x-auto animate-fade-in">
+                            <table className="w-full text-[16px] border-collapse">
+                                <thead>
+                                    <tr className="bg-brandLight/60">
+                                        <th className="border border-slate-300 p-2 text-left">Трикутник</th>
+                                        <th className="border border-slate-300 p-2" style={{ color: COL.H }}>Висоти</th>
+                                        <th className="border border-slate-300 p-2" style={{ color: COL.M }}>Медіани</th>
+                                        <th className="border border-slate-300 p-2" style={{ color: COL.B }}>Бісектриси</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white">
+                                    <tr><td className="border border-slate-300 p-2 font-bold">Гострокутний</td><td className="border border-slate-300 p-2">усередині</td><td className="border border-slate-300 p-2">усередині</td><td className="border border-slate-300 p-2">усередині</td></tr>
+                                    <tr><td className="border border-slate-300 p-2 font-bold">Прямокутний</td><td className="border border-slate-300 p-2">у вершині прямого кута</td><td className="border border-slate-300 p-2">усередині</td><td className="border border-slate-300 p-2">усередині</td></tr>
+                                    <tr><td className="border border-slate-300 p-2 font-bold">Тупокутний</td><td className="border border-slate-300 p-2">поза трикутником</td><td className="border border-slate-300 p-2">усередині</td><td className="border border-slate-300 p-2">усередині</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        );
+    };
+
+    /* ---------- права панель ---------- */
+    const renderRight = () => {
+        if (step === 1) return <EqualBoard t={tt} />;
+        if (step === 2) return <Board T={Tm} setT={setTm} show={{ H: true }} vertex={vtx.H === 3 ? null : vtx.H} feet />;
+        if (step === 3) return <Board T={Tm} setT={setTm} show={{ M: true }} vertex={vtx.M === 3 ? null : vtx.M} ticks feet />;
+        if (step === 4) return <Board T={Tm} setT={setTm} show={{ B: true }} vertex={vtx.B === 3 ? null : vtx.B} arcs feet />;
+        return <Board T={T5} setT={drag5} show={on5} pts={{ H: true, M: true, B: true }} feet={false} />;
+    };
+
+    const navBtn = 'touch-btn px-[clamp(1rem,3cqi,1.5rem)] py-[clamp(0.375rem,1.5cqi,0.75rem)] rounded-full font-bold transition-all shadow-md active:scale-95 text-[clamp(0.95rem,2.5cqi,1.2rem)] cursor-pointer';
+
+    return (
+        <div className="flex flex-col md:flex-row w-full h-[100dvh] overflow-hidden font-sans relative text-graphite bg-white text-[14px]">
+            {!started ? (
+                <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-panelLeft p-6 gap-8 text-center">
+                    <h1 className="font-extrabold text-graphite leading-tight text-3xl md:text-5xl xl:text-6xl max-w-5xl">
+                        Рівні трикутники.<br />
+                        <span className="text-brand">Висота, медіана, бісектриса трикутника</span>
+                    </h1>
+                    <button onClick={() => { setStarted(true); setMenu(true); }} className="touch-btn px-8 py-3.5 bg-white hover:bg-slate-50 text-brand font-extrabold rounded-full shadow-sm hover:shadow transition-all duration-200 active:scale-95 text-[15px] tracking-wider cursor-pointer inline-flex items-center gap-3.5 border border-slate-100">
+                        <span>ПОЧАТИ</span>
+                        <span className="w-8 h-8 rounded-full bg-brandLight flex items-center justify-center text-brand text-xs"><i className="fa-solid fa-play translate-x-[1px]"></i></span>
+                    </button>
+                </div>
+            ) : menu ? (
+                <div className="absolute inset-0 z-[900] flex flex-col items-center bg-panelLeft p-6 md:p-12 overflow-y-auto">
+                    <div className="w-full max-w-5xl mt-4 sm:mt-8 animate-fade-in">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                            {TOPICS.map((name, i) => (
+                                <div key={i} onClick={() => { setStep(i + 1); setMenu(false); }} className="touch-btn bg-white p-5 px-6 rounded-2xl shadow-sm hover:shadow-md border border-slate-100 transition-all duration-200 cursor-pointer flex items-center gap-4 group">
+                                    <div className="w-10 h-10 rounded-full bg-brandLight group-hover:bg-cyan-200 text-brand font-extrabold text-[16px] flex items-center justify-center shrink-0 transition-colors">{i + 1}</div>
+                                    <div className="text-left font-bold text-slate-800 text-[16px] leading-snug">{name}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    {/* ЛІВА ПАНЕЛЬ */}
+                    <div className="panel-container w-full h-[58dvh] md:h-full md:flex-[1.15] bg-panelLeft relative z-10 shadow-sm md:shadow-none flex flex-col justify-between order-2 md:order-1 border-r border-slate-200 overflow-hidden">
+                        <div className="w-full h-full overflow-y-auto no-scrollbar relative">
+                            <div className="w-full md:max-w-[clamp(36rem,70cqi,100rem)] mx-auto p-[clamp(0.5rem,2vh,1.5rem)] pb-[clamp(5rem,12vh,7rem)] space-y-[clamp(0.5rem,1.5vh,1.25rem)]">
+                                <div className="flex items-center gap-3">
+                                    <span className="w-9 h-9 rounded-full bg-brand text-white font-extrabold flex items-center justify-center text-[16px]">{step}</span>
+                                    <h2 className="font-extrabold text-graphite text-[20px] leading-tight">{TOPICS[step - 1]}</h2>
+                                </div>
+                                {step === 1 && renderStep1()}
+                                {step === 2 && renderCevian('H')}
+                                {step === 3 && renderCevian('M')}
+                                {step === 4 && renderCevian('B')}
+                                {step === 5 && renderStep5()}
+                                <div className="text-[11px] text-slate-500 pt-2">Автор розробки <b>Ковтун Тетяна</b></div>
+                            </div>
+                        </div>
+
+                        {/* НАВІГАЦІЯ */}
+                        <div className="absolute bottom-4 right-[clamp(1rem,3cqi,2rem)] z-30 flex gap-2 items-center">
+                            <button onClick={() => setMenu(true)} className={`${navBtn} border border-cyan-200 bg-brandLight text-brand hover:bg-cyan-100 flex items-center gap-1.5`}>
+                                <i className="fa-solid fa-list-ul"></i> Зміст
+                            </button>
+                            {step > 1 && (
+                                <button onClick={() => setStep(s => s - 1)} className={`${navBtn} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>← Назад</button>
+                            )}
+                            {step < 5 ? (
+                                <button disabled={!ready} onClick={() => setStep(s => s + 1)}
+                                        className={`${navBtn} border border-cyan-300 bg-brandLight text-brand hover:bg-cyan-100 ${ready ? 'animate-pop' : 'opacity-40 cursor-not-allowed'}`}>
+                                    Далі →
+                                </button>
+                            ) : (
+                                <button onClick={() => { setStep(1); setStarted(false); }} className={`${navBtn} border border-cyan-300 bg-brandLight text-brand hover:bg-cyan-100`}>На початок</button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ПРАВА ПАНЕЛЬ */}
+                    <div className="panel-container w-full h-[42dvh] md:h-full md:flex-[0.95] bg-panelRight shadow-inner relative flex flex-col items-center justify-center order-1 md:order-2 z-0 overflow-hidden p-[clamp(0.5rem,2cqi,2rem)]">
+                        <button onClick={handleReset} className="absolute top-[clamp(0.75rem,2cqi,1.25rem)] left-[clamp(0.75rem,2cqi,1.25rem)] w-[clamp(2.5rem,4cqi,3.25rem)] h-[clamp(2.5rem,4cqi,3.25rem)] flex items-center justify-center bg-white hover:bg-slate-50 text-slate-600 hover:text-brand rounded-xl shadow-sm border border-slate-200 transition-all z-50 cursor-pointer text-lg touch-btn" title="Скинути">
+                            <i className="fa-solid fa-arrow-rotate-left"></i>
+                        </button>
+                        <div className={`w-full ${step === 1 ? 'flex-1 min-h-0' : 'h-full'} relative flex items-center justify-center overflow-hidden max-w-[min(100%,1400px)]`}>
+                            {renderRight()}
+                        </div>
+                        {step === 1 && (
+                            <div className="w-full max-w-xl bg-white/90 rounded-2xl shadow p-3 flex items-center gap-3 z-40">
+                                <button onClick={() => animate(tt >= 0.99 ? 0 : 1)} className="touch-btn shrink-0 px-5 h-11 rounded-full bg-brand hover:bg-cyan-800 text-white font-bold text-[16px] cursor-pointer">
+                                    {tt >= 0.99 ? 'Розсунути' : 'Накласти'}
+                                </button>
+                                <input type="range" min="0" max="1" step="0.01" value={tt} onChange={onSlider} className="w-full h-6 cursor-pointer" />
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
