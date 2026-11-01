@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Степенева функція з цілим показником: Інтерактивний урок</title>
+
+    <!-- React, ReactDOM, Babel Standalone -->
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- KaTeX for math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+
+        @keyframes drawStroke {
+            from { stroke-dashoffset: 12000; }
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-draw {
+            stroke-dasharray: 12000;
+            stroke-dashoffset: 12000;
+            animation: drawStroke 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeInPoint {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in-point { animation: fadeInPoint 1s ease-out forwards; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        graphite: '#2C3E50',
+                        accentRed: '#E74C3C',
+                        accentGreen: '#27AE60',
+                        accentBlue: '#2980B9',
+                        accentPurple: '#8E44AD',
+                        accentMagenta: '#E91E63',
+                        panelLeft: '#f2e6ff',
+                        panelRight: '#faf5ff',
+                        colorPrimary: '#34495E',
+                        colorSecondary: '#95A5A6'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 overflow-hidden text-graphite selection:bg-emerald-600 selection:text-white font-sans h-screen w-full relative">
+
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel" data-type="module" data-presets="react">
+        const { useState, useEffect, useRef } = React;
+
+        // Спільні розміри тексту
+        const TXT = "text-[13px] sm:text-[14px] md:text-[16px] lg:text-[20px] xl:text-[24px]";
+
+        const Latex = ({ math, block = false }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current) {
+                    try {
+                        window.katex.render(math, containerRef.current, { displayMode: block, throwOnError: false });
+                    } catch (err) {
+                        console.error("Error rendering KaTeX: ", err);
+                    }
+                }
+            }, [math, block]);
+            return <span ref={containerRef} />;
+        };
+
+        const formatNum = (v) => {
+            const rounded = Math.round(v * 100) / 100;
+            return rounded.toString().replace('.', ',').replace('-', '−');
+        };
+
+        // Показник степеня для підпису на графіку: −3 замість -3
+        const expStr = (n) => String(n).replace('-', '−');
+
+        // Значення x^n (n < 0) у вигляді LaTeX для x ∈ {±2, ±1, ±1/2}
+        const cellLatex = (base, n) => {
+            const k = -n;
+            const sign = (base < 0 && k % 2 === 1) ? "-" : "";
+            const a = Math.abs(base);
+            if (a === 1) return sign + "1";
+            if (a === 2) return sign + "\\frac{1}{" + Math.pow(2, k) + "}";
+            return sign + Math.pow(2, k);
+        };
+
+        const X_BASES = [-2, -1, -0.5, 0.5, 1, 2];
+        const X_LATEX = ["-2", "-1", "-\\frac{1}{2}", "\\frac{1}{2}", "1", "2"];
+
+        const THEMES = {
+            blue:   { border: 'border-blue-200',   head: 'bg-blue-50/50',   text: 'text-[#2980B9]' },
+            green:  { border: 'border-green-200',  head: 'bg-green-50/50',  text: 'text-[#27AE60]' },
+            red:    { border: 'border-red-200',    head: 'bg-red-50/50',    text: 'text-[#E74C3C]' },
+            slate:  { border: 'border-slate-300',  head: 'bg-slate-100/50', text: 'text-slate-600' },
+            purple: { border: 'border-purple-200', head: 'bg-purple-50/50', text: 'text-[#8E44AD]' },
+        };
+
+        const ValueTable = ({ xs, ys, yLabel = "y", theme }) => {
+            const t = THEMES[theme];
+            return (
+                <div className={`overflow-x-auto my-2 lg:my-4 border ${t.border} rounded-lg shadow-sm bg-white`}>
+                    <table className={`w-full text-center ${TXT}`}>
+                        <tbody>
+                            <tr className={`border-b ${t.border} ${t.head}`}>
+                                <td className={`font-bold border-r ${t.border} py-1 lg:py-2 px-2 ${t.text} whitespace-nowrap`}><Latex math="x" /></td>
+                                {xs.map((v, i) => (
+                                    <td key={i} className={`${i < xs.length - 1 ? 'border-r' : ''} ${t.border} py-1 lg:py-2 px-1.5`}><Latex math={v} /></td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className={`font-bold border-r ${t.border} py-1 lg:py-2 px-2 ${t.text} whitespace-nowrap`}><Latex math={yLabel} /></td>
+                                {ys.map((v, i) => (
+                                    <td key={i} className={`${i < ys.length - 1 ? 'border-r' : ''} ${t.border} py-1 lg:py-2 px-1.5`}><Latex math={v} /></td>
+                                ))}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        const Accordion = ({ title, open, onToggle, children }) => (
+            <div className="space-y-1.5 lg:space-y-3 pt-1 lg:pt-2">
+                <div className="flex items-center justify-between gap-2 bg-slate-50 p-2 lg:p-3 xl:p-4 rounded-lg border border-slate-200 shadow-xs cursor-pointer hover:bg-slate-100 transition-colors" onClick={onToggle}>
+                    <span className={`font-bold text-slate-700 ${TXT}`}>{title}</span>
+                    <button className="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 rounded-full flex items-center justify-center bg-white border border-slate-300 text-slate-500 shrink-0">
+                        <i className={`fa-solid fa-chevron-down text-[10px] lg:text-sm xl:text-base transition-transform ${open ? 'rotate-180' : ''}`}></i>
+                    </button>
+                </div>
+                {open && (
+                    <div className={`p-2.5 md:p-3 lg:p-4 xl:p-6 bg-white rounded-lg border border-slate-200 animate-fade-in text-left font-medium space-y-2 lg:space-y-3 xl:space-y-4 ${TXT}`}>
+                        {children}
+                    </div>
+                )}
+            </div>
+        );
+
+        const D_LATEX = "D(y) = (-\\infty;\\,0) \\cup (0;\\,+\\infty)";
+
+        const App = () => {
+            const [hasStarted, setHasStarted] = useState(false);
+            const [viewingMenu, setViewingMenu] = useState(false);
+            const [step, setStep] = useState(0);
+            const [subStep, setSubStep] = useState(0);
+
+            const [v1Expanded, setV1Expanded] = useState(false);
+            const [v2Expanded, setV2Expanded] = useState(false);
+            const [visitedBlocks, setVisitedBlocks] = useState({ v1: false, v2: false });
+
+            const [oddN, setOddN] = useState(-1);
+            const [evenN, setEvenN] = useState(-2);
+
+            const svgContainerRef = useRef(null);
+            const svgRef = useRef(null);
+            const [dim, setDim] = useState({ w: 800, h: 600 });
+
+            const [dragXMath, setDragXMath] = useState(0.8);
+            const dragFrameRef = useRef(null);
+            const [isDragging, setIsDragging] = useState(false);
+
+            // Система координат
+            const cx = dim.w / 2;
+            let cy = Math.floor(dim.h / 2);
+            if (step === 2) cy = Math.floor(dim.h * 0.6);
+            if (step === 3 || step === 4) cy = Math.floor(dim.h * 0.72);
+            if (step === 8) cy = Math.floor(dim.h * 0.85);
+
+            const scale = step === 8 ? Math.min(dim.w / 7, dim.h / 11) : Math.min(dim.w / 10, dim.h / 12);
+
+            const mathToSvg = (mx, my) => ({ x: cx + mx * scale, y: cy - my * scale });
+            const svgToMath = (sx, sy) => ({ mx: (sx - cx) / scale, my: (cy - sy) / scale });
+
+            useEffect(() => {
+                const container = svgContainerRef.current;
+                if (!container || !hasStarted) return;
+                const observer = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        setDim({ w: entry.contentRect.width, h: entry.contentRect.height });
+                    }
+                });
+                observer.observe(container);
+                setDim({ w: container.clientWidth, h: container.clientHeight });
+                return () => observer.disconnect();
+            }, [hasStarted, viewingMenu, step]);
+
+            const delays = {
+                0: [0],
+                1: [0, 1500, 3000],
+                2: [0, 800, 1600],
+                3: [0, 800, 1600, 2400],
+                4: [0],
+                5: [0, 800, 1600, 2400],
+                6: [0],
+                7: [0, 500, 1000, 1500, 2000, 2500, 3000],
+                8: [0]
+            };
+
+            useEffect(() => {
+                setSubStep(0);
+                setV1Expanded(false); setV2Expanded(false);
+                setVisitedBlocks({ v1: false, v2: false });
+                setOddN(-3);
+                setEvenN(-2);
+                setDragXMath(0.8);
+            }, [step]);
+
+            useEffect(() => {
+                if (!hasStarted || viewingMenu) return;
+                let timer;
+                const currentDelays = delays[step];
+                if (currentDelays && subStep < currentDelays.length - 1) {
+                    timer = setTimeout(() => setSubStep(prev => prev + 1), currentDelays[subStep + 1] - currentDelays[subStep]);
+                }
+                return () => clearTimeout(timer);
+            }, [step, subStep, hasStarted, viewingMenu]);
+
+            const isCurrentStepFinished = () => {
+                const currentDelays = delays[step];
+                return currentDelays ? subStep >= (currentDelays.length - 1) : true;
+            };
+
+            const canShowNext = () => {
+                if (step === 1) return isCurrentStepFinished();
+                if (step === 2 || step === 3 || step === 5) return visitedBlocks.v1;
+                if (step === 7) return isCurrentStepFinished();
+                if (step === 4 || step === 6 || step === 8) return true;
+                return false;
+            };
+
+            const prevStep = () => {
+                if (step > 1) setStep(s => s - 1);
+                else if (step === 1) setViewingMenu(true);
+            };
+            const nextStep = () => { if (canShowNext() && step < 8) setStep(s => s + 1); };
+
+            const restartLesson = () => {
+                setHasStarted(false);
+                setViewingMenu(false);
+                setStep(0);
+            };
+
+            const toggleBlock = (blockName) => {
+                setVisitedBlocks(prev => ({ ...prev, [blockName]: true }));
+                if (blockName === 'v1') setV1Expanded(v => !v);
+                if (blockName === 'v2') setV2Expanded(v => !v);
+            };
+
+            // x = 0 не входить в область визначення — повзунок «перестрибує» проміжок (−0,6; 0,6)
+            const clampX = (v) => {
+                v = Math.max(-2, Math.min(2, v));
+                if (Math.abs(v) < 0.6) v = v < 0 ? -0.6 : 0.6;
+                return v;
+            };
+
+            const updateDragX = (clientX) => {
+                if (!svgRef.current) return;
+                const pt = svgRef.current.createSVGPoint();
+                pt.x = clientX; pt.y = cy;
+                const svgP = pt.matrixTransform(svgRef.current.getScreenCTM().inverse());
+                setDragXMath(clampX(svgToMath(svgP.x, svgP.y).mx));
+            };
+
+            const handlePointerDown = (e) => {
+                if (step !== 8 || !svgRef.current) return;
+                setIsDragging(true);
+                e.currentTarget.setPointerCapture(e.pointerId);
+                updateDragX(e.clientX);
+            };
+
+            const handlePointerMove = (e) => {
+                if (!isDragging || !svgRef.current) return;
+                if (dragFrameRef.current) cancelAnimationFrame(dragFrameRef.current);
+                const clientX = e.clientX;
+                dragFrameRef.current = requestAnimationFrame(() => updateDragX(clientX));
+            };
+
+            const handlePointerUp = (e) => {
+                if (isDragging) {
+                    setIsDragging(false);
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+                }
+            };
+
+            // Побудова графіка y = x^n для цілого n. Гілки розриваються в точці x = 0.
+            const generatePath = (n) => {
+                const xLimit = Math.ceil(dim.w / scale / 2) + 2;
+                const yLimit = Math.ceil(Math.max(cy, dim.h - cy) / scale) + 2;
+                let d = "";
+                let pen = false;
+                let mx = -xLimit;
+                while (mx <= xLimit) {
+                    const near0 = Math.abs(mx) < 1e-9;
+                    if (n <= 0 && near0) {
+                        pen = false;
+                    } else {
+                        const my = Math.pow(mx, n);
+                        if (!isFinite(my) || Math.abs(my) > yLimit) {
+                            pen = false;
+                        } else {
+                            const p = mathToSvg(mx, my);
+                            d += (pen ? " L " : " M ") + p.x.toFixed(1) + "," + p.y.toFixed(1);
+                            pen = true;
+                        }
+                    }
+                    const stepX = Math.abs(mx) < 1.2 ? 0.002 : 0.02;
+                    mx = Math.round((mx + stepX) * 1000) / 1000;
+                }
+                return d.trim();
+            };
+
+            const renderAxes = () => {
+                const gridLines = [];
+                const leftUnits = Math.ceil(cx / scale);
+                const rightUnits = Math.ceil((dim.w - cx) / scale);
+                const topUnits = Math.ceil(cy / scale);
+                const bottomUnits = Math.ceil((dim.h - cy) / scale);
+                const showLabel = (i) => scale >= 30 || Math.abs(i) === 1 || i % 5 === 0;
+
+                for (let i = -leftUnits; i <= rightUnits; i++) {
+                    if (i === 0) continue;
+                    const px = cx + i * scale;
+                    gridLines.push(<line key={`v-${i}`} x1={px} y1={0} x2={px} y2={dim.h} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />);
+                    gridLines.push(<line key={`vt-${i}`} x1={px} y1={cy - 3} x2={px} y2={cy + 3} stroke="#34495E" strokeWidth="1.5" />);
+                    if (showLabel(i)) {
+                        gridLines.push(<text key={`vl-${i}`} x={px} y={cy + 18} textAnchor="middle" className="text-[10px] sm:text-[11px] lg:text-[14px] 2xl:text-[16px]" fontWeight="bold" fill="#34495E">{i}</text>);
+                    }
+                }
+
+                for (let i = -bottomUnits; i <= topUnits; i++) {
+                    if (i === 0) continue;
+                    const py = cy - i * scale;
+                    gridLines.push(<line key={`h-${i}`} x1={0} y1={py} x2={dim.w} y2={py} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />);
+                    gridLines.push(<line key={`ht-${i}`} x1={cx - 3} y1={py} x2={cx + 3} y2={py} stroke="#34495E" strokeWidth="1.5" />);
+                    if (showLabel(i)) {
+                        gridLines.push(<text key={`hl-${i}`} x={cx - 8} y={py + 5} textAnchor="end" className="text-[10px] sm:text-[11px] lg:text-[14px] 2xl:text-[16px]" fontWeight="bold" fill="#34495E">{i}</text>);
+                    }
+                }
+
+                return (
+                    <g className="axes select-none pointer-events-none">
+                        {gridLines}
+                        <line x1="0" y1={cy} x2={dim.w} y2={cy} stroke="#34495E" strokeWidth="2" />
+                        <line x1={cx} y1={dim.h} x2={cx} y2="0" stroke="#34495E" strokeWidth="2" />
+                        <polygon points={`${dim.w},${cy} ${dim.w - 10},${cy - 4} ${dim.w - 10},${cy + 4}`} fill="#34495E" />
+                        <polygon points={`${cx},0 ${cx - 4},10 ${cx + 4},10`} fill="#34495E" />
+                        <text x={dim.w - 20} y={cy - 12} className="text-[14px] sm:text-[16px] lg:text-[20px] 2xl:text-[24px]" fontFamily="serif" fontStyle="italic" fontWeight="bold" fill="#34495E">x</text>
+                        <text x={cx + 15} y={20} className="text-[14px] sm:text-[16px] lg:text-[20px] 2xl:text-[24px]" fontFamily="serif" fontStyle="italic" fontWeight="bold" fill="#34495E">y</text>
+                        <text x={cx - 12} y={cy + 22} className="text-[11px] sm:text-[12px] lg:text-[16px] 2xl:text-[18px]" fontWeight="bold" fill="#34495E">0</text>
+                    </g>
+                );
+            };
+
+            const labelStyle = { textShadow: "1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff" };
+
+            const PointDef = ({ mx, my, color, label, pos = "top", hollow = false }) => {
+                const { x, y } = mathToSvg(mx, my);
+                let lx = x, ly = y;
+                const off = dim.w > 1024 ? 16 : 10;
+                if (pos === "top") ly -= off;
+                if (pos === "bottom") ly += off + 6;
+                if (pos === "left") { lx -= off + 2; ly += 4; }
+                if (pos === "right") { lx += off + 2; ly += 4; }
+                if (pos === "top-left") { lx -= off; ly -= off - 2; }
+                if (pos === "top-right") { lx += off; ly -= off - 2; }
+                if (pos === "bottom-left") { lx -= off; ly += off + 6; }
+                if (pos === "bottom-right") { lx += off + 2; ly += off + 2; }
+
+                const pointId = `${mx}_${my}_${hollow}`;
+                const isStableRef = useRef(window.activatedPoints?.has(pointId));
+                useEffect(() => {
+                    if (!window.activatedPoints) window.activatedPoints = new Set();
+                    window.activatedPoints.add(pointId);
+                }, [pointId]);
+
+                const animationClass = isStableRef.current ? "" : "animate-fade-in-point";
+                const dotR = dim.w > 1024 ? 6 : 4;
+
+                return (
+                    <g className={animationClass}>
+                        {hollow
+                            ? <circle cx={x} cy={y} r={dotR + 1.5} fill="#FFF" stroke={color} strokeWidth="2.5" />
+                            : <circle cx={x} cy={y} r={dotR} fill={color} stroke="#FFF" strokeWidth="1.5" />}
+                        {label && (
+                            <text x={lx} y={ly} textAnchor={pos.includes("left") ? "end" : (pos.includes("right") ? "start" : "middle")} className="text-[11px] sm:text-[12px] lg:text-[16px] 2xl:text-[18px]" fontWeight="bold" fill={color} style={labelStyle}>
+                                {label}
+                            </text>
+                        )}
+                    </g>
+                );
+            };
+
+            const FormulaLabel = ({ n, color, x, y, big = true }) => (
+                <text x={x} y={y} className={`${big ? 'text-[20px] sm:text-[24px] lg:text-[32px] 2xl:text-[40px]' : 'text-[18px] sm:text-[22px] lg:text-[28px] 2xl:text-[36px]'} animate-fade-in-point`} fontFamily="serif" fontStyle="italic" fontWeight="bold" fill={color} style={labelStyle}>
+                    y = x<tspan dy={big ? -10 : -8} className={big ? 'text-[14px] sm:text-[16px] lg:text-[20px] 2xl:text-[26px]' : 'text-[12px] sm:text-[14px] lg:text-[18px] 2xl:text-[24px]'} fontStyle="normal">{expStr(n)}</tspan>
+                </text>
+            );
+
+            const renderMenuContent = () => {
+                const topics = [
+                    { id: 1, name: "Означення функції" },
+                    { id: 2, name: "Функція y = x⁰" },
+                    { id: 3, name: "Перший випадок: n = 2k" },
+                    { id: 4, name: "Графіки y = x⁻ⁿ, n — парне" },
+                    { id: 5, name: "Другий випадок: n = 2k − 1" },
+                    { id: 6, name: "Графіки y = x⁻ⁿ, n — непарне" },
+                    { id: 7, name: "Таблиця властивостей" },
+                    { id: 8, name: "Порівняння графіків" },
+                ];
+
+                return (
+                    <div className="p-4 md:p-6 lg:p-8 xl:p-12 animate-fade-in flex-grow max-w-4xl lg:max-w-6xl 2xl:max-w-7xl mx-auto w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 xl:gap-10 overflow-y-auto no-scrollbar pr-1">
+                            {topics.map((t) => (
+                                <div key={t.id} onClick={() => { setStep(t.id); setViewingMenu(false); }}
+                                    className="p-4 md:p-5 lg:p-6 xl:p-8 rounded-xl border border-slate-200/60 hover:border-purple-400 hover:bg-purple-50/60 hover:shadow-md transition-all duration-200 cursor-pointer flex items-center gap-4 lg:gap-6 group bg-panelRight">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-full bg-[#E2E8F0]/40 group-hover:bg-purple-100 text-slate-600 group-hover:text-purple-700 font-extrabold text-base md:text-lg lg:text-xl xl:text-2xl flex items-center justify-center shrink-0 transition-colors">
+                                        {t.id}
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="font-bold text-slate-800 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl group-hover:text-purple-800 transition-colors">{t.name}</h3>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderRightPanel = () => {
+                if (!hasStarted) return null;
+
+                const rectW = dim.w > 1200 ? 76 : (dim.w > 768 ? 64 : 50);
+                const rectH = dim.w > 1200 ? 36 : (dim.w > 768 ? 28 : 22);
+                const textYOffset = dim.w > 1200 ? 40 : (dim.w > 768 ? 35 : 30);
+                const sw = dim.w > 1024 ? "4" : "3";
+                const lblX = dim.w > 1024 ? 80 : 40;
+                const lblY = dim.h > 800 ? 80 : 50;
+
+                return (
+                    <svg ref={svgRef} className="absolute top-0 left-0 w-full h-full touch-none z-20 animate-fade-in"
+                        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
+
+                        {renderAxes()}
+
+                        {step === 2 && (
+                            <g>
+                                <path d={generatePath(0)} fill="none" stroke="#E91E63" strokeWidth={sw} className="animate-draw" />
+                                {subStep >= 1 && <PointDef key="h-0-1" mx={0} my={1} color="#E91E63" label="(0; 1) — виколота" pos="top-right" hollow={true} />}
+                                {subStep >= 2 && <PointDef key="p-1-1" mx={1} my={1} color="#E91E63" />}
+                                {subStep >= 2 && <PointDef key="p--1-1" mx={-1} my={1} color="#E91E63" label="(-1; 1)" pos="bottom-left" />}
+                                {subStep >= 2 && <PointDef key="p-2-1" mx={2} my={1} color="#E91E63" label="(2; 1)" pos="bottom" />}
+                                {subStep >= 2 && <PointDef key="p--2-1" mx={-2} my={1} color="#E91E63" label="(-2; 1)" pos="bottom" />}
+                            </g>
+                        )}
+
+                        {step === 3 && (
+                            <g>
+                                <path d={generatePath(-2)} fill="none" stroke="#27AE60" strokeWidth={sw} className="animate-draw" />
+                                {subStep >= 1 && <PointDef key="p-1-1" mx={1} my={1} color="#27AE60" label="(1; 1)" pos="top-right" />}
+                                {subStep >= 1 && <PointDef key="p--1-1" mx={-1} my={1} color="#27AE60" label="(-1; 1)" pos="top-left" />}
+                                {subStep >= 2 && <PointDef key="p-2-.25" mx={2} my={0.25} color="#27AE60" label="(2; ¼)" pos="top" />}
+                                {subStep >= 2 && <PointDef key="p--2-.25" mx={-2} my={0.25} color="#27AE60" label="(-2; ¼)" pos="top" />}
+                                {subStep >= 3 && <PointDef key="p-.5-4" mx={0.5} my={4} color="#27AE60" label="(½; 4)" pos="right" />}
+                                {subStep >= 3 && <PointDef key="p--.5-4" mx={-0.5} my={4} color="#27AE60" label="(-½; 4)" pos="left" />}
+                                <FormulaLabel n={-2} color="#27AE60" x={lblX} y={lblY} />
+                            </g>
+                        )}
+
+                        {step === 5 && (
+                            <g>
+                                <path d={generatePath(-3)} fill="none" stroke="#2980B9" strokeWidth={sw} className="animate-draw" />
+                                {subStep >= 1 && <PointDef key="p-1-1" mx={1} my={1} color="#2980B9" label="(1; 1)" pos="top-right" />}
+                                {subStep >= 1 && <PointDef key="p--1--1" mx={-1} my={-1} color="#2980B9" label="(-1; -1)" pos="bottom-left" />}
+                                {subStep >= 2 && <PointDef key="p-2-.125" mx={2} my={0.125} color="#2980B9" label="(2; ⅛)" pos="top" />}
+                                {subStep >= 2 && <PointDef key="p--2--.125" mx={-2} my={-0.125} color="#2980B9" label="(-2; -⅛)" pos="bottom-left" />}
+                                {subStep >= 3 && <PointDef key="p-.8" mx={0.5} my={8} color="#2980B9" label="(½; 8)" pos="right" />}
+                                {subStep >= 3 && <PointDef key="p--.8" mx={-0.5} my={-8} color="#2980B9" label="(-½; -8)" pos="left" />}
+                                <FormulaLabel n={-3} color="#2980B9" x={lblX} y={lblY} />
+                            </g>
+                        )}
+
+                        {step === 6 && (
+                            <g>
+                                {oddN !== -1 && (
+                                    <g>
+                                        <path d={generatePath(-1)} fill="none" stroke="#94a3b8" strokeWidth="2.5" />
+                                        <FormulaLabel n={-1} color="#94a3b8" x={lblX} y={lblY + (dim.w > 1024 ? 60 : 45)} big={false} />
+                                    </g>
+                                )}
+                                <path key={`odd-${oddN}`} d={generatePath(oddN)} fill="none" stroke="#8E44AD" strokeWidth={dim.w > 1024 ? "5" : "3.5"} className="animate-draw" />
+                                <PointDef key="p-1-1" mx={1} my={1} color="#8E44AD" label="(1; 1)" pos="top-right" />
+                                <PointDef key="p--1--1" mx={-1} my={-1} color="#8E44AD" label="(-1; -1)" pos="bottom-left" />
+                                <FormulaLabel n={oddN} color="#8E44AD" x={lblX} y={lblY} />
+                            </g>
+                        )}
+
+                        {step === 4 && (
+                            <g>
+                                {evenN < -2 && (
+                                    <g>
+                                        <path d={generatePath(-2)} fill="none" stroke="#94a3b8" strokeWidth="2.5" />
+                                        <FormulaLabel n={-2} color="#94a3b8" x={lblX} y={lblY + (dim.w > 1024 ? 60 : 45)} big={false} />
+                                    </g>
+                                )}
+                                <path key={`even-${evenN}`} d={generatePath(evenN)} fill="none" stroke="#8E44AD" strokeWidth={dim.w > 1024 ? "5" : "3.5"} className="animate-draw" />
+                                <PointDef key="p-1-1" mx={1} my={1} color="#8E44AD" label="(1; 1)" pos="top-right" />
+                                <PointDef key="p--1-1" mx={-1} my={1} color="#8E44AD" label="(-1; 1)" pos="top-left" />
+                                <FormulaLabel n={evenN} color="#8E44AD" x={lblX} y={lblY} />
+                            </g>
+                        )}
+
+                        {step === 8 && (
+                            <g>
+                                <path d={generatePath(-2)} fill="none" stroke="#27AE60" strokeWidth={dim.w > 1024 ? "3.5" : "2.5"} opacity="0.85" />
+                                <path d={generatePath(-4)} fill="none" stroke="#8E44AD" strokeWidth={dim.w > 1024 ? "3.5" : "2.5"} opacity="0.85" />
+
+                                <PointDef key="p-1-1" mx={1} my={1} color="#94a3b8" label="(1; 1)" pos="top-right" />
+                                <PointDef key="p--1-1" mx={-1} my={1} color="#94a3b8" label="(-1; 1)" pos="top-left" />
+
+                                {(() => {
+                                    const mx = dragXMath;
+                                    const y2 = Math.pow(mx, -2);
+                                    const y4 = Math.pow(mx, -4);
+                                    const svgP2 = mathToSvg(mx, y2);
+                                    const svgP4 = mathToSvg(mx, y4);
+                                    const svgX = mathToSvg(mx, 0);
+                                    const nearOne = Math.abs(Math.abs(mx) - 1) <= 0.05;
+                                    // підписи — з боку, протилежного осі y
+                                    const outer = mx > 0 ? 1 : -1;
+
+                                    return (
+                                        <g>
+                                            <line x1={svgX.x} y1={cy} x2={svgX.x} y2={Math.min(svgP2.y, svgP4.y)} stroke="#34495E" strokeWidth="1.5" strokeDasharray="4,4" />
+                                            <circle cx={svgP2.x} cy={svgP2.y} r={dim.w > 1024 ? 7 : 5} fill="#27AE60" stroke="#FFF" strokeWidth="1.5" />
+                                            <circle cx={svgP4.x} cy={svgP4.y} r={dim.w > 1024 ? 7 : 5} fill="#8E44AD" stroke="#FFF" strokeWidth="1.5" />
+
+                                            <rect x={svgX.x - rectW / 2} y={cy + 15} width={rectW} height={rectH} rx="4" fill="#34495E" />
+                                            <text x={svgX.x} y={cy + textYOffset} textAnchor="middle" className="text-[12px] sm:text-[14px] lg:text-[18px] 2xl:text-[22px]" fontWeight="bold" fill="#FFF">{formatNum(mx)}</text>
+
+                                            {!nearOne && (
+                                                <g className="pointer-events-none select-none">
+                                                    <text x={svgP2.x + 12 * outer} y={svgP2.y + 6} textAnchor={outer > 0 ? "start" : "end"} className="text-[12px] sm:text-[14px] lg:text-[18px] 2xl:text-[22px]" fontWeight="bold" fill="#27AE60" style={labelStyle}>{formatNum(y2)}</text>
+                                                    <text x={svgP4.x - 12 * outer} y={svgP4.y + 6} textAnchor={outer > 0 ? "end" : "start"} className="text-[12px] sm:text-[14px] lg:text-[18px] 2xl:text-[22px]" fontWeight="bold" fill="#8E44AD" style={labelStyle}>{formatNum(y4)}</text>
+                                                </g>
+                                            )}
+                                        </g>
+                                    );
+                                })()}
+
+                                <FormulaLabel n={-2} color="#27AE60" x={lblX} y={lblY} big={false} />
+                                <FormulaLabel n={-4} color="#8E44AD" x={lblX} y={lblY + (dim.w > 1024 ? 55 : 40)} big={false} />
+                            </g>
+                        )}
+                    </svg>
+                );
+            };
+
+            const renderNextButton = () => {
+                if (step === 8) return null;
+                const isReady = canShowNext();
+                return (
+                    <button onClick={isReady ? nextStep : null}
+                        className={`px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 rounded-full font-semibold transition-all text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl flex items-center justify-center gap-1.5 lg:gap-3
+                            ${isReady
+                                ? 'shadow-md active:scale-95 border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff] animate-pop cursor-pointer'
+                                : 'border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-75'}`}>
+                        Далі ➔
+                    </button>
+                );
+            };
+
+            const NButtons = ({ values, current, onPick }) => (
+                <div className="border border-slate-200 p-3 lg:p-5 xl:p-6 rounded-lg shadow-sm bg-slate-50">
+                    <p className={`${TXT} font-bold text-slate-700 mb-2 lg:mb-4 text-center`}>Оберіть <span className="font-bold text-black font-serif italic">n</span> у формулі <Latex math="y = x^{-n}" />:</p>
+                    <div className="flex justify-center gap-3 lg:gap-6 xl:gap-8">
+                        {values.map(val => (
+                            <button key={val} onClick={() => onPick(val)}
+                                className={`w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-full font-bold text-[14px] sm:text-[16px] md:text-[18px] lg:text-[24px] xl:text-[30px] transition-all duration-200 cursor-pointer shadow-sm flex items-center justify-center
+                                ${current === val ? 'bg-[#8E44AD] text-white ring-2 ring-purple-300 scale-110' : 'bg-white text-slate-600 border border-slate-300 hover:bg-purple-50'}`}>
+                                {-val}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const CompareTables = ({ baseN, n }) => (
+                <div className="space-y-2 lg:space-y-4 animate-fade-in mt-2 lg:mt-4">
+                    <p className={`${TXT} font-bold text-slate-700 text-center`}>Порівняння значень:</p>
+                    <div className="flex flex-col gap-1 lg:gap-2">
+                        <ValueTable theme="slate" xs={X_LATEX} ys={X_BASES.map(b => cellLatex(b, baseN))} yLabel={`y = x^{${baseN}}`} />
+                        <ValueTable theme="purple" xs={X_LATEX} ys={X_BASES.map(b => cellLatex(b, n))} yLabel={`y = x^{${n}}`} />
+                    </div>
+                </div>
+            );
+
+            const cardCls = "bg-white rounded-lg p-3 md:p-4 lg:p-6 xl:p-8 shadow-xs leading-normal text-slate-800 animate-fade-in space-y-2 lg:space-y-4 xl:space-y-6";
+            const nItalic = "font-bold text-black font-serif italic text-[15px] sm:text-[17px] md:text-[19px] lg:text-[21px] xl:text-[25px]";
+
+            return (
+                <div className="flex flex-col w-full h-[100dvh] overflow-hidden font-sans text-graphite bg-white text-[13px] sm:text-[14px] md:text-[15px] lg:text-[17px] xl:text-[20px] 2xl:text-[22px]">
+                    <div className="flex flex-col md:flex-row w-full flex-1 relative overflow-hidden">
+                        {!hasStarted ? (
+                            <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-[#f2e6ff] p-4 text-center">
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-slate-800 mb-6 lg:mb-10 xl:mb-14 animate-fade-in">
+                                    <span className="text-purple-700">Степенева функція</span><br />з цілим показником
+                                </h1>
+                                <button onClick={() => { setHasStarted(true); setViewingMenu(true); }}
+                                    className="px-5 py-2.5 md:px-6 md:py-3 lg:px-8 lg:py-4 xl:px-10 xl:py-5 bg-white border border-[#e9d5ff] text-[#581c87] rounded-full shadow-[0_2px_8px_rgba(88,28,135,0.05)] hover:shadow-[0_4px_12px_rgba(88,28,135,0.08)] hover:border-purple-300 transition-all duration-300 active:scale-95 text-[12px] sm:text-sm md:text-base lg:text-lg xl:text-xl uppercase tracking-widest cursor-pointer animate-pop flex items-center justify-between gap-3 lg:gap-5 group">
+                                    <span className="pl-1.5 font-extrabold tracking-widest text-[#581c87] group-hover:text-purple-800 transition-colors">ПОЧАТИ УРОК</span>
+                                    <span className="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 rounded-full bg-[#f3e8ff] flex items-center justify-center text-[#581c87] transition-all duration-300 group-hover:scale-105 shadow-inner shrink-0">
+                                        <i className="fa-solid fa-play text-[10px] md:text-xs lg:text-sm xl:text-base translate-x-[1px]"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {/* LEFT CONTENT PANEL */}
+                                <div className={`w-full ${viewingMenu || step === 1 || step === 7 ? 'h-full md:w-full' : 'h-[55%] md:h-full md:w-[40%]'} bg-panelLeft relative z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] md:shadow-none flex flex-col justify-between order-2 md:order-1 border-r border-slate-200 overflow-hidden`}>
+                                    <div className="w-full h-full p-3 md:p-4 lg:p-6 xl:p-8 2xl:p-10 pb-12 md:pb-16 lg:pb-20 xl:pb-24 flex flex-col justify-between overflow-y-auto no-scrollbar relative animate-fade-in">
+                                        <div className="space-y-2.5 md:space-y-4 lg:space-y-6 pt-0.5 flex-grow">
+
+                                            {viewingMenu && renderMenuContent()}
+
+                                            {/* КРОК 1. Означення */}
+                                            {!viewingMenu && step === 1 && (
+                                                <div className="bg-white rounded-lg p-5 md:p-8 lg:p-10 xl:p-12 shadow-sm leading-normal text-slate-800 animate-fade-in space-y-4 md:space-y-6 lg:space-y-8 max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto w-full mt-4 md:mt-10 lg:mt-14 xl:mt-20 border border-purple-100">
+                                                    <div className="mb-2 bg-pink-50/50 p-5 md:p-6 lg:p-8 xl:p-10 rounded-lg border border-pink-100 text-slate-800 shadow-xs">
+                                                        <p className="font-bold text-[16px] sm:text-[18px] md:text-[20px] lg:text-[24px] xl:text-[28px] leading-relaxed text-left">
+                                                            Функцію, яку можна задати формулою
+                                                        </p>
+                                                        <div className="text-center my-6 lg:my-10 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-[#E91E63] animate-pop">
+                                                            <Latex math="y = x^n,\quad n \in \mathbb{Z}," block={true} />
+                                                        </div>
+                                                        <p className="font-bold text-[16px] sm:text-[18px] md:text-[20px] lg:text-[24px] xl:text-[28px] leading-relaxed text-left">
+                                                            називають <span className="text-[#E91E63]">степеневою функцією із цілим показником</span>.
+                                                        </p>
+                                                    </div>
+
+                                                    {subStep >= 1 && (
+                                                        <div className="space-y-2 animate-fade-in border-t pt-4 lg:pt-6 border-slate-100">
+                                                            <p className="font-medium text-slate-700 text-[15px] sm:text-[16px] md:text-[18px] lg:text-[22px] xl:text-[26px]">
+                                                                Натуральний показник ми вже розглянули. Тепер розглянемо випадки, коли показник є <span className="font-bold text-[#E91E63]">нулем</span> або <span className="font-bold text-[#E91E63]">цілим від'ємним числом</span>:
+                                                            </p>
+                                                            <div className="text-center text-[18px] sm:text-[20px] md:text-[24px] lg:text-[30px] xl:text-[36px] text-slate-800">
+                                                                <Latex math="y = x^0 \qquad \text{і} \qquad y = x^{-n},\ n \in \mathbb{N}" block={true} />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {subStep >= 2 && (
+                                                        <div className="animate-fade-in bg-blue-50/60 border border-blue-100 rounded-lg p-4 lg:p-6 space-y-2 lg:space-y-3">
+                                                            <p className="font-medium text-blue-700 text-[15px] sm:text-[16px] md:text-[18px] lg:text-[22px] xl:text-[26px]">
+                                                                Запишемо функцію <Latex math="y = x^{-n}" /> у вигляді:
+                                                            </p>
+                                                            <div className="text-center text-[18px] sm:text-[20px] md:text-[24px] lg:text-[30px] xl:text-[36px] text-slate-800">
+                                                                <Latex math="y = \dfrac{1}{x^n}" block={true} />
+                                                            </div>
+                                                            <p className="font-bold text-blue-700 text-[14px] sm:text-[15px] md:text-[17px] lg:text-[21px] xl:text-[25px]">
+                                                                Тоді <Latex math={D_LATEX} />, а нулів функція не має.
+                                                            </p>
+                                                            <p className="font-medium text-slate-700 text-[14px] sm:text-[15px] md:text-[17px] lg:text-[21px] xl:text-[25px]">
+                                                                Дослідимо два випадки: <b className="text-[#27AE60]">n — парне</b> натуральне число і <b className="text-[#2980B9]">n — непарне</b> натуральне число.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 2. y = x^0 */}
+                                            {!viewingMenu && step === 2 && (
+                                                <div className={cardCls}>
+                                                    <div className="bg-pink-50/70 p-2.5 lg:p-4 rounded-lg border border-pink-200 text-center animate-pop shadow-xs">
+                                                        <p className="font-bold text-[#E91E63] text-[16px] sm:text-[18px] md:text-[22px] lg:text-[26px] xl:text-[32px]">
+                                                            Функція <Latex math="y = x^0" />
+                                                        </p>
+                                                    </div>
+
+                                                    <p className={`font-medium text-slate-700 mb-1 ${TXT}`}>
+                                                        Для всіх <Latex math="x \neq 0" /> маємо <Latex math="x^0 = 1" />. Графіком є <span className="font-bold text-[#E91E63]">пряма <Latex math="y = 1" /> з виколотою точкою (0; 1)</span>, адже вираз <Latex math="0^0" /> не має змісту.
+                                                    </p>
+
+                                                    <ValueTable theme="slate" xs={["-2", "-1", "0", "1", "2"]} ys={["1", "1", "\\text{—}", "1", "1"]} />
+
+                                                    <Accordion title="Властивості функції" open={v1Expanded} onToggle={() => toggleBlock('v1')}>
+                                                        <p>• <span className="text-indigo-600 font-bold">Область визначення:</span> <Latex math={D_LATEX} /></p>
+                                                        <p>• <span className="text-teal-600 font-bold">Область значень</span> — одноелементна множина <Latex math="\{1\}" /></p>
+                                                    </Accordion>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 3. Перший випадок n = 2k */}
+                                            {!viewingMenu && step === 3 && (
+                                                <div className={cardCls}>
+                                                    <div className="bg-green-50/70 p-2.5 lg:p-4 rounded-lg border border-green-200 text-center animate-pop shadow-xs space-y-1 lg:space-y-2">
+                                                        <p className="font-bold text-slate-700 text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] xl:text-[26px]">
+                                                            Перший випадок:<br /><span className="text-[#27AE60]"><Latex math="n = 2k,\ k \in \mathbb{N}" /></span>
+                                                        </p>
+                                                        <p className="font-bold text-[#27AE60] text-[16px] sm:text-[18px] md:text-[22px] lg:text-[26px] xl:text-[32px]">
+                                                            <Latex math="x^{-2k} = \dfrac{1}{x^{2k}}" />
+                                                        </p>
+                                                    </div>
+
+                                                    <p className={`font-medium text-slate-700 mb-1 ${TXT}`}>
+                                                        Вираз <Latex math="\dfrac{1}{x^{2k}}" /> набуває <span className="font-bold text-[#27AE60]">тільки додатних значень</span>, тому графік лежить у I і II чвертях. Наприклад, графік функції <Latex math="y = \dfrac{1}{x^2}" />:
+                                                    </p>
+
+                                                    <ValueTable theme="green" xs={X_LATEX} ys={X_BASES.map(b => cellLatex(b, -2))} yLabel="y = \frac{1}{x^2}" />
+
+                                                    <Accordion title="Властивості функції y = x⁻ⁿ, n — парне" open={v1Expanded} onToggle={() => toggleBlock('v1')}>
+                                                        <p>• <span className="text-indigo-600 font-bold">Область визначення:</span> <Latex math={D_LATEX} /></p>
+                                                        <p>• <span className="text-teal-600 font-bold">Область значень:</span> <Latex math="(0;\,+\infty)" /></p>
+                                                        <p>• <span className="text-rose-600 font-bold">Нулі функції:</span> немає</p>
+                                                        <p>• <span className="text-sky-600 font-bold">Проміжки знакосталості:</span> <Latex math="y > 0" /> на кожному з проміжків <Latex math="(-\infty;\,0)" /> і <Latex math="(0;\,+\infty)" /></p>
+                                                        <p>• Функція <span className="text-purple-600 font-bold">парна</span>: <Latex math="(-x)^{-2k} = \dfrac{1}{(-x)^{2k}} = \dfrac{1}{x^{2k}} = x^{-2k}" /></p>
+                                                        <p>• <span className="text-emerald-600 font-bold">Зростає</span> на проміжку <Latex math="(-\infty;\,0)" />, <span className="text-orange-600 font-bold">спадає</span> на проміжку <Latex math="(0;\,+\infty)" /></p>
+                                                    </Accordion>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 4. Інтерактив: n — парне */}
+                                            {!viewingMenu && step === 4 && (
+                                                <div className={cardCls}>
+                                                    <div className="bg-green-50/70 p-2.5 lg:p-4 rounded-lg border border-green-200 text-left animate-pop shadow-xs">
+                                                        <p className="font-bold text-[#27AE60] text-[15px] sm:text-[16px] md:text-[20px] lg:text-[24px] xl:text-[30px] leading-snug">
+                                                            Графіки функцій <Latex math="y = x^{-n}" />, де <span className="font-serif italic">n</span> — парне натуральне число
+                                                        </p>
+                                                        <p className={`${TXT} text-slate-600 mt-1 lg:mt-3 font-medium`}>Функції <Latex math="y = \dfrac{1}{x^4},\ y = \dfrac{1}{x^6}, \ldots" /> мають ті самі властивості, що й <Latex math="y = \dfrac{1}{x^2}" />.</p>
+                                                    </div>
+
+                                                    <NButtons values={[-2, -4, -6, -8]} current={evenN} onPick={setEvenN} />
+
+                                                    {evenN < -2 && <CompareTables baseN={-2} n={evenN} />}
+
+                                                    <p className={`${TXT} text-slate-600 font-medium bg-slate-50 border border-slate-200 rounded-lg p-2 lg:p-4`}>
+                                                        <i className="fa-solid fa-circle-info text-green-500 mr-1"></i> Усі графіки проходять через точки (1; 1) і (−1; 1) і наближаються до осей координат, але ніколи їх не перетинають.
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 5. Другий випадок n = 2k − 1 */}
+                                            {!viewingMenu && step === 5 && (
+                                                <div className={cardCls}>
+                                                    <div className="bg-blue-50/70 p-2.5 lg:p-4 rounded-lg border border-blue-200 text-center animate-pop shadow-xs space-y-1 lg:space-y-2">
+                                                        <p className="font-bold text-slate-700 text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] xl:text-[26px]">
+                                                            Другий випадок:<br /><span className="text-[#2980B9]"><Latex math="n = 2k - 1,\ k \in \mathbb{N}" /></span>
+                                                        </p>
+                                                        <p className="font-bold text-[#2980B9] text-[16px] sm:text-[18px] md:text-[22px] lg:text-[26px] xl:text-[32px]">
+                                                            <Latex math="x^{-n} = \dfrac{1}{x^{2k-1}}" />
+                                                        </p>
+                                                    </div>
+
+                                                    <p className={`font-medium text-slate-700 mb-1 ${TXT}`}>
+                                                        При <Latex math="x < 0" /> значення <Latex math="\dfrac{1}{x^{2k-1}} < 0" />, при <Latex math="x > 0" /> — <Latex math="\dfrac{1}{x^{2k-1}} > 0" />. Графік лежить у I і III чвертях. Окремий випадок <Latex math="n = 1" /> — гіпербола <Latex math="y = \dfrac{1}{x}" /> (8 клас). Наприклад, графік функції <Latex math="y = \dfrac{1}{x^3}" />:
+                                                    </p>
+
+                                                    <ValueTable theme="blue" xs={X_LATEX} ys={X_BASES.map(b => cellLatex(b, -3))} yLabel="y = \frac{1}{x^3}" />
+
+                                                    <Accordion title="Властивості функції y = x⁻ⁿ, n — непарне" open={v1Expanded} onToggle={() => toggleBlock('v1')}>
+                                                        <p>• <span className="text-indigo-600 font-bold">Область визначення:</span> <Latex math={D_LATEX} /></p>
+                                                        <p>• <span className="text-teal-600 font-bold">Область значень:</span> <Latex math="(-\infty;\,0) \cup (0;\,+\infty)" /></p>
+                                                        <p>• <span className="text-rose-600 font-bold">Нулі функції:</span> немає</p>
+                                                        <p>• <span className="text-sky-600 font-bold">Проміжки знакосталості:</span> <Latex math="y < 0" /> на проміжку <Latex math="(-\infty;\,0)" />, <Latex math="y > 0" /> на проміжку <Latex math="(0;\,+\infty)" /></p>
+                                                        <p>• Функція <span className="text-rose-600 font-bold">непарна</span>: <Latex math="(-x)^{-(2k-1)} = \dfrac{1}{(-x)^{2k-1}} = -\dfrac{1}{x^{2k-1}} = -x^{-(2k-1)}" /></p>
+                                                        <p>• <span className="text-orange-600 font-bold">Спадає</span> на кожному з проміжків <Latex math="(-\infty;\,0)" /> і <Latex math="(0;\,+\infty)" /></p>
+                                                    </Accordion>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 6. Інтерактив: n — непарне */}
+                                            {!viewingMenu && step === 6 && (
+                                                <div className={cardCls}>
+                                                    <div className="bg-blue-50/70 p-2.5 lg:p-4 rounded-lg border border-blue-200 text-left animate-pop shadow-xs">
+                                                        <p className="font-bold text-[#2980B9] text-[15px] sm:text-[16px] md:text-[20px] lg:text-[24px] xl:text-[30px] leading-snug">
+                                                            Графіки функцій <Latex math="y = x^{-n}" />, де <span className="font-serif italic">n</span> — непарне натуральне число
+                                                        </p>
+                                                        <p className={`${TXT} text-slate-600 mt-1 lg:mt-3 font-medium`}>Функції <Latex math="y = \dfrac{1}{x^3},\ y = \dfrac{1}{x^5}, \ldots" /> мають ті самі властивості, що й гіпербола <Latex math="y = \dfrac{1}{x}" />.</p>
+                                                    </div>
+
+                                                    <NButtons values={[-1, -3, -5, -7]} current={oddN} onPick={setOddN} />
+
+                                                    {oddN !== -1 && <CompareTables baseN={-1} n={oddN} />}
+
+                                                    <p className={`${TXT} text-slate-600 font-medium bg-slate-50 border border-slate-200 rounded-lg p-2 lg:p-4`}>
+                                                        <i className="fa-solid fa-circle-info text-blue-500 mr-1"></i> Усі графіки проходять через точки (1; 1) і (−1; −1) і симетричні відносно початку координат.
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 7. Зведена таблиця властивостей */}
+                                            {!viewingMenu && step === 7 && (
+                                                <div className="bg-white rounded-lg p-3 md:p-6 lg:p-8 xl:p-10 shadow-sm leading-normal text-slate-800 animate-fade-in space-y-3 lg:space-y-6 max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full mt-2 md:mt-6 lg:mt-8 mb-16 lg:mb-24 border border-purple-100">
+                                                    <p className="font-bold text-center text-slate-800 text-[16px] sm:text-[18px] md:text-[22px] lg:text-[28px] xl:text-[34px]">
+                                                        Властивості функції <span className="text-[#8E44AD]"><Latex math="y = x^{-n},\ n \in \mathbb{N}" /></span>
+                                                    </p>
+                                                    <div className="overflow-x-auto border border-purple-200 rounded-lg">
+                                                        <table className={`w-full text-left ${TXT}`}>
+                                                            <thead>
+                                                                <tr className="bg-purple-50 border-b border-purple-200">
+                                                                    <th className="p-2 lg:p-4 border-r border-purple-200 text-slate-700">Властивість</th>
+                                                                    <th className="p-2 lg:p-4 border-r border-purple-200 text-[#27AE60]"><span className="font-serif italic">n</span> — парне натуральне число</th>
+                                                                    <th className="p-2 lg:p-4 text-[#2980B9]"><span className="font-serif italic">n</span> — непарне натуральне число</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {[
+                                                                    ["Область визначення", <Latex math="(-\infty;\,0) \cup (0;\,+\infty)" />, <Latex math="(-\infty;\,0) \cup (0;\,+\infty)" />],
+                                                                    ["Область значень", <Latex math="(0;\,+\infty)" />, <Latex math="(-\infty;\,0) \cup (0;\,+\infty)" />],
+                                                                    ["Нулі функції", "—", "—"],
+                                                                    ["Проміжки знакосталості", <span><Latex math="y > 0" /> на кожному з проміжків <Latex math="(-\infty;\,0)" /> і <Latex math="(0;\,+\infty)" /></span>, <span><Latex math="y < 0" /> на проміжку <Latex math="(-\infty;\,0)" />, <Latex math="y > 0" /> на проміжку <Latex math="(0;\,+\infty)" /></span>],
+                                                                    ["Парність", "Парна", "Непарна"],
+                                                                    ["Зростання / спадання", <span>Зростає на проміжку <Latex math="(-\infty;\,0)" />, спадає на проміжку <Latex math="(0;\,+\infty)" /></span>, <span>Спадає на кожному з проміжків <Latex math="(-\infty;\,0)" /> і <Latex math="(0;\,+\infty)" /></span>],
+                                                                ].map((row, i) => subStep > i && (
+                                                                    <tr key={i} className="border-b border-purple-100 last:border-b-0 animate-fade-in">
+                                                                        <td className="p-2 lg:p-4 border-r border-purple-100 font-bold text-slate-700 bg-slate-50/60">{row[0]}</td>
+                                                                        <td className="p-2 lg:p-4 border-r border-purple-100 font-medium">{row[1]}</td>
+                                                                        <td className="p-2 lg:p-4 font-medium">{row[2]}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* КРОК 8. Порівняння */}
+                                            {!viewingMenu && step === 8 && (
+                                                <div className="bg-white rounded-lg p-3 md:p-4 lg:p-6 xl:p-8 shadow-xs leading-normal text-slate-800 animate-fade-in space-y-3 lg:space-y-5 xl:space-y-7">
+                                                    <div className="bg-[#fcf8ec] p-3 lg:p-5 rounded-lg border border-amber-200 text-left animate-pop shadow-xs">
+                                                        <p className="font-bold text-slate-800 text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] xl:text-[28px] leading-snug text-center mb-2 lg:mb-4">
+                                                            Порівняння графіків <span className="text-[#27AE60]"><Latex math="y=x^{-2}" /></span> та <span className="text-[#8E44AD]"><Latex math="y=x^{-4}" /></span>
+                                                        </p>
+                                                        <div className={`${TXT} font-medium text-slate-700 bg-white p-2 lg:p-3 xl:p-4 rounded border border-amber-100 mt-2 lg:mt-4`}>
+                                                            Досліджуйте: рухайте <strong>повзунок</strong> або точку на графіку вздовж осі <Latex math="x" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="px-2 py-3">
+                                                        <input type="range" min="-2" max="2" step="0.01" value={dragXMath}
+                                                            onChange={(e) => setDragXMath(clampX(parseFloat(e.target.value)))}
+                                                            className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#8E44AD] focus:outline-none" />
+                                                        <div className="flex justify-between text-xs lg:text-sm text-slate-500 mt-2 font-bold">
+                                                            <span>−2</span>
+                                                            <span className="text-rose-500"><Latex math="x \neq 0" /></span>
+                                                            <span>2</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-3 lg:p-5 xl:p-6 bg-slate-50 border border-slate-200 rounded-lg animate-fade-in space-y-2 lg:space-y-4">
+                                                        <div className={`p-2 lg:p-4 rounded-lg transition-colors ${Math.abs(dragXMath) < 0.95 ? 'bg-amber-100 border border-amber-300' : 'border border-transparent'}`}>
+                                                            <span className={`font-bold ${TXT}`}>При <Latex math="-1 < x < 0" /> або <Latex math="0 < x < 1" />:</span><br />
+                                                            <span className={`${TXT} font-medium`}><span className="text-[#8E44AD] font-bold">фіолетовий</span> графік вище <span className="text-[#27AE60] font-bold">зеленого</span> (<Latex math="x^{-4} > x^{-2}" />).</span>
+                                                        </div>
+
+                                                        <div className={`p-2 lg:p-4 rounded-lg transition-colors ${Math.abs(dragXMath) > 1.05 ? 'bg-amber-100 border border-amber-300' : 'border border-transparent'}`}>
+                                                            <span className={`font-bold ${TXT}`}>При <Latex math="x < -1" /> або <Latex math="x > 1" />:</span><br />
+                                                            <span className={`${TXT} font-medium`}><span className="text-[#8E44AD] font-bold">фіолетовий</span> графік нижче <span className="text-[#27AE60] font-bold">зеленого</span> (<Latex math="x^{-4} < x^{-2}" />).</span>
+                                                        </div>
+
+                                                        <div className={`p-2 lg:p-4 rounded-lg transition-colors ${Math.abs(Math.abs(dragXMath) - 1) <= 0.05 ? 'bg-amber-100 border border-amber-300' : 'border border-transparent'}`}>
+                                                            <span className={`font-bold ${TXT}`}>У точках <Latex math="x = -1" /> та <Latex math="x = 1" />:</span><br />
+                                                            <span className={`${TXT} font-medium`}>Графіки перетинаються (<Latex math="(-1)^{-4} = (-1)^{-2} = 1,\ 1^{-4} = 1^{-2} = 1" />).</span>
+                                                        </div>
+
+                                                        <p className={`${TXT} text-slate-500 font-medium px-2`}>
+                                                            <i className="fa-solid fa-circle-info text-purple-400 mr-1"></i> Порівняйте з натуральними показниками: там усе було <b>навпаки</b> (<Latex math="x^4 < x^2" /> при <Latex math="0 < |x| < 1" />).
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                        </div>
+                                    </div>
+
+                                    {/* Navigation buttons */}
+                                    <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 lg:bottom-6 lg:right-6 xl:bottom-8 xl:right-8 pointer-events-auto z-30 flex gap-2 lg:gap-4 items-center" id="nav-buttons">
+                                        {!viewingMenu && (
+                                            <button onClick={() => setViewingMenu(true)}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 border border-purple-200 bg-[#f4ebff] text-purple-700 hover:bg-purple-100/80 text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer flex items-center gap-1.5 lg:gap-3">
+                                                <i className="fa-solid fa-list-ul"></i> Зміст
+                                            </button>
+                                        )}
+                                        {viewingMenu ? (
+                                            step > 0 && (
+                                                <button onClick={() => setViewingMenu(false)}
+                                                    className="px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 animate-fade-in text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer flex items-center gap-1.5 lg:gap-3">
+                                                    Повернутись ➔
+                                                </button>
+                                            )
+                                        ) : step === 8 ? (
+                                            <>
+                                                <button onClick={prevStep} className="px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 animate-fade-in text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer">
+                                                    ← Назад
+                                                </button>
+                                                <button onClick={restartLesson} className="px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff] animate-fade-in text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer">
+                                                    На початок
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {step > 1 && (
+                                                    <button onClick={prevStep} className="px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer animate-fade-in text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl">
+                                                        ← Назад
+                                                    </button>
+                                                )}
+                                                {renderNextButton()}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* RIGHT MATH PANEL */}
+                                {!viewingMenu && step !== 1 && step !== 7 && (
+                                    <div ref={svgContainerRef} className="w-full h-[45%] md:h-full md:w-[60%] bg-panelRight shadow-inner relative z-0 overflow-hidden order-1 md:order-2">
+                                        {renderRightPanel()}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* Підпис про авторство */}
+                    <div className="w-full shrink-0 z-[2000] select-none text-center py-1 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-500 tracking-wider">
+                        Автор розробки <b>Ковтун Тетяна</b>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
