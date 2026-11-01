@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Взаємно обернені числа. Ділення дробів</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script>
+  /* Колір 6 класу: персиковий / помаранчевий. Усі кольори класу задано тут один раз. */
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          panelLeft: '#FFF1E3',
+          panelRight: '#FFF9F1',
+          brand: '#C2410C',
+          brandDark: '#9A3412',
+          brandLight: '#FFEDD5',
+          brandMid: '#FED7AA',
+          brandLine: '#FDBA74',
+          accent: '#EA580C',
+        },
+        fontFamily: {
+          ui: ['Nunito', 'system-ui', 'Segoe UI', 'Arial', 'sans-serif'],
+          math: ['Lora', 'Georgia', 'Times New Roman', 'serif'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { background: #FFF9F1; color: #1e293b; font-family: 'Nunito', system-ui, 'Segoe UI', Arial, sans-serif; overflow: hidden; }
+  #root { height: 100%; width: 100%; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #EA580C; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .fade, .pop { animation: none; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade { animation: fadeInUp .45s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(.85); } 100% { opacity: 1; transform: scale(1); } }
+  .pop { animation: popIn .4s cubic-bezier(.175,.885,.32,1.1) both; }
+  .katex { font-size: 1.12em; }
+  input.fr::-webkit-outer-spin-button, input.fr::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+</style>
+</head>
+<body>
+<div id="root" class="h-full w-full"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+const Latex = ({ math, block = false }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      try { window.katex.render(math, ref.current, { displayMode: block, throwOnError: false, macros: { '\\inv': '\\mathrel{\\textcolor{EA580C}{\\boldsymbol{\\to}}}', '\\dv': '\\mathbin{\\textcolor{C2410C}{\\boldsymbol{:}}}', '\\ml': '\\mathbin{\\textcolor{C2410C}{\\boldsymbol{\\cdot}}}' } }); } catch (e) {}
+    }
+  }, [math, block]);
+  return <span ref={ref} />;
+};
+
+/* ============ Поле для дробу: чисельник / знаменник ============ */
+const FracInput = ({ value = {}, onChange, state }) => {
+  const border = state === 'ok' ? 'border-green-500 bg-green-50' : state === 'bad' ? 'border-red-400 bg-red-50' : 'border-brandLine bg-white';
+  const cls = `fr w-14 sm:w-16 lg:w-20 h-11 lg:h-14 text-center text-xl lg:text-3xl font-bold rounded-lg border-2 ${border} focus:outline-none focus:border-accent`;
+  const set = (k, v) => onChange({ ...value, [k]: v.replace(/[^0-9]/g, '').slice(0, 4) });
+  return (
+    <span className="inline-flex flex-col items-center gap-1 align-middle">
+      <input className={cls} inputMode="numeric" value={value.n || ''} onChange={e => set('n', e.target.value)} />
+      <span className="block w-16 sm:w-20 lg:w-24 h-1 bg-slate-700 rounded" />
+      <input className={cls} inputMode="numeric" value={value.d || ''} onChange={e => set('d', e.target.value)} />
+    </span>
+  );
+};
+
+// правильність дробу: n/d == an/ad; порожній знаменник = 1
+const fracOk = (v, [an, ad]) => {
+  if (!v || !v.n) return false;
+  const n = +v.n, d = v.d ? +v.d : 1;
+  if (!d) return false;
+  return n * ad === an * d;
+};
+
+const Btn = ({ children, onClick, kind = 'main', disabled, className = '' }) => {
+  const styles = {
+    main: 'bg-brand hover:bg-brandDark text-white border-brand',
+    light: 'bg-brandLight hover:bg-brandMid text-brand border-brandLine',
+    grey: 'bg-white hover:bg-slate-50 text-slate-600 border-slate-300',
+  };
+  return (
+    <button disabled={disabled} onClick={onClick}
+      className={`min-h-[40px] px-4 py-1.5 lg:px-6 lg:py-2.5 rounded-full border-2 font-bold text-base lg:text-xl whitespace-nowrap active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${styles[kind]} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+const Rule = ({ children }) => (
+  <div className="pop bg-brandLight border-l-8 border-accent rounded-xl px-5 py-4 lg:px-8 lg:py-6 text-lg sm:text-xl lg:text-3xl font-bold leading-snug">
+    {children}
+  </div>
+);
+
+const Title = ({ children }) => <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-brand mb-6 lg:mb-10 text-center">{children}</h2>;
+
+/* ============ Міні-перевірка «Спробуй сам» ============ */
+// mid — проміжний крок (перевести в неправильний / звичайний дріб)
+const TryIt = ({ task, ans, help, mid, onDone }) => {
+  const [v, setV] = useState({});
+  const [m, setM] = useState({});
+  const [st, setSt] = useState(null);
+  const [mst, setMst] = useState(null);
+  const check = () => {
+    const mOk = mid ? fracOk(m, mid.ans) : true;
+    const ok = fracOk(v, ans);
+    if (mid) setMst(mOk ? 'ok' : 'bad');
+    setSt(ok ? 'ok' : 'bad');
+    if (ok && mOk && onDone) onDone();
+  };
+  const allOk = st === 'ok' && (!mid || mst === 'ok');
+  const wrong = st === 'bad' || mst === 'bad';
+  const msg = mid && mst === 'bad' ? mid.help : help;
+  const Lbl = ({ children }) => <span className="block text-center text-sm lg:text-lg text-slate-500 font-medium mt-2 leading-tight">{children}</span>;
+  return (
+    <div className="fade mt-8 lg:mt-12 border-2 border-dashed border-brandLine rounded-2xl p-4 lg:p-8">
+      <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-4"><i className="fa-solid fa-pen text-accent mr-2"></i>Спробуй сам</p>
+      <div className="flex flex-wrap items-center justify-center gap-4 lg:gap-6 text-3xl lg:text-5xl">
+        <Latex math={task} />
+        {mid && <>
+          <span>=</span>
+          <span className="inline-flex flex-col items-center">
+            <FracInput value={m} onChange={x => { setM(x); setMst(null); setSt(null); }} state={mst} />
+            <Lbl>{mid.label}</Lbl>
+          </span>
+        </>}
+        <i className="fa-solid fa-arrow-right text-accent text-2xl lg:text-4xl"></i>
+        <span className="inline-flex flex-col items-center">
+          <FracInput value={v} onChange={x => { setV(x); setSt(null); setMst(null); }} state={st} />
+          {mid && <Lbl>обернене число</Lbl>}
+        </span>
+        <Btn onClick={check}>Перевірити</Btn>
+      </div>
+      {allOk && <p className="pop mt-4 text-center text-xl lg:text-3xl font-bold text-green-600">✓ Правильно!</p>}
+      {wrong && <p className="pop mt-4 text-center text-lg lg:text-2xl text-red-500">Ще раз! <span className="text-slate-600">{msg}</span></p>}
+    </div>
+  );
+};
+
+/* ============ КРОКИ ПОЯСНЕННЯ ============ */
+
+// 1. Спостерігаємо
+const Step1 = ({ setReady }) => {
+  const rows = [
+    ['\\frac{2}{5}\\cdot\\frac{5}{2}', '\\frac{10}{10}=1'],
+    ['\\frac{3}{4}\\cdot\\frac{4}{3}', '\\frac{12}{12}=1'],
+    ['7\\cdot\\frac{1}{7}', '\\frac{7}{7}=1'],
+  ];
+  const [open, setOpen] = useState([false, false, false]);
+  const [answer, setAnswer] = useState(false);
+  const all = open.every(Boolean);
+  useEffect(() => setReady(all), [all]);
+  return (
+    <div>
+      <Title>Обчисли добутки</Title>
+      <div className="space-y-4 lg:space-y-6 max-w-2xl mx-auto">
+        {rows.map(([a, b], i) => (
+          <div key={i} className="flex items-center justify-center gap-4 text-3xl lg:text-5xl">
+            <Latex math={a + '='} />
+            {open[i]
+              ? <span className="pop text-brand font-bold"><Latex math={b} /></span>
+              : <Btn kind="light" onClick={() => setOpen(o => o.map((x, j) => j === i ? true : x))}>?</Btn>}
+          </div>
+        ))}
+      </div>
+      {all && (
+        <div className="fade mt-10 lg:mt-14 max-w-3xl mx-auto text-center">
+          {!answer
+            ? <Btn kind="light" onClick={() => setAnswer(true)}>Що спільного?</Btn>
+            : <Rule>Кожен добуток дорівнює <span className="text-brand">1</span>.</Rule>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 2. Означення
+const Step2 = ({ setReady }) => {
+  const [shown, setShown] = useState(false);
+  const [flip, setFlip] = useState(false);
+  useEffect(() => setReady(flip), [flip]);
+  const press = () => { if (shown) return; setShown(true); setTimeout(() => setFlip(true), 700); };
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Взаємно обернені числа</Title>
+      <Rule>Два числа, добуток яких дорівнює <span className="text-brand">1</span>, називають <span className="text-brand">взаємно оберненими</span>.</Rule>
+
+      <div className="mt-10 lg:mt-14 flex flex-col items-center gap-6">
+        <p className="text-lg lg:text-2xl text-slate-600">Як отримати обернене число?</p>
+        <div className="flex items-center gap-6 lg:gap-10">
+          <div className="text-5xl lg:text-7xl"><Latex math="\frac{2}{3}" /></div>
+          <button onClick={press} disabled={shown} aria-label="Показати обернене число"
+            className={`w-16 h-16 lg:w-24 lg:h-24 rounded-full flex items-center justify-center transition-all ${shown ? 'bg-transparent' : 'bg-accent hover:bg-brand shadow-md cursor-pointer active:scale-95 animate-pulse'}`}>
+            <i className={`fa-solid fa-arrow-right text-3xl lg:text-5xl ${shown ? 'text-accent' : 'text-white'}`}></i>
+          </button>
+          <div className="relative w-20 h-36 lg:w-28 lg:h-48">
+            {shown && <div className="pop absolute inset-0">
+              <div className="absolute left-1 right-1 top-1/2 h-1.5 -translate-y-1/2 bg-slate-700 rounded"></div>
+              <div className="absolute inset-x-0 text-center text-5xl lg:text-7xl font-bold text-accent transition-all duration-700" style={{ top: flip ? '55%' : '0%' }}>2</div>
+              <div className="absolute inset-x-0 text-center text-5xl lg:text-7xl font-bold text-sky-600 transition-all duration-700" style={{ top: flip ? '0%' : '55%' }}>3</div>
+            </div>}
+          </div>
+        </div>
+        {flip && (
+          <div className="fade text-center space-y-3" style={{ animationDelay: '.8s' }}>
+            <p className="text-xl lg:text-3xl font-bold">Чисельник і знаменник помінялися місцями.</p>
+            <p className="text-xl lg:text-3xl">Тому добуток таких чисел дорівнює 1:</p>
+            <p className="text-2xl lg:text-4xl"><Latex math="\frac{2}{3}\cdot\frac{3}{2}=1" /></p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 3. Дріб і натуральне число
+const Step3 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Звичайний дріб і натуральне число</Title>
+      <div className="grid sm:grid-cols-2 gap-4 lg:gap-8">
+        <div className="fade rounded-2xl bg-brandLight p-5 lg:p-8 text-center">
+          <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-3">Дріб — перевертаємо</p>
+          <div className="text-4xl lg:text-6xl"><Latex math="\frac{5}{8}\inv\frac{8}{5}" /></div>
+        </div>
+        <div className="fade rounded-2xl bg-sky-50 p-5 lg:p-8 text-center" style={{ animationDelay: '.3s' }}>
+          <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-3">Число — пишемо дробом</p>
+          <div className="text-4xl lg:text-5xl whitespace-nowrap"><Latex math="7=\frac{7}{1}\inv\frac{1}{7}" /></div>
+        </div>
+      </div>
+      <TryIt task="\frac{4}{9}" ans={[9, 4]} help="Поміняй місцями 4 і 9." onDone={() => setDone(true)} />
+    </div>
+  );
+};
+
+// 4. Мішане число
+const Step4 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Мішане число</Title>
+      <div className="space-y-4 lg:space-y-6">
+        <div className="fade rounded-2xl border-2 border-brandLine bg-brandLight p-4 lg:p-6 flex flex-col sm:flex-row sm:items-center gap-3 lg:gap-6">
+          <span className="w-12 h-12 lg:w-16 lg:h-16 shrink-0 rounded-full bg-brand text-white text-2xl lg:text-4xl font-extrabold flex items-center justify-center">1</span>
+          <p className="flex-1 text-xl lg:text-3xl font-bold leading-snug">Важливо записати мішане число у вигляді <span className="text-brand">неправильного дробу</span></p>
+          <span className="text-4xl lg:text-6xl whitespace-nowrap"><Latex math="2\frac{1}{3}=\frac{7}{3}" /></span>
+        </div>
+        <div className="fade rounded-2xl border-2 border-brandLine bg-brandLight p-4 lg:p-6 flex flex-col sm:flex-row sm:items-center gap-3 lg:gap-6" style={{ animationDelay: '.5s' }}>
+          <span className="w-12 h-12 lg:w-16 lg:h-16 shrink-0 rounded-full bg-brand text-white text-2xl lg:text-4xl font-extrabold flex items-center justify-center">2</span>
+          <p className="flex-1 text-xl lg:text-3xl font-bold leading-snug">Перевернути <span className="text-brand">неправильний дріб</span></p>
+          <span className="text-4xl lg:text-6xl whitespace-nowrap"><Latex math="\frac{7}{3}\inv\frac{3}{7}" /></span>
+        </div>
+      </div>
+      <TryIt task="1\frac{2}{5}" ans={[5, 7]} help="Тепер переверни неправильний дріб."
+        mid={{ ans: [7, 5], label: 'неправильний дріб', help: '1 2/5 = (1·5 + 2)/5' }} onDone={() => setDone(true)} />
+    </div>
+  );
+};
+
+// 5. Десятковий дріб
+const Step5 = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Десятковий дріб</Title>
+      <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-6 text-4xl lg:text-6xl">
+        <span className="fade"><Latex math="0{,}3" /></span>
+        <span className="fade text-2xl lg:text-3xl text-slate-400" style={{ animationDelay: '.3s' }}>①</span>
+        <span className="fade" style={{ animationDelay: '.3s' }}><Latex math="=\frac{3}{10}" /></span>
+        <span className="fade text-2xl lg:text-3xl text-slate-400" style={{ animationDelay: '.6s' }}>②</span>
+        <span className="fade text-brand" style={{ animationDelay: '.6s' }}><Latex math="\inv\frac{10}{3}" /></span>
+      </div>
+      <div className="mt-6 text-lg lg:text-2xl space-y-1 text-center text-slate-600">
+        <p>① записуємо звичайним дробом</p>
+        <p>② перевертаємо</p>
+      </div>
+      <TryIt task="0{,}9" ans={[10, 9]} help="Тепер переверни звичайний дріб."
+        mid={{ ans: [9, 10], label: 'звичайний дріб', help: '0,9 — це дев’ять десятих.' }} onDone={() => setDone(true)} />
+    </div>
+  );
+};
+
+// 6. Числа 1 і 0
+const Step6 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Особливі числа: 1 і 0</Title>
+      <div className="grid sm:grid-cols-2 gap-4 lg:gap-8">
+        <div className="pop rounded-2xl bg-brandLight border-2 border-brandMid p-6 lg:p-10 text-center">
+          <div className="text-4xl lg:text-6xl mb-4"><Latex math="1\cdot 1=1" /></div>
+          <p className="text-lg lg:text-2xl font-bold">Число 1 обернене саме до себе</p>
+        </div>
+        <div className="pop rounded-2xl bg-brandLight border-2 border-brandMid p-6 lg:p-10 text-center" style={{ animationDelay: '.4s' }}>
+          <div className="text-4xl lg:text-6xl mb-4"><Latex math="0\cdot\,?=1" /></div>
+          <p className="text-lg lg:text-2xl font-bold">У числа 0 оберненого <span className="text-brand">немає</span></p>
+          <p className="text-base lg:text-xl text-slate-500 mt-2">бо 0, помножене на будь-яке число, дає 0</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 7. Запам'ятай
+const Step7 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  const rows = [
+    ['Звичайний дріб', '\\frac{a}{b}\\inv\\frac{b}{a}'],
+    ['Натуральне число', 'n\\inv\\frac{1}{n}'],
+    ['Мішане число', '2\\frac{1}{3}=\\frac{7}{3}\\inv\\frac{3}{7}'],
+    ['Десятковий дріб', '0{,}3=\\frac{3}{10}\\inv\\frac{10}{3}'],
+  ];
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Запам'ятай</Title>
+      <Rule>Взаємно обернені числа: їхній добуток дорівнює 1.</Rule>
+      <div className="mt-6 lg:mt-10 rounded-2xl border-2 border-brandMid overflow-hidden">
+        {rows.map(([a, b], i) => (
+          <div key={i} className={`fade flex items-center justify-between gap-4 px-4 py-3 lg:px-8 lg:py-5 ${i % 2 ? 'bg-white' : 'bg-brandLight'}`} style={{ animationDelay: `${i * .15}s` }}>
+            <span className="text-lg lg:text-2xl font-bold text-slate-600">{a}</span>
+            <span className="text-2xl lg:text-4xl"><Latex math={b} /></span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-lg lg:text-2xl text-slate-600">Число 1 обернене саме до себе. У числа 0 оберненого немає.</p>
+    </div>
+  );
+};
+
+/* ============ ДІЛЕННЯ ДРОБІВ ============ */
+
+// Кольори логіки ділення: знаки — зелені, дільник і обернене до нього — сині
+const G = ({ children }) => <b className="text-brand">{children}</b>;
+const B = ({ children }) => <b className="text-sky-700">{children}</b>;
+const FLIP = <>Знак <G>:</G> замінюємо на <G>·</G>, <B>дільник</B> перевертаємо</>;
+
+// Розв'язання прикладу по кроках
+const Worked = ({ examples }) => {
+  const [ex, setEx] = useState(0);
+  const [shown, setShown] = useState(1);
+  const e = examples[ex];
+  const done = shown >= e.lines.length;
+  return (
+    <div className="rounded-2xl border-2 border-brandMid p-4 lg:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 lg:mb-6">
+        <p className="text-lg lg:text-2xl font-bold text-slate-600">Приклад {ex + 1}</p>
+        <div className="flex gap-2">
+          {examples.map((_, i) => (
+            <button key={i} onClick={() => { setEx(i); setShown(1); }}
+              className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 font-bold lg:text-xl cursor-pointer ${i === ex ? 'bg-brand border-accent text-white' : 'bg-white border-brandMid text-brand hover:bg-brandLight'}`}>{i + 1}</button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-5 lg:space-y-7">
+        {e.lines.slice(0, shown).map(([lbl, tex], i) => (
+          <div key={ex + '-' + i} className="fade">
+            <p className="text-lg lg:text-2xl text-slate-600 mb-2"><span className="font-bold text-brand mr-2">{i + 1})</span>{lbl}</p>
+            <div className="text-3xl lg:text-5xl leading-relaxed"><Latex math={tex} /></div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 lg:mt-8 flex flex-wrap gap-3">
+        {!done && <Btn kind="light" onClick={() => setShown(s => s + 1)}>Наступний крок ↓</Btn>}
+        {done && ex < examples.length - 1 && <Btn kind="light" onClick={() => { setEx(ex + 1); setShown(1); }}>Ще приклад →</Btn>}
+      </div>
+    </div>
+  );
+};
+
+// «Спробуй сам» з кількома віконцями в одному записі
+const TryChain = ({ parts, onDone }) => {
+  const inputs = parts.filter(p => p.ans);
+  const [vals, setVals] = useState({});
+  const [sts, setSts] = useState({});
+  const check = () => {
+    const r = {}; let all = true;
+    parts.forEach((p, i) => { if (p.ans) { const ok = fracOk(vals[i], p.ans); r[i] = ok ? 'ok' : 'bad'; if (!ok) all = false; } });
+    setSts(r); if (all && onDone) onDone();
+  };
+  const firstBad = parts.findIndex((p, i) => sts[i] === 'bad');
+  const allOk = inputs.length > 0 && parts.every((p, i) => !p.ans || sts[i] === 'ok');
+  return (
+    <div className="fade border-2 border-dashed border-brandLine rounded-2xl p-4 lg:p-8">
+      <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-4"><i className="fa-solid fa-pen text-accent mr-2"></i>Спробуй сам</p>
+      <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-5 text-3xl lg:text-5xl">
+        {parts.map((p, i) => p.ans
+          ? <span key={i} className="inline-flex flex-col items-center">
+              <FracInput value={vals[i]} onChange={x => { setVals(v => ({ ...v, [i]: x })); setSts({}); }} state={sts[i]} />
+              <span className={`block text-center text-sm lg:text-lg font-medium mt-2 leading-tight max-w-[8rem] ${p.blue ? 'text-sky-700 font-bold' : 'text-slate-500'}`}>{p.label}</span>
+            </span>
+          : <span key={i} className="whitespace-nowrap"><Latex math={p.tex} /></span>)}
+        <Btn onClick={check}>Перевірити</Btn>
+      </div>
+      {allOk && <p className="pop mt-4 text-center text-xl lg:text-3xl font-bold text-green-600">✓ Правильно!</p>}
+      {firstBad >= 0 && <p className="pop mt-4 text-center text-lg lg:text-2xl text-red-500">Ще раз! <span className="text-slate-600">{parts[firstBad].help}</span></p>}
+    </div>
+  );
+};
+
+// 9. Ділення = множення на обернене
+const Div1 = ({ setReady }) => {
+  const rows = [['8', '2', '4'], ['15', '3', '5'], ['20', '4', '5']];
+  const [open, setOpen] = useState([false, false, false]);
+  const [answer, setAnswer] = useState(false);
+  const all = open.every(Boolean);
+  useEffect(() => setReady(answer), [answer]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Ділення дробів</Title>
+      <p className="text-center text-lg lg:text-2xl text-slate-600 mb-6 lg:mb-10">Порівняй ділення і множення</p>
+      <div className="space-y-4 lg:space-y-6">
+        {rows.map(([a, b, r], i) => (
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-8 items-center text-3xl lg:text-5xl">
+            <div className="text-center sm:text-right"><Latex math={`${a}\\dv\\textcolor{#0369A1}{${b}}=${r}`} /></div>
+            <div className="flex items-center justify-center sm:justify-start gap-3">
+              <Latex math={`${a}\\ml\\textcolor{#0369A1}{\\frac{1}{${b}}}=`} />
+              {open[i]
+                ? <span className="pop text-brand font-bold"><Latex math={r} /></span>
+                : <Btn kind="light" onClick={() => setOpen(o => o.map((x, j) => j === i ? true : x))}>?</Btn>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {all && (
+        <div className="fade mt-10 lg:mt-14 text-center">
+          {!answer
+            ? <Btn kind="light" onClick={() => setAnswer(true)}>Що помітили?</Btn>
+            : <Rule><G>Ділити</G> на число — те саме, що <G>множити</G> на число, <B>обернене</B> до нього.</Rule>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 10. Правило ділення дробів
+const Div2 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Правило ділення дробів</Title>
+      <Rule>Щоб <G>поділити</G> один дріб на інший, треба ділене <G>помножити</G> на число, <B>обернене до дільника</B>.</Rule>
+      <div className="mt-8 lg:mt-12 text-center text-5xl lg:text-7xl">
+        <Latex math="\frac{a}{b}\dv\textcolor{#0369A1}{\frac{c}{d}}=\frac{a}{b}\ml\textcolor{#0369A1}{\frac{d}{c}}" />
+      </div>
+      <div className="mt-8 lg:mt-12 grid sm:grid-cols-2 gap-3 lg:gap-6 text-lg lg:text-2xl">
+        <div className="rounded-xl bg-brandLight border-2 border-brandMid p-3 lg:p-5 text-center">Знак <G>:</G> змінюємо на <G>·</G></div>
+        <div className="rounded-xl bg-sky-50 border-2 border-sky-200 p-3 lg:p-5 text-center"><B>Дільник</B> перевертаємо</div>
+      </div>
+    </div>
+  );
+};
+
+// 11. Приклади ділення дробів
+const Div2ex = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Ділення дробів: приклади</Title>
+      <Worked examples={[
+        { lines: [
+          [FLIP, '\\frac{3}{7}\\dv\\textcolor{#0369A1}{\\frac{5}{6}}=\\frac{3}{7}\\ml\\textcolor{#0369A1}{\\frac{6}{5}}'],
+          ['Множимо дроби', '=\\frac{3\\cdot 6}{7\\cdot 5}=\\frac{18}{35}'],
+        ] },
+        { lines: [
+          [FLIP, '\\frac{6}{35}\\dv\\textcolor{#0369A1}{\\frac{2}{5}}=\\frac{6}{35}\\ml\\textcolor{#0369A1}{\\frac{5}{2}}'],
+          ['Множимо і скорочуємо', '=\\frac{6\\cdot 5}{35\\cdot 2}=\\frac{3}{7}'],
+        ] },
+        { lines: [
+          [FLIP, '\\frac{9}{25}\\dv\\textcolor{#0369A1}{\\frac{27}{50}}=\\frac{9}{25}\\ml\\textcolor{#0369A1}{\\frac{50}{27}}'],
+          ['Множимо і скорочуємо', '=\\frac{9\\cdot 50}{25\\cdot 27}=\\frac{2}{3}'],
+        ] },
+      ]} />
+    </div>
+  );
+};
+
+// 12. Спробуй сам: ділення дробів
+const Div2try = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Ділення дробів: спробуй сам</Title>
+      <p className="text-center text-lg lg:text-2xl text-slate-600 mb-6">{FLIP}, потім множимо.</p>
+      <TryChain onDone={() => setDone(true)} parts={[
+        { tex: '\\frac{2}{3}\\dv\\textcolor{#0369A1}{\\frac{1}{6}}=\\frac{2}{3}\\ml' },
+        { ans: [6, 1], label: 'обернене до дільника', blue: true, help: 'Переверни дільник 1/6.' },
+        { tex: '=' },
+        { ans: [4, 1], label: 'відповідь', help: 'Помнож дроби і скороти.' },
+      ]} />
+    </div>
+  );
+};
+
+// 13. Натуральні та мішані числа
+const Div3 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Ділення з натуральними і мішаними числами</Title>
+      <div className="grid sm:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-10">
+        <div className="fade rounded-2xl bg-brandLight p-4 lg:p-6 text-center">
+          <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-2">Натуральне число</p>
+          <div className="text-3xl lg:text-5xl"><Latex math="10=\frac{10}{1}" /></div>
+        </div>
+        <div className="fade rounded-2xl bg-brandLight p-4 lg:p-6 text-center" style={{ animationDelay: '.3s' }}>
+          <p className="text-lg lg:text-2xl font-bold text-slate-600 mb-2">Мішане число</p>
+          <div className="text-3xl lg:text-5xl"><Latex math="1\frac{7}{8}=\frac{15}{8}" /></div>
+        </div>
+      </div>
+      <Worked examples={[
+        { lines: [
+          ['Записуємо число дробом', '10\\dv\\textcolor{#0369A1}{\\frac{6}{7}}=\\frac{10}{1}\\dv\\textcolor{#0369A1}{\\frac{6}{7}}'],
+          [FLIP, '=\\frac{10}{1}\\ml\\textcolor{#0369A1}{\\frac{7}{6}}'],
+          ['Множимо і скорочуємо', '=\\frac{10\\cdot 7}{1\\cdot 6}=\\frac{35}{3}=11\\frac{2}{3}'],
+        ] },
+        { lines: [
+          ['Мішані числа записуємо неправильними дробами', '1\\frac{7}{8}\\dv\\textcolor{#0369A1}{1\\frac{9}{16}}=\\frac{15}{8}\\dv\\textcolor{#0369A1}{\\frac{25}{16}}'],
+          [FLIP, '=\\frac{15}{8}\\ml\\textcolor{#0369A1}{\\frac{16}{25}}'],
+          ['Множимо і скорочуємо', '=\\frac{15\\cdot 16}{8\\cdot 25}=\\frac{6}{5}=1\\frac{1}{5}'],
+        ] },
+        { lines: [
+          ['Записуємо число дробом', '\\frac{3}{4}\\dv\\textcolor{#0369A1}{2}=\\frac{3}{4}\\dv\\textcolor{#0369A1}{\\frac{2}{1}}'],
+          [FLIP, '=\\frac{3}{4}\\ml\\textcolor{#0369A1}{\\frac{1}{2}}'],
+          ['Множимо', '=\\frac{3}{8}'],
+        ] },
+      ]} />
+    </div>
+  );
+};
+
+// 14. Спробуй сам: мішані числа
+const Div3try = ({ setReady }) => {
+  const [done, setDone] = useState(false);
+  useEffect(() => setReady(done), [done]);
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Мішані числа: спробуй сам</Title>
+      <p className="text-center text-lg lg:text-2xl text-slate-600 mb-6">Мішане число — неправильним дробом. {FLIP}.</p>
+      <TryChain onDone={() => setDone(true)} parts={[
+        { tex: '1\\frac{1}{2}\\dv\\textcolor{#0369A1}{\\frac{3}{4}}=' },
+        { ans: [3, 2], label: 'неправильний дріб', help: '1 1/2 = (1·2 + 1)/2' },
+        { tex: '\\ml' },
+        { ans: [4, 3], label: 'обернене до дільника', blue: true, help: 'Переверни дільник 3/4.' },
+        { tex: '=' },
+        { ans: [2, 1], label: 'відповідь', help: 'Помнож дроби і скороти.' },
+      ]} />
+    </div>
+  );
+};
+
+// 15. Запам'ятай: ділення
+const Div4 = ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  const rows = [
+    ['Ділення дробів', '\\frac{a}{b}\\dv\\textcolor{#0369A1}{\\frac{c}{d}}=\\frac{a}{b}\\ml\\textcolor{#0369A1}{\\frac{d}{c}}'],
+    ['1 поділити на дріб', '1\\dv\\textcolor{#0369A1}{\\frac{a}{b}}=\\textcolor{#0369A1}{\\frac{b}{a}}'],
+    ['0 поділити на дріб', '0\\dv\\frac{a}{b}=0'],
+  ];
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Title>Запам'ятай</Title>
+      <Rule>Ділене множимо на число, обернене до дільника.</Rule>
+      <div className="mt-6 lg:mt-10 rounded-2xl border-2 border-brandMid overflow-hidden">
+        {rows.map(([a, b], i) => (
+          <div key={i} className={`fade flex items-center justify-between gap-4 px-4 py-3 lg:px-8 lg:py-5 ${i % 2 ? 'bg-white' : 'bg-brandLight'}`} style={{ animationDelay: `${i * .15}s` }}>
+            <span className="text-lg lg:text-2xl font-bold text-slate-600">{a}</span>
+            <span className="text-2xl lg:text-4xl"><Latex math={b} /></span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-xl lg:text-3xl font-bold text-brand">На нуль ділити не можна.</p>
+    </div>
+  );
+};
+
+/* ============ Випадаючий список із формулами ============ */
+const Dropdown = ({ value, options, onChange, state }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('pointerdown', h);
+    return () => document.removeEventListener('pointerdown', h);
+  }, []);
+  const border = state === 'ok' ? 'border-green-500' : state === 'bad' ? 'border-red-400' : 'border-brandLine';
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className={`min-w-[8.5rem] min-h-[3.5rem] px-4 py-1 rounded-xl border-2 ${border} bg-white flex items-center justify-between gap-3 text-xl lg:text-3xl cursor-pointer`}>
+        {value ? <Latex math={'\\displaystyle ' + value} /> : <span className="text-slate-400 text-lg lg:text-xl">— обери —</span>}
+        <i className={`fa-solid fa-chevron-down text-base text-accent transition-transform ${open ? 'rotate-180' : ''}`}></i>
+      </button>
+      {open && (
+        <div className="pop absolute z-40 left-0 mt-2 min-w-full bg-white border-2 border-brandLine rounded-xl shadow-lg py-1">
+          {options.map(o => (
+            <button key={o} type="button" onClick={() => { onChange(o); setOpen(false); }}
+              className={`block w-full text-left px-5 py-2.5 text-xl lg:text-3xl whitespace-nowrap cursor-pointer hover:bg-brandLight ${o === value ? 'bg-brandLight' : ''}`}>
+              <Latex math={'\\displaystyle ' + o} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ============ ПРАКТИКУМ ============ */
+const F = (n, d) => ({ kind: 'frac', ans: [n, d] });
+const S = (options, correct) => ({ kind: 'select', options, correct });
+const YES = '\\text{Так}', NO = '\\text{Ні}', YN = [YES, NO];
+
+const TASKS = [
+  {
+    title: 'Укажіть число, обернене до числа',
+    level: 'Легко',
+    items: [
+      { q: '\\frac{3}{5}', ...F(5, 3), tip: 'Поміняй місцями чисельник і знаменник.' },
+      { q: '\\frac{7}{11}', ...F(11, 7), tip: 'Поміняй місцями чисельник і знаменник.' },
+      { q: '12', ...F(1, 12), help: '12=\\frac{12}{1}' },
+      { q: '\\frac{1}{9}', ...F(9, 1), tip: 'Поміняй місцями чисельник і знаменник.' },
+      { q: '\\frac{8}{3}', ...F(3, 8), tip: 'Поміняй місцями чисельник і знаменник.' },
+    ],
+  },
+  {
+    title: 'Укажіть число, обернене до числа',
+    level: 'Середньо',
+    items: [
+      { q: '1\\frac{1}{2}', ...F(2, 3), help: '1\\frac{1}{2}=\\frac{3}{2}' },
+      { q: '3\\frac{2}{9}', ...F(9, 29), help: '3\\frac{2}{9}=\\frac{29}{9}' },
+      { q: '0{,}7', ...F(10, 7), help: '0{,}7=\\frac{7}{10}' },
+      { q: '2{,}3', ...F(10, 23), help: '2{,}3=\\frac{23}{10}' },
+      { q: '0{,}16', ...F(25, 4), help: '0{,}16=\\frac{16}{100}=\\frac{4}{25}' },
+    ],
+  },
+  {
+    title: 'Чи є взаємно оберненими числа?',
+    level: 'Середньо',
+    items: [
+      { q: '3\\frac{1}{6}\\ \\text{і}\\ \\frac{6}{19}', ...S(YN, YES), help: '3\\frac{1}{6}=\\frac{19}{6}.\\quad \\frac{19}{6}\\cdot\\frac{6}{19}=\\;?' },
+      { q: '0{,}4\\ \\text{і}\\ 0{,}25', ...S(YN, NO), help: '0{,}4\\cdot 0{,}25=\\;?' },
+      { q: '1{,}2\\ \\text{і}\\ \\frac{5}{6}', ...S(YN, YES), help: '1{,}2=\\frac{6}{5}.\\quad \\frac{6}{5}\\cdot\\frac{5}{6}=\\;?' },
+      { q: '0{,}4\\ \\text{і}\\ 2\\frac{1}{2}', ...S(YN, YES), help: '0{,}4=\\frac{2}{5},\\ 2\\frac{1}{2}=\\frac{5}{2}.\\quad \\frac{2}{5}\\cdot\\frac{5}{2}=\\;?' },
+      { q: '1{,}4\\ \\text{і}\\ \\frac{6}{7}', ...S(YN, NO), help: '1{,}4=\\frac{7}{5}.\\quad \\frac{7}{5}\\cdot\\frac{6}{7}=\\;?' },
+    ],
+  },
+  {
+    title: 'Розв’яжіть рівняння',
+    level: 'Складніше',
+    tip: 'Якщо a · x = 1, то x — число, обернене до a.',
+    items: [
+      { q: '7x=1', ...S(['7', '\\frac{1}{7}', '0{,}7'], '\\frac{1}{7}'), tip: 'Яке число, помножене на 7, дає 1?' },
+      { q: '\\frac{2}{9}\\,x=1', ...F(9, 2), tip: 'x — число, обернене до 2/9.' },
+      { q: 'x\\cdot\\frac{5}{3}=1', ...F(3, 5), tip: 'x — число, обернене до 5/3.' },
+      { q: '1\\frac{1}{4}\\,x=1', ...F(4, 5), help: '1\\frac{1}{4}=\\frac{5}{4}' },
+      { q: '0{,}5\\,x=1', ...F(2, 1), help: '0{,}5=\\frac{1}{2}' },
+    ],
+  },
+  {
+    title: 'Виконайте ділення',
+    level: 'Ділення',
+    sign: '=',
+    items: [
+      { q: '\\frac{3}{7}:\\frac{5}{6}', ...F(18, 35), help: '\\frac{3}{7}\\cdot\\frac{6}{5}' },
+      { q: '\\frac{3}{14}:\\frac{2}{21}', ...F(9, 4), help: '\\frac{3}{14}\\cdot\\frac{21}{2}' },
+      { q: '\\frac{9}{25}:\\frac{27}{50}', ...F(2, 3), help: '\\frac{9}{25}\\cdot\\frac{50}{27}' },
+      { q: '\\frac{2}{3}:\\frac{1}{6}', ...F(4, 1), help: '\\frac{2}{3}\\cdot\\frac{6}{1}' },
+      { q: '\\frac{5}{8}:\\frac{5}{32}', ...F(4, 1), help: '\\frac{5}{8}\\cdot\\frac{32}{5}' },
+    ],
+  },
+  {
+    title: 'Знайдіть частку',
+    level: 'Ділення',
+    sign: '=',
+    items: [
+      { q: '10:\\frac{5}{6}', ...F(12, 1), help: '\\frac{10}{1}\\cdot\\frac{6}{5}' },
+      { q: '\\frac{3}{4}:2', ...F(3, 8), help: '\\frac{3}{4}\\cdot\\frac{1}{2}' },
+      { q: '1:\\frac{7}{8}', ...F(8, 7), help: '1\\cdot\\frac{8}{7}' },
+      { q: '1\\frac{1}{2}:\\frac{3}{4}', ...F(2, 1), help: '\\frac{3}{2}\\cdot\\frac{4}{3}' },
+      { q: '2\\frac{1}{4}:1\\frac{1}{2}', ...F(3, 2), help: '\\frac{9}{4}\\cdot\\frac{2}{3}' },
+    ],
+  },
+  {
+    title: 'Розв’яжіть рівняння',
+    level: 'Ділення',
+    tip: 'Щоб знайти невідомий множник, треба добуток поділити на відомий множник.',
+    items: [
+      { q: '\\frac{2}{7}\\,x=\\frac{9}{14};\\quad x=', ...S(['\\frac{9}{14}\\cdot\\frac{2}{7}', '\\frac{9}{14}:\\frac{2}{7}', '\\frac{2}{7}:\\frac{9}{14}'], '\\frac{9}{14}:\\frac{2}{7}'), tip: 'Добуток поділи на відомий множник.' },
+      { q: '\\frac{2}{7}\\,x=\\frac{9}{14}', sign: 'x=', ...F(9, 4), help: 'x=\\frac{9}{14}:\\frac{2}{7}=\\frac{9}{14}\\cdot\\frac{7}{2}' },
+      { q: '\\frac{3}{8}\\,x=6', sign: 'x=', ...F(16, 1), help: 'x=6:\\frac{3}{8}=\\frac{6}{1}\\cdot\\frac{8}{3}' },
+      { q: '3x=\\frac{2}{9}', sign: 'x=', ...F(2, 27), help: 'x=\\frac{2}{9}:3=\\frac{2}{9}\\cdot\\frac{1}{3}' },
+      { q: 'x:\\frac{6}{11}=\\frac{3}{7}', sign: 'x=', ...F(18, 77), help: '\\text{Невідоме ділене: } x=\\frac{3}{7}\\cdot\\frac{6}{11}' },
+    ],
+  },
+  {
+    title: 'Розв’яжіть задачу',
+    level: 'Задачі',
+    items: [
+      { text: <span>Поїзд за <Latex math="\displaystyle \frac{8}{15}" /> год проїхав <Latex math="\displaystyle 34\frac{2}{3}" /> км. Знайдіть швидкість поїзда.</span>,
+        ...F(65, 1), unit: 'км/год', help: '34\\frac{2}{3}:\\frac{8}{15}=\\frac{104}{3}\\cdot\\frac{15}{8}' },
+      { text: <span>За <Latex math="\displaystyle 2\frac{1}{5}" /> кг цукерок заплатили 220 грн. Скільки коштує 1 кг цукерок?</span>,
+        ...F(100, 1), unit: 'грн', help: '220:2\\frac{1}{5}=\\frac{220}{1}\\cdot\\frac{5}{11}' },
+      { text: <span>Швидкість автобуса <Latex math="\displaystyle 50\frac{2}{5}" /> км/год. За який час він проїде 63 км?</span>,
+        ...F(5, 4), unit: 'год', help: '63:50\\frac{2}{5}=\\frac{63}{1}\\cdot\\frac{5}{252}' },
+      { text: <span>Маса <Latex math="\displaystyle 5\frac{1}{3}" /> дм³ сплаву дорівнює <Latex math="\displaystyle 3\frac{5}{9}" /> кг. Яка маса 1 дм³ цього сплаву?</span>,
+        ...F(2, 3), unit: 'кг', help: '3\\frac{5}{9}:5\\frac{1}{3}=\\frac{32}{9}\\cdot\\frac{3}{16}' },
+    ],
+  },
+];
+
+const itemOk = (it, v) => it.kind === 'select' ? v === it.correct : fracOk(v, it.ans);
+
+const TaskView = ({ task, idx, answers, setAnswers, checked, setChecked }) => {
+  const right = task.items.filter((it, i) => itemOk(it, answers[i])).length;
+  const allRight = right === task.items.length;
+  const retry = () => {
+    const keep = {};
+    task.items.forEach((it, i) => { if (itemOk(it, answers[i])) keep[i] = answers[i]; });
+    setAnswers(keep); setChecked(false);
+  };
+  return (
+    <div className="fade max-w-5xl mx-auto">
+      <div className="text-center mb-4 lg:mb-6">
+        <span className="inline-block px-3 py-1 rounded-full bg-brandLight text-brand text-sm lg:text-lg font-bold mb-2">{task.level}</span>
+        <h3 className="text-2xl lg:text-4xl font-extrabold">Завдання {idx + 1}. {task.title}</h3>
+        {task.tip && <p className="mt-3 text-lg lg:text-2xl text-slate-600">{task.tip}</p>}
+      </div>
+
+      <div className={`grid gap-3 lg:gap-4 ${task.items.some(it => it.text) ? '' : 'md:grid-cols-2'}`}>
+        {task.items.map((it, i) => {
+          const ok = itemOk(it, answers[i]);
+          const filled = it.kind === 'select' ? !!answers[i] : !!(answers[i] && answers[i].n);
+          const st = checked && filled ? (ok ? 'ok' : 'bad') : null;
+          const set = v => setAnswers({ ...answers, [i]: v });
+          return (
+            <div key={i} className={`rounded-2xl border-2 p-3 lg:p-5 ${st === 'ok' ? 'border-green-300 bg-green-50' : st === 'bad' ? 'border-red-300 bg-red-50' : 'border-brandMid bg-white'}`}>
+              {it.text && (
+                <p className="flex gap-3 text-lg lg:text-2xl leading-relaxed mb-3">
+                  <span className="font-bold text-brand shrink-0">{i + 1})</span><span>{it.text}</span>
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-3 lg:gap-6">
+                {!it.text && <span className="text-lg lg:text-2xl font-bold text-brand w-8">{i + 1})</span>}
+                {it.text
+                  ? <span className="text-lg lg:text-2xl text-slate-500 pl-8">Відповідь:</span>
+                  : <span className="text-3xl lg:text-5xl min-w-[6rem]"><Latex math={'\\displaystyle ' + it.q} /></span>}
+                {it.kind === 'frac' && !it.text && (it.sign || task.sign
+                  ? <span className="text-3xl lg:text-5xl"><Latex math={it.sign || task.sign} /></span>
+                  : <i className="fa-solid fa-arrow-right text-accent text-xl lg:text-3xl"></i>)}
+                {it.kind === 'frac'
+                  ? <FracInput value={answers[i]} onChange={set} state={st} />
+                  : <Dropdown value={answers[i]} options={it.options} onChange={set} state={st} />}
+                {it.unit && <span className="text-xl lg:text-3xl">{it.unit}</span>}
+                {st && <i className={`fa-solid ${ok ? 'fa-circle-check text-green-500' : 'fa-circle-xmark text-red-400'} text-3xl lg:text-4xl ml-auto pop`}></i>}
+              </div>
+              {st === 'bad' && (
+                <div className="fade mt-3 pl-11 text-lg lg:text-2xl text-slate-700">
+                  <span className="text-slate-500 mr-2">Підказка:</span>{it.help ? <Latex math={it.help} /> : it.tip}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 lg:mt-8 flex flex-wrap items-center justify-center gap-3 lg:gap-4">
+        {!checked
+          ? <Btn onClick={() => setChecked(true)}><i className="fa-solid fa-check mr-2"></i>Перевірити відповіді</Btn>
+          : !allRight && <Btn kind="light" onClick={retry}><i className="fa-solid fa-rotate-left mr-2"></i>Виправити помилки</Btn>}
+        {checked && (
+          <span className={`pop px-5 py-2.5 rounded-full text-lg lg:text-2xl font-extrabold ${allRight ? 'bg-green-100 text-green-700' : 'bg-brandLight text-brand'}`}>
+            {allRight ? '🎉 Усе правильно!' : `Правильно: ${right} з ${task.items.length}`}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const makePractice = (LIST, off) => ({ setReady }) => {
+  useEffect(() => setReady(true), []);
+  const [tab, setTab] = useState(0);
+  const [answers, setAnswers] = useState(LIST.map(() => ({})));
+  const [checked, setChecked] = useState(LIST.map(() => false));
+  const okCount = t => LIST[t].items.filter((it, i) => itemOk(it, answers[t][i])).length;
+  return (
+    <div>
+      <div className="flex flex-wrap justify-center gap-2 lg:gap-3 mb-3 lg:mb-5">
+        {LIST.map((t, i) => {
+          const full = checked[i] && okCount(i) === t.items.length;
+          return (
+            <button key={i} onClick={() => setTab(i)}
+              className={`px-4 py-2 lg:px-6 lg:py-3 rounded-full border-2 font-bold text-base lg:text-xl cursor-pointer transition-all
+                ${i === tab ? 'bg-brand border-accent text-white' : 'bg-white border-brandMid text-brand hover:bg-brandLight'}`}>
+              Завдання {i + 1 + off} {full && <i className="fa-solid fa-star ml-1"></i>}
+            </button>
+          );
+        })}
+      </div>
+      {LIST[tab].items.some(it => it.kind === 'frac') && (
+        <p className="text-center text-sm lg:text-lg text-slate-500 mb-2">
+          Відповідь записуй дробом. Якщо це ціле число — знаменник можна залишити порожнім.
+        </p>
+      )}
+      <TaskView key={tab} task={LIST[tab]} idx={tab + off}
+        answers={answers[tab]} setAnswers={a => setAnswers(p => p.map((x, i) => i === tab ? a : x))}
+        checked={checked[tab]} setChecked={c => setChecked(p => p.map((x, i) => i === tab ? c : x))} />
+      <div className="max-w-3xl mx-auto mt-8 flex justify-between">
+        <Btn kind="grey" disabled={tab === 0} onClick={() => setTab(t => t - 1)}>← Попереднє</Btn>
+        <Btn kind="light" disabled={tab === LIST.length - 1} onClick={() => setTab(t => t + 1)}>Наступне →</Btn>
+      </div>
+    </div>
+  );
+};
+
+const Practice1 = makePractice(TASKS.slice(0, 4), 0);
+const Practice2 = makePractice(TASKS.slice(4), 4);
+
+/* ============ ДОДАТОК ============ */
+const STEPS = [
+  { name: 'Обчисли добутки', C: Step1 },
+  { name: 'Означення', C: Step2 },
+  { name: 'Звичайний дріб і натуральне число', C: Step3 },
+  { name: 'Мішане число', C: Step4 },
+  { name: 'Десятковий дріб', C: Step5 },
+  { name: 'Особливі числа: 1 і 0', C: Step6 },
+  { name: 'Запам’ятай: обернені числа', C: Step7 },
+  { name: 'Практикум: обернені числа', C: Practice1 },
+  { name: 'Ділення і множення', C: Div1 },
+  { name: 'Правило ділення дробів', C: Div2 },
+  { name: 'Ділення дробів: приклади', C: Div2ex },
+  { name: 'Ділення дробів: спробуй сам', C: Div2try },
+  { name: 'Натуральні і мішані числа', C: Div3 },
+  { name: 'Мішані числа: спробуй сам', C: Div3try },
+  { name: 'Запам’ятай: ділення', C: Div4 },
+  { name: 'Практикум: ділення дробів', C: Practice2 },
+];
+
+// Урок вміщується в екран: якщо крок вищий за екран, він трохи зменшується
+const Fit = ({ children }) => {
+  const box = useRef(null);
+  const inner = useRef(null);
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const calc = () => {
+      const b = box.current, i = inner.current;
+      if (!b || !i) return;
+      const h = i.offsetHeight, avail = b.clientHeight;
+      const s = h > avail ? Math.max(0.35, avail / h) : 1;
+      setK(prev => (Math.abs(prev - s) > 0.004 ? s : prev));
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(box.current);
+    ro.observe(inner.current);
+    window.addEventListener('resize', calc);
+    return () => { ro.disconnect(); window.removeEventListener('resize', calc); };
+  }, []);
+  return (
+    <div ref={box} className="h-full w-full overflow-hidden">
+      <div ref={inner} className="px-4 py-4 lg:px-10 lg:py-8"
+        style={{ transform: `scale(${k})`, transformOrigin: 'top center' }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const Author = ({ className = '' }) => (
+  <span className={`text-[10px] sm:text-xs lg:text-sm tracking-wider text-slate-500 leading-tight text-center ${className}`}>
+    Автор розробки <span className="font-bold text-slate-900">Ковтун Тетяна</span> за технічної підтримки <span className="text-blue-600">Claude</span>
+  </span>
+);
+
+const App = () => {
+  const [started, setStarted] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [step, setStep] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [seen, setSeen] = useState(0);
+
+  useEffect(() => { setSeen(s => Math.max(s, step)); }, [step]);
+  const canNext = ready || seen > step;
+  const go = s => { setReady(false); setStep(s); setMenu(false); };
+  const Cur = STEPS[step].C;
+
+  if (!started) return (
+    <div className="h-full flex flex-col font-ui">
+      <div className="flex-1 flex flex-col items-center justify-center bg-panelLeft p-4 text-center gap-6 lg:gap-8">
+        <div className="text-5xl lg:text-7xl pop"><Latex math="\frac{2}{3}\cdot\frac{3}{2}=1" /></div>
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold fade" style={{ textWrap: 'balance' }}>
+          <span className="text-brand">Взаємно обернені числа.</span><br />Ділення дробів
+        </h1>
+        <p className="text-lg lg:text-2xl text-slate-500">Математика, 6 клас</p>
+        <button onClick={() => { setStarted(true); go(0); }}
+          className="flex items-center gap-4 bg-white text-brand border-2 border-brandLine rounded-full pl-2.5 pr-8 py-2.5 shadow-md hover:shadow-lg active:scale-95 transition-all cursor-pointer font-extrabold text-xl lg:text-2xl tracking-widest">
+          <span className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-brand text-white flex items-center justify-center text-lg pl-1">▶</span>
+          ПОЧАТИ
+        </button>
+      </div>
+      <div className="shrink-0 flex justify-center px-4 py-2 border-t border-brandMid bg-panelLeft"><Author /></div>
+    </div>
+  );
+
+  return (
+    <div className="h-full flex flex-col font-ui">
+      <div className="shrink-0 flex items-center gap-3 px-4 py-1.5 lg:px-6 lg:py-2 border-b border-brandMid bg-panelLeft">
+        <Btn kind="light" onClick={() => setMenu(m => !m)}>☰ Зміст</Btn>
+        <div className="flex-1 flex items-center justify-center gap-1 lg:gap-1.5">
+          {STEPS.map((s, i) => (
+            <span key={i} title={s.name}
+              className={`h-2.5 lg:h-3 rounded-full transition-all ${i === step ? 'w-8 lg:w-12 bg-brand' : i <= seen ? 'w-2.5 lg:w-3 bg-brandLine' : 'w-2.5 lg:w-3 bg-slate-200'}`} />
+          ))}
+        </div>
+        <span className="text-sm lg:text-lg font-extrabold text-brand whitespace-nowrap">{step + 1} / {STEPS.length}</span>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-hidden bg-panelRight">
+       <Fit key={menu ? 'menu' : step}>
+        {menu ? (
+          <div className="fade max-w-4xl mx-auto">
+            <Title>Зміст уроку</Title>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {STEPS.map((s, i) => (
+                <button key={i} onClick={() => go(i)}
+                  className={`flex items-center gap-4 p-3 lg:p-4 rounded-xl border-2 text-left cursor-pointer transition-all hover:border-accent hover:bg-brandLight ${i === step ? 'border-accent bg-brandLight' : 'border-brandMid bg-white'}`}>
+                  <span className="w-10 h-10 lg:w-12 lg:h-12 shrink-0 rounded-full bg-brandMid text-brand font-extrabold flex items-center justify-center lg:text-xl">
+                    {s.name.startsWith('Практикум') ? '✎' : i + 1}
+                  </span>
+                  <span className="text-lg lg:text-2xl font-bold">{s.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="fade"><Cur setReady={setReady} /></div>
+        )}
+       </Fit>
+      </div>
+
+      <div className="shrink-0 flex justify-between items-center gap-3 px-4 py-1.5 lg:px-6 lg:py-2 border-t border-brandMid bg-panelLeft">
+        <div className="w-32 lg:w-36 shrink-0 flex justify-start">
+          {!menu && <Btn kind="grey" disabled={step === 0} onClick={() => go(step - 1)}>← Назад</Btn>}
+        </div>
+        <Author className="flex-1 min-w-0" />
+        <div className="w-32 lg:w-36 shrink-0 flex justify-end">
+          {!menu && (step < STEPS.length - 1
+            ? <Btn disabled={!canNext} onClick={() => go(step + 1)}>Далі →</Btn>
+            : <Btn kind="light" onClick={() => setStarted(false)}>На початок</Btn>)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
