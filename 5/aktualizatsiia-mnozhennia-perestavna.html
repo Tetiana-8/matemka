@@ -45,7 +45,7 @@
   .sub{font-size:calc(var(--fs)*.62);color:#9B5F7B}
   .stage{
     flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
-    gap:1.6vh;
+    gap:1.6vh;overflow-x:hidden;overflow-y:auto;
   }
   /* рядок питання-відповідь */
   .qa{
@@ -62,6 +62,9 @@
     flex:1;font-weight:700;color:var(--dark);
     visibility:hidden;opacity:0;transition:opacity .25s;
   }
+  .card .qa{flex-direction:column;align-items:flex-start;gap:.1em}
+  .card .qa .arrow{display:none}
+  .card .qa .q,.card .qa .a,.card .qa .ph{flex:none}
   .qa.open{background:var(--light);border-color:var(--accent)}
   .qa.open .a{visibility:visible;opacity:1}
   .qa .ph{
@@ -139,7 +142,10 @@
   footer b{font-weight:700}
   @media (max-width:700px){
     :root{--fs:4.4vw}
-    body{overflow:auto}
+    body{overflow:auto;height:auto;min-height:100dvh}
+    main{flex:none;min-height:auto}
+    .stage{flex:none;overflow:visible}
+    nav{padding-top:1.2vh;padding-bottom:1vh;flex-wrap:wrap;justify-content:center}
     .two{grid-template-columns:1fr}
     .grid{grid-template-columns:1fr 1fr}
     .mrow{flex-wrap:wrap}
@@ -231,6 +237,18 @@ const steps = [
 let cur = 0;
 const $ = id=>document.getElementById(id);
 
+function fit(){
+  const root=document.documentElement;
+  root.style.removeProperty('--fs');
+  if(window.matchMedia('(max-width:700px)').matches) return;
+  const st=$('stage');
+  const ok=()=>st.scrollHeight<=st.clientHeight+1 && st.scrollWidth<=st.clientWidth+1;
+  const set=v=>root.style.setProperty('--fs',v+'px');
+  let hi=Math.min(window.innerWidth*0.045,window.innerHeight*0.075,56), lo=10;
+  set(hi); if(ok()) return;
+  for(let i=0;i<12;i++){ const mid=(lo+hi)/2; set(mid); if(ok()) lo=mid; else hi=mid; }
+  set(lo);
+}
 function render(){
   const s = steps[cur];
   $('title').textContent = s.title;
@@ -239,6 +257,7 @@ function render(){
   $('prev').disabled = cur===0;
   $('next').textContent = cur===steps.length-1 ? 'На початок' : 'Далі →';
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  fit();
 }
 steps.forEach((_,i)=>{
   const b=document.createElement('button');
@@ -267,6 +286,10 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')$('prev').click();
 });
 render();
+window.addEventListener('resize',fit);
+if(window.ResizeObserver) new ResizeObserver(()=>fit()).observe(document.body);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+setTimeout(fit,400);
 </script>
 <!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
      Вставити цей блок цілком перед </body> будь-якої розробки.
