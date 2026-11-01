@@ -144,7 +144,7 @@ const Btn = ({ children, onClick, kind = 'main', disabled, className = '' }) => 
   };
   return (
     <button disabled={disabled} onClick={onClick}
-      className={`min-h-[44px] px-5 py-2.5 lg:px-7 lg:py-3 rounded-full border-2 font-extrabold text-base lg:text-xl shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${styles[kind]} ${className}`}>
+      className={`min-h-[34px] px-4 py-1.5 lg:px-5 lg:py-2 rounded-full border font-bold text-sm lg:text-base whitespace-nowrap active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${styles[kind]} ${className}`}>
       {children}
     </button>
   );
@@ -472,7 +472,16 @@ const Step9 = ({ setReady }) => {
 /* ============ Список з виразами ============ */
 const Dropdown = ({ value, options, onChange, state }) => {
   const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
   const ref = useRef(null);
+  // Список відкривається вгору, якщо знизу мало місця (щоб його не обрізало)
+  const toggle = () => {
+    if (!open && ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setUp(window.innerHeight - r.bottom < 280);
+    }
+    setOpen(o => !o);
+  };
   useEffect(() => {
     const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('pointerdown', h);
@@ -481,13 +490,13 @@ const Dropdown = ({ value, options, onChange, state }) => {
   const border = state === 'ok' ? 'border-green-500' : state === 'bad' ? 'border-red-400' : 'border-brandLine';
   return (
     <div ref={ref} className="relative inline-block">
-      <button type="button" onClick={() => setOpen(o => !o)}
+      <button type="button" onClick={toggle}
         className={`min-w-[9.5rem] min-h-[3.5rem] px-4 py-1 rounded-xl border-2 ${border} bg-white flex items-center justify-between gap-3 text-xl lg:text-3xl cursor-pointer`}>
         {value ? <M t={value} /> : <span className="text-slate-400 text-lg lg:text-xl">— обери —</span>}
         <span className={`text-base text-accent transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
-        <div className="pop absolute z-40 left-0 mt-2 min-w-full bg-white border-2 border-brandLine rounded-xl shadow-lg py-1">
+        <div className={`pop absolute z-40 left-0 ${up ? 'bottom-full mb-2' : 'mt-2'} min-w-full bg-white border-2 border-brandLine rounded-xl shadow-lg py-1`}>
           {options.map(o => (
             <button key={o} type="button" onClick={() => { onChange(o); setOpen(false); }}
               className={`block w-full text-left px-5 py-2.5 text-xl lg:text-3xl whitespace-nowrap cursor-pointer hover:bg-brandLight ${o === value ? 'bg-brandMid' : ''}`}>
@@ -662,6 +671,37 @@ const makePractice = (LIST, off) => ({ setReady }) => {
 const Practice1 = makePractice(TASKS.slice(0, 4), 0);
 const Practice2 = makePractice(TASKS.slice(4), 4);
 
+/* ============ Без прокрутки: вміст сам підлаштовується під висоту екрана ============
+   Якщо крок вищий за вікно, його масштаб зменшується рівно настільки, щоб усе вмістилося. */
+const Fit = ({ children }) => {
+  const box = useRef(null);
+  const inner = useRef(null);
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const calc = () => {
+      const b = box.current, i = inner.current;
+      if (!b || !i) return;
+      const h = i.offsetHeight, avail = b.clientHeight;
+      const s = h > avail ? Math.max(0.35, avail / h) : 1;
+      setK(prev => (Math.abs(prev - s) > 0.004 ? s : prev));
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(box.current);
+    ro.observe(inner.current);
+    window.addEventListener('resize', calc);
+    return () => { ro.disconnect(); window.removeEventListener('resize', calc); };
+  }, []);
+  return (
+    <div ref={box} className="h-full w-full overflow-hidden">
+      <div ref={inner} className="px-4 py-4 lg:px-10 lg:py-8"
+        style={{ transform: `scale(${k})`, transformOrigin: 'top center' }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 /* ============ ДОДАТОК ============ */
 const STEPS = [
   { name: 'Задача про вишні', C: Step1 },
@@ -676,10 +716,10 @@ const STEPS = [
   { name: 'Практикум: число за відсотками', C: Practice2 },
 ];
 
-const Footer = () => (
-  <div className="shrink-0 text-center py-1.5 bg-panelLeft border-t border-brandMid text-[11px] sm:text-xs lg:text-sm text-slate-500">
-    Автор розробки <span className="font-bold text-slate-800">Ковтун Тетяна</span>
-  </div>
+const Author = ({ className = '' }) => (
+  <span className={`text-xs lg:text-sm text-slate-500 leading-tight text-center ${className}`}>
+    Автор розробки <span className="font-bold text-slate-700">Ковтун Тетяна</span>
+  </span>
 );
 
 const App = () => {
@@ -688,9 +728,8 @@ const App = () => {
   const [step, setStep] = useState(0);
   const [ready, setReady] = useState(false);
   const [seen, setSeen] = useState(0);
-  const scroller = useRef(null);
 
-  useEffect(() => { setSeen(s => Math.max(s, step)); if (scroller.current) scroller.current.scrollTop = 0; }, [step]);
+  useEffect(() => { setSeen(s => Math.max(s, step)); }, [step]);
   const canNext = ready || seen > step;
   const go = s => { setReady(false); setStep(s); setMenu(false); };
   const Cur = STEPS[step].C;
@@ -698,7 +737,6 @@ const App = () => {
   if (!started) return (
     <div className="h-full flex flex-col font-ui">
       <div className="flex-1 flex flex-col items-center justify-center bg-panelLeft p-4 text-center gap-6 lg:gap-8">
-        <div className="text-4xl sm:text-5xl lg:text-7xl pop"><M t="^28 : ~7/9 = 36" /></div>
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold fade" style={{ textWrap: 'balance' }}>
           <span className="text-brand">Знаходження числа</span><br />за його дробом
         </h1>
@@ -709,14 +747,13 @@ const App = () => {
           ПОЧАТИ
         </button>
       </div>
-      <Footer />
     </div>
   );
 
   return (
     <div className="h-full flex flex-col font-ui">
-      <div className="shrink-0 flex items-center gap-3 px-4 py-2 lg:px-6 lg:py-3 border-b border-brandMid bg-panelLeft">
-        <Btn kind="light" onClick={() => setMenu(m => !m)} className="!px-4 !py-1.5 !text-sm whitespace-nowrap">☰ Зміст</Btn>
+      <div className="shrink-0 flex items-center gap-3 px-4 py-1.5 lg:px-6 lg:py-2 border-b border-brandMid bg-panelLeft">
+        <Btn kind="light" onClick={() => setMenu(m => !m)}>☰ Зміст</Btn>
         <div className="flex-1 flex items-center justify-center gap-1.5 lg:gap-2">
           {STEPS.map((s, i) => (
             <span key={i} title={s.name}
@@ -726,7 +763,8 @@ const App = () => {
         <span className="text-sm lg:text-lg font-extrabold text-brand whitespace-nowrap">{step + 1} / {STEPS.length}</span>
       </div>
 
-      <div ref={scroller} className="flex-1 overflow-y-auto bg-panelRight px-4 py-6 lg:px-10 lg:py-12">
+      <div className="flex-1 min-h-0 overflow-hidden bg-panelRight">
+       <Fit>
         {menu ? (
           <div className="fade max-w-3xl mx-auto">
             <Title>Зміст уроку</Title>
@@ -745,17 +783,20 @@ const App = () => {
         ) : (
           <div key={step} className="fade"><Cur setReady={setReady} /></div>
         )}
+       </Fit>
       </div>
 
-      {!menu && (
-        <div className="shrink-0 flex justify-between items-center gap-3 px-4 py-2 lg:px-6 lg:py-4 border-t border-brandMid bg-panelLeft">
-          <Btn kind="grey" disabled={step === 0} onClick={() => go(step - 1)}>← Назад</Btn>
-          {step < STEPS.length - 1
-            ? <Btn disabled={!canNext} onClick={() => go(step + 1)}>Далі →</Btn>
-            : <Btn kind="light" onClick={() => setStarted(false)}>На початок</Btn>}
+      <div className="shrink-0 flex justify-between items-center gap-3 px-4 py-1.5 lg:px-6 lg:py-2 border-t border-brandMid bg-panelLeft">
+        <div className="w-32 lg:w-36 shrink-0 flex justify-start">
+          {!menu && <Btn kind="grey" disabled={step === 0} onClick={() => go(step - 1)}>← Назад</Btn>}
         </div>
-      )}
-      <Footer />
+        <Author className="flex-1 min-w-0" />
+        <div className="w-32 lg:w-36 shrink-0 flex justify-end">
+          {!menu && (step < STEPS.length - 1
+            ? <Btn disabled={!canNext} onClick={() => go(step + 1)}>Далі →</Btn>
+            : <Btn kind="light" onClick={() => setStarted(false)}>На початок</Btn>)}
+        </div>
+      </div>
     </div>
   );
 };
