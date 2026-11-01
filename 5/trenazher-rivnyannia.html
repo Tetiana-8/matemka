@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер з математики: Рівняння 5 клас</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Comfortaa:wght@600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        handwriting: ['Caveat', 'cursive'],
+                        rounded: ['Comfortaa', 'sans-serif'],
+                        main: ['Nunito', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { font-size: clamp(15px, 0.6vw + 8px, 26px); }
+        html, body {
+            min-height: 100%;
+            overflow-x: hidden; 
+            background-color: #fdeff5; /* м'який рожевий, гама 5 класу */
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+        select {
+            cursor: pointer;
+            text-align-last: center;
+        }
+        .arrow-pointer {
+            font-size: 1.1rem;
+            line-height: 1;
+            display: inline-block;
+        }
+        .arrow-left {
+            transform: rotate(70deg); /* Pointing inward */
+        }
+        .arrow-right {
+            transform: rotate(-70deg); /* Pointing inward */
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col justify-start p-3 sm:p-4 box-border select-none">
+
+    <!-- MAIN COMPACT CONTAINER (100vh bound) -->
+    <div class="w-full max-w-5xl mx-auto flex flex-col min-h-full gap-2">
+
+        <!-- TOP BAR: Cycle Status & Score -->
+        <div class="flex items-center justify-between px-4 py-2 bg-pink-100/80 rounded-2xl border border-pink-200/80 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-pulse"></span>
+                <span id="cycle-badge" class="text-[0.9rem] font-black text-pink-900 font-rounded">
+                    Тип 1 з 10 • Рівняння 1 з 2
+                </span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[0.9rem] font-extrabold text-pink-900 font-rounded">
+                <i class="fa-solid fa-trophy text-pink-600 text-sm"></i>
+                <span>Розв'язано: <span id="solved-count" class="text-pink-900 font-black">0</span></span>
+            </div>
+        </div>
+
+        <!-- PROGRESSIVE NOTEBOOK BOARD -->
+        <div id="notebook-board" class="flex flex-col items-center p-3 sm:p-5 rounded-2xl bg-white border border-pink-200 shadow-sm shrink-0 w-full max-w-3xl mx-auto transition-all">
+            
+            <p id="board-title" class="text-[0.82rem] font-bold text-pink-900 w-full text-center mb-1 uppercase">✨ Крок 1: Вкажіть назви компонентів дій</p>
+            
+            <!-- PROGRESSIVE LINE 0 (Initial Equation) -->
+            <div id="board-line-0" class="text-3xl sm:text-4xl font-black text-gray-800 font-rounded text-center my-1 tracking-wide w-full flex justify-center"></div>
+            
+            <div id="board-selectors-0" class="flex items-start justify-center gap-2 sm:gap-4 w-full mt-1">
+                <!-- Dropdowns generated via JS -->
+            </div>
+            <div id="board-btn-0-container" class="flex justify-center mt-2 w-full">
+                <button onclick="checkComponents()" id="check-comp-btn" class="px-4 py-1.5 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.82rem] sm:text-[0.9rem] transition-all shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Перевірити компоненти</span>
+                </button>
+            </div>
+            <p id="comp-feedback" class="text-[0.9rem] font-bold text-center hidden leading-tight mt-1 w-full"></p>
+            
+            <!-- PROGRESSIVE LINE 1 -->
+            <div id="board-line-1" class="text-2xl sm:text-3xl font-black text-gray-800 font-rounded text-center mt-3 tracking-wide w-full flex justify-center hidden"></div>
+            
+            <p id="board-title-1" class="text-[0.82rem] font-bold text-pink-900 w-full text-center mt-3 mb-1 uppercase hidden">✨ Крок 5: Підпишіть компоненти спрощеного рівняння</p>
+
+            <!-- PROGRESSIVE LINE 2 -->
+            <div id="board-line-2" class="text-2xl sm:text-3xl font-black text-gray-800 font-rounded text-center mt-2 tracking-wide w-full flex justify-center hidden"></div>
+            
+            <!-- STAGE 2 SELECTORS (Attached to Line 2) -->
+            <div id="board-selectors-1" class="flex items-start justify-center gap-2 sm:gap-4 w-full mt-0 hidden">
+                <!-- Selectors generated via JS -->
+            </div>
+            <div id="board-btn-1-container" class="flex justify-center mt-2 w-full hidden">
+                <button onclick="checkStep5()" id="step5-btn" class="px-4 py-1.5 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.82rem] sm:text-[0.9rem] transition-all shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Перевірити компоненти</span>
+                </button>
+            </div>
+            <p id="step5-feedback" class="text-[0.82rem] font-bold hidden text-center w-full mt-1"></p>
+
+            <!-- PROGRESSIVE LINE 3 -->
+            <div id="board-line-3" class="text-2xl sm:text-3xl font-black text-gray-800 font-rounded text-center mt-3 tracking-wide w-full flex justify-center hidden"></div>
+            
+            <!-- PROGRESSIVE LINE 4 (FINAL X) -->
+            <div id="board-line-4" class="text-2xl sm:text-3xl font-black text-emerald-800 font-rounded text-center mt-2 tracking-wide w-full flex justify-center border-b-[3px] border-emerald-500 pb-1 mb-1 hidden"></div>
+
+            <!-- Next Equation Button inside notebook board -->
+            <div id="next-btn-container" class="hidden flex-col items-center gap-2 pt-4 pb-1 w-full transition-all">
+                <button onclick="skipEquation()" id="next-btn" class="px-6 py-2 bg-gradient-to-r from-[#e5508a] to-[#be185d] hover:from-[#be185d] hover:to-[#9d174d] text-white font-black rounded-2xl text-sm transition-all shadow-md transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                    <span>Наступне рівняння</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ACTION CARDS WRAPPER -->
+        <div id="action-cards" class="flex flex-col gap-2 shrink-0">
+            
+            <!-- STEP 2: RULE 1 -->
+            <div id="rule-selection-box" class="p-2.5 rounded-2xl bg-pink-50/80 border border-pink-200 hidden shrink-0 space-y-1.5 transition-all shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-[0.82rem] sm:text-[0.9rem] font-black text-pink-900">
+                        📜 Крок 2: Оберіть правило для знаходження невідомого компонента:
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 gap-1">
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="rule-option" value="addend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідомий доданок</strong>, треба від суми відняти відомий доданок.</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="rule-option" value="minuend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідоме зменшуване</strong>, треба до різниці додати від'ємник.</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="rule-option" value="subtrahend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідомий від'ємник</strong>, треба від зменшуваного відняти різницю.</span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between pt-0.5">
+                    <button onclick="checkRule()" id="check-rule-btn" class="px-3.5 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.82rem] sm:text-[0.9rem] transition-all shadow-sm">
+                        Перевірити правило
+                    </button>
+                    <p id="rule-feedback" class="text-[0.82rem] font-bold hidden"></p>
+                </div>
+            </div>
+
+            <!-- STEP 3: EXPR 1 -->
+            <div id="step-expr-container" class="p-2 rounded-2xl bg-pink-50/80 border border-pink-200 hidden space-y-1 transition-all shadow-sm">
+                <div class="flex items-center justify-between text-[0.82rem] sm:text-[0.9rem] font-bold text-pink-900">
+                    <span>Крок 3: Запишіть дію, яку варто зробити відповідно до правила:</span>
+                    <button onclick="toggleHint('step-expr')" class="text-[0.82rem] text-pink-700 font-bold hover:underline">💡 Підказка</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="step-expr-prefix" class="font-bold text-gray-800 text-sm sm:text-base shrink-0"></span>
+                    <input type="text" id="step-expr-input" placeholder="напр. 367 - 121" class="w-36 sm:w-44 text-center text-sm font-bold py-0.5 px-2 rounded-xl border-2 border-pink-300 focus:border-pink-500 focus:outline-none bg-white">
+                    <button onclick="checkStepExpr()" id="step-expr-btn" class="px-3 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.9rem] transition-all shadow-sm">
+                        Перевірити
+                    </button>
+                </div>
+                <p id="step-expr-feedback" class="text-[0.82rem] font-bold hidden"></p>
+                <p id="step-expr-hint-text" class="text-[0.82rem] text-pink-800 bg-pink-100/80 p-1.5 rounded-lg hidden leading-tight font-semibold"></p>
+            </div>
+
+            <!-- STEP 4: CALC 1 -->
+            <div id="step1-container" class="p-2 rounded-2xl bg-pink-50/80 border border-pink-200 hidden space-y-1 transition-all shadow-sm">
+                <div class="flex items-center justify-between text-[0.82rem] sm:text-[0.9rem] font-bold text-pink-900">
+                    <span>Крок 4: Обчисліть дію, записану в третьому кроці:</span>
+                    <button onclick="toggleHint('step1')" class="text-[0.82rem] text-pink-700 font-bold hover:underline">💡 Підказка</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="step1-prefix" class="font-bold text-gray-800 text-sm sm:text-base shrink-0"></span>
+                    <input type="number" id="step1-input" placeholder="?" class="w-24 sm:w-28 text-center text-base font-bold py-0.5 px-2 rounded-xl border-2 border-pink-300 focus:border-pink-500 focus:outline-none bg-white">
+                    <button onclick="checkStep1()" id="step1-btn" class="px-3 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.9rem] transition-all shadow-sm">
+                        Перевірити
+                    </button>
+                </div>
+                <p id="step1-feedback" class="text-[0.82rem] font-bold hidden"></p>
+                <p id="step1-hint-text" class="text-[0.82rem] text-pink-800 bg-pink-100/80 p-1.5 rounded-lg hidden leading-tight font-semibold"></p>
+            </div>
+
+            <!-- STEP 6: RULE 2 -->
+            <div id="step6-rule-container" class="p-2.5 rounded-2xl bg-pink-50/80 border border-pink-200 hidden space-y-1.5 transition-all shadow-sm">
+                <p class="text-[0.82rem] sm:text-[0.9rem] font-bold text-pink-900 w-full text-left">📜 Крок 6: Оберіть правило для знаходження x:</p>
+                <div class="grid grid-cols-1 gap-1 w-full">
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="s6-rule-option" value="addend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідомий доданок</strong>, треба від суми відняти відомий доданок.</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="s6-rule-option" value="minuend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідоме зменшуване</strong>, треба до різниці додати від'ємник.</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-[0.82rem] font-bold text-pink-950 bg-white/90 p-1.5 rounded-xl border border-pink-200 cursor-pointer hover:bg-pink-100 transition-colors">
+                        <input type="radio" name="s6-rule-option" value="subtrahend" class="accent-pink-600">
+                        <span>Щоб знайти <strong>невідомий від'ємник</strong>, треба від зменшуваного відняти різницю.</span>
+                    </label>
+                </div>
+                <div class="flex justify-between items-center w-full mt-1">
+                    <button onclick="checkStep6()" id="step6-btn" class="px-3.5 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.82rem] sm:text-[0.9rem] transition-all shadow-sm">
+                        Перевірити правило
+                    </button>
+                    <p id="step6-feedback" class="text-[0.82rem] font-bold hidden text-right"></p>
+                </div>
+            </div>
+
+            <!-- STEP 7: EXPR 2 -->
+            <div id="step7-expr-container" class="p-2 rounded-2xl bg-pink-50/80 border border-pink-200 hidden space-y-1 transition-all shadow-sm">
+                <div class="flex items-center justify-between text-[0.82rem] sm:text-[0.9rem] font-bold text-pink-900">
+                    <span>Крок 7: Запишіть дію для знаходження x:</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-gray-800 text-sm sm:text-base shrink-0">x =</span>
+                    <input type="text" id="step7-input" placeholder="напр. 149 + 23" class="w-36 sm:w-44 text-center text-sm font-bold py-0.5 px-2 rounded-xl border-2 border-pink-300 focus:border-pink-500 focus:outline-none bg-white">
+                    <button onclick="checkStep7()" id="step7-btn" class="px-3 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.9rem] transition-all shadow-sm">
+                        Перевірити
+                    </button>
+                </div>
+                <p id="step7-feedback" class="text-[0.82rem] font-bold hidden"></p>
+            </div>
+
+            <!-- STEP 8: FINAL CALC 2 -->
+            <div id="step2-container" class="p-2 rounded-2xl bg-pink-50/80 border border-pink-200 hidden space-y-1 transition-all shadow-sm">
+                <div class="flex items-center justify-between text-[0.82rem] sm:text-[0.9rem] font-bold text-pink-900">
+                    <span>Крок 8: Обчисліть значення x:</span>
+                    <button onclick="toggleHint('step2')" class="text-[0.82rem] text-pink-700 font-bold hover:underline">💡 Підказка</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-gray-800 text-sm sm:text-base shrink-0">x =</span>
+                    <input type="number" id="step2-input" placeholder="?" class="w-24 sm:w-28 text-center text-base font-bold py-0.5 px-2 rounded-xl border-2 border-pink-300 focus:border-pink-500 focus:outline-none bg-white">
+                    <button onclick="checkStep2()" id="step2-btn" class="px-3 py-1 bg-[#e5508a] hover:bg-[#be185d] text-white font-bold rounded-xl text-[0.9rem] transition-all shadow-sm">
+                        Перевірити
+                    </button>
+                </div>
+                <p id="step2-feedback" class="text-[0.82rem] font-bold hidden"></p>
+                <p id="step2-hint-text" class="text-[0.82rem] text-pink-800 bg-pink-100/80 p-1.5 rounded-lg hidden leading-tight font-semibold"></p>
+            </div>
+        </div> 
+
+        <div class="mt-auto text-center text-gray-500 pb-1" style="font-size:10px;letter-spacing:.05em">Автор розробки <b>Ковтун Тетяна</b></div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const TOTAL_TYPES = 10;
+        let currentTypeIndex = 1; 
+        let currentTypeRepeat = 1; 
+
+        let currentEq = null;
+        let solvedCount = 0;
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function cleanExpr(str) {
+            return str ? str.toString().replace(/\s+/g, '') : '';
+        }
+
+        function generateEquationByType(type) {
+            const xVal = getRandomInt(80, 500);
+            let eq = {};
+            switch (type) {
+                case 1: { 
+                    const B = getRandomInt(20, 150);
+                    const bracketVal = xVal - B;
+                    if (bracketVal <= 0) return generateEquationByType(type);
+                    const A = bracketVal + getRandomInt(100, 300);
+                    const C = A - bracketVal;
+                    eq = {
+                        parts: [A, `-`, `(x - ${B})`, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'subtrahend',
+                        bracketPrefix: `x - ${B} =`,
+                        stepExprTarget: `${A}-${C}`,
+                        step1Target: bracketVal,
+                        step2Target: xVal,
+                        stepExprHint: `Скористайтеся правилом невідомого від'ємника: ${A} - ${C}`,
+                        step1Hint: `${A} - (...) = ${C} ➔ (x - ${B}) = ${A} - ${C}`,
+                        step2Hint: `x - ${B} = ${bracketVal} ➔ x = ${bracketVal} + ${B}`
+                    };
+                    break;
+                }
+                case 2: { 
+                    const B = getRandomInt(20, 150);
+                    const bracketVal = xVal + B;
+                    const A = bracketVal + getRandomInt(50, 250);
+                    const C = A - bracketVal;
+                    eq = {
+                        parts: [A, `-`, `(x + ${B})`, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'subtrahend',
+                        bracketPrefix: `x + ${B} =`,
+                        stepExprTarget: `${A}-${C}`,
+                        step1Target: bracketVal,
+                        step2Target: xVal,
+                        stepExprHint: `Скористайтеся правилом невідомого від'ємника: ${A} - ${C}`,
+                        step1Hint: `${A} - (...) = ${C} ➔ (x + ${B}) = ${A} - ${C}`,
+                        step2Hint: `x + ${B} = ${bracketVal} ➔ x = ${bracketVal} - ${B}`
+                    };
+                    break;
+                }
+                case 3: { 
+                    const B = getRandomInt(20, 150);
+                    const bracketVal = xVal - B;
+                    if (bracketVal <= 0) return generateEquationByType(type);
+                    const A = getRandomInt(100, 300);
+                    const C = A + bracketVal;
+                    eq = {
+                        parts: [A, `+`, `(x - ${B})`, `=`, C],
+                        compType: 'addition',
+                        correctComps: ['Доданок', 'Доданок', 'Сума'],
+                        correctRule: 'addend',
+                        bracketPrefix: `x - ${B} =`,
+                        stepExprTarget: `${C}-${A}`,
+                        step1Target: bracketVal,
+                        step2Target: xVal,
+                        stepExprHint: `Скористайтеся правилом невідомого доданка: ${C} - ${A}`,
+                        step1Hint: `${A} + (...) = ${C} ➔ (x - ${B}) = ${C} - ${A}`,
+                        step2Hint: `x - ${B} = ${bracketVal} ➔ x = ${bracketVal} + ${B}`
+                    };
+                    break;
+                }
+                case 4: { 
+                    const B = getRandomInt(20, 150);
+                    const bracketVal = xVal + B;
+                    const A = getRandomInt(100, 300);
+                    const C = A + bracketVal;
+                    eq = {
+                        parts: [A, `+`, `(x + ${B})`, `=`, C],
+                        compType: 'addition',
+                        correctComps: ['Доданок', 'Доданок', 'Сума'],
+                        correctRule: 'addend',
+                        bracketPrefix: `x + ${B} =`,
+                        stepExprTarget: `${C}-${A}`,
+                        step1Target: bracketVal,
+                        step2Target: xVal,
+                        stepExprHint: `Скористайтеся правилом невідомого доданка: ${C} - ${A}`,
+                        step1Hint: `${A} + (...) = ${C} ➔ (x + ${B}) = ${C} - ${A}`,
+                        step2Hint: `x + ${B} = ${bracketVal} ➔ x = ${bracketVal} - ${B}`
+                    };
+                    break;
+                }
+                case 5: { 
+                    const A = getRandomInt(30, 150);
+                    const B = getRandomInt(50, 150);
+                    const C = getRandomInt(100, 300);
+                    const bracketVal = B + C;
+                    const realX = bracketVal + A;
+                    eq = {
+                        parts: [`(x - ${A})`, `-`, B, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'minuend',
+                        bracketPrefix: `x - ${A} =`,
+                        stepExprTarget: `${C}+${B}`,
+                        stepExprTargetAlt: `${B}+${C}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого зменшуваного: ${C} + ${B}`,
+                        step1Hint: `(...) - ${B} = ${C} ➔ (x - ${A}) = ${C} + ${B}`,
+                        step2Hint: `x - ${A} = ${bracketVal} ➔ x = ${bracketVal} + ${A}`
+                    };
+                    break;
+                }
+                case 6: { 
+                    const A = getRandomInt(30, 150);
+                    const B = getRandomInt(50, 150);
+                    const C = getRandomInt(100, 300);
+                    const bracketVal = B + C;
+                    const realX = bracketVal - A;
+                    if (realX <= 0) return generateEquationByType(type);
+                    eq = {
+                        parts: [`(x + ${A})`, `-`, B, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'minuend',
+                        bracketPrefix: `x + ${A} =`,
+                        stepExprTarget: `${C}+${B}`,
+                        stepExprTargetAlt: `${B}+${C}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого зменшуваного: ${C} + ${B}`,
+                        step1Hint: `(...) - ${B} = ${C} ➔ (x + ${A}) = ${C} + ${B}`,
+                        step2Hint: `x + ${A} = ${bracketVal} ➔ x = ${bracketVal} - ${A}`
+                    };
+                    break;
+                }
+                case 7: { 
+                    const A = getRandomInt(30, 150);
+                    const C = getRandomInt(250, 500);
+                    const B = getRandomInt(50, 150);
+                    const bracketVal = C - B;
+                    if (bracketVal <= 0) return generateEquationByType(type);
+                    const realX = bracketVal + A;
+                    eq = {
+                        parts: [`(x - ${A})`, `+`, B, `=`, C],
+                        compType: 'addition',
+                        correctComps: ['Доданок', 'Доданок', 'Сума'],
+                        correctRule: 'addend',
+                        bracketPrefix: `x - ${A} =`,
+                        stepExprTarget: `${C}-${B}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого доданка: ${C} - ${B}`,
+                        step1Hint: `(...) + ${B} = ${C} ➔ (x - ${A}) = ${C} - ${B}`,
+                        step2Hint: `x - ${A} = ${bracketVal} ➔ x = ${bracketVal} + ${A}`
+                    };
+                    break;
+                }
+                case 8: { 
+                    const A = getRandomInt(30, 150);
+                    const C = getRandomInt(250, 500);
+                    const B = getRandomInt(50, 150);
+                    const bracketVal = C - B;
+                    const realX = bracketVal - A;
+                    if (realX <= 0) return generateEquationByType(type);
+                    eq = {
+                        parts: [`(x + ${A})`, `+`, B, `=`, C],
+                        compType: 'addition',
+                        correctComps: ['Доданок', 'Доданок', 'Сума'],
+                        correctRule: 'addend',
+                        bracketPrefix: `x + ${A} =`,
+                        stepExprTarget: `${C}-${B}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого доданка: ${C} - ${B}`,
+                        step1Hint: `(...) + ${B} = ${C} ➔ (x + ${A}) = ${C} - ${B}`,
+                        step2Hint: `x + ${A} = ${bracketVal} ➔ x = ${bracketVal} - ${A}`
+                    };
+                    break;
+                }
+                case 9: { 
+                    const B = getRandomInt(150, 350);
+                    const realX = getRandomInt(20, 100);
+                    const bracketVal = B - realX;
+                    const A = bracketVal + getRandomInt(100, 250);
+                    const C = A - bracketVal;
+                    eq = {
+                        parts: [A, `-`, `(${B} - x)`, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'subtrahend',
+                        bracketPrefix: `${B} - x =`,
+                        stepExprTarget: `${A}-${C}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого від'ємника: ${A} - ${C}`,
+                        step1Hint: `${A} - (...) = ${C} ➔ (${B} - x) = ${A} - ${C}`,
+                        step2Hint: `${B} - x = ${bracketVal} ➔ x = ${B} - ${bracketVal}`
+                    };
+                    break;
+                }
+                case 10: { 
+                    const B = getRandomInt(50, 150);
+                    const realX = getRandomInt(20, 120);
+                    const bracketVal = B + realX;
+                    const A = bracketVal + getRandomInt(100, 250);
+                    const C = A - bracketVal;
+                    eq = {
+                        parts: [A, `-`, `(${B} + x)`, `=`, C],
+                        compType: 'subtraction',
+                        correctComps: ['Зменшуване', "Від'ємник", 'Різниця'],
+                        correctRule: 'subtrahend',
+                        bracketPrefix: `${B} + x =`,
+                        stepExprTarget: `${A}-${C}`,
+                        step1Target: bracketVal,
+                        step2Target: realX,
+                        stepExprHint: `Скористайтеся правилом невідомого від'ємника: ${A} - ${C}`,
+                        step1Hint: `${A} - (...) = ${C} ➔ (${B} + x) = ${A} - ${C}`,
+                        step2Hint: `${B} + x = ${bracketVal} ➔ x = ${bracketVal} - ${B}`
+                    };
+                    break;
+                }
+            }
+            return eq;
+        }
+
+        function renderCurrentEquation() {
+            currentEq = generateEquationByType(currentTypeIndex);
+
+            document.getElementById('cycle-badge').innerText = `Тип ${currentTypeIndex} з ${TOTAL_TYPES} • Рівняння ${currentTypeRepeat} з 2`;
+
+            // Reset Board Elements visibility
+            document.getElementById('board-title').classList.remove('hidden');
+            document.getElementById('board-selectors-0').classList.remove('hidden');
+            document.getElementById('board-btn-0-container').classList.remove('hidden');
+            
+            document.getElementById('board-line-1').classList.add('hidden');
+            document.getElementById('board-line-2').classList.add('hidden');
+            document.getElementById('board-title-1').classList.add('hidden');
+            document.getElementById('board-selectors-1').classList.add('hidden');
+            document.getElementById('board-btn-1-container').classList.add('hidden');
+            document.getElementById('board-line-3').classList.add('hidden');
+            document.getElementById('board-line-4').classList.add('hidden');
+            
+            // Hide all Action Cards initially
+            document.getElementById('rule-selection-box').classList.add('hidden');
+            document.getElementById('step-expr-container').classList.add('hidden');
+            document.getElementById('step1-container').classList.add('hidden');
+            document.getElementById('step6-rule-container').classList.add('hidden');
+            document.getElementById('step7-expr-container').classList.add('hidden');
+            document.getElementById('step2-container').classList.add('hidden');
+            document.getElementById('next-btn-container').classList.add('hidden');
+
+            // Render Line 0 (Initial Equation)
+            const bLine0 = document.getElementById('board-line-0');
+            bLine0.innerHTML = `
+                <div class="flex items-center justify-center gap-1.5 sm:gap-3">
+                    <div class="whitespace-nowrap px-1 text-center">${currentEq.parts[0]}</div>
+                    <div>${currentEq.parts[1]}</div>
+                    <div class="whitespace-nowrap px-1 text-center">${currentEq.parts[2]}</div>
+                    <div>${currentEq.parts[3]}</div>
+                    <div class="whitespace-nowrap px-1 text-center">${currentEq.parts[4]}</div>
+                </div>
+            `;
+
+            // Render Selectors 0
+            const optionsList = ['Оберіть...', 'Зменшуване', "Від'ємник", 'Різниця', 'Доданок', 'Сума'];
+            const sel0 = document.getElementById('board-selectors-0');
+            sel0.innerHTML = '';
+            [0, 2, 4].forEach((partIdx, colIdx) => {
+                const col = document.createElement('div');
+                col.className = 'flex flex-col items-center gap-0.5 relative min-w-[110px] sm:min-w-[130px]';
+                
+                let arrowHtml = '';
+                if (colIdx === 0) arrowHtml = `<div class="arrow-pointer arrow-left font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+                else if (colIdx === 2) arrowHtml = `<div class="arrow-pointer arrow-right font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+                else arrowHtml = `<div class="arrow-pointer font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+
+                col.innerHTML = `
+                    ${arrowHtml}
+                    <select id="comp-select-${colIdx}" class="w-full text-[0.82rem] sm:text-[0.9rem] font-bold py-1.5 px-1 rounded-xl border-2 border-pink-300 focus:border-pink-500 bg-white text-gray-700 outline-none shadow-sm text-center whitespace-nowrap cursor-pointer transition-colors">
+                        ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                `;
+                sel0.appendChild(col);
+            });
+
+            // Attach listeners to highlight selected boxes
+            document.querySelectorAll('#board-selectors-0 select').forEach(sel => {
+                sel.addEventListener('change', function() {
+                    if(this.value !== 'Оберіть...') {
+                        this.classList.add('bg-pink-100');
+                        this.classList.remove('bg-white');
+                    } else {
+                        this.classList.add('bg-white');
+                        this.classList.remove('bg-pink-100');
+                    }
+                });
+            });
+
+            // Reset States
+            document.getElementById('check-comp-btn').disabled = false;
+            document.getElementById('comp-feedback').className = 'hidden';
+            
+            const ruleRadios = document.getElementsByName('rule-option');
+            ruleRadios.forEach(r => r.checked = false);
+            document.getElementById('check-rule-btn').disabled = false;
+            document.getElementById('rule-feedback').className = 'hidden';
+
+            document.getElementById('step-expr-prefix').innerText = currentEq.bracketPrefix;
+            document.getElementById('step-expr-input').value = '';
+            document.getElementById('step-expr-input').disabled = false;
+            document.getElementById('step-expr-btn').disabled = false;
+            document.getElementById('step-expr-feedback').className = 'hidden';
+            document.getElementById('step-expr-hint-text').innerText = currentEq.stepExprHint;
+            document.getElementById('step-expr-hint-text').classList.add('hidden');
+
+            document.getElementById('step1-prefix').innerText = currentEq.bracketPrefix;
+            document.getElementById('step1-input').value = '';
+            document.getElementById('step1-input').disabled = false;
+            document.getElementById('step1-btn').disabled = false;
+            document.getElementById('step1-feedback').className = 'hidden';
+            document.getElementById('step1-hint-text').innerText = currentEq.step1Hint;
+            document.getElementById('step1-hint-text').classList.add('hidden');
+
+            const s6Radios = document.getElementsByName('s6-rule-option');
+            s6Radios.forEach(r => r.checked = false);
+            document.getElementById('step6-btn').disabled = false;
+            document.getElementById('step6-feedback').className = 'hidden';
+
+            document.getElementById('step7-input').value = '';
+            document.getElementById('step7-input').disabled = false;
+            document.getElementById('step7-btn').disabled = false;
+            document.getElementById('step7-feedback').className = 'hidden';
+
+            document.getElementById('step2-input').value = '';
+            document.getElementById('step2-input').disabled = false;
+            document.getElementById('step2-btn').disabled = false;
+            document.getElementById('step2-feedback').className = 'hidden';
+            document.getElementById('step2-hint-text').innerText = currentEq.step2Hint;
+            document.getElementById('step2-hint-text').classList.add('hidden');
+        }
+
+        function checkComponents() {
+            const val0 = document.getElementById('comp-select-0').value;
+            const val1 = document.getElementById('comp-select-1').value;
+            const val2 = document.getElementById('comp-select-2').value;
+            const fb = document.getElementById('comp-feedback');
+
+            if (val0 === 'Оберіть...' || val1 === 'Оберіть...' || val2 === 'Оберіть...') {
+                fb.innerText = '⚠️ Вкажіть назви для всіх компонентів!';
+                fb.className = 'text-[0.9rem] font-bold text-orange-600 block w-full mt-1';
+                return;
+            }
+
+            const isCorrect = [val0, val1, val2].every((val, idx) => val === currentEq.correctComps[idx]);
+            if (isCorrect) {
+                fb.innerText = '✨ Чудово! Назви компонентів вказано правильно.';
+                fb.className = 'text-[0.9rem] font-bold text-emerald-600 block w-full mt-1';
+                document.getElementById('check-comp-btn').disabled = true;
+                
+                // Show Step 2
+                document.getElementById('rule-selection-box').classList.remove('hidden');
+            } else {
+                fb.innerText = '❌ Помилка в назвах компонентів. Спробуйте ще раз!';
+                fb.className = 'text-[0.9rem] font-bold text-rose-500 block w-full mt-1';
+            }
+        }
+
+        function checkRule() {
+            const selectedRule = document.querySelector('input[name="rule-option"]:checked');
+            const fb = document.getElementById('rule-feedback');
+            if (!selectedRule) {
+                fb.innerText = '⚠️ Оберіть варіант!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block';
+                return;
+            }
+            if (selectedRule.value === currentEq.correctRule) {
+                fb.innerText = '✨ Правильно!';
+                fb.className = 'text-[0.82rem] font-bold text-emerald-600 block';
+                document.getElementById('check-rule-btn').disabled = true;
+                
+                // Show Step 3
+                document.getElementById('step-expr-container').classList.remove('hidden');
+                document.getElementById('step-expr-input').focus();
+            } else {
+                fb.innerText = '❌ Неправильне правило.';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block';
+            }
+        }
+
+        function checkStepExpr() {
+            const rawVal = document.getElementById('step-expr-input').value;
+            const cleanUserVal = cleanExpr(rawVal);
+            const fb = document.getElementById('step-expr-feedback');
+
+            if (!cleanUserVal) {
+                fb.innerText = '⚠️ Введіть вираз дії!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block';
+                return;
+            }
+
+            const targetExpr = cleanExpr(currentEq.stepExprTarget);
+            const targetAlt = currentEq.stepExprTargetAlt ? cleanExpr(currentEq.stepExprTargetAlt) : null;
+
+            if (cleanUserVal === targetExpr || (targetAlt && cleanUserVal === targetAlt)) {
+                // Correct! Hide previous parts and build Notebook Line 1
+                document.getElementById('board-selectors-0').classList.add('hidden');
+                document.getElementById('board-btn-0-container').classList.add('hidden');
+                document.getElementById('comp-feedback').classList.add('hidden');
+                document.getElementById('board-title').classList.add('hidden');
+                
+                document.getElementById('rule-selection-box').classList.add('hidden');
+                document.getElementById('step-expr-container').classList.add('hidden');
+
+                const step3Formatted = currentEq.stepExprTarget.replace(/\+/g, ' + ').replace(/-/g, ' - ');
+                const bLine1 = document.getElementById('board-line-1');
+                bLine1.innerText = `${currentEq.bracketPrefix} ${step3Formatted}`;
+                bLine1.classList.remove('hidden');
+
+                // Show Step 4
+                document.getElementById('step1-container').classList.remove('hidden');
+                document.getElementById('step1-input').focus();
+            } else {
+                fb.innerText = '❌ Перевірте правильність числа та знаку дії!';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block';
+            }
+        }
+
+        function checkStep1() {
+            const userVal = parseInt(document.getElementById('step1-input').value);
+            const fb = document.getElementById('step1-feedback');
+
+            if (isNaN(userVal)) {
+                fb.innerText = '⚠️ Введіть число!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block';
+                return;
+            }
+
+            if (userVal === currentEq.step1Target) {
+                // Correct! Hide Step 4, build Notebook Line 2
+                document.getElementById('step1-container').classList.add('hidden');
+
+                const bLine2 = document.getElementById('board-line-2');
+                bLine2.innerText = `${currentEq.bracketPrefix} ${currentEq.step1Target}`;
+                bLine2.classList.remove('hidden');
+                
+                document.getElementById('board-title-1').classList.remove('hidden');
+
+                // Setup Stage 2 logic
+                const op = currentEq.bracketPrefix.includes('+') ? '+' : '-';
+                const parts = currentEq.bracketPrefix.split(' ');
+                const varPart = parts[0];
+                const numPart = parts[2];
+                const resPart = currentEq.step1Target.toString();
+
+                let isXFirst = varPart === 'x';
+                let activeNum = isXFirst ? numPart : varPart;
+
+                if (op === '+') {
+                    currentEq.s5CorrectComps = ['Доданок', 'Доданок', 'Сума'];
+                    currentEq.s6CorrectRule = 'addend';
+                    currentEq.step7ExprTarget = `${resPart}-${activeNum}`;
+                    currentEq.step7ExprTargetAlt = null;
+                } else {
+                    currentEq.s5CorrectComps = ['Зменшуване', "Від'ємник", 'Різниця'];
+                    if (isXFirst) {
+                        currentEq.s6CorrectRule = 'minuend';
+                        currentEq.step7ExprTarget = `${resPart}+${activeNum}`;
+                        currentEq.step7ExprTargetAlt = `${activeNum}+${resPart}`;
+                    } else {
+                        currentEq.s6CorrectRule = 'subtrahend';
+                        currentEq.step7ExprTarget = `${activeNum}-${resPart}`;
+                        currentEq.step7ExprTargetAlt = null;
+                    }
+                }
+
+                // Show Stage 2 Selectors
+                const sel1 = document.getElementById('board-selectors-1');
+                sel1.innerHTML = '';
+                const optionsList = ['Оберіть...', 'Зменшуване', "Від'ємник", 'Різниця', 'Доданок', 'Сума'];
+                [0, 1, 2].forEach(colIdx => {
+                    const col = document.createElement('div');
+                    col.className = 'flex flex-col items-center gap-0.5 relative min-w-[110px] sm:min-w-[130px]';
+                    
+                    let arrowHtml = '';
+                    if (colIdx === 0) arrowHtml = `<div class="arrow-pointer arrow-left font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+                    else if (colIdx === 2) arrowHtml = `<div class="arrow-pointer arrow-right font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+                    else arrowHtml = `<div class="arrow-pointer font-extrabold text-pink-500 my-0 mb-0.5">↑</div>`;
+
+                    col.innerHTML = `
+                        ${arrowHtml}
+                        <select id="s5-comp-${colIdx}" class="w-full whitespace-nowrap text-[0.82rem] sm:text-[0.9rem] font-bold py-1.5 px-1 rounded-xl border-2 border-pink-300 focus:border-pink-500 bg-white text-gray-700 outline-none shadow-sm text-center cursor-pointer transition-colors">
+                            ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                    sel1.appendChild(col);
+                });
+
+                // Attach color listeners for new selectors
+                document.querySelectorAll('#board-selectors-1 select').forEach(sel => {
+                    sel.addEventListener('change', function() {
+                        if(this.value !== 'Оберіть...') {
+                            this.classList.add('bg-pink-100');
+                            this.classList.remove('bg-white');
+                        } else {
+                            this.classList.add('bg-white');
+                            this.classList.remove('bg-pink-100');
+                        }
+                    });
+                });
+
+                sel1.classList.remove('hidden');
+                document.getElementById('board-btn-1-container').classList.remove('hidden');
+                document.getElementById('step5-btn').disabled = false;
+
+            } else {
+                fb.innerText = '❌ Помилка в обчисленні. Спробуйте ще раз!';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block';
+            }
+        }
+
+        function checkStep5() {
+            const val0 = document.getElementById('s5-comp-0').value;
+            const val1 = document.getElementById('s5-comp-1').value;
+            const val2 = document.getElementById('s5-comp-2').value;
+            const fb = document.getElementById('step5-feedback');
+
+            if (val0 === 'Оберіть...' || val1 === 'Оберіть...' || val2 === 'Оберіть...') {
+                fb.innerText = '⚠️ Вкажіть назви для всіх компонентів!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block mt-1 w-full text-center';
+                fb.classList.remove('hidden');
+                return;
+            }
+
+            const isCorrect = [val0, val1, val2].every((val, idx) => val === currentEq.s5CorrectComps[idx]);
+            if (isCorrect) {
+                fb.innerText = '✨ Чудово!';
+                fb.className = 'text-[0.82rem] font-bold text-emerald-600 block mt-1 w-full text-center';
+                document.getElementById('step5-btn').disabled = true;
+
+                // Show Rule 2
+                document.getElementById('step6-rule-container').classList.remove('hidden');
+            } else {
+                fb.innerText = '❌ Помилка в назвах компонентів.';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block mt-1 w-full text-center';
+                fb.classList.remove('hidden');
+            }
+        }
+
+        function checkStep6() {
+            const selectedRule = document.querySelector('input[name="s6-rule-option"]:checked');
+            const fb = document.getElementById('step6-feedback');
+
+            if (!selectedRule) {
+                fb.innerText = '⚠️ Оберіть варіант!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block text-right';
+                return;
+            }
+            if (selectedRule.value === currentEq.s6CorrectRule) {
+                fb.innerText = '✨ Правильно!';
+                fb.className = 'text-[0.82rem] font-bold text-emerald-600 block text-right';
+                document.getElementById('step6-btn').disabled = true;
+
+                // Show Step 7
+                document.getElementById('step7-expr-container').classList.remove('hidden');
+                document.getElementById('step7-input').focus();
+            } else {
+                fb.innerText = '❌ Неправильне правило.';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block text-right';
+            }
+        }
+
+        function checkStep7() {
+            const rawVal = document.getElementById('step7-input').value;
+            const cleanUserVal = cleanExpr(rawVal);
+            const fb = document.getElementById('step7-feedback');
+
+            if (!cleanUserVal) {
+                fb.innerText = '⚠️ Введіть дію!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block';
+                return;
+            }
+
+            const targetExpr = cleanExpr(currentEq.step7ExprTarget);
+            const targetAlt = currentEq.step7ExprTargetAlt ? cleanExpr(currentEq.step7ExprTargetAlt) : null;
+
+            if (cleanUserVal === targetExpr || (targetAlt && cleanUserVal === targetAlt)) {
+                // Correct! Hide previous and build Line 3
+                document.getElementById('board-title-1').classList.add('hidden');
+                document.getElementById('board-selectors-1').classList.add('hidden');
+                document.getElementById('board-btn-1-container').classList.add('hidden');
+                document.getElementById('step5-feedback').classList.add('hidden');
+                document.getElementById('step6-rule-container').classList.add('hidden');
+                document.getElementById('step7-expr-container').classList.add('hidden');
+
+                const step7Formatted = currentEq.step7ExprTarget.replace(/\+/g, ' + ').replace(/-/g, ' - ');
+                const bLine3 = document.getElementById('board-line-3');
+                bLine3.innerText = `x = ${step7Formatted}`;
+                bLine3.classList.remove('hidden');
+
+                // Show Final Step 8
+                document.getElementById('step2-container').classList.remove('hidden');
+                document.getElementById('step2-input').focus();
+            } else {
+                fb.innerText = '❌ Перевірте правильність числа та знаку дії!';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block';
+            }
+        }
+
+        function checkStep2() {
+            const userVal = parseInt(document.getElementById('step2-input').value);
+            const fb = document.getElementById('step2-feedback');
+
+            if (isNaN(userVal)) {
+                fb.innerText = '⚠️ Введіть число!';
+                fb.className = 'text-[0.82rem] font-bold text-orange-600 block';
+                return;
+            }
+
+            if (userVal === currentEq.step2Target) {
+                // Final Success!
+                document.getElementById('step2-container').classList.add('hidden');
+                
+                const bLine4 = document.getElementById('board-line-4');
+                bLine4.innerText = `x = ${currentEq.step2Target}`;
+                bLine4.classList.remove('hidden');
+
+                solvedCount++;
+                document.getElementById('solved-count').innerText = solvedCount;
+
+                // Show Next Button
+                document.getElementById('next-btn-container').classList.remove('hidden');
+            } else {
+                fb.innerText = '❌ Перевірте обчислення x!';
+                fb.className = 'text-[0.82rem] font-bold text-rose-500 block';
+            }
+        }
+
+        function toggleHint(step) {
+            const hintEl = document.getElementById(step + '-hint-text');
+            if (hintEl.classList.contains('hidden')) {
+                hintEl.classList.remove('hidden');
+            } else {
+                hintEl.classList.add('hidden');
+            }
+        }
+
+        function advanceCycle() {
+            currentTypeRepeat++;
+            if (currentTypeRepeat > 2) {
+                currentTypeRepeat = 1;
+                currentTypeIndex++;
+                if (currentTypeIndex > TOTAL_TYPES) {
+                    currentTypeIndex = 1;
+                }
+            }
+        }
+
+        function skipEquation() {
+            advanceCycle();
+            renderCurrentEquation();
+        }
+
+        window.onload = function() {
+            renderCurrentEquation();
+        };
+    </script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>

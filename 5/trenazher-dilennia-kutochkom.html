@@ -23,12 +23,14 @@
         }
 
         .scroll-viewport {
+            flex: 1 1 auto;
+            min-height: 0;
             width: 100%;
-            height: auto;
-            min-height: 500px;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 20px 20px 300px 20px;
+            overflow: hidden;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .math-grid {
@@ -124,12 +126,12 @@
         }
     </style>
 </head>
-<body class="p-2 sm:p-4">
+<body class="p-2 sm:p-3" style="height:100dvh;display:flex;flex-direction:column;overflow:hidden">
 
-    <div class="max-w-6xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-xl p-3 sm:p-8 border border-pink-200 mx-auto">
+    <div class="max-w-6xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-xl p-2 sm:p-4 border border-pink-200 mx-auto flex flex-col flex-1 min-h-0">
         
         <!-- Панель керування -->
-        <div class="control-panel bg-white p-4 sm:p-6 rounded-2xl border border-pink-100 mb-6 sm:mb-10 shadow-sm">
+        <div class="control-panel bg-white p-2 sm:p-3 rounded-2xl border border-pink-100 mb-2 sm:mb-3 shadow-sm shrink-0">
             <div class="flex flex-col w-full sm:w-auto">
                 <label class="text-sm font-black text-pink-700 uppercase mb-1 tracking-widest text-center sm:text-left">Складність</label>
                 <select id="difficulty" class="w-full sm:w-56 pl-4 pr-10 py-2 text-lg border-2 border-pink-200 focus:ring-pink-400 focus:border-pink-400 rounded-xl bg-pink-50 font-bold outline-none transition-all">
@@ -157,8 +159,8 @@
         </div>
 
         <!-- Робоча зона -->
-        <div id="exercise-area" class="w-full">
-            <div class="scroll-viewport" id="scroll-container">
+        <div id="exercise-area" class="w-full flex flex-1 min-h-0">
+            <div class="scroll-viewport" id="scroll-container" style="width:100%">
                 <div id="grid-container" class="math-grid rounded-lg overflow-hidden">
                     <!-- Клітинки генеруються JS -->
                 </div>
@@ -538,7 +540,23 @@
 
         window.onload = Оновити;
     </script>
-<style>.sign{text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:6px 0 4px;user-select:none}.sign b{font-weight:700}</style>
+<script>
+/* Підбираємо розмір клітинки так, щоб уся сітка поміщалась на екрані без прокрутки */
+(function(){
+  var box=document.getElementById('scroll-container');
+  function fit(){
+    var w=box.clientWidth,h=box.clientHeight;
+    if(!w||!h)return;
+    var cs=Math.floor(Math.min((h-6-16)/15,(w-6-14)/13,64));
+    cs=Math.max(cs,16);
+    document.documentElement.style.setProperty('--cell-size',cs+'px');
+  }
+  window.addEventListener('resize',fit);
+  if(window.ResizeObserver)new ResizeObserver(fit).observe(box);
+  fit();
+})();
+</script>
+<style>.sign{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:6px 0 4px;user-select:none}.sign b{font-weight:700}</style>
 <div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>
 <!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
      Вставити цей блок цілком перед </body> будь-якої розробки.
