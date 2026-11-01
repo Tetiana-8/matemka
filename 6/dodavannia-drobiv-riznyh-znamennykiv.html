@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 2: Додавання дробів з різними знаменниками</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Comfortaa -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Comfortaa:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Comfortaa', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card { backdrop-filter: blur(10px); }
+        .fraction-display {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            line-height: 1.1;
+            padding: 0 4px;
+        }
+        .fraction-num { border-bottom: 2px solid currentColor; padding-bottom: 1px; }
+        .fraction-den { padding-top: 1px; }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="bg-[#FFF9F1] text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-orange-200">
+
+    <!-- Modal for Teacher Methodological Card -->
+    <div id="teacherModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-3 md:p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-4 md:p-5 shadow-2xl relative border-2 border-orange-200">
+            <button onclick="window.toggleTeacherModal()" class="absolute top-3 right-4 text-slate-400 hover:text-slate-600 text-3xl font-bold transition">
+                &times;
+            </button>
+
+            <div class="flex items-center space-x-3 mb-2 border-b border-orange-100 pb-2">
+                <svg class="w-6 h-6 shrink-0 drop-shadow-sm" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="18,14 46,14 58,28 6,28" fill="#38BDF8" />
+                    <polygon points="18,14 32,14 32,28 18,28" fill="#7DD3FC" />
+                    <polygon points="25,14 32,14 32,28" fill="#E0F2FE" />
+                    <polygon points="32,14 46,14 32,28" fill="#0284C7" />
+                    <polygon points="6,28 18,14 18,28" fill="#BAE6FD" />
+                    <polygon points="58,28 46,14 46,28" fill="#0369A1" />
+                    <polygon points="6,28 58,28 32,58" fill="#0284C7" />
+                    <polygon points="6,28 32,28 32,58" fill="#38BDF8" />
+                    <polygon points="58,28 32,28 32,58" fill="#0369A1" />
+                    <polygon points="20,28 32,28 32,58" fill="#7DD3FC" opacity="0.6" />
+                    <path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#FDE047" />
+                    <path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#FDE047" opacity="0.9" />
+                </svg>
+                <h3 class="text-lg md:text-xl font-black text-slate-900 font-display">Методична картка та зміст</h3>
+            </div>
+
+            <div class="space-y-1.5 text-slate-800 text-xs md:text-sm leading-tight">
+                <div class="bg-orange-50 border border-orange-200 rounded-2xl p-1.5">
+                    <h4 class="font-bold text-orange-900 text-sm mb-0.5 flex items-center">
+                        <i class="fa-solid fa-bullseye text-orange-600 mr-2"></i>Мета уроку:
+                    </h4>
+                    <p class="text-slate-700">Формування розуміння потреби у спільному знаменнику, наочне обґрунтування зведення дробів та відпрацювання алгоритму.</p>
+                </div>
+
+                <div class="bg-orange-50 border border-orange-200 rounded-2xl p-1.5">
+                    <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center">
+                        <i class="fa-solid fa-clock text-orange-600 mr-2"></i>Перебіг уроку (натисніть для переходу):
+                    </h4>
+                    <ul class="space-y-0.5 text-[11px] md:text-xs font-semibold text-slate-800">
+                        <li onclick="window.goToStage(1); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition border-b border-orange-200/60 group">
+                            <span class="group-hover:text-orange-900">1. Повторення (різні типи вправ за 5 клас)</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">5 хв</span>
+                        </li>
+                        <li onclick="window.goToStage(2); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition border-b border-orange-200/60 group">
+                            <span class="group-hover:text-orange-900">2. Проблемна ситуація & Розрізання піци</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">10 хв</span>
+                        </li>
+                        <li onclick="window.goToStage(3); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition border-b border-orange-200/60 group">
+                            <span class="group-hover:text-orange-900">3. Поріж та об'єднай (Візуальний тренажер)</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">10 хв</span>
+                        </li>
+                        <li onclick="window.goToStage(4); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition border-b border-orange-200/60 group">
+                            <span class="group-hover:text-orange-900">4. Проаналізуйте</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">8 хв</span>
+                        </li>
+                        <li onclick="window.goToStage(5); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition border-b border-orange-200/60 group">
+                            <span class="group-hover:text-orange-900">5. Практичне завдання (Кулінарні рецепти)</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">7 хв</span>
+                        </li>
+                        <li onclick="window.goToStage(6); window.toggleTeacherModal();" class="flex justify-between items-center p-1 px-2 rounded-lg hover:bg-orange-100/90 active:bg-orange-200 cursor-pointer transition group">
+                            <span class="group-hover:text-orange-900">6. Рефлексія та оцінювання («Світлофор»)</span>
+                            <span class="bg-orange-200 text-orange-900 font-bold px-2 py-0.5 rounded-full shrink-0 ml-2">5 хв</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-grow flex flex-col justify-between">
+        <div id="stageContainer" class="w-full">
+            
+            <!-- STAGE 0: START -->
+            <section id="stage-0" class="stage-card space-y-6">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-10 md:p-16 shadow-lg border-2 border-orange-300 relative flex flex-col items-center justify-center text-center min-h-[500px] md:min-h-[560px]">
+                    <button onclick="window.toggleTeacherModal()" title="Методичні матеріали для вчителя" class="absolute top-6 right-6 w-12 h-12 bg-white hover:bg-orange-50 text-orange-500 rounded-2xl shadow-md border-2 border-orange-200 flex items-center justify-center transition hover:scale-110">
+                        <svg class="w-7 h-7 drop-shadow-sm" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="18,14 46,14 58,28 6,28" fill="#38BDF8" />
+                            <polygon points="18,14 32,14 32,28 18,28" fill="#7DD3FC" />
+                            <polygon points="25,14 32,14 32,28" fill="#E0F2FE" />
+                            <polygon points="32,14 46,14 32,28" fill="#0284C7" />
+                            <polygon points="6,28 18,14 18,28" fill="#BAE6FD" />
+                            <polygon points="58,28 46,14 46,28" fill="#0369A1" />
+                            <polygon points="6,28 58,28 32,58" fill="#0284C7" />
+                            <polygon points="6,28 32,28 32,58" fill="#38BDF8" />
+                            <polygon points="58,28 32,28 32,58" fill="#0369A1" />
+                            <polygon points="20,28 32,28 32,58" fill="#7DD3FC" opacity="0.6" />
+                            <path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#FDE047" />
+                            <path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#FDE047" opacity="0.9" />
+                        </svg>
+                    </button>
+                    <p class="text-3xl md:text-5xl font-extrabold text-orange-800 max-w-3xl leading-relaxed mb-12 font-display">
+                        Тема: Додавання дробів з різними знаменниками
+                    </p>
+                    <button onclick="window.goToStage(1)" class="bg-orange-700 hover:bg-orange-800 text-white font-bold text-2xl px-12 py-4 rounded-2xl transition shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center space-x-3">
+                        <span>Почати</span><i class="fa-solid fa-play text-lg"></i>
+                    </button>
+                    
+                    <!-- Авторський підпис на головному екрані -->
+                    <div class="absolute bottom-6 text-xs sm:text-sm font-medium text-slate-600 text-center w-full px-4">
+                        Автор розробки <strong class="font-bold text-slate-900">Ковтун Тетяна</strong> за технічної підтримки <strong class="font-bold text-blue-600">Gemini</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 1: WARMUP (ПОВТОРЕННЯ) -->
+            <section id="stage-1" class="stage-card hidden space-y-8">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-8 md:p-12 shadow-lg border-2 border-orange-300 min-h-[480px] flex flex-col justify-center relative">
+                    
+                    <p class="text-orange-800 text-3xl md:text-4xl font-black text-center mb-6 font-display">
+                        Повторення
+                    </p>
+
+                    <div class="bg-white rounded-3xl p-8 md:p-10 border-4 border-orange-100 shadow-inner text-center mb-2 max-w-3xl mx-auto w-full relative">
+                        <div id="warmupFractionDisplay" class="text-4xl md:text-6xl font-black text-slate-800 flex items-center justify-center gap-3 mb-8 min-h-[80px]">
+                            <!-- JS Generated Content -->
+                        </div>
+                        <div id="warmupOptionsGrid" class="flex flex-wrap justify-center items-center gap-3 md:gap-4 max-w-3xl mx-auto">
+                            <!-- JS Generated Options -->
+                        </div>
+                    </div>
+
+                    <!-- Subtle Teacher Level Indicators -->
+                    <div class="flex justify-center items-center gap-6 mb-4">
+                        <button id="warmupTriangleBtn1" onclick="window.setWarmupLevel(1)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                        <button id="warmupTriangleBtn2" onclick="window.setWarmupLevel(2)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                        <button id="warmupTriangleBtn3" onclick="window.setWarmupLevel(3)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                        <button id="warmupTriangleBtn4" onclick="window.setWarmupLevel(4)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                        <button id="warmupTriangleBtn5" onclick="window.setWarmupLevel(5)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                        <button id="warmupTriangleBtn6" onclick="window.setWarmupLevel(6)" class="text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2">▲</button>
+                    </div>
+
+                    <div id="warmupFeedbackWrapper" class="hidden flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <div id="warmupFeedback" class="px-6 py-3 rounded-2xl text-lg md:text-xl font-bold text-center shadow-sm w-full"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 2: PIZZA -->
+            <section id="stage-2" class="stage-card hidden space-y-4">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-4 md:p-6 shadow-lg border-2 border-orange-300 relative space-y-4">
+                    <div class="bg-white/90 rounded-2xl p-3 md:p-4 border-2 border-orange-200 text-center max-w-3xl mx-auto shadow-sm space-y-1">
+                        <p class="text-slate-800 text-lg md:text-xl font-bold leading-snug">
+                            <strong class="text-rose-600 font-extrabold">Оля</strong> взяла <span class="fraction-display text-rose-600 font-extrabold text-xl md:text-2xl"><span class="fraction-num">1</span><span class="fraction-den">2</span></span> піци, а <strong class="text-indigo-600 font-extrabold">Петро</strong> — <span class="fraction-display text-indigo-600 font-extrabold text-xl md:text-2xl"><span class="fraction-num">1</span><span class="fraction-den">4</span></span> піци.
+                        </p>
+                        <p class="text-orange-800 text-xl md:text-2xl font-black font-display">
+                            Яку частину піци вони взяли <span class="text-orange-700 underline decoration-orange-400 underline-offset-4 decoration-2">разом</span>?
+                        </p>
+                        <div id="pizzaStep1Wrap" class="pt-2">
+                            <button onclick="window.advancePizza(1)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 w-10 h-10 rounded-full transition shadow-sm animate-bounce flex items-center justify-center mx-auto border border-emerald-300 cursor-pointer" title="Далі"><i class="fa-solid fa-arrow-down text-lg"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="pizzaQuestionBlock" class="hidden bg-white rounded-2xl p-3.5 border-2 border-orange-200 shadow-sm text-center max-w-3xl mx-auto space-y-2.5">
+                        <p class="text-slate-800 text-base md:text-lg font-bold">
+                            Чи можна просто обчислити так: 
+                            <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span> + 
+                            <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span> = 
+                            <span class="fraction-display text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-lg border border-rose-200"><span class="fraction-num">2</span><span class="fraction-den">6</span></span> ?
+                        </p>
+                        <div id="pizzaStep2Wrap" class="pt-1">
+                            <button onclick="window.advancePizza(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 w-10 h-10 rounded-full transition shadow-sm animate-bounce flex items-center justify-center mx-auto border border-orange-300 cursor-pointer" title="Далі"><i class="fa-solid fa-arrow-down text-lg"></i></button>
+                        </div>
+                        <div id="pizzaQuestionBtns" class="hidden flex justify-center gap-4 pt-0.5 animate-pulse">
+                            <button onclick="window.checkPizzaChoice(true)" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-lg px-8 py-2 rounded-xl shadow-md transition transform hover:scale-105 active:scale-95">Так</button>
+                            <button onclick="window.checkPizzaChoice(false)" class="bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-lg px-8 py-2 rounded-xl shadow-md transition transform hover:scale-105 active:scale-95">Ні</button>
+                        </div>
+                    </div>
+
+                    <div id="pizzaFeedbackBox" class="hidden max-w-3xl mx-auto space-y-2.5">
+                        <div id="pizzaFeedbackText" class="p-3.5 rounded-2xl text-center shadow-sm bg-white border-2 border-orange-200 space-y-1"></div>
+                        <div id="knifeActionArea" class="text-center pt-0.5">
+                            <button id="knifeCutBtn" onclick="window.performPizzaCut()" class="bg-orange-700 hover:bg-orange-800 active:bg-orange-800 text-white font-bold text-lg px-6 py-2.5 rounded-2xl shadow-lg transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 mx-auto ring-4 ring-orange-300">
+                                <span>🔪 Розрізати великий шматок навпіл</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pizzaVisualBlock" class="hidden bg-white rounded-2xl p-4 border-2 border-orange-100 shadow-sm max-w-3xl mx-auto">
+                        <div class="grid grid-cols-5 items-center justify-items-center gap-2">
+                            <div class="text-center space-y-1">
+                                <span class="font-bold text-slate-700 text-sm md:text-base block">Оля: <span id="olyaFractionLabel" class="text-rose-600 font-black"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span></span></span>
+                                <div id="pizzaVisualLeft" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-orange-500 bg-orange-100 overflow-hidden relative shadow-sm mx-auto flex">
+                                    <div class="w-1/2 h-full bg-orange-300 border-r-2 border-orange-600 flex items-center justify-center font-black text-orange-900 text-sm"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span></div>
+                                    <div class="w-1/2 h-full bg-orange-50"></div>
+                                </div>
+                            </div>
+                            <div class="text-2xl md:text-3xl font-black text-slate-400 text-center">+</div>
+                            <div class="text-center space-y-1">
+                                <span class="font-bold text-slate-700 text-sm md:text-base block">Петро: <span class="text-indigo-600 font-black"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></span></span>
+                                <div class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-orange-500 bg-orange-100 overflow-hidden relative shadow-sm mx-auto grid grid-cols-2 grid-rows-2">
+                                    <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                                    <div class="bg-orange-50 border border-orange-200"></div>
+                                    <div class="bg-orange-50 border border-orange-200"></div>
+                                    <div class="bg-orange-50 border border-orange-200"></div>
+                                </div>
+                            </div>
+                            <div class="text-2xl md:text-3xl font-black text-slate-400 text-center">=</div>
+                            <div class="text-center space-y-1">
+                                <span class="font-bold text-slate-700 text-sm md:text-base block">Разом: <span id="totalFractionLabel" class="text-orange-700 font-black">?</span></span>
+                                <div id="pizzaVisualTotal" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shadow-inner mx-auto">
+                                    <span class="text-3xl font-black text-slate-400">?</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pizzaRuleBox" class="hidden bg-orange-50 border-2 border-orange-300 rounded-2xl p-3 text-center space-y-3 max-w-3xl mx-auto shadow-sm">
+                        <p class="text-orange-950 font-bold text-base md:text-lg leading-snug">
+                            Щоб додати дроби з різними знаменниками, потрібно звести їх<br>
+                            до спільного знаменника <span class="text-xs md:text-sm font-black text-slate-900">(тобто зробити шматочки однакової величини)</span>
+                        </p>
+                        <div class="text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 inline-flex items-center gap-2">
+                            <span class="inline-flex items-start relative">
+                                <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span>
+                                <span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5">
+                                    <svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                                    <span>2</span>
+                                </span>
+                            </span> 
+                            <span>+</span>
+                            <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span> 
+                            <span>=</span>
+                            <span class="fraction-display text-rose-600 font-extrabold"><span class="fraction-num">2</span><span class="fraction-den">4</span></span> 
+                            <span>+</span>
+                            <span class="fraction-display text-indigo-600 font-extrabold"><span class="fraction-num">1</span><span class="fraction-den">4</span></span> 
+                            <span>=</span>
+                            <span class="fraction-display text-orange-800 font-extrabold bg-orange-100 px-2.5 py-0.5 rounded-xl border-2 border-orange-400"><span class="fraction-num">3</span><span class="fraction-den">4</span></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 3: VISUALIZER & ADVANCED -->
+            <section id="stage-3" class="stage-card hidden space-y-4">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-4 md:p-6 shadow-lg border-2 border-orange-300 relative space-y-3">
+                    
+                    <!-- STAR BUTTON TO TOGGLE MODES -->
+                    <button id="visStarBtn" onclick="window.toggleAdvancedPractice()" title="Ускладнені завдання з мішаними числами" class="absolute top-4 right-4 w-11 h-11 rounded-full flex items-center justify-center text-orange-500 animate-pulse hover:text-orange-500 hover:bg-orange-50 border-2 border-transparent transition-all duration-300 z-40">
+                        <i class="fa-solid fa-snowflake text-2xl"></i>
+                    </button>
+
+                    <div class="text-center">
+                        <h3 id="stage3Title" class="text-xl md:text-2xl font-bold text-slate-900 font-display">Поріж та об'єднай</h3>
+                    </div>
+
+                    <!-- MODE 1: VISUAL (PIZZA SLICES) -->
+                    <div id="visualPracticeMode" class="bg-white rounded-2xl p-4 md:p-5 border-2 border-orange-100 shadow-sm max-w-3xl mx-auto flex flex-col items-center">
+                        <div id="visTaskHeader" class="text-2xl md:text-4xl font-black text-slate-800 mb-3 flex items-center justify-center gap-3 flex-wrap"></div>
+                        <div class="w-full flex items-center justify-center gap-2 md:gap-4 my-2 overflow-hidden py-2 relative">
+                            <div class="flex flex-col items-center space-y-1 z-10">
+                                <span id="visLeftLabel" class="font-bold text-blue-600 text-sm md:text-base"></span>
+                                <div id="visLeftCircleContainer" class="w-32 h-32 md:w-44 md:h-44 flex items-center justify-center drop-shadow-sm transition-transform duration-200"></div>
+                            </div>
+                            <div id="visPlusSign" class="text-2xl md:text-3xl font-black text-slate-400 z-10">+</div>
+                            <div id="visRightWrapper" class="flex flex-col items-center space-y-1 z-20">
+                                <span id="visRightLabel" class="font-bold text-pink-600 text-sm md:text-base"></span>
+                                <div id="visRightCircleContainer" class="w-32 h-32 md:w-44 md:h-44 flex items-center justify-center drop-shadow-sm"></div>
+                            </div>
+                            <div class="text-2xl md:text-3xl font-black text-slate-400 z-10">=</div>
+                            <div class="flex flex-col items-center space-y-1 z-10">
+                                <span id="visResultLabel" class="font-bold text-orange-600 text-sm md:text-base">Разом</span>
+                                <div id="visResultCircleContainer" class="w-32 h-32 md:w-44 md:h-44 flex items-center justify-center drop-shadow-sm"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center gap-3 my-3 w-full max-w-2xl">
+                            <button id="btnCutSlices" onclick="window.performVisualCut()" class="bg-orange-700 hover:bg-orange-800 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm md:text-base flex items-center justify-center space-x-1.5 transform hover:scale-105 active:scale-95 shrink-0">
+                                <span>Порізати на однакові частини 🔪</span>
+                            </button>
+                            <button id="btnCombineSlices" onclick="window.performVisualCombine()" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm md:text-base flex items-center justify-center space-x-1.5 transform hover:scale-105 active:scale-95 shrink-0">
+                                <span>Додати</span>
+                            </button>
+                        </div>
+                        <div id="practiceInputRow" class="hidden w-full max-w-2xl flex flex-wrap items-center justify-center gap-3 mt-2">
+                            <div id="practiceFeedback" class="hidden text-center text-base md:text-lg font-bold p-2.5 px-6 rounded-2xl shadow-sm"></div>
+                            <button id="btnNewPracticeTask" onclick="window.generatePracticeTask()" class="hidden bg-orange-700 hover:bg-orange-800 text-white font-bold px-5 py-2.5 rounded-2xl transition text-base flex items-center space-x-1.5 shrink-0 transform hover:scale-105 active:scale-95">
+                                <span>Нове завдання</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MODE 2: ADVANCED MIXED NUMBERS -->
+                    <div id="advancedPracticeMode" class="hidden bg-white rounded-2xl p-6 md:p-10 border-2 border-orange-100 shadow-sm max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[350px]">
+                        <div id="advTaskExpression" class="text-3xl md:text-5xl font-black text-slate-800 mb-8 mt-4 flex items-center justify-center gap-2 md:gap-4 flex-wrap w-full">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="advPracticeFeedback" class="hidden text-center text-lg md:text-xl font-bold p-3 px-8 rounded-2xl shadow-sm mb-4 w-full max-w-md mx-auto"></div>
+                        <button id="btnNewAdvTask" onclick="window.generateAdvancedTask()" class="hidden bg-orange-700 hover:bg-orange-800 text-white font-bold px-6 py-3 rounded-2xl transition text-lg flex items-center justify-center space-x-2 transform hover:scale-105 active:scale-95">
+                            <span>Нове завдання</span>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- STAGE 4: DETECTIVE -->
+            <section id="stage-4" class="stage-card hidden space-y-8">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-6 md:p-10 shadow-lg border-2 border-orange-300">
+                    <p class="text-slate-900 text-2xl md:text-3xl font-bold font-display mb-6 text-center">
+                        Проаналізуйте
+                    </p>
+                    <div class="bg-white/90 border-4 border-orange-200 rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center shadow-sm max-w-3xl mx-auto space-y-6">
+                        <div id="detectiveExampleDisplay" class="text-2xl md:text-4xl font-black text-slate-800 bg-orange-50 px-6 md:px-8 py-5 rounded-2xl border-2 border-orange-300 shadow-inner flex items-center justify-center gap-3 text-center w-full flex-wrap"></div>
+                        <div id="detectiveOptionsList" class="flex flex-row justify-center items-center gap-3 md:gap-4 w-full">
+                            <button onclick="window.checkDetectiveAnswer(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-lg px-6 py-3 rounded-xl shadow-md transition transform hover:scale-105 active:scale-95">Правильно</button>
+                            <button onclick="window.checkDetectiveAnswer(false)" class="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-lg px-6 py-3 rounded-xl shadow-md transition transform hover:scale-105 active:scale-95">Неправильно</button>
+                            <button id="btnNewDetectiveTask" onclick="window.generateDetectiveTask()" class="hidden bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-lg px-6 py-3 rounded-xl transition shadow-md transform hover:scale-105 active:scale-95">Нове завдання</button>
+                        </div>
+                        <div id="detectiveFeedback" class="hidden w-full text-center p-4 rounded-2xl space-y-2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 5: RECIPE -->
+            <section id="stage-5" class="stage-card hidden space-y-4">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-5 md:p-8 shadow-lg border-2 border-orange-300">
+                    <div class="bg-white rounded-3xl p-5 md:p-8 border-2 border-indigo-100 shadow-md max-w-3xl mx-auto space-y-4">
+                        <div class="bg-indigo-50/80 rounded-2xl p-4 border border-indigo-200 flex items-center gap-4">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl shrink-0 border border-indigo-200">👨‍🍳</div>
+                            <div class="space-y-1">
+                                <p id="recipeStoryText" class="text-slate-800 text-base md:text-xl font-bold leading-relaxed"></p>
+                            </div>
+                        </div>
+                        <div class="bg-orange-50/80 rounded-2xl p-4 border border-orange-200 text-center space-y-3 shadow-inner">
+                            <div id="recipeMathDisplay" class="flex items-center justify-center gap-3 text-2xl md:text-4xl font-black text-slate-800 flex-wrap"></div>
+                            <div id="recipeFeedback" class="hidden text-base md:text-lg font-bold p-2.5 rounded-2xl text-center shadow-xs"></div>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center gap-4 pt-1">
+                            <button id="btnCheckRecipe" onclick="window.checkRecipeTask()" class="bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-lg px-8 py-3 rounded-2xl shadow-md transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-check"></i><span>Перевірити</span>
+                            </button>
+                            <button onclick="window.generatePracticalTasks()" class="bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-lg px-8 py-3 rounded-2xl transition shadow-md transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-rotate"></i><span>Нове завдання</span>
+                            </button>
+                        </div>
+                        <p class="text-slate-500 text-sm md:text-base font-semibold text-center pt-2">
+                            💡 За потреби використай чернетку!
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 6: TRAFFIC LIGHT -->
+            <section id="stage-6" class="stage-card hidden space-y-4">
+                <div class="glass-card bg-[#FFF1E3] rounded-3xl p-6 md:p-8 shadow-lg border-2 border-orange-300 text-center">
+                    <div id="tlVoteControls" class="space-y-5">
+                        <h3 class="text-2xl md:text-3xl font-bold text-slate-800">Оцініть свої враження та успіхи:</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto">
+                            <button id="tl-green" onclick="window.voteTrafficLight('green')" class="tl-btn bg-orange-100 hover:bg-orange-200 border-4 border-orange-400 rounded-3xl p-5 transition transform active:scale-95 flex flex-col items-center justify-center space-y-2 shadow-md relative">
+                                <div id="count-green" class="absolute -top-3 -right-3 w-8 h-8 bg-orange-700 text-white font-black text-sm rounded-full flex items-center justify-center border-2 border-white shadow-lg transition-transform duration-200">0</div>
+                                <div class="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white text-2xl shadow-inner"><i class="fa-solid fa-check"></i></div>
+                                <span class="text-orange-900 font-bold text-lg">Зелений</span>
+                                <span class="text-xs text-orange-700 font-medium">Все легко й зрозуміло, зводити знаменники вмію!</span>
+                            </button>
+                            <button id="tl-yellow" onclick="window.voteTrafficLight('yellow')" class="tl-btn bg-orange-100 hover:bg-orange-200 border-4 border-orange-400 rounded-3xl p-5 transition transform active:scale-95 flex flex-col items-center justify-center space-y-2 shadow-md relative">
+                                <div id="count-yellow" class="absolute -top-3 -right-3 w-8 h-8 bg-orange-700 text-white font-black text-sm rounded-full flex items-center justify-center border-2 border-white shadow-lg transition-transform duration-200">0</div>
+                                <div class="w-14 h-14 rounded-full bg-orange-300 flex items-center justify-center text-white text-2xl shadow-inner"><i class="fa-solid fa-minus"></i></div>
+                                <span class="text-orange-900 font-bold text-lg">Жовтий</span>
+                                <span class="text-xs text-orange-700 font-medium">Принцип зрозумілий, але треба ще потренуватись</span>
+                            </button>
+                            <button id="tl-red" onclick="window.voteTrafficLight('red')" class="tl-btn bg-rose-100 hover:bg-rose-200 border-4 border-rose-400 rounded-3xl p-5 transition transform active:scale-95 flex flex-col items-center justify-center space-y-2 shadow-md relative">
+                                <div id="count-red" class="absolute -top-3 -right-3 w-8 h-8 bg-rose-600 text-white font-black text-sm rounded-full flex items-center justify-center border-2 border-white shadow-lg transition-transform duration-200">0</div>
+                                <div class="w-14 h-14 rounded-full bg-rose-500 flex items-center justify-center text-white text-2xl shadow-inner"><i class="fa-solid fa-exclamation"></i></div>
+                                <span class="text-rose-900 font-bold text-lg">Червоний</span>
+                                <span class="text-xs text-rose-700 font-medium">Потрібне додаткове повторення матеріалу</span>
+                            </button>
+                        </div>
+                        <div class="flex justify-center items-center gap-4">
+                            <button onclick="window.confirmTrafficLightVote()" class="bg-orange-700 hover:bg-orange-800 text-white font-black text-xl px-10 py-3 rounded-2xl shadow-md transition transform hover:scale-105 active:scale-95 flex items-center space-x-2">
+                                <i class="fa-solid fa-check-double"></i><span>Завершити голосування</span>
+                            </button>
+                            <button id="btnResetTL" onclick="window.resetTrafficLightVote()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-base px-5 py-3 rounded-2xl shadow-sm transition">
+                                <i class="fa-solid fa-rotate-left mr-1.5"></i>Скинути
+                            </button>
+                        </div>
+                    </div>
+                    <div id="trafficLightResultContainer" class="hidden flex flex-col items-center justify-center my-2">
+                        <div class="relative flex flex-col items-center">
+                            <div class="bg-slate-900 border-4 border-slate-700 rounded-3xl p-3.5 flex flex-col items-center gap-2.5 shadow-2xl w-28 relative">
+                                <div class="w-12 h-1.5 bg-slate-800 rounded-t-md -mt-1.5 mb-0.5 border-t border-slate-600"></div>
+                                <div class="relative flex flex-col items-center">
+                                    <div class="w-16 h-2 bg-slate-800 rounded-t-lg -mb-1 z-10 border-t border-slate-600"></div>
+                                    <div id="light-red" class="w-14 h-14 rounded-full bg-rose-950/90 border-2 border-rose-900 shadow-inner transition-all duration-300"></div>
+                                </div>
+                                <div class="relative flex flex-col items-center">
+                                    <div class="w-16 h-2 bg-slate-800 rounded-t-lg -mb-1 z-10 border-t border-slate-600"></div>
+                                    <div id="light-yellow" class="w-14 h-14 rounded-full bg-orange-950/90 border-2 border-orange-900 shadow-inner transition-all duration-300"></div>
+                                </div>
+                                <div class="relative flex flex-col items-center">
+                                    <div class="w-16 h-2 bg-slate-800 rounded-t-lg -mb-1 z-10 border-t border-slate-600"></div>
+                                    <div id="light-green" class="w-14 h-14 rounded-full bg-orange-950/90 border-2 border-orange-900 shadow-inner transition-all duration-300"></div>
+                                </div>
+                            </div>
+                            <div class="w-6 h-6 bg-slate-800 border-x-2 border-b-2 border-slate-700 rounded-b-md shadow-md"></div>
+                        </div>
+                        <div id="reflectionMessage" class="mt-4 w-full max-w-xl"></div>
+                        <div class="flex flex-wrap justify-center items-center gap-4 mt-4">
+                            <button onclick="window.finishLesson()" class="bg-orange-700 hover:bg-orange-800 text-white font-bold text-xl px-8 py-3 rounded-2xl transition shadow-lg hover:scale-105 active:scale-95">Завершити урок</button>
+                            <button onclick="window.restartLesson()" class="bg-orange-700 hover:bg-orange-800 text-white font-bold text-xl px-8 py-3 rounded-2xl transition shadow-lg hover:scale-105 active:scale-95 flex items-center space-x-2">
+                                <i class="fa-solid fa-rotate-right"></i><span>Почати спочатку</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div id="bottomNav" class="mt-6 pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3 hidden">
+            <div class="flex items-center space-x-2.5">
+                <button id="prevStageBtn" onclick="window.navigateStage(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-6 py-3 rounded-2xl text-base transition flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i><span>Назад</span>
+                </button>
+                <button onclick="window.toggleTeacherModal()" title="Зміст уроку" class="w-12 h-12 bg-orange-100 hover:bg-orange-200 rounded-2xl border-2 border-orange-300 flex items-center justify-center transition shadow-sm hover:scale-105 active:scale-95 shrink-0">
+                    <svg class="w-7 h-7 drop-shadow-sm" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="18,14 46,14 58,28 6,28" fill="#38BDF8" />
+                        <polygon points="18,14 32,14 32,28 18,28" fill="#7DD3FC" />
+                        <polygon points="25,14 32,14 32,28" fill="#E0F2FE" />
+                        <polygon points="32,14 46,14 32,28" fill="#0284C7" />
+                        <polygon points="6,28 18,14 18,28" fill="#BAE6FD" />
+                        <polygon points="58,28 46,14 46,28" fill="#0369A1" />
+                        <polygon points="6,28 58,28 32,58" fill="#0284C7" />
+                        <polygon points="6,28 32,28 32,58" fill="#38BDF8" />
+                        <polygon points="58,28 32,28 32,58" fill="#0369A1" />
+                        <polygon points="20,28 32,28 32,58" fill="#7DD3FC" opacity="0.6" />
+                        <path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#FDE047" />
+                        <path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#FDE047" opacity="0.9" />
+                    </svg>
+                </button>
+                <div id="candleTimerWrapper" onclick="window.resetStageTimer()" class="relative group flex flex-col items-center justify-end h-10 w-2 bg-orange-100 border border-orange-300 rounded-full p-0.5 cursor-pointer transition shrink-0">
+                    <div class="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col items-center bg-orange-50 text-slate-800 text-xs font-bold py-1.5 px-3 rounded-2xl shadow-lg border-2 border-orange-300 pointer-events-none whitespace-nowrap z-50">
+                        <span id="timerLeftText" class="text-orange-700 font-black text-sm">--:--</span>
+                        <div class="w-full border-t border-orange-200 my-1"></div>
+                        <span id="timerTotalText" class="text-orange-700 font-semibold text-xs">-- хв</span>
+                    </div>
+                    <div class="w-full bg-orange-200/50 rounded-full h-full flex flex-col justify-end overflow-hidden">
+                        <div id="candleFill" class="w-full bg-orange-700 rounded-full transition-all duration-1000 ease-linear" style="height: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Author Signature -->
+            <div class="text-xs sm:text-sm font-medium text-slate-600 text-center px-2">
+                Автор розробки <strong class="font-bold text-slate-900">Ковтун Тетяна</strong> за технічної підтримки <strong class="font-bold text-blue-600">Gemini</strong>
+            </div>
+
+            <button id="nextStageBtn" onclick="window.navigateStage(1)" class="bg-orange-700 hover:bg-orange-800 text-white font-bold px-8 py-3 rounded-2xl text-lg transition flex items-center space-x-2 shadow-lg hover:scale-105 active:scale-95">
+                <span>Далі</span><i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // GLOBAL VARIABLES
+        var currentStage = 0;
+        var totalStages = 7;
+        var totalScore = 0;
+        var stageDurations = [0, 300, 600, 600, 480, 420, 300];
+        var stageTimerInterval = null;
+        var stageTimeLeft = 0;
+        var stageTimeTotal = 0;
+        
+        var warmupStreak = 0;
+        var currentWarmupLevel = 1;
+        var lastWarmupKey = '';
+        var lastTier6SubType = 1; 
+        var warmupInputTimer = null;
+        var tlVotes = { green: 0, yellow: 0, red: 0 };
+
+        // HELPER FUNCTIONS
+        function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+        function addScore(pts) { totalScore += pts; }
+
+        // --- NAVIGATION & UI ---
+        window.toggleTeacherModal = function() {
+            var modal = document.getElementById('teacherModal');
+            if (modal) modal.classList.toggle('hidden');
+        };
+
+        window.goToStage = function(stageNum) {
+            if (stageNum < 0 || stageNum >= totalStages) return;
+            var stages = document.querySelectorAll('.stage-card');
+            stages.forEach(s => s.classList.add('hidden'));
+            
+            var targetStage = document.getElementById('stage-' + stageNum);
+            if (targetStage) targetStage.classList.remove('hidden');
+            currentStage = stageNum;
+
+            var bottomNav = document.getElementById('bottomNav');
+            if (bottomNav) bottomNav.classList.toggle('hidden', currentStage === 0);
+
+            var prevBtn = document.getElementById('prevStageBtn');
+            var nextBtn = document.getElementById('nextStageBtn');
+            if (prevBtn) prevBtn.disabled = currentStage === 0;
+            if (nextBtn) nextBtn.classList.toggle('hidden', currentStage === totalStages - 1);
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.resetStageTimer();
+        };
+
+        window.navigateStage = function(dir) { window.goToStage(currentStage + dir); };
+
+        window.resetStageTimer = function() {
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            stageTimeTotal = stageDurations[currentStage] || 0;
+            stageTimeLeft = stageTimeTotal;
+            window.updateTimerUI();
+
+            if (stageTimeTotal > 0) {
+                stageTimerInterval = setInterval(() => {
+                    stageTimeLeft--;
+                    if (stageTimeLeft <= 0) {
+                        stageTimeLeft = 0;
+                        clearInterval(stageTimerInterval);
+                    }
+                    window.updateTimerUI();
+                }, 1000);
+            }
+        };
+
+        window.updateTimerUI = function() {
+            var candleFill = document.getElementById('candleFill');
+            var timerLeftText = document.getElementById('timerLeftText');
+            var timerTotalText = document.getElementById('timerTotalText');
+
+            if (stageTimeTotal <= 0) {
+                if (candleFill) candleFill.style.height = '100%';
+                if (timerLeftText) timerLeftText.innerText = '--:--';
+                if (timerTotalText) timerTotalText.innerText = '-- хв';
+                return;
+            }
+
+            var pct = Math.max(0, Math.min(100, (stageTimeLeft / stageTimeTotal) * 100));
+            if (candleFill) candleFill.style.height = pct + '%';
+
+            var mins = Math.floor(stageTimeLeft / 60);
+            var secs = stageTimeLeft % 60;
+            if (timerLeftText) timerLeftText.innerText = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            if (timerTotalText) timerTotalText.innerText = Math.round(stageTimeTotal / 60) + ' хв';
+        };
+
+        // --- STAGE 1: WARMUP ---
+        window.setWarmupLevel = function(level) {
+            currentWarmupLevel = Math.max(1, Math.min(6, level));
+            warmupStreak = (currentWarmupLevel - 1) * 6;
+            window.generateWarmupTask();
+        };
+
+        window.updateWarmupTriangles = function() {
+            for (var i = 1; i <= 6; i++) {
+                var btn = document.getElementById('warmupTriangleBtn' + i);
+                if (btn) {
+                    if (i === currentWarmupLevel) {
+                        btn.className = "text-orange-500 transition px-2 transform scale-125 opacity-100 drop-shadow-md";
+                    } else {
+                        btn.className = "text-orange-800/30 hover:text-orange-800/60 text-xs transition px-2 transform scale-100";
+                    }
+                }
+            }
+        };
+
+        window.generateWarmupTask = function() {
+            var key, attempts = 0;
+            var tier = Math.min(6, Math.floor(warmupStreak / 6) + 1);
+            currentWarmupLevel = tier;
+            window.updateWarmupTriangles();
+
+            var display = document.getElementById('warmupFractionDisplay');
+            var grid = document.getElementById('warmupOptionsGrid');
+
+            if (tier === 1) {
+                let den, num1, num2, sum;
+                do {
+                    den = getRandomInt(5, 12);
+                    num1 = getRandomInt(1, den - 2);
+                    num2 = getRandomInt(1, den - num1 - 1); 
+                    sum = num1 + num2;
+                    key = `t1_${num1}/${den}+${num2}/${den}`;
+                    attempts++;
+                } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+                window.currentWarmupHint = `знаменник (${den}) залишаємо без змін, а чисельники додаємо: ${num1} + ${num2} = ${sum}`;
+
+                display.innerHTML = `<span class="fraction-display"><span class="fraction-num">${num1}</span><span class="fraction-den">${den}</span></span><span>+</span><span class="fraction-display"><span class="fraction-num">${num2}</span><span class="fraction-den">${den}</span></span><span>=</span><span>?</span>`;
+                let options = [
+                    { label: `<span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den}</span></span>`, correct: true, key: `${sum}/${den}` },
+                    { label: `<span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den * 2}</span></span>`, correct: false, key: `${sum}/${den*2}` },
+                    { label: `<span class="fraction-display"><span class="fraction-num">${Math.max(1, sum - 1)}</span><span class="fraction-den">${den}</span></span>`, correct: false, key: `bad1` },
+                    { label: `<span class="fraction-display"><span class="fraction-num">${sum + 1}</span><span class="fraction-den">${den}</span></span>`, correct: false, key: `bad2` }
+                ];
+                window.renderWarmupOptions(options);
+
+            } else if (tier === 2) {
+                let w1, w2, den, num1, num2, sum, wSum;
+                do {
+                    w1 = getRandomInt(1, 4); w2 = getRandomInt(1, 4); wSum = w1 + w2;
+                    den = getRandomInt(5, 12); num1 = getRandomInt(1, den - 2); num2 = getRandomInt(1, den - 1 - num1);
+                    sum = num1 + num2;
+                    key = `t2_${w1}_${num1}/${den}+${w2}_${num2}/${den}`;
+                    attempts++;
+                } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+                window.currentWarmupHint = `додаємо окремо цілі частини (${w1} + ${w2} = ${wSum}) та дробові: <span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den}</span></span>`;
+
+                display.innerHTML = `<span>${w1}</span><span class="fraction-display"><span class="fraction-num">${num1}</span><span class="fraction-den">${den}</span></span><span>+</span><span>${w2}</span><span class="fraction-display"><span class="fraction-num">${num2}</span><span class="fraction-den">${den}</span></span><span>=</span><span>?</span>`;
+                let options = [
+                    { label: `<span>${wSum}</span><span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den}</span></span>`, correct: true, key: `${wSum}_${sum}/${den}` },
+                    { label: `<span>${wSum + 1}</span><span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den}</span></span>`, correct: false, key: `${wSum+1}_${sum}/${den}` },
+                    { label: `<span>${wSum}</span><span class="fraction-display"><span class="fraction-num">${sum}</span><span class="fraction-den">${den * 2}</span></span>`, correct: false, key: `${wSum}_${sum}/${den*2}` },
+                    { label: `<span>${wSum}</span><span class="fraction-display"><span class="fraction-num">${sum + 1}</span><span class="fraction-den">${den}</span></span>`, correct: false, key: `${wSum}_${sum+1}/${den}` }
+                ];
+                window.renderWarmupOptions(options);
+
+            } else if (tier === 3) {
+                let den;
+                do { den = getRandomInt(3, 12); key = `tier3_den_${den}`; attempts++; } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+                window.currentWarmupHint = `1 ціла дорівнює дробу, у якого чисельник дорівнює знаменнику: 1 = <span class="fraction-display"><span class="fraction-num">${den}</span><span class="fraction-den">${den}</span></span>`;
+
+                display.innerHTML = `<span>1 =</span><span class="fraction-display"><span class="fraction-num pb-1"><input type="number" placeholder="" data-ans="${den}" class="warmup-input w-16 h-12 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"></span><span class="fraction-den pt-1">${den}</span></span>`;
+                grid.innerHTML = '';
+                window.setupWarmupInputs();
+
+            } else if (tier === 4) {
+                let w1, den;
+                do { w1 = getRandomInt(1, 5); den = getRandomInt(3, 12); key = `t4_${w1}_${den}/${den}`; attempts++; } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+                let expected = w1 + 1;
+                window.currentWarmupHint = `оскільки <span class="fraction-display"><span class="fraction-num">${den}</span><span class="fraction-den">${den}</span></span> = 1, то ${w1}<span class="fraction-display"><span class="fraction-num">${den}</span><span class="fraction-den">${den}</span></span> = ${w1} + 1 = ${expected}`;
+
+                display.innerHTML = `<span>${w1}</span><span class="fraction-display"><span class="fraction-num">${den}</span><span class="fraction-den">${den}</span></span><span>=</span><input type="number" placeholder="" data-ans="${expected}" class="warmup-input w-16 h-12 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner">`;
+                grid.innerHTML = '';
+                window.setupWarmupInputs();
+
+            } else if (tier === 5) {
+                let w1, den, rem, num;
+                do {
+                    w1 = getRandomInt(1, 5); den = getRandomInt(3, 10); rem = getRandomInt(1, den - 1); num = den + rem;
+                    key = `tier5_${w1}_${num}_${den}`; attempts++;
+                } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+                let expectedW = w1 + 1; let expectedN = rem;
+                window.currentWarmupHint = `${w1}<span class="fraction-display"><span class="fraction-num">${num}</span><span class="fraction-den">${den}</span></span> = ${w1} + 1<span class="fraction-display"><span class="fraction-num">${rem}</span><span class="fraction-den">${den}</span></span> = ${expectedW}<span class="fraction-display"><span class="fraction-num">${rem}</span><span class="fraction-den">${den}</span></span>`;
+
+                display.innerHTML = `<span>${w1}</span><span class="fraction-display"><span class="fraction-num">${num}</span><span class="fraction-den">${den}</span></span><span>=</span><input type="number" placeholder="" data-ans="${expectedW}" class="warmup-input w-14 h-12 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"><span class="fraction-display"><span class="fraction-num pb-1"><input type="number" placeholder="" data-ans="${expectedN}" class="warmup-input w-14 h-10 text-center text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"></span><span class="fraction-den pt-1">${den}</span></span>`;
+                grid.innerHTML = '';
+                window.setupWarmupInputs();
+
+            } else {
+                lastTier6SubType = (lastTier6SubType === 1) ? 2 : 1;
+                let subType = lastTier6SubType;
+                let w, den, rem, num;
+                do {
+                    w = getRandomInt(1, 5); den = getRandomInt(3, 9); rem = getRandomInt(1, den - 1); num = w * den + rem;
+                    key = `tier6_${subType}_${w}_${rem}_${den}`; attempts++;
+                } while (key === lastWarmupKey && attempts < 20);
+                lastWarmupKey = key;
+
+                if (subType === 1) {
+                    window.currentWarmupHint = `<span class="fraction-display"><span class="fraction-num">${num}</span><span class="fraction-den">${den}</span></span> = ${num} : ${den} = ${w} (ост. ${rem}) = ${w}<span class="fraction-display"><span class="fraction-num">${rem}</span><span class="fraction-den">${den}</span></span>`;
+                    display.innerHTML = `<span class="fraction-display"><span class="fraction-num">${num}</span><span class="fraction-den">${den}</span></span><span>=</span><input type="number" placeholder="" data-ans="${w}" class="warmup-input w-14 h-12 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"><span class="fraction-display"><span class="fraction-num pb-1"><input type="number" placeholder="" data-ans="${rem}" class="warmup-input w-14 h-10 text-center text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"></span><span class="fraction-den pt-1">${den}</span></span>`;
+                } else {
+                    window.currentWarmupHint = `${w}<span class="fraction-display"><span class="fraction-num">${rem}</span><span class="fraction-den">${den}</span></span> = <span class="fraction-display"><span class="fraction-num">${w} &middot; ${den} + ${rem}</span><span class="fraction-den">${den}</span></span> = <span class="fraction-display"><span class="fraction-num">${num}</span><span class="fraction-den">${den}</span></span>`;
+                    display.innerHTML = `<span>${w}</span><span class="fraction-display"><span class="fraction-num">${rem}</span><span class="fraction-den">${den}</span></span><span>=</span><span class="fraction-display"><span class="fraction-num pb-1"><input type="number" placeholder="" data-ans="${num}" class="warmup-input w-16 h-12 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl bg-orange-50 focus:bg-white text-orange-900 focus:outline-none shadow-inner"></span><span class="fraction-den pt-1">${den}</span></span>`;
+                }
+                grid.innerHTML = '';
+                window.setupWarmupInputs();
+            }
+
+            var wrapper = document.getElementById('warmupFeedbackWrapper');
+            if (wrapper) wrapper.classList.add('hidden');
+        };
+
+        window.setupWarmupInputs = function() {
+            setTimeout(() => {
+                var inputs = Array.from(document.querySelectorAll('.warmup-input'));
+                if (inputs.length === 0) return;
+                
+                inputs[0].focus();
+                inputs.forEach((input, index) => {
+                    input.addEventListener('input', (e) => {
+                        var expectedAns = e.target.getAttribute('data-ans');
+                        if (e.target.value.length === expectedAns.length) {
+                            if (index < inputs.length - 1) setTimeout(() => inputs[index + 1].focus(), 150);
+                            if (warmupInputTimer) clearTimeout(warmupInputTimer);
+                            warmupInputTimer = setTimeout(() => window.checkWarmupMultiInputs(false), 400);
+                        }
+                    });
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            if (warmupInputTimer) clearTimeout(warmupInputTimer);
+                            window.checkWarmupMultiInputs(true);
+                        }
+                    });
+                });
+            }, 50);
+        };
+
+        window.checkWarmupMultiInputs = function(forceEnter = false) {
+            var inputs = Array.from(document.querySelectorAll('.warmup-input'));
+            if (inputs.length === 0) return;
+            var allFilled = true, allCorrect = true, anyWrong = false;
+
+            inputs.forEach(input => {
+                var val = input.value.trim();
+                var expected = input.getAttribute('data-ans');
+                
+                if (val === '') {
+                    allFilled = false;
+                } else if (!forceEnter && val.length < expected.length) {
+                    allFilled = false;
+                } else if (parseInt(val) !== parseInt(expected)) {
+                    allCorrect = false; anyWrong = true;
+                }
+            });
+
+            if (allCorrect && allFilled) window.checkWarmupAnswer(true);
+            else if ((allFilled && anyWrong) || (forceEnter && anyWrong)) window.checkWarmupAnswer(false);
+        };
+
+        window.renderWarmupOptions = function(options) {
+            var uniqueOptions = [], seen = new Set();
+            for (var opt of options) {
+                if (!seen.has(opt.key)) { seen.add(opt.key); uniqueOptions.push(opt); }
+            }
+            uniqueOptions.sort(() => Math.random() - 0.5);
+
+            var grid = document.getElementById('warmupOptionsGrid');
+            if (grid) {
+                grid.innerHTML = uniqueOptions.map(opt => `
+                    <button onclick="window.checkWarmupAnswer(${opt.correct})" class="bg-slate-100 hover:bg-emerald-100 active:bg-emerald-200 border-2 border-slate-300 hover:border-emerald-500 rounded-2xl px-6 py-3 transition transform hover:scale-105 active:scale-95 text-2xl font-black text-slate-800 shadow-sm flex items-center justify-center gap-1">${opt.label}</button>
+                `).join('');
+            }
+        };
+
+        window.checkWarmupAnswer = function(isCorrect) {
+            var wrapper = document.getElementById('warmupFeedbackWrapper');
+            var fb = document.getElementById('warmupFeedback');
+            if (!wrapper || !fb) return;
+            wrapper.classList.remove('hidden');
+
+            if (isCorrect) {
+                warmupStreak++;
+                fb.className = "px-6 py-3 rounded-2xl text-lg md:text-xl font-bold text-center shadow-sm w-full bg-orange-100 text-orange-900 border-2 border-orange-300";
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Чудово! Правильно!`;
+                addScore(10);
+                if (window.confetti) confetti({ particleCount: 25, spread: 50, origin: { y: 0.7 } });
+                setTimeout(() => { window.generateWarmupTask(); }, 1200);
+            } else {
+                var tierFloor = (currentWarmupLevel - 1) * 6;
+                warmupStreak = Math.max(tierFloor, warmupStreak);
+                fb.className = "px-6 py-3 rounded-2xl text-lg md:text-xl font-bold text-center shadow-sm w-full bg-orange-100 text-orange-900 border-2 border-orange-300";
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-orange-600 mr-2"></i>Підказка: ${window.currentWarmupHint}`;
+                
+                var inputs = document.querySelectorAll('.warmup-input');
+                inputs.forEach(inp => { if (inp.value && parseInt(inp.value) !== parseInt(inp.getAttribute('data-ans'))) inp.value = ''; });
+                if(inputs.length > 0) inputs[0].focus();
+            }
+        };
+
+        // --- STAGE 2: PIZZA ---
+        window.checkPizzaChoice = function(isYes) {
+            var qBlock = document.getElementById('pizzaQuestionBlock');
+            var fbBox = document.getElementById('pizzaFeedbackBox');
+            var fbText = document.getElementById('pizzaFeedbackText');
+            var knifeArea = document.getElementById('knifeActionArea');
+
+            if (qBlock) qBlock.classList.add('hidden');
+            if (!fbBox || !fbText) return;
+            fbBox.classList.remove('hidden');
+
+            if (isYes) {
+                fbText.innerHTML = `<span class="text-rose-700 font-extrabold text-xl block mb-1">Не зовсім так,</span><span class="text-slate-800 font-bold text-base md:text-lg">бо шматочки мають <span class="text-rose-600 font-black underline decoration-rose-300">різний розмір</span>!</span><span class="text-orange-800 font-extrabold text-base md:text-lg block mt-1">Щоб їх додати, шматочки мають бути <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded-md border border-orange-300 font-black">однаковими</span>.</span>`;
+            } else {
+                fbText.innerHTML = `<span class="text-emerald-700 font-extrabold text-xl block mb-1">Молодець, правильно!</span><span class="text-slate-800 font-bold text-base md:text-lg">Адже шматочки мають <span class="text-rose-600 font-black underline decoration-rose-300">різний розмір</span>!</span><span class="text-orange-800 font-extrabold text-base md:text-lg block mt-1">Щоб їх додати, шматочки мають бути <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded-md border border-orange-300 font-black">однаковими</span>.</span>`;
+                addScore(10);
+                if (window.confetti) confetti({ particleCount: 25, spread: 50, origin: { y: 0.7 } });
+            }
+            if (knifeArea) knifeArea.classList.remove('hidden');
+        };
+
+        window.performPizzaCut = function() {
+            var fbBox = document.getElementById('pizzaFeedbackBox');
+            var pizzaLeft = document.getElementById('pizzaVisualLeft');
+            var olyaLabel = document.getElementById('olyaFractionLabel');
+            var totalLabel = document.getElementById('totalFractionLabel');
+            var pizzaTotal = document.getElementById('pizzaVisualTotal');
+            var ruleBox = document.getElementById('pizzaRuleBox');
+
+            if (fbBox) fbBox.classList.add('hidden');
+            if (pizzaLeft) {
+                pizzaLeft.innerHTML = `
+                    <div class="w-full h-full grid grid-cols-2 grid-rows-2">
+                        <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                        <div class="bg-orange-50 border border-orange-200"></div>
+                        <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                        <div class="bg-orange-50 border border-orange-200"></div>
+                    </div>
+                `;
+            }
+            if (olyaLabel) olyaLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">2</span><span class="fraction-den">4</span></span>`;
+            if (totalLabel) totalLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">3</span><span class="fraction-den">4</span></span>`;
+
+            if (pizzaTotal) {
+                pizzaTotal.className = "w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-orange-500 bg-orange-50 overflow-hidden relative shadow-sm mx-auto grid grid-cols-2 grid-rows-2";
+                pizzaTotal.innerHTML = `
+                    <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                    <div class="bg-orange-50 border border-orange-200"></div>
+                    <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                    <div class="bg-orange-300 border border-orange-600 flex items-center justify-center font-black text-orange-900 text-xs"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></div>
+                `;
+            }
+            if (ruleBox) ruleBox.classList.remove('hidden');
+            addScore(15);
+            if (window.confetti) confetti({ particleCount: 35, spread: 65, origin: { y: 0.7 } });
+        };
+
+        window.advancePizza = function(step) {
+            if (step === 1) {
+                var w1 = document.getElementById('pizzaStep1Wrap');
+                if(w1) w1.classList.add('hidden');
+                var qb = document.getElementById('pizzaQuestionBlock');
+                if(qb) qb.classList.remove('hidden');
+            } else if (step === 2) {
+                var w2 = document.getElementById('pizzaStep2Wrap');
+                if(w2) w2.classList.add('hidden');
+                var qBtns = document.getElementById('pizzaQuestionBtns');
+                if(qBtns) qBtns.classList.remove('hidden');
+                var vBlock = document.getElementById('pizzaVisualBlock');
+                if(vBlock) vBlock.classList.remove('hidden');
+            }
+        };
+
+        window.resetStage2 = function() {
+            var qBlock = document.getElementById('pizzaQuestionBlock');
+            var fbBox = document.getElementById('pizzaFeedbackBox');
+            var knifeArea = document.getElementById('knifeActionArea');
+            var ruleBox = document.getElementById('pizzaRuleBox');
+            var visBlock = document.getElementById('pizzaVisualBlock');
+            var step1Wrap = document.getElementById('pizzaStep1Wrap');
+            var step2Wrap = document.getElementById('pizzaStep2Wrap');
+            var qBtns = document.getElementById('pizzaQuestionBtns');
+
+            if (qBlock) qBlock.classList.add('hidden');
+            if (fbBox) fbBox.classList.add('hidden');
+            if (knifeArea) knifeArea.classList.add('hidden');
+            if (ruleBox) ruleBox.classList.add('hidden');
+            
+            if (visBlock) visBlock.classList.add('hidden');
+            if (step1Wrap) step1Wrap.classList.remove('hidden');
+            if (step2Wrap) step2Wrap.classList.remove('hidden');
+            if (qBtns) qBtns.classList.add('hidden');
+
+            var pizzaLeft = document.getElementById('pizzaVisualLeft');
+            var olyaLabel = document.getElementById('olyaFractionLabel');
+            var totalLabel = document.getElementById('totalFractionLabel');
+            var pizzaTotal = document.getElementById('pizzaVisualTotal');
+
+            if (pizzaLeft) {
+                pizzaLeft.innerHTML = `
+                    <div class="w-1/2 h-full bg-orange-300 border-r-2 border-orange-600 flex items-center justify-center font-black text-orange-900 text-sm">
+                        <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span>
+                    </div>
+                    <div class="w-1/2 h-full bg-orange-50"></div>
+                `;
+            }
+            if (olyaLabel) olyaLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span>`;
+            if (totalLabel) totalLabel.innerText = '?';
+
+            if (pizzaTotal) {
+                pizzaTotal.className = "w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shadow-inner mx-auto";
+                pizzaTotal.innerHTML = `<span class="text-3xl font-black text-slate-400">?</span>`;
+            }
+        };
+
+        // --- STAGE 3: VISUALIZER & ADVANCED ---
+        var currentPractice = {};
+        var isVisCutExecuted = false;
+        var isVisCombineExecuted = false;
+        var isVisAnswerChecked = false;
+        var lastPracticeIndex = -1;
+        var autoPracticeCheckTimer = null;
+        var isAdvancedPracticeMode = false;
+
+        window.toggleAdvancedPractice = function() {
+            isAdvancedPracticeMode = !isAdvancedPracticeMode;
+            var starBtn = document.getElementById('visStarBtn');
+            var title = document.getElementById('stage3Title');
+            
+            if(isAdvancedPracticeMode) {
+                document.getElementById('visualPracticeMode').classList.add('hidden');
+                document.getElementById('advancedPracticeMode').classList.remove('hidden');
+                starBtn.classList.add('text-orange-500', 'bg-orange-100', 'border-orange-300', 'shadow-md');
+                starBtn.classList.remove('text-slate-400', 'hover:bg-orange-50', 'border-transparent', 'animate-pulse', 'text-orange-500');
+                title.innerText = "Зведення до спільного знаменника";
+                window.generateAdvancedTask();
+            } else {
+                document.getElementById('advancedPracticeMode').classList.add('hidden');
+                document.getElementById('visualPracticeMode').classList.remove('hidden');
+                starBtn.classList.remove('text-orange-500', 'bg-orange-100', 'border-orange-300', 'shadow-md');
+                starBtn.classList.add('text-slate-400', 'hover:bg-orange-50', 'border-transparent');
+                title.innerText = "Поріж та об'єднай";
+                window.generatePracticeTask();
+            }
+        };
+
+        // VISUALIZER MODE LOGIC
+        window.createSvgCircleSector = function(den, num, strokeColor, fillColor, emptyColor = '#ffffff') {
+            var size = 180, cx = size / 2, cy = size / 2, r = 82;
+            let svgHtml = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="w-full h-full">`;
+            if (den === 1) {
+                let fill = num >= 1 ? fillColor : emptyColor;
+                svgHtml += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${strokeColor}" stroke-width="4"/>`;
+            } else {
+                for (let i = 0; i < den; i++) {
+                    let startAngle = (i * 2 * Math.PI / den) - (Math.PI / 2);
+                    let endAngle = ((i + 1) * 2 * Math.PI / den) - (Math.PI / 2);
+                    let x1 = cx + r * Math.cos(startAngle), y1 = cy + r * Math.sin(startAngle);
+                    let x2 = cx + r * Math.cos(endAngle), y2 = cy + r * Math.sin(endAngle);
+                    let largeArcFlag = (endAngle - startAngle) > Math.PI ? 1 : 0;
+                    let pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+                    let fill = (i < num) ? fillColor : emptyColor;
+                    svgHtml += `<path d="${pathData}" fill="${fill}" stroke="${strokeColor}" stroke-width="3" stroke-linejoin="round"/>`;
+                }
+            }
+            return svgHtml + `</svg>`;
+        };
+
+        window.createCombinedSvgCircle = function(den, numBlue, numPink) {
+            var size = 180, cx = size / 2, cy = size / 2, r = 82;
+            let svgHtml = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="w-full h-full">`;
+            for (let i = 0; i < den; i++) {
+                let startAngle = (i * 2 * Math.PI / den) - (Math.PI / 2);
+                let endAngle = ((i + 1) * 2 * Math.PI / den) - (Math.PI / 2);
+                let x1 = cx + r * Math.cos(startAngle), y1 = cy + r * Math.sin(startAngle);
+                let x2 = cx + r * Math.cos(endAngle), y2 = cy + r * Math.sin(endAngle);
+                let largeArcFlag = (endAngle - startAngle) > Math.PI ? 1 : 0;
+                let pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+                
+                let fill = '#ffffff', stroke = '#94a3b8', strokeWidth = '2';
+                if (i < numBlue) { fill = '#60a5fa'; stroke = '#1d4ed8'; strokeWidth = '2.5'; }
+                else if (i < numBlue + numPink) { fill = '#f472b6'; stroke = '#be185d'; strokeWidth = '2.5'; }
+                svgHtml += `<path d="${pathData}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>`;
+            }
+            return svgHtml + `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#be185d" stroke-width="3"/></svg>`;
+        };
+
+        window.renderPracticeCircles = function() {
+            var leftLabel = document.getElementById('visLeftLabel');
+            var leftContainer = document.getElementById('visLeftCircleContainer');
+            var rightLabel = document.getElementById('visRightLabel');
+            var rightContainer = document.getElementById('visRightCircleContainer');
+            var resContainer = document.getElementById('visResultCircleContainer');
+
+            if (!currentPractice || !currentPractice.den1) return;
+            var p = currentPractice;
+
+            if (!isVisCutExecuted) {
+                if (leftLabel) leftLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">${p.num1}</span><span class="fraction-den">${p.den1}</span></span>`;
+                if (leftContainer) leftContainer.innerHTML = window.createSvgCircleSector(p.den1, p.num1, '#1d4ed8', '#60a5fa', '#f0f9ff');
+                if (rightLabel) rightLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">${p.num2}</span><span class="fraction-den">${p.den2}</span></span>`;
+                if (rightContainer) rightContainer.innerHTML = window.createSvgCircleSector(p.den2, p.num2, '#be185d', '#f472b6', '#fdf2f8');
+                if (resContainer) {
+                    resContainer.className = "w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shadow-inner mx-auto";
+                    resContainer.innerHTML = `<span class="text-3xl font-black text-slate-400">?</span>`;
+                }
+            } else {
+                if (leftLabel) leftLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">${p.convertedNum1}</span><span class="fraction-den">${p.commonDen}</span></span>`;
+                if (leftContainer) leftContainer.innerHTML = window.createSvgCircleSector(p.commonDen, p.convertedNum1, '#1d4ed8', '#60a5fa', '#f0f9ff');
+                if (rightLabel) rightLabel.innerHTML = `<span class="fraction-display"><span class="fraction-num">${p.convertedNum2}</span><span class="fraction-den">${p.commonDen}</span></span>`;
+                if (rightContainer) rightContainer.innerHTML = window.createSvgCircleSector(p.commonDen, p.convertedNum2, '#be185d', '#f472b6', '#fdf2f8');
+                if (isVisCombineExecuted && resContainer) {
+                    resContainer.className = "w-32 h-32 md:w-44 flex items-center justify-center drop-shadow-sm";
+                    resContainer.innerHTML = window.createCombinedSvgCircle(p.commonDen, p.convertedNum1, p.convertedNum2);
+                }
+            }
+        };
+
+        window.renderPracticeHeader = function() {
+            var header = document.getElementById('visTaskHeader');
+            if (!header) return;
+            var p = currentPractice;
+
+            var frac1WithMult = `<span class="inline-flex items-start relative"><span class="fraction-display text-blue-600"><span class="fraction-num">${p.num1}</span><span class="fraction-den">${p.den1}</span></span>${p.mult1 > 1 ? `<span class="inline-flex items-center text-xs md:text-sm font-black text-blue-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>${p.mult1}</span></span>` : ''}</span>`;
+            var frac2WithMult = `<span class="inline-flex items-start relative"><span class="fraction-display text-pink-600"><span class="fraction-num">${p.num2}</span><span class="fraction-den">${p.den2}</span></span>${p.mult2 > 1 ? `<span class="inline-flex items-center text-xs md:text-sm font-black text-pink-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>${p.mult2}</span></span>` : ''}</span>`;
+            var inputFractionBox = `<div class="inline-flex flex-col items-center align-middle mx-1"><input type="number" id="practiceInputNum" placeholder="" class="w-12 text-center text-xl font-black border-2 border-indigo-400 focus:border-indigo-600 rounded-lg py-0.5 focus:outline-none bg-white"><div class="w-full border-b-2 border-slate-800 my-0.5"></div><input type="number" id="practiceInputDen" placeholder="" class="w-12 text-center text-xl font-black border-2 border-indigo-400 focus:border-indigo-600 rounded-lg py-0.5 focus:outline-none bg-white"></div>`;
+
+            if (!isVisCutExecuted) {
+                header.innerHTML = `<span class="fraction-display text-blue-600"><span class="fraction-num">${p.num1}</span><span class="fraction-den">${p.den1}</span></span><span class="text-slate-400">+</span><span class="fraction-display text-pink-600"><span class="fraction-num">${p.num2}</span><span class="fraction-den">${p.den2}</span></span><span class="text-slate-400">=</span><span class="text-slate-400 font-bold">?</span>`;
+            } else if (!isVisCombineExecuted) {
+                header.innerHTML = `${frac1WithMult}<span class="text-slate-400">+</span>${frac2WithMult}<span class="text-slate-400">=</span><span class="fraction-display text-blue-600"><span class="fraction-num">${p.convertedNum1}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">+</span><span class="fraction-display text-pink-600"><span class="fraction-num">${p.convertedNum2}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">=</span><span class="text-slate-400 font-bold">?</span>`;
+            } else if (!isVisAnswerChecked) {
+                header.innerHTML = `${frac1WithMult}<span class="text-slate-400">+</span>${frac2WithMult}<span class="text-slate-400">=</span><span class="fraction-display text-blue-600"><span class="fraction-num">${p.convertedNum1}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">+</span><span class="fraction-display text-pink-600"><span class="fraction-num">${p.convertedNum2}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">=</span>${inputFractionBox}`;
+            } else {
+                header.innerHTML = `${frac1WithMult}<span class="text-slate-400">+</span>${frac2WithMult}<span class="text-slate-400">=</span><span class="fraction-display text-blue-600"><span class="fraction-num">${p.convertedNum1}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">+</span><span class="fraction-display text-pink-600"><span class="fraction-num">${p.convertedNum2}</span><span class="fraction-den">${p.commonDen}</span></span><span class="text-slate-400">=</span><span class="fraction-display text-orange-700 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span class="fraction-num">${p.resNum}</span><span class="fraction-den">${p.commonDen}</span></span>`;
+            }
+        };
+
+        window.generatePracticeTask = function() {
+            var pairList = [
+                { num1: 1, den1: 3, num2: 1, den2: 6 }, { num1: 1, den1: 2, num2: 1, den2: 3 },
+                { num1: 1, den1: 4, num2: 3, den2: 8 }, { num1: 1, den1: 3, num2: 1, den2: 4 },
+                { num1: 2, den1: 5, num2: 1, den2: 2 }, { num1: 1, den1: 6, num2: 2, den2: 3 },
+                { num1: 1, den1: 5, num2: 3, den2: 10 }, { num1: 1, den1: 6, num2: 1, den2: 4 },
+                { num1: 1, den1: 4, num2: 5, den2: 12 }, { num1: 2, den1: 3, num2: 1, den2: 4 },
+                { num1: 1, den1: 8, num2: 1, den2: 2 }, { num1: 1, den1: 10, num2: 2, den2: 5 },
+                { num1: 1, den1: 2, num2: 2, den2: 5 }, { num1: 1, den1: 3, num2: 2, den2: 5 }
+            ];
+            let idx;
+            do { idx = getRandomInt(0, pairList.length - 1); } while (idx === lastPracticeIndex);
+            lastPracticeIndex = idx;
+            let task = pairList[idx];
+            let commonDen = (task.den1 * task.den2) / gcd(task.den1, task.den2);
+            let mult1 = commonDen / task.den1;
+            let mult2 = commonDen / task.den2;
+
+            currentPractice = {
+                num1: task.num1, den1: task.den1, num2: task.num2, den2: task.den2,
+                mult1: mult1, mult2: mult2, commonDen: commonDen,
+                convertedNum1: task.num1 * mult1, convertedNum2: task.num2 * mult2,
+                resNum: (task.num1 * mult1) + (task.num2 * mult2)
+            };
+
+            isVisCutExecuted = false; isVisCombineExecuted = false; isVisAnswerChecked = false;
+            document.getElementById('btnCutSlices').classList.remove('hidden');
+            document.getElementById('btnCombineSlices').classList.add('hidden');
+            document.getElementById('practiceInputRow').classList.add('hidden');
+            document.getElementById('btnNewPracticeTask').classList.add('hidden');
+            document.getElementById('practiceFeedback').classList.add('hidden');
+
+            window.renderPracticeHeader();
+            window.renderPracticeCircles();
+        };
+
+        window.performVisualCut = function() {
+            isVisCutExecuted = true;
+            document.getElementById('btnCutSlices').classList.add('hidden');
+            document.getElementById('btnCombineSlices').classList.remove('hidden');
+            window.renderPracticeHeader();
+            window.renderPracticeCircles();
+        };
+
+        window.performVisualCombine = function() {
+            if (!isVisCutExecuted) window.performVisualCut();
+            isVisCombineExecuted = true;
+            document.getElementById('btnCombineSlices').classList.add('hidden');
+            document.getElementById('practiceInputRow').classList.remove('hidden');
+            window.renderPracticeHeader();
+            window.renderPracticeCircles();
+            setTimeout(window.setupPracticeInputs, 50);
+        };
+
+        window.setupPracticeInputs = function() {
+            var numIn = document.getElementById('practiceInputNum');
+            var denIn = document.getElementById('practiceInputDen');
+            if (!numIn || !denIn) return;
+            numIn.focus();
+            numIn.addEventListener('input', (e) => {
+                var expectedLen = String(currentPractice.resNum).length;
+                if (e.target.value.length === expectedLen) setTimeout(() => { denIn.focus(); }, 150);
+                window.triggerAutoPracticeCheck();
+            });
+            denIn.addEventListener('input', window.triggerAutoPracticeCheck);
+            denIn.addEventListener('keydown', (e) => { if(e.key==='Enter') window.checkPracticeTask(); });
+            numIn.addEventListener('keydown', (e) => { if(e.key==='Enter') denIn.focus(); });
+        };
+        
+        window.triggerAutoPracticeCheck = function() {
+            if (autoPracticeCheckTimer) clearTimeout(autoPracticeCheckTimer);
+            autoPracticeCheckTimer = setTimeout(window.checkPracticeTask, 400);
+        };
+        
+        window.checkPracticeTask = function() {
+            var inputNum = parseInt(document.getElementById('practiceInputNum')?.value || '');
+            var inputDen = parseInt(document.getElementById('practiceInputDen')?.value || '');
+            if (isNaN(inputNum) || isNaN(inputDen)) return;
+            var fb = document.getElementById('practiceFeedback');
+            fb.classList.remove('hidden');
+
+            if (inputDen === currentPractice.commonDen && inputNum === currentPractice.resNum) {
+                isVisAnswerChecked = true;
+                window.renderPracticeHeader();
+                fb.className = "text-center text-base md:text-lg font-bold p-2.5 px-6 rounded-2xl bg-orange-100 text-orange-900 border-2 border-orange-300 shadow-sm";
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Чудово, правильно!`;
+                document.getElementById('btnNewPracticeTask').classList.remove('hidden');
+                addScore(15);
+                if (window.confetti) confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+            } else {
+                fb.className = "text-center text-base md:text-lg font-bold p-2.5 px-6 rounded-2xl bg-rose-100 text-rose-900 border-2 border-rose-300 shadow-sm";
+                fb.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 mr-2"></i>Подумай ще...`;
+                document.getElementById('btnNewPracticeTask').classList.add('hidden');
+            }
+        };
+
+        // ADVANCED MODE LOGIC (MIXED NUMBERS WITH MULTIPLIERS)
+        var advancedPracticeTasks = [
+            { w1: 1, n1: 1, d1: 3, m1: 2, w2: 2, n2: 1, d2: 2, m2: 3, resW: 3, resN: 5, resD: 6 },
+            { w1: 2, n1: 1, d1: 4, m1: 5, w2: 1, n2: 2, d2: 5, m2: 4, resW: 3, resN: 13, resD: 20 },
+            { w1: 3, n1: 1, d1: 5, m1: 2, w2: 1, n2: 1, d2: 2, m2: 5, resW: 4, resN: 7, resD: 10 },
+            { w1: 1, n1: 2, d1: 7, m1: 3, w2: 2, n2: 1, d2: 3, m2: 7, resW: 3, resN: 13, resD: 21 },
+            { w1: 2, n1: 1, d1: 6, m1: 2, w2: 1, n2: 3, d2: 4, m2: 3, resW: 3, resN: 11, resD: 12 },
+            { w1: 1, n1: 3, d1: 8, m1: 3, w2: 2, n2: 1, d2: 6, m2: 4, resW: 3, resN: 13, resD: 24 },
+            { w1: 4, n1: 1, d1: 2, m1: 3, w2: 1, n2: 1, d2: 3, m2: 2, resW: 5, resN: 5, resD: 6 },
+            { w1: 2, n1: 2, d1: 9, m1: 2, w2: 3, n2: 1, d2: 6, m2: 3, resW: 5, resN: 7, resD: 18 }
+        ];
+        var currentAdvTask = null;
+        var lastAdvIndex = -1;
+        var advCheckTimer = null;
+
+        window.generateAdvancedTask = function() {
+            let idx;
+            do { idx = getRandomInt(0, advancedPracticeTasks.length - 1); } while (idx === lastAdvIndex);
+            lastAdvIndex = idx;
+            currentAdvTask = advancedPracticeTasks[idx];
+            
+            var t = currentAdvTask;
+            var html = `
+                <div class="flex items-center flex-wrap justify-center gap-y-6 gap-x-2 w-full">
+                    <!-- 1. ПОЧАТКОВИЙ ВИРАЗ ІЗ ДОДАТКОВИМИ МНОЖНИКАМИ -->
+                    <div class="flex items-center gap-1 md:gap-2">
+                        <!-- Дріб 1 -->
+                        <div class="flex items-center">
+                            <span class="text-3xl md:text-4xl text-blue-900 font-bold">${t.w1}</span>
+                            <div class="inline-flex items-center relative ml-1 md:ml-2 mt-4">
+                                <span class="fraction-display text-blue-600 font-bold">
+                                    <span class="fraction-num relative">${t.n1}
+                                        <!-- Множник З ПРАВОГО БОКУ (українська система) -->
+                                        <div class="absolute bottom-[40%] left-[100%] flex items-start pointer-events-none z-10 pl-0.5">
+                                            <!-- Бісектриса 2-го кута (\) -->
+                                            <svg class="w-2.5 h-4 md:w-3 md:h-5 text-red-500 mt-1" viewBox="0 0 10 20" fill="none" preserveAspectRatio="none">
+                                                <line x1="0" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <!-- Квадратик (правіше зверху) -->
+                                            <input type="number" id="advM1" data-ans="${t.m1}" class="adv-input w-5 h-5 md:w-6 md:h-6 pointer-events-auto text-center text-xs md:text-sm font-black border-[1.5px] border-red-500 focus:border-red-600 rounded-sm px-0 py-0 focus:outline-none bg-white text-red-600 shadow-inner leading-none ml-0.5 -mt-1.5">
+                                        </div>
+                                    </span>
+                                    <span class="fraction-den">${t.d1}</span>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="text-slate-400 text-3xl md:text-4xl mx-2 font-bold">+</span>
+                        <!-- Дріб 2 -->
+                        <div class="flex items-center">
+                            <span class="text-3xl md:text-4xl text-pink-900 font-bold">${t.w2}</span>
+                            <div class="inline-flex items-center relative ml-1 md:ml-2 mt-4">
+                                <span class="fraction-display text-pink-600 font-bold">
+                                    <span class="fraction-num relative">${t.n2}
+                                        <!-- Множник З ПРАВОГО БОКУ (українська система) -->
+                                        <div class="absolute bottom-[40%] left-[100%] flex items-start pointer-events-none z-10 pl-0.5">
+                                            <!-- Бісектриса 2-го кута (\) -->
+                                            <svg class="w-2.5 h-4 md:w-3 md:h-5 text-red-500 mt-1" viewBox="0 0 10 20" fill="none" preserveAspectRatio="none">
+                                                <line x1="0" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <!-- Квадратик (правіше зверху) -->
+                                            <input type="number" id="advM2" data-ans="${t.m2}" class="adv-input w-5 h-5 md:w-6 md:h-6 pointer-events-auto text-center text-xs md:text-sm font-black border-[1.5px] border-red-500 focus:border-red-600 rounded-sm px-0 py-0 focus:outline-none bg-white text-red-600 shadow-inner leading-none ml-0.5 -mt-1.5">
+                                        </div>
+                                    </span>
+                                    <span class="fraction-den">${t.d2}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <span class="text-slate-400 text-3xl md:text-4xl mx-2 font-bold">=</span>
+
+                    <!-- 2. ПРОМІЖНИЙ ЕТАП (Зведені дроби: цілі незмінні, дроби вписуємо) -->
+                    <div class="flex items-center gap-1 md:gap-2">
+                        <div class="flex items-center">
+                            <span class="text-3xl md:text-4xl text-blue-900 mr-1 md:mr-2 font-bold">${t.w1}</span>
+                            <div class="inline-flex flex-col items-center align-middle">
+                                <input type="number" id="advCN1" data-ans="${t.n1 * t.m1}" class="adv-input w-10 h-10 md:w-12 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-blue-400 focus:border-blue-600 rounded-xl py-0 focus:outline-none bg-white text-blue-900 shadow-inner">
+                                <div class="w-full border-b-[3px] border-slate-800 my-0.5 md:my-1"></div>
+                                <input type="number" id="advCD1" data-ans="${t.d1 * t.m1}" class="adv-input w-10 h-10 md:w-12 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-blue-400 focus:border-blue-600 rounded-xl py-0 focus:outline-none bg-white text-blue-900 shadow-inner">
+                            </div>
+                        </div>
+                        <span class="text-slate-400 text-3xl md:text-4xl mx-1 font-bold">+</span>
+                        <div class="flex items-center">
+                            <span class="text-3xl md:text-4xl text-pink-900 mr-1 md:mr-2 font-bold">${t.w2}</span>
+                            <div class="inline-flex flex-col items-center align-middle">
+                                <input type="number" id="advCN2" data-ans="${t.n2 * t.m2}" class="adv-input w-10 h-10 md:w-12 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-pink-400 focus:border-pink-600 rounded-xl py-0 focus:outline-none bg-white text-pink-900 shadow-inner">
+                                <div class="w-full border-b-[3px] border-slate-800 my-0.5 md:my-1"></div>
+                                <input type="number" id="advCD2" data-ans="${t.d2 * t.m2}" class="adv-input w-10 h-10 md:w-12 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-pink-400 focus:border-pink-600 rounded-xl py-0 focus:outline-none bg-white text-pink-900 shadow-inner">
+                            </div>
+                        </div>
+                    </div>
+
+                    <span class="text-slate-400 text-3xl md:text-4xl mx-1 font-bold">=</span>
+
+                    <!-- 3. ФІНАЛЬНИЙ РЕЗУЛЬТАТ -->
+                    <div class="flex items-center">
+                        <input type="number" id="advResW" data-ans="${t.resW}" class="adv-input w-12 h-14 md:w-14 md:h-16 text-center text-3xl md:text-4xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl py-0 focus:outline-none bg-white text-orange-900 shadow-inner mr-1 md:mr-2">
+                        <div class="inline-flex flex-col items-center align-middle">
+                            <input type="number" id="advResN" data-ans="${t.resN}" class="adv-input w-12 h-10 md:w-14 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl py-0 focus:outline-none bg-white text-orange-900 shadow-inner">
+                            <div class="w-full border-b-[3px] border-slate-800 my-0.5 md:my-1"></div>
+                            <input type="number" id="advResD" data-ans="${t.resD}" class="adv-input w-12 h-10 md:w-14 md:h-12 text-center text-xl md:text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl py-0 focus:outline-none bg-white text-orange-900 shadow-inner">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('advTaskExpression').innerHTML = html;
+            document.getElementById('btnNewAdvTask').classList.add('hidden');
+            document.getElementById('advPracticeFeedback').classList.add('hidden');
+
+            setTimeout(() => {
+                var inputs = ['advM1', 'advM2', 'advCN1', 'advCD1', 'advCN2', 'advCD2', 'advResW', 'advResN', 'advResD'].map(id => document.getElementById(id));
+                if (!inputs[0]) return;
+                inputs[0].focus();
+
+                inputs.forEach((inp, i) => {
+                    inp.addEventListener('input', (e) => {
+                        let expected = e.target.getAttribute('data-ans');
+                        if (e.target.value.length === expected.length) {
+                            if (i < inputs.length - 1) setTimeout(() => inputs[i+1].focus(), 150);
+                            if (advCheckTimer) clearTimeout(advCheckTimer);
+                            advCheckTimer = setTimeout(window.checkAdvancedTask, 400);
+                        }
+                    });
+                    inp.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            if (advCheckTimer) clearTimeout(advCheckTimer);
+                            window.checkAdvancedTask(true);
+                        }
+                    });
+                });
+            }, 50);
+        };
+
+        window.checkAdvancedTask = function(forceEnter = false) {
+            var inputs = Array.from(document.querySelectorAll('.adv-input'));
+            if (inputs.length === 0) return;
+            var allFilled = true, allCorrect = true, anyWrong = false;
+
+            inputs.forEach(inp => {
+                var val = inp.value.trim();
+                var expected = inp.getAttribute('data-ans');
+                if (val === '') allFilled = false;
+                else if (!forceEnter && val.length < expected.length) allFilled = false;
+                else if (parseInt(val) !== parseInt(expected)) { allCorrect = false; anyWrong = true; }
+            });
+
+            var fb = document.getElementById('advPracticeFeedback');
+            if (allCorrect && allFilled) {
+                fb.classList.remove('hidden');
+                fb.className = "w-full max-w-md mx-auto text-center text-lg md:text-xl font-bold p-3 px-8 rounded-2xl shadow-sm mb-4 bg-orange-100 text-orange-900 border-2 border-orange-300";
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Відмінно! Спільний знаменник знайдено правильно.`;
+                document.getElementById('btnNewAdvTask').classList.remove('hidden');
+                addScore(20);
+                if (window.confetti) confetti({ particleCount: 35, spread: 65, origin: { y: 0.7 } });
+            } else if ((allFilled && anyWrong) || (forceEnter && anyWrong)) {
+                fb.classList.remove('hidden');
+                fb.className = "w-full max-w-md mx-auto text-center text-lg md:text-xl font-bold p-3 px-8 rounded-2xl shadow-sm mb-4 bg-orange-100 text-orange-900 border-2 border-orange-300";
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-orange-600 mr-2"></i>Перевір додаткові множники або додавання.`;
+            }
+        };
+
+        // --- STAGE 4: DETECTIVE ---
+        var detectiveTasks = [
+            { 
+                expr: `<span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">3</span></span> + <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span> = <span class="fraction-display text-rose-600 font-extrabold"><span class="fraction-num">2</span><span class="fraction-den">5</span></span>`, 
+                isCorrect: false, 
+                explanation: `<div class="inline-flex items-center gap-2 text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 shadow-xs flex-wrap justify-center"><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">3</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>2</span></span></span><span>+</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>3</span></span></span><span>=</span><span class="fraction-display text-rose-600"><span class="fraction-num">2</span><span class="fraction-den">6</span></span><span>+</span><span class="fraction-display text-indigo-600"><span class="fraction-num">3</span><span class="fraction-den">6</span></span><span>=</span><span class="fraction-display text-orange-800 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span class="fraction-num">5</span><span class="fraction-den">6</span></span></div>` 
+            },
+            { 
+                expr: `<span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span> + <span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span> = <span class="fraction-display text-orange-700 font-extrabold"><span class="fraction-num">3</span><span class="fraction-den">4</span></span>`, 
+                isCorrect: true, 
+                explanation: `<div class="inline-flex items-center gap-2 text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 shadow-xs flex-wrap justify-center"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span><span>+</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>2</span></span></span><span>=</span><span class="fraction-display text-blue-600"><span class="fraction-num">1</span><span class="fraction-den">4</span></span><span>+</span><span class="fraction-display text-indigo-600"><span class="fraction-num">2</span><span class="fraction-den">4</span></span><span>=</span><span class="fraction-display text-orange-800 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span class="fraction-num">3</span><span class="fraction-den">4</span></span></div>` 
+            },
+            { 
+                expr: `<span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span></span> + <span class="inline-flex items-center gap-1"><span>2</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></span> = <span class="inline-flex items-center gap-1 text-rose-600 font-extrabold"><span>3</span><span class="fraction-display"><span class="fraction-num">2</span><span class="fraction-den">6</span></span></span>`, 
+                isCorrect: false, 
+                explanation: `<div class="inline-flex items-center gap-2 text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 shadow-xs flex-wrap justify-center"><span class="inline-flex items-center gap-1"><span>1</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">2</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>2</span></span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>2</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></span><span>=</span><span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display text-rose-600"><span class="fraction-num">2</span><span class="fraction-den">4</span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>2</span><span class="fraction-display text-indigo-600"><span class="fraction-num">1</span><span class="fraction-den">4</span></span></span><span>=</span><span class="inline-flex items-center gap-1 text-orange-800 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span>3</span><span class="fraction-display"><span class="fraction-num">3</span><span class="fraction-den">4</span></span></span></div>` 
+            },
+            { 
+                expr: `<span class="inline-flex items-center gap-1"><span>2</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">3</span></span></span> + <span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">5</span></span></span> = <span class="inline-flex items-center gap-1 text-rose-600 font-extrabold"><span>3</span><span class="fraction-display"><span class="fraction-num">2</span><span class="fraction-den">8</span></span></span>`, 
+                isCorrect: false, 
+                explanation: `<div class="inline-flex items-center gap-2 text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 shadow-xs flex-wrap justify-center"><span class="inline-flex items-center gap-1"><span>2</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">3</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>5</span></span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>1</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">5</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>3</span></span></span></span><span>=</span><span class="inline-flex items-center gap-1"><span>2</span><span class="fraction-display text-rose-600"><span class="fraction-num">5</span><span class="fraction-den">15</span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display text-indigo-600"><span class="fraction-num">3</span><span class="fraction-den">15</span></span></span><span>=</span><span class="inline-flex items-center gap-1 text-orange-800 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span>3</span><span class="fraction-display"><span class="fraction-num">8</span><span class="fraction-den">15</span></span></span></div>` 
+            },
+            { 
+                expr: `<span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display"><span class="fraction-num">2</span><span class="fraction-den">5</span></span></span> + <span class="inline-flex items-center gap-1"><span>3</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">10</span></span></span> = <span class="inline-flex items-center gap-1 text-orange-700 font-extrabold"><span>4</span><span class="fraction-display"><span class="fraction-num">5</span><span class="fraction-den">10</span></span></span>`, 
+                isCorrect: true, 
+                explanation: `<div class="inline-flex items-center gap-2 text-xl font-black text-slate-800 bg-white py-2 px-4 rounded-xl border border-orange-300 shadow-xs flex-wrap justify-center"><span class="inline-flex items-center gap-1"><span>1</span><span class="inline-flex items-start relative"><span class="fraction-display"><span class="fraction-num">2</span><span class="fraction-den">5</span></span><span class="inline-flex items-center text-xs font-black text-rose-600 -mt-2 -ml-2.5"><svg class="w-2.5 h-3.5 text-slate-400 inline-block -mr-1" viewBox="0 0 12 16" fill="none"><line x1="2" y1="2" x2="10" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>2</span></span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>3</span><span class="fraction-display"><span class="fraction-num">1</span><span class="fraction-den">10</span></span></span><span>=</span><span class="inline-flex items-center gap-1"><span>1</span><span class="fraction-display text-blue-600"><span class="fraction-num">4</span><span class="fraction-den">10</span></span></span><span>+</span><span class="inline-flex items-center gap-1"><span>3</span><span class="fraction-display text-indigo-600"><span class="fraction-num">1</span><span class="fraction-den">10</span></span></span><span>=</span><span class="inline-flex items-center gap-1 text-orange-800 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300"><span>4</span><span class="fraction-display"><span class="fraction-num">5</span><span class="fraction-den">10</span></span></span></div>` 
+            }
+        ];
+        var currentDetective = {};
+        var lastDetectiveIndex = -1;
+
+        window.generateDetectiveTask = function() {
+            let idx;
+            do { idx = getRandomInt(0, detectiveTasks.length - 1); } while (idx === lastDetectiveIndex);
+            lastDetectiveIndex = idx;
+            currentDetective = detectiveTasks[idx];
+
+            document.getElementById('detectiveExampleDisplay').innerHTML = currentDetective.expr;
+            document.getElementById('detectiveFeedback').classList.add('hidden');
+            document.getElementById('btnNewDetectiveTask').classList.add('hidden');
+        };
+
+        window.checkDetectiveAnswer = function(userSaysCorrect) {
+            var fb = document.getElementById('detectiveFeedback');
+            var newBtn = document.getElementById('btnNewDetectiveTask');
+            fb.classList.remove('hidden');
+            newBtn.classList.remove('hidden');
+            
+            if (userSaysCorrect === currentDetective.isCorrect) {
+                fb.className = "text-lg md:text-xl font-bold w-full text-center p-4 rounded-2xl space-y-2 bg-orange-100 border-2 border-orange-300 text-orange-900";
+                fb.innerHTML = `<p><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Правильно! Ти справжній детектив!</p>`;
+                if (!currentDetective.isCorrect) fb.innerHTML += `<div class="mt-2 text-sm md:text-base font-semibold">Правильний розв'язок: <br> ${currentDetective.explanation}</div>`;
+                addScore(15);
+                if (window.confetti) confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+            } else {
+                fb.className = "text-lg md:text-xl font-bold w-full text-center p-4 rounded-2xl space-y-2 bg-rose-100 border-2 border-rose-300 text-rose-900";
+                if (currentDetective.isCorrect) {
+                    fb.innerHTML = `<p><i class="fa-solid fa-circle-xmark text-rose-600 mr-2"></i>Насправді тут усе правильно!</p><div class="mt-2 text-sm md:text-base font-semibold">Подивись уважно: <br> ${currentDetective.explanation}</div>`;
+                } else {
+                    fb.innerHTML = `<p><i class="fa-solid fa-circle-xmark text-rose-600 mr-2"></i>Помилка все ж таки є.</p><div class="mt-2 text-sm md:text-base font-semibold">Як мало бути: <br> ${currentDetective.explanation}</div>`;
+                }
+            }
+        };
+
+        // --- STAGE 5: RECIPE ---
+        var recipeTasks = [
+            { story: "Для випікання кексів потрібно змішати борошно та цукор. Борошна взяли <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> склянки, а цукру — <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>3</span></span> склянки. Який загальний об'єм сухої суміші?", num1: 1, den1: 2, w1: 0, num2: 1, den2: 3, w2: 0, resW: 0, resNum: 5, commonDen: 6 },
+            { story: "Для приготування фруктового салату нарізали яблук <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> кг, а бананів — <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> кг. Скільки всього кілограмів фруктів?", num1: 1, den1: 4, w1: 1, num2: 1, den2: 2, w2: 0, resW: 1, resNum: 3, commonDen: 4 },
+            { story: "Мама готує піцу. Вона використала <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>8</span></span> кг сиру моцарела та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> кг твердого сиру. Скільки всього сиру пішло на піцу?", num1: 3, den1: 8, w1: 0, num2: 1, den2: 4, w2: 0, resW: 0, resNum: 5, commonDen: 8 },
+            { story: "Для фарбування паркану змішали <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>3</span></span> літра білої фарби та <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>9</span></span> літра зеленої. Який об'єм утвореної суміші?", num1: 1, den1: 3, w1: 0, num2: 2, den2: 9, w2: 0, resW: 0, resNum: 5, commonDen: 9 },
+            { story: "Майстриня відрізала <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> метра синьої стрічки та <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>5</span></span> метра жовтої. Скільки всього метрів стрічки вона відрізала?", num1: 1, den1: 2, w1: 0, num2: 2, den2: 5, w2: 0, resW: 0, resNum: 9, commonDen: 10 },
+            { story: "На виконання математики Сашко витратив <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>4</span></span> години, а на історію — <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>6</span></span> години. Скільки часу він робив ці два уроки?", num1: 3, den1: 4, w1: 0, num2: 1, den2: 6, w2: 0, resW: 0, resNum: 11, commonDen: 12 },
+            { story: "У пакеті було <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> кг шоколадних цукерок, і до них досипали <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> кг карамельок. Яка тепер маса цукерок?", num1: 1, den1: 2, w1: 1, num2: 1, den2: 4, w2: 0, resW: 1, resNum: 3, commonDen: 4 },
+            { story: "Для літнього лимонаду змішали <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>5</span></span> літра полуничного сиропу та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> літра мінеральної води. Який об'єм напою отримали?", num1: 2, den1: 5, w1: 0, num2: 1, den2: 2, w2: 0, resW: 0, resNum: 9, commonDen: 10 },
+            { story: "Щоб зварити варення, бабуся взяла <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>4</span></span> кг полуниці та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>8</span></span> кг малини. Скільки всього ягід пішло на варення?", num1: 3, den1: 4, w1: 0, num2: 1, den2: 8, w2: 0, resW: 0, resNum: 7, commonDen: 8 },
+            { story: "Туристи пройшли лісом <span class='text-blue-600 font-bold'>2</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>3</span></span> км, а потім полем ще <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>6</span></span> км. Який загальний шлях вони подолали?", num1: 1, den1: 3, w1: 2, num2: 1, den2: 6, w2: 1, resW: 3, resNum: 3, commonDen: 6 },
+            { story: "Для молочної каші кухар використав <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> кг рису та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>3</span></span> кг пшона. Скільки крупи використали загалом?", num1: 1, den1: 4, w1: 0, num2: 1, den2: 3, w2: 0, resW: 0, resNum: 7, commonDen: 12 },
+            { story: "Торт складається з <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>5</span></span> кг бісквітних коржів та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> кг заварного крему. Яка маса торта?", num1: 1, den1: 5, w1: 1, num2: 1, den2: 2, w2: 0, resW: 1, resNum: 7, commonDen: 10 },
+            { story: "На бутерброди витратили <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>10</span></span> кг вершкового масла, а в тісто додали ще <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>5</span></span> кг. Скільки масла витратили?", num1: 3, den1: 10, w1: 0, num2: 1, den2: 5, w2: 0, resW: 0, resNum: 5, commonDen: 10 },
+            { story: "Для підключення інтернету використали <span class='fraction-display'><span class='fraction-num'>5</span><span class='fraction-den'>8</span></span> метра білого кабелю та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> метра чорного. Яка загальна довжина?", num1: 5, den1: 8, w1: 0, num2: 1, den2: 4, w2: 0, resW: 0, resNum: 7, commonDen: 8 },
+            { story: "У глечику було <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> літра узвару. Туди долили ще <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>7</span></span> літра. Скільки узвару стало в глечику?", num1: 1, den1: 2, w1: 0, num2: 3, den2: 7, w2: 0, resW: 0, resNum: 13, commonDen: 14 },
+            { story: "Марічка купила <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>6</span></span> кг морської солі та <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>3</span></span> кг солі з ароматом лаванди. Скільки всього солі вона купила?", num1: 1, den1: 6, w1: 0, num2: 2, den2: 3, w2: 0, resW: 0, resNum: 5, commonDen: 6 },
+            { story: "Щоб розвести добриво, взяли <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>4</span></span> літра води та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>8</span></span> літра концентрату. Який об'єм розчину вийшов?", num1: 1, den1: 4, w1: 1, num2: 1, den2: 8, w2: 0, resW: 1, resNum: 3, commonDen: 8 },
+            { story: "Білочка запасла <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>9</span></span> кг лісових горіхів та <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>3</span></span> кг волоських. Яка загальна маса її горіхових запасів?", num1: 2, den1: 9, w1: 0, num2: 1, den2: 3, w2: 0, resW: 0, resNum: 5, commonDen: 9 },
+            { story: "На в'язання шарфа пішло <span class='fraction-display'><span class='fraction-num'>3</span><span class='fraction-den'>5</span></span> мотка синіх ниток і <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>10</span></span> мотка білих. Скільки ниток витрачено?", num1: 3, den1: 5, w1: 0, num2: 1, den2: 10, w2: 0, resW: 0, resNum: 7, commonDen: 10 },
+            { story: "Дорога до школи займає <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> години автобусом і <span class='fraction-display'><span class='fraction-num'>2</span><span class='fraction-den'>5</span></span> години пішки. Скільки часу триває шлях?", num1: 1, den1: 2, w1: 0, num2: 2, den2: 5, w2: 0, resW: 0, resNum: 9, commonDen: 10 },
+            { story: "Для сирника кулінар підготував <span class='text-blue-600 font-bold'>1</span> <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>2</span></span> кг сиру і <span class='fraction-display'><span class='fraction-num'>1</span><span class='fraction-den'>6</span></span> кг родзинок. Знайдіть їх загальну масу.", num1: 1, den1: 2, w1: 1, num2: 1, den2: 6, w2: 0, resW: 1, resNum: 4, commonDen: 6 }
+        ];
+        var currentRecipe = {};
+        var lastRecipeIndex = -1;
+
+        window.generatePracticalTasks = function() {
+            let idx;
+            do { idx = getRandomInt(0, recipeTasks.length - 1); } while (idx === lastRecipeIndex);
+            lastRecipeIndex = idx;
+            currentRecipe = recipeTasks[idx];
+
+            document.getElementById('recipeStoryText').innerHTML = currentRecipe.story;
+            let displayHTML = "";
+            if (currentRecipe.w1 > 0 || currentRecipe.w2 > 0) {
+                displayHTML = `<input type="number" id="recipeInputW" placeholder="" class="w-14 text-center text-3xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl p-1 focus:outline-none bg-white">`;
+            }
+            displayHTML += `<div class="inline-flex flex-col items-center align-middle mx-1"><input type="number" id="recipeInputNum" placeholder="" class="w-14 text-center text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl py-0.5 focus:outline-none bg-white"><div class="w-full border-b-[3px] border-slate-800 my-1"></div><input type="number" id="recipeInputDen" placeholder="" class="w-14 text-center text-2xl font-black border-2 border-orange-400 focus:border-orange-600 rounded-xl py-0.5 focus:outline-none bg-white"></div>`;
+            
+            document.getElementById('recipeMathDisplay').innerHTML = displayHTML;
+            document.getElementById('recipeFeedback').classList.add('hidden');
+            
+            setTimeout(() => {
+                let wIn = document.getElementById('recipeInputW');
+                let numIn = document.getElementById('recipeInputNum');
+                let denIn = document.getElementById('recipeInputDen');
+                
+                if(wIn) {
+                    wIn.focus();
+                    wIn.addEventListener('input', (e) => { if(e.target.value.length === String(currentRecipe.resW).length) setTimeout(()=>numIn.focus(), 150); });
+                } else if (numIn) numIn.focus();
+                
+                if(numIn) numIn.addEventListener('input', (e) => { if(e.target.value.length === String(currentRecipe.resNum).length) setTimeout(()=>denIn.focus(), 150); });
+            }, 50);
+        };
+
+        window.checkRecipeTask = function() {
+            var inputW = parseInt(document.getElementById('recipeInputW')?.value || '0');
+            var inputNum = parseInt(document.getElementById('recipeInputNum')?.value || '');
+            var inputDen = parseInt(document.getElementById('recipeInputDen')?.value || '');
+            
+            if (isNaN(inputNum) || isNaN(inputDen)) return;
+            var fb = document.getElementById('recipeFeedback');
+            fb.classList.remove('hidden');
+
+            if (inputW === currentRecipe.resW && inputNum === currentRecipe.resNum && inputDen === currentRecipe.commonDen) {
+                fb.className = "text-base md:text-lg font-bold p-2.5 rounded-2xl text-center shadow-xs bg-orange-100 text-orange-900 border border-orange-300";
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Чудово, правильно!`;
+                addScore(20);
+                if (window.confetti) confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+            } else {
+                fb.className = "text-base md:text-lg font-bold p-2.5 rounded-2xl text-center shadow-xs bg-rose-100 text-rose-900 border border-rose-300";
+                fb.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 mr-2"></i>Щось не так. Перевір спільний знаменник та чисельники!`;
+            }
+        };
+
+        // --- STAGE 6: TRAFFIC LIGHT ---
+        window.voteTrafficLight = function(color) {
+            tlVotes[color]++;
+            var badge = document.getElementById('count-' + color);
+            if (badge) {
+                badge.innerText = tlVotes[color];
+                badge.classList.add('scale-150');
+                setTimeout(() => badge.classList.remove('scale-150'), 200);
+            }
+        };
+
+        window.confirmTrafficLightVote = function() {
+            document.getElementById('tlVoteControls').classList.add('hidden');
+            document.getElementById('trafficLightResultContainer').classList.remove('hidden');
+            
+            let maxVotes = Math.max(tlVotes.green, tlVotes.yellow, tlVotes.red);
+            let winner = 'green';
+            if (maxVotes > 0) {
+                if (tlVotes.red === maxVotes) winner = 'red';
+                if (tlVotes.yellow === maxVotes && tlVotes.yellow > tlVotes.red) winner = 'yellow';
+                if (tlVotes.green === maxVotes && tlVotes.green >= tlVotes.yellow && tlVotes.green >= tlVotes.red) winner = 'green';
+            }
+
+            ['green', 'yellow', 'red'].forEach(c => {
+                let lActive = document.getElementById('light-' + c);
+                if(c === winner && maxVotes > 0) {
+                    if (c === 'green') { lActive.className = 'w-14 h-14 rounded-full bg-orange-400 border-2 border-orange-200 shadow-[0_0_20px_10px_rgba(52,211,153,0.6)] transition-all duration-300'; }
+                    if (c === 'yellow') { lActive.className = 'w-14 h-14 rounded-full bg-orange-300 border-2 border-orange-200 shadow-[0_0_20px_10px_rgba(251,191,36,0.6)] transition-all duration-300'; }
+                    if (c === 'red') { lActive.className = 'w-14 h-14 rounded-full bg-rose-500 border-2 border-rose-300 shadow-[0_0_20px_10px_rgba(244,63,94,0.6)] transition-all duration-300'; }
+                } else {
+                    lActive.className = `w-14 h-14 rounded-full bg-${c==='green'?'emerald':c==='yellow'?'amber':'rose'}-950/90 border-2 border-${c==='green'?'emerald':c==='yellow'?'amber':'rose'}-900 shadow-inner transition-all duration-300`;
+                }
+            });
+            
+            window.finishLesson();
+            if (window.confetti) confetti({ particleCount: 50, spread: 80, origin: { y: 0.7 } });
+        };
+
+        window.resetTrafficLightVote = function() {
+            tlVotes = { green: 0, yellow: 0, red: 0 };
+            ['green', 'yellow', 'red'].forEach(c => {
+                let badge = document.getElementById('count-' + c);
+                if (badge) badge.innerText = '0';
+            });
+        };
+
+        window.finishLesson = function() {
+            var msgBox = document.getElementById('reflectionMessage');
+            msgBox.innerHTML = `<div class="bg-orange-100 border-2 border-orange-300 text-orange-900 p-6 rounded-2xl text-center font-black text-xl md:text-2xl shadow-lg mt-4"><i class="fa-solid fa-trophy text-orange-500 mr-3 text-3xl mb-2"></i><br>Урок завершено!<br>Бали: ${totalScore}</div>`;
+            document.getElementById('bottomNav').classList.add('hidden');
+        };
+
+        window.restartLesson = function() {
+            // Full Reset
+            totalScore = 0; 
+            warmupStreak = 0;
+            currentWarmupLevel = 1;
+            lastWarmupKey = '';
+            
+            window.resetStage2();
+            
+            if (isAdvancedPracticeMode) window.toggleAdvancedPractice();
+            else window.generatePracticeTask();
+            
+            var starBtn = document.getElementById('visStarBtn');
+            if (starBtn) {
+                starBtn.classList.add('animate-pulse', 'text-orange-500');
+                starBtn.classList.remove('text-slate-400');
+            }
+            
+            window.generateWarmupTask();
+            window.generateDetectiveTask();
+            window.generatePracticalTasks();
+            window.resetTrafficLightVote();
+            
+            document.getElementById('tlVoteControls').classList.remove('hidden');
+            document.getElementById('trafficLightResultContainer').classList.add('hidden');
+            
+            window.goToStage(0);
+        };
+
+        // INIT
+        window.onload = function() { 
+            window.generateWarmupTask(); 
+            window.generatePracticeTask(); 
+            window.generateDetectiveTask(); 
+            window.generatePracticalTasks(); 
+        };
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>

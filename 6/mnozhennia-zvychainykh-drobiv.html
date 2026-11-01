@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Освітній тренажер: Множення звичайних дробів (6 клас) v2.0</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- MathJax for rendering mathematical formulas -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF9F1;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f0ea;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4d2c9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b8b6ac;
+        }
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+            authDomain: "math-5-892a5.firebaseapp.com",
+            projectId: "math-5-892a5",
+            storageBucket: "math-5-892a5.firebasestorage.app",
+            messagingSenderId: "163114803328",
+            appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+            measurementId: "G-E06VKZ2GP5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAPI = { auth, db, collection, addDoc, onSnapshot, query, isReady: false };
+
+        const authenticate = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (tokenError) {
+                        console.warn("Користувацький токен не прийнято, перехід на анонімну авторизацію:", tokenError);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                }
+                window.firebaseAPI.isReady = true;
+            } catch (error) {
+                console.error("Помилка авторизації Firebase:", error);
+            }
+        };
+        authenticate();
+    </script>
+</head>
+<body class="text-gray-900 antialiased min-h-screen flex flex-col justify-between">
+
+    <div id="root" class="flex-grow"></div>
+
+    <!-- Mandatory Footer -->
+    <div class="text-gray-500 text-[10px] tracking-wider text-center mt-6 mb-2">
+        Автор розробки <span class="font-bold text-gray-900">Ковтун Тетяна</span> за технічної підтримки <span class="text-blue-600">Gemini</span>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const APP_ID = 'math-5-892a5';
+
+        // Асинхронний MathJax Компонент (Ідеально для Google Sites)
+        const Formula = ({ math, block = false }) => {
+            const containerRef = useRef(null);
+
+            useEffect(() => {
+                let isCancelled = false;
+
+                const renderMath = async () => {
+                    // Чекаємо, доки MathJax завантажиться
+                    while (!(window.MathJax && window.MathJax.typesetPromise)) {
+                        if (isCancelled) return;
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                    if (isCancelled || !containerRef.current) return;
+
+                    // Використовуємо textContent, щоб браузер не ламав слеші (\)
+                    const mathText = block ? `\\[ ${math} \\]` : `\\( ${math} \\)`;
+                    containerRef.current.textContent = mathText;
+
+                    try {
+                        await window.MathJax.typesetPromise([containerRef.current]);
+                    } catch (e) {
+                        console.error("Помилка MathJax:", e);
+                    }
+                };
+
+                renderMath();
+
+                return () => { isCancelled = true; };
+            }, [math, block]);
+
+            return <span ref={containerRef} className={`inline-block ${block ? 'text-lg' : ''}`}></span>;
+        };
+
+        // Утиліти
+        function НСД(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            if (b === 0) return a === 0 ? 1 : a;
+            while (b) {
+                let t = b;
+                b = a % b;
+                a = t;
+            }
+            return a;
+        }
+
+        function ВипадковеЦіле(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Головний компонент
+        function Додаток() {
+            const [активнаВкладка, встановитиАктивнуВкладку] = useState('теорія');
+            const [показатиЖурнал, встановитиПоказатиЖурнал] = useState(false);
+            const [парольВведено, встановитиПарольВведено] = useState(false);
+
+            return (
+                <div class="max-w-4xl mx-auto p-4 sm:p-6 relative">
+                    {/* Прихований вхід для вчителя (Ключик) */}
+                    <button 
+                        onClick={() => {
+                            встановитиПоказатиЖурнал(true);
+                            встановитиАктивнуВкладку('');
+                        }}
+                        class="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-300 hover:text-orange-500 transition-colors focus:outline-none text-xl z-10"
+                        title="Журнал вчителя"
+                    >
+                        🔑
+                    </button>
+
+                    {/* Заголовок */}
+                    <header class="mb-6 text-center mt-2">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                            Множення звичайних дробів
+                        </h1>
+                    </header>
+
+                    {/* Навігація */}
+                    {!показатиЖурнал && (
+                        <div class="flex flex-wrap justify-center gap-2 mb-6 bg-orange-100 p-1.5 rounded-2xl border border-orange-200 w-max mx-auto max-w-full shadow-sm">
+                            <button
+                                onClick={() => встановитиАктивнуВкладку('теорія')}
+                                class={`px-4 py-2 text-sm font-bold rounded-xl transition-all ${
+                                    активнаВкладка === 'теорія'
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-orange-50'
+                                }`}
+                            >
+                                1. Теорія
+                            </button>
+                            <button
+                                onClick={() => встановитиАктивнуВкладку('тренування')}
+                                class={`px-4 py-2 text-sm font-bold rounded-xl transition-all ${
+                                    активнаВкладка === 'тренування'
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-orange-50'
+                                }`}
+                            >
+                                2. Тренування
+                            </button>
+                            <button
+                                onClick={() => встановитиАктивнуВкладку('тестування')}
+                                class={`px-4 py-2 text-sm font-bold rounded-xl transition-all ${
+                                    активнаВкладка === 'тестування'
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-orange-50'
+                                }`}
+                            >
+                                3. Тестування
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Основна область */}
+                    <main>
+                        {активнаВкладка === 'теорія' && !показатиЖурнал && <РозділТеорія />}
+                        {активнаВкладка === 'тренування' && !показатиЖурнал && <РозділТренування />}
+                        {активнаВкладка === 'тестування' && !показатиЖурнал && <РозділТестування />}
+                        {показатиЖурнал && <РозділЖурнал закритиЖурнал={() => {
+                            встановитиПоказатиЖурнал(false);
+                            встановитиАктивнуВкладку('теорія');
+                            встановитиПарольВведено(false);
+                        }} парольВведено={парольВведено} встановитиПарольВведено={встановитиПарольВведено} />}
+                    </main>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 1. ТЕОРЕТИЧНИЙ РОЗДІЛ
+        // ==========================================
+        function РозділТеорія() {
+            const [відкритийПункт, встановитиВідкритийПункт] = useState(1);
+
+            const toggle = (пункт) => {
+                if (відкритийПункт === пункт) {
+                    встановитиВідкритийПункт(null);
+                } else {
+                    встановитиВідкритийПункт(пункт);
+                }
+            };
+
+            return (
+                <div class="space-y-4">
+                    {/* Правило 1 */}
+                    <div class="bg-orange-50 border border-orange-200 rounded-3xl overflow-hidden shadow-sm transition-all">
+                        <button onClick={() => toggle(1)} class="w-full flex items-center justify-between p-5 focus:outline-none hover:bg-orange-100/50 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-8 h-8 flex items-center justify-center bg-orange-200 text-orange-900 font-bold rounded-xl text-sm">1</span>
+                                <h3 class="text-lg font-bold text-gray-900 text-left">Множення двох звичайних дробів</h3>
+                            </div>
+                            <span class="text-orange-700 text-xl font-bold">{відкритийПункт === 1 ? '−' : '+'}</span>
+                        </button>
+                        {відкритийПункт === 1 && (
+                            <div class="px-6 pb-6 pt-2">
+                                <p class="text-gray-900 text-sm mb-4 leading-relaxed font-medium">
+                                    Щоб помножити дріб на дріб, потрібно помножити їхні чисельники (це буде чисельник добутку) та знаменники (це буде знаменник добутку). За можливості виконуємо скорочення.
+                                </p>
+                                <div class="bg-white p-4 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Загальна формула</span>
+                                        <Formula math={"\\frac{a}{b} \\cdot \\frac{c}{d} = \\frac{a \\cdot c}{b \\cdot d}"} block />
+                                    </div>
+                                    <div class="hidden sm:block h-10 border-r border-orange-200"></div>
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Приклад</span>
+                                        <Formula math={"\\frac{3}{8} \\cdot \\frac{4}{5} = \\frac{3 \\cdot 4}{8 \\cdot 5} = \\frac{3 \\cdot 1}{2 \\cdot 5} = \\frac{3}{10}"} block />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Правило 2 */}
+                    <div class="bg-orange-50 border border-orange-200 rounded-3xl overflow-hidden shadow-sm transition-all">
+                        <button onClick={() => toggle(2)} class="w-full flex items-center justify-between p-5 focus:outline-none hover:bg-orange-100/50 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-8 h-8 flex items-center justify-center bg-orange-200 text-orange-900 font-bold rounded-xl text-sm">2</span>
+                                <h3 class="text-lg font-bold text-gray-900 text-left">Множення цілого числа на дріб</h3>
+                            </div>
+                            <span class="text-orange-700 text-xl font-bold">{відкритийПункт === 2 ? '−' : '+'}</span>
+                        </button>
+                        {відкритийПункт === 2 && (
+                            <div class="px-6 pb-6 pt-2">
+                                <p class="text-gray-900 text-sm mb-4 leading-relaxed font-medium">
+                                    Щоб помножити натуральне число на дріб, можна подати натуральне число у вигляді дробу зі знаменником 1 і застосувати правило множення дробів.
+                                </p>
+                                <div class="bg-white p-4 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Загальна формула</span>
+                                        <Formula math={"n \\cdot \\frac{a}{b} = \\frac{n}{1} \\cdot \\frac{a}{b} = \\frac{n \\cdot a}{b}"} block />
+                                    </div>
+                                    <div class="hidden sm:block h-10 border-r border-orange-200"></div>
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Приклад</span>
+                                        <Formula math={"6 \\cdot \\frac{2}{9} = \\frac{6}{1} \\cdot \\frac{2}{9} = \\frac{6 \\cdot 2}{1 \\cdot 9} = \\frac{2 \\cdot 2}{1 \\cdot 3} = \\frac{4}{3} = 1\\frac{1}{3}"} block />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Правило 3 */}
+                    <div class="bg-orange-50 border border-orange-200 rounded-3xl overflow-hidden shadow-sm transition-all">
+                        <button onClick={() => toggle(3)} class="w-full flex items-center justify-between p-5 focus:outline-none hover:bg-orange-100/50 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-8 h-8 flex items-center justify-center bg-orange-200 text-orange-900 font-bold rounded-xl text-sm">3</span>
+                                <h3 class="text-lg font-bold text-gray-900 text-left">Множення мішаних чисел</h3>
+                            </div>
+                            <span class="text-orange-700 text-xl font-bold">{відкритийПункт === 3 ? '−' : '+'}</span>
+                        </button>
+                        {відкритийПункт === 3 && (
+                            <div class="px-6 pb-6 pt-2">
+                                <p class="text-gray-900 text-sm mb-4 leading-relaxed font-medium">
+                                    Щоб виконати множення мішаних чисел, їх спочатку слід обов'язково перетворити у неправильні дроби, а потім помножити за правилом множення звичайних дробів.
+                                </p>
+                                <div class="bg-white p-4 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Алгоритм</span>
+                                        <div class="text-xs text-gray-900 text-left font-bold space-y-1">
+                                            <p>1. Мішані числа ➔ Неправильні дроби</p>
+                                            <p>2. Скорочення чисельників і знаменників</p>
+                                            <p>3. Обчислення добутку та виділення цілої частини</p>
+                                        </div>
+                                    </div>
+                                    <div class="hidden sm:block h-10 border-r border-orange-200"></div>
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Приклад</span>
+                                        <Formula math={"1\\frac{2}{3} \\cdot 2\\frac{1}{10} = \\frac{5}{3} \\cdot \\frac{21}{10} = \\frac{1 \\cdot 7}{1 \\cdot 2} = \\frac{7}{2} = 3\\frac{1}{2}"} block />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Правило 4 */}
+                    <div class="bg-orange-50 border border-orange-200 rounded-3xl overflow-hidden shadow-sm transition-all">
+                        <button onClick={() => toggle(4)} class="w-full flex items-center justify-between p-5 focus:outline-none hover:bg-orange-100/50 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-8 h-8 flex items-center justify-center bg-orange-200 text-orange-900 font-bold rounded-xl text-sm">4</span>
+                                <h3 class="text-lg font-bold text-gray-900 text-left">Множення десяткового дробу на звичайний</h3>
+                            </div>
+                            <span class="text-orange-700 text-xl font-bold">{відкритийПункт === 4 ? '−' : '+'}</span>
+                        </button>
+                        {відкритийПункт === 4 && (
+                            <div class="px-6 pb-6 pt-2">
+                                <p class="text-gray-900 text-sm mb-4 leading-relaxed font-medium">
+                                    Десятковий дріб спочатку записують у вигляді звичайного дробу (і за можливості скорочують), після чого виконують множення звичайних дробів.
+                                </p>
+                                <div class="bg-white p-4 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Підготовчий крок</span>
+                                        <Formula math={"0{,}4 = \\frac{4}{10} = \\frac{2}{5}"} block />
+                                    </div>
+                                    <div class="hidden sm:block h-10 border-r border-orange-200"></div>
+                                    <div>
+                                        <span class="text-xs font-bold text-orange-800 uppercase block mb-1">Приклад</span>
+                                        <Formula math={"0{,}4 \\cdot \\frac{5}{6} = \\frac{2}{5} \\cdot \\frac{5}{6} = \\frac{2 \\cdot 5}{5 \\cdot 6} = \\frac{1}{3}"} block />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 2. РОЗДІЛ ТРЕНУВАННЯ
+        // ==========================================
+        function РозділТренування() {
+            const [категорія, встановитиКатегорію] = useState('ціле_на_дріб'); 
+            const [завдання, встановитиЗавдання] = useState(null);
+            
+            const [введенаЦіла, встановитиВведенуЦілу] = useState('');
+            const [введенийЧисельник, встановитиВведенийЧисельник] = useState('');
+            const [введенийЗнаменник, встановитиВведенийЗнаменник] = useState('');
+            
+            const [статус, встановитиСтатус] = useState('початковий'); 
+            const [повідомлення, встановитиПовідомлення] = useState('');
+
+            const ЗгенеруватиЗавдання = (тип) => {
+                встановитиВведенуЦілу('');
+                встановитиВведенийЧисельник('');
+                встановитиВведенийЗнаменник('');
+                встановитиСтатус('початковий');
+                встановитиПовідомлення('');
+
+                let newZavdannya = null;
+
+                if (тип === 'ціле_на_дріб') {
+                    const A = ВипадковеЦіле(2, 12);
+                    let C = ВипадковеЦіле(2, 9);
+                    let B = ВипадковеЦіле(1, C - 1);
+                    
+                    while (НСД(B, C) !== 1) {
+                        B = ВипадковеЦіле(1, C - 1);
+                    }
+
+                    const pNum = A * B;
+                    const pDen = C;
+                    const g = НСД(pNum, pDen);
+                    const sNum = pNum / g;
+                    const sDen = pDen / g;
+                    
+                    const ansW = Math.floor(sNum / sDen);
+                    const ansN = sNum % sDen;
+                    const ansD = sDen;
+
+                    let mathStr = `${A} \\cdot \\frac{${B}}{${C}} = \\frac{${A}}{1} \\cdot \\frac{${B}}{${C}} = \\frac{${A} \\cdot ${B}}{1 \\cdot ${C}} = \\frac{${pNum}}{${pDen}}`;
+                    if (sDen === 1 && pDen !== 1) {
+                        mathStr += ` = ${ansW}`;
+                    } else if (ansW > 0 && ansN > 0) {
+                        if (g > 1) mathStr += ` = \\frac{${sNum}}{${sDen}} = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                        else mathStr += ` = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                    } else if (ansW === 0 && ansN > 0 && g > 1) {
+                        mathStr += ` = \\frac{${sNum}}{${sDen}}`;
+                    }
+
+                    newZavdannya = {
+                        тип: 'ціле_на_дріб',
+                        формула: `${A} \\cdot \\frac{${B}}{${C}}`,
+                        правильнаЦіла: ansW,
+                        правильнийЧисельник: ansN,
+                        правильнийЗнаменник: ansD,
+                        покрокове: mathStr
+                    };
+                } 
+                else if (тип === 'дріб_на_дріб') {
+                    let d1 = ВипадковеЦіле(2, 9); let n1 = ВипадковеЦіле(1, d1 - 1);
+                    while(НСД(n1, d1) !== 1) n1 = ВипадковеЦіле(1, d1 - 1);
+                    
+                    let d2 = ВипадковеЦіле(2, 9); let n2 = ВипадковеЦіле(1, d2 - 1);
+                    while(НСД(n2, d2) !== 1) n2 = ВипадковеЦіле(1, d2 - 1);
+
+                    const pNum = n1 * n2;
+                    const pDen = d1 * d2;
+                    const g = НСД(pNum, pDen);
+                    const sNum = pNum / g;
+                    const sDen = pDen / g;
+                    const ansW = Math.floor(sNum / sDen);
+                    const ansN = sNum % sDen;
+                    const ansD = sDen;
+
+                    let mathStr = `\\frac{${n1}}{${d1}} \\cdot \\frac{${n2}}{${d2}} = \\frac{${n1} \\cdot ${n2}}{${d1} \\cdot ${d2}} = \\frac{${pNum}}{${pDen}}`;
+                    if (sDen === 1 && pDen !== 1) {
+                        mathStr += ` = ${ansW}`;
+                    } else if (ansW > 0 && ansN > 0) {
+                        if (g > 1) mathStr += ` = \\frac{${sNum}}{${sDen}} = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                        else mathStr += ` = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                    } else if (ansW === 0 && ansN > 0 && g > 1) {
+                        mathStr += ` = \\frac{${sNum}}{${sDen}}`;
+                    }
+
+                    newZavdannya = {
+                        тип: 'дріб_на_дріб',
+                        формула: `\\frac{${n1}}{${d1}} \\cdot \\frac{${n2}}{${d2}}`,
+                        правильнаЦіла: ansW,
+                        правильнийЧисельник: ansN,
+                        правильнийЗнаменник: ansD,
+                        покрокове: mathStr
+                    };
+                }
+                else if (тип === 'мішані') {
+                    const d1 = ВипадковеЦіле(2, 5); const w1 = ВипадковеЦіле(1, 3); let n1 = ВипадковеЦіле(1, d1 - 1);
+                    while (НСД(n1, d1) !== 1) n1 = ВипадковеЦіле(1, d1 - 1);
+                    const d2 = ВипадковеЦіле(2, 5); const w2 = ВипадковеЦіле(1, 3); let n2 = ВипадковеЦіле(1, d2 - 1);
+                    while (НСД(n2, d2) !== 1) n2 = ВипадковеЦіле(1, d2 - 1);
+
+                    const impNum1 = w1 * d1 + n1;
+                    const impNum2 = w2 * d2 + n2;
+
+                    const pNum = impNum1 * impNum2;
+                    const pDen = d1 * d2;
+                    const g = НСД(pNum, pDen);
+                    const sNum = pNum / g;
+                    const sDen = pDen / g;
+                    const ansW = Math.floor(sNum / sDen);
+                    const ansN = sNum % sDen;
+                    const ansD = sDen;
+
+                    let mathStr = `${w1}\\frac{${n1}}{${d1}} \\cdot ${w2}\\frac{${n2}}{${d2}} = \\frac{${impNum1}}{${d1}} \\cdot \\frac{${impNum2}}{${d2}} = \\frac{${impNum1} \\cdot ${impNum2}}{${d1} \\cdot ${d2}} = \\frac{${pNum}}{${pDen}}`;
+                    if (sDen === 1 && pDen !== 1) {
+                        mathStr += ` = ${ansW}`;
+                    } else if (ansW > 0 && ansN > 0) {
+                        if (g > 1) mathStr += ` = \\frac{${sNum}}{${sDen}} = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                        else mathStr += ` = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                    } else if (ansW === 0 && ansN > 0 && g > 1) {
+                        mathStr += ` = \\frac{${sNum}}{${sDen}}`;
+                    }
+
+                    newZavdannya = {
+                        тип: 'мішані',
+                        формула: `${w1}\\frac{${n1}}{${d1}} \\cdot ${w2}\\frac{${n2}}{${d2}}`,
+                        правильнаЦіла: ansW,
+                        правильнийЧисельник: ansN,
+                        правильнийЗнаменник: ansD,
+                        покрокове: mathStr
+                    };
+                }
+                else if (тип === 'десятковий') {
+                    const decs = [
+                        { d: '0{,}2', n: 1, den: 5 }, { d: '0{,}4', n: 2, den: 5 }, { d: '0{,}5', n: 1, den: 2 },
+                        { d: '0{,}6', n: 3, den: 5 }, { d: '0{,}8', n: 4, den: 5 }, { d: '0{,}25', n: 1, den: 4 },
+                        { d: '0{,}75', n: 3, den: 4 }, { d: '1{,}5', n: 3, den: 2 }, { d: '1{,}2', n: 6, den: 5 }
+                    ];
+                    const chosen = decs[ВипадковеЦіле(0, decs.length - 1)];
+                    
+                    let f2_den = ВипадковеЦіле(2, 9); let f2_num = ВипадковеЦіле(1, f2_den - 1);
+                    while(НСД(f2_num, f2_den) !== 1) f2_num = ВипадковеЦіле(1, f2_den - 1);
+
+                    const pNum = chosen.n * f2_num;
+                    const pDen = chosen.den * f2_den;
+                    const g = НСД(pNum, pDen);
+                    const sNum = pNum / g;
+                    const sDen = pDen / g;
+                    const ansW = Math.floor(sNum / sDen);
+                    const ansN = sNum % sDen;
+                    const ansD = sDen;
+
+                    let mathStr = `${chosen.d} \\cdot \\frac{${f2_num}}{${f2_den}} = \\frac{${chosen.n}}{${chosen.den}} \\cdot \\frac{${f2_num}}{${f2_den}} = \\frac{${chosen.n} \\cdot ${f2_num}}{${chosen.den} \\cdot ${f2_den}} = \\frac{${pNum}}{${pDen}}`;
+                    if (sDen === 1 && pDen !== 1) {
+                        mathStr += ` = ${ansW}`;
+                    } else if (ansW > 0 && ansN > 0) {
+                        if (g > 1) mathStr += ` = \\frac{${sNum}}{${sDen}} = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                        else mathStr += ` = ${ansW}\\frac{${ansN}}{${ansD}}`;
+                    } else if (ansW === 0 && ansN > 0 && g > 1) {
+                        mathStr += ` = \\frac{${sNum}}{${sDen}}`;
+                    }
+
+                    newZavdannya = {
+                        тип: 'десятковий',
+                        формула: `${chosen.d} \\cdot \\frac{${f2_num}}{${f2_den}}`,
+                        правильнаЦіла: ansW,
+                        правильнийЧисельник: ansN,
+                        правильнийЗнаменник: ansD,
+                        покрокове: mathStr
+                    };
+                }
+
+                встановитиЗавдання(newZavdannya);
+            };
+
+            useEffect(() => {
+                ЗгенеруватиЗавдання(категорія);
+            }, [категорія]);
+
+            const ПеревіритиВповідь = () => {
+                if (!завдання) return;
+
+                if (введенаЦіла.trim() === '' && введенийЧисельник.trim() === '' && введенийЗнаменник.trim() === '') {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Будь ласка, введіть відповідь у відповідні віконечка.');
+                    return;
+                }
+
+                const uWhole = введенаЦіла.trim() === '' ? 0 : parseInt(введенаЦіла, 10);
+                const uNum = введенийЧисельник.trim() === '' ? 0 : parseInt(введенийЧисельник, 10);
+                const uDen = введенийЗнаменник.trim() === '' ? 1 : parseInt(введенийЗнаменник, 10);
+
+                if (isNaN(uWhole) || isNaN(uNum) || isNaN(uDen)) {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Будь ласка, вводьте лише числа.');
+                    return;
+                }
+
+                if (uDen === 0) {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Знаменник не може дорівнювати нулю.');
+                    return;
+                }
+
+                const expectedWhole = завдання.правильнаЦіла;
+                const expectedNum = завдання.правильнийЧисельник;
+                const expectedDen = завдання.правильнийЗнаменник;
+
+                const userTotalNum = uWhole * uDen + uNum;
+                const expectedTotalNum = expectedWhole * expectedDen + expectedNum;
+
+                const isValueCorrect = (userTotalNum * expectedDen === expectedTotalNum * uDen);
+                const isSimplified = (uNum === 0 && uDen === 1) || (uNum > 0 && НСД(uNum, uDen) === 1);
+                const isProper = (uNum < uDen) || (uDen === 1);
+
+                if (isValueCorrect && isSimplified && isProper) {
+                    встановитиСтатус('правильно');
+                    встановитиПовідомлення('Чудово! Відповідь абсолютно правильна.');
+                } else if (isValueCorrect && !isProper) {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Майже! Ви отримали правильний неправильний дріб. Тепер виділіть з нього цілу частину.');
+                } else if (isValueCorrect && !isSimplified) {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Значення правильне, але дріб потрібно обов\'язково скоротити!');
+                } else {
+                    встановитиСтатус('помилка');
+                    встановитиПовідомлення('Ой, є помилка. Ознайомтеся з підказкою нижче та спробуйте ще раз.');
+                }
+            };
+
+            return (
+                <div class="bg-white border border-orange-200 rounded-3xl p-6 shadow-sm">
+                    {/* Вибір категорії */}
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                            Оберіть тип прикладу:
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button
+                                onClick={() => встановитиКатегорію('ціле_на_дріб')}
+                                class={`p-3 text-xs font-bold rounded-2xl border-2 transition-all text-center ${
+                                    категорія === 'ціле_на_дріб'
+                                        ? 'bg-orange-100 border-orange-300 text-gray-900 shadow-sm'
+                                        : 'bg-white border-orange-200 text-gray-700 hover:bg-orange-50'
+                                }`}
+                            >
+                                Ціле × Дріб
+                            </button>
+                            <button
+                                onClick={() => встановитиКатегорію('дріб_на_дріб')}
+                                class={`p-3 text-xs font-bold rounded-2xl border-2 transition-all text-center ${
+                                    категорія === 'дріб_на_дріб'
+                                        ? 'bg-orange-100 border-orange-300 text-gray-900 shadow-sm'
+                                        : 'bg-white border-orange-200 text-gray-700 hover:bg-orange-50'
+                                }`}
+                            >
+                                Дріб × Дріб
+                            </button>
+                            <button
+                                onClick={() => встановитиКатегорію('мішані')}
+                                class={`p-3 text-xs font-bold rounded-2xl border-2 transition-all text-center ${
+                                    категорія === 'мішані'
+                                        ? 'bg-orange-100 border-orange-300 text-gray-900 shadow-sm'
+                                        : 'bg-white border-orange-200 text-gray-700 hover:bg-orange-50'
+                                }`}
+                            >
+                                Мішані числа
+                            </button>
+                            <button
+                                onClick={() => встановитиКатегорію('десятковий')}
+                                class={`p-3 text-xs font-bold rounded-2xl border-2 transition-all text-center ${
+                                    категорія === 'десятковий'
+                                        ? 'bg-orange-100 border-orange-300 text-gray-900 shadow-sm'
+                                        : 'bg-white border-orange-200 text-gray-700 hover:bg-orange-50'
+                                }`}
+                            >
+                                Десятковий × Дріб
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Показ завдання */}
+                    {завдання && (
+                        <div class="bg-orange-50 rounded-2xl p-6 border border-orange-200 text-center mb-6">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-3">Завдання</span>
+                            <div class="font-bold text-gray-900 flex items-center justify-center space-x-3">
+                                <Formula math={`${завдання.формула} =`} block />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Поля вводу */}
+                    <div class="max-w-md mx-auto mb-6">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider text-center mb-3">
+                            Введіть скорочену відповідь (виділіть цілу частину, якщо дріб неправильний):
+                        </label>
+                        <div class="flex items-center justify-center space-x-2 bg-orange-50 p-4 rounded-2xl border border-orange-200">
+                            {завдання && (завдання.правильнаЦіла !== 0 || (завдання.правильнаЦіла === 0 && завдання.правильнийЧисельник === 0)) && (
+                                <div class="flex flex-col items-center mr-2">
+                                    <span class="text-[10px] text-gray-500 font-bold mb-1">Ціла частина</span>
+                                    <input
+                                        type="number" min="0" step="1"
+                                        value={введенаЦіла}
+                                        onChange={(e) => встановитиВведенуЦілу(e.target.value)}
+                                        class="w-16 h-12 text-center text-lg font-bold border-2 border-orange-300 rounded-xl focus:border-orange-400 focus:outline-none bg-white text-gray-900"
+                                    />
+                                </div>
+                            )}
+
+                            <div class="flex flex-col items-center space-y-1">
+                                <span class="text-[10px] text-gray-500 font-bold">Чисельник</span>
+                                <input
+                                    type="number" min="0" step="1"
+                                    value={введенийЧисельник}
+                                    onChange={(e) => встановитиВведенийЧисельник(e.target.value)}
+                                    class="w-16 h-10 text-center text-md font-bold border-2 border-orange-300 rounded-xl focus:border-orange-400 focus:outline-none bg-white text-gray-900"
+                                />
+                                <div class="w-16 h-0.5 bg-gray-800 rounded-full"></div>
+                                <input
+                                    type="number" min="1" step="1"
+                                    value={введенийЗнаменник}
+                                    onChange={(e) => встановитиВведенийЗнаменник(e.target.value)}
+                                    class="w-16 h-10 text-center text-md font-bold border-2 border-orange-300 rounded-xl focus:border-orange-400 focus:outline-none bg-white text-gray-900"
+                                />
+                                <span class="text-[10px] text-gray-500 font-bold mt-1">Знаменник</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-gray-500 text-center mt-2 font-medium">
+                            *Якщо у відповіді отримуємо ціле число, заповніть лише цілу частину.
+                        </p>
+                    </div>
+
+                    <div class="flex justify-center space-x-3 mb-6">
+                        <button
+                            onClick={ПеревіритиВповідь}
+                            class="px-6 py-3 bg-orange-700 hover:bg-orange-800 text-white font-bold text-sm rounded-2xl shadow-md transition-all"
+                        >
+                            Перевірити відповідь
+                        </button>
+                        <button
+                            onClick={() => ЗгенеруватиЗавдання(категорія)}
+                            class="px-6 py-3 bg-orange-200 hover:bg-orange-300 text-gray-900 font-bold text-sm rounded-2xl transition-all"
+                        >
+                            Наступний приклад
+                        </button>
+                    </div>
+
+                    {статус === 'правильно' && (
+                        <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 p-4 rounded-2xl text-center font-bold text-sm mb-4 shadow-sm">
+                            🎉 {повідомлення}
+                        </div>
+                    )}
+
+                    {статус === 'помилка' && (
+                        <div class="space-y-4">
+                            <div class="bg-rose-50 border border-rose-300 text-rose-900 p-4 rounded-2xl text-center font-bold text-sm shadow-sm">
+                                ⚠️ {повідомлення}
+                            </div>
+                            <div class="bg-orange-50/80 border border-orange-200 p-5 rounded-2xl shadow-sm">
+                                <h4 class="text-xs font-bold text-orange-900 uppercase tracking-wider mb-2">
+                                    💡 Покрокова підказка до розв'язання:
+                                </h4>
+                                <div class="text-gray-900 leading-relaxed overflow-x-auto text-center font-bold py-2">
+                                    <Formula math={завдання.покрокове} block />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 3. КОНТРОЛЬНЕ ТЕСТУВАННЯ
+        // ==========================================
+        function РозділТестування() {
+            const [стан, встановитиСтан] = useState('старт'); 
+            const [списокЗавдань, встановитиСписокЗавдань] = useState([]);
+            const [поточнийІндекс, встановитиПоточнийІндекс] = useState(0);
+            const [імяУчня, встановитиІмяУчня] = useState('');
+            const [помилкаІмені, встановитиПомилкуІмені] = useState(false);
+            const [помилкаВводу, встановитиПомилкуВводу] = useState('');
+            
+            const [введенаЦіла, встановитиВведенуЦілу] = useState('');
+            const [введенийЧисельник, встановитиВведенийЧисельник] = useState('');
+            const [введенийЗнаменник, встановитиВведенийЗнаменник] = useState('');
+            const [результати, встановитиРезультати] = useState([]);
+
+            const ПочатиТест = () => {
+                if (імяУчня.trim().length === 0) {
+                    встановитиПомилкуІмені(true);
+                    return;
+                }
+                встановитиПомилкуІмені(false);
+                встановитиПомилкуВводу('');
+
+                const новіЗавдання = [];
+                const типи = ['ціле_на_дріб', 'дріб_на_дріб', 'мішані', 'десятковий'];
+
+                for (let i = 0; i < 10; i++) {
+                    const обранийТип = типи[i % типи.length];
+                    
+                    if (обранийТип === 'ціле_на_дріб') {
+                        const A = ВипадковеЦіле(2, 8);
+                        let C = ВипадковеЦіле(2, 7);
+                        let B = ВипадковеЦіле(1, C - 1);
+                        while (НСД(B, C) !== 1) B = ВипадковеЦіле(1, C - 1);
+
+                        const pNum = A * B;
+                        const pDen = C;
+                        const g = НСД(pNum, pDen);
+                        const sNum = pNum / g;
+                        const sDen = pDen / g;
+
+                        новіЗавдання.push({
+                            id: i + 1,
+                            формула: `${A} \\cdot \\frac{${B}}{${C}}`,
+                            правильнаЦіла: Math.floor(sNum / sDen),
+                            правильнийЧисельник: sNum % sDen,
+                            правильнийЗнаменник: sDen
+                        });
+                    }
+                    else if (обранийТип === 'дріб_на_дріб') {
+                        let d1 = ВипадковеЦіле(2, 7); let n1 = ВипадковеЦіле(1, d1 - 1);
+                        while(НСД(n1, d1) !== 1) n1 = ВипадковеЦіле(1, d1 - 1);
+                        
+                        let d2 = ВипадковеЦіле(2, 7); let n2 = ВипадковеЦіле(1, d2 - 1);
+                        while(НСД(n2, d2) !== 1) n2 = ВипадковеЦіле(1, d2 - 1);
+
+                        const pNum = n1 * n2;
+                        const pDen = d1 * d2;
+                        const g = НСД(pNum, pDen);
+                        const sNum = pNum / g;
+                        const sDen = pDen / g;
+
+                        новіЗавдання.push({
+                            id: i + 1,
+                            формула: `\\frac{${n1}}{${d1}} \\cdot \\frac{${n2}}{${d2}}`,
+                            правильнаЦіла: Math.floor(sNum / sDen),
+                            правильнийЧисельник: sNum % sDen,
+                            правильнийЗнаменник: sDen
+                        });
+                    }
+                    else if (обранийТип === 'мішані') {
+                        const d1 = ВипадковеЦіле(2, 4); const w1 = ВипадковеЦіле(1, 2); let n1 = ВипадковеЦіле(1, d1 - 1);
+                        while (НСД(n1, d1) !== 1) n1 = ВипадковеЦіле(1, d1 - 1);
+                        const d2 = ВипадковеЦіле(2, 5); const w2 = ВипадковеЦіле(1, 2); let n2 = ВипадковеЦіле(1, d2 - 1);
+                        while (НСД(n2, d2) !== 1) n2 = ВипадковеЦіле(1, d2 - 1);
+
+                        const imp1 = w1 * d1 + n1;
+                        const imp2 = w2 * d2 + n2;
+                        const pNum = imp1 * imp2;
+                        const pDen = d1 * d2;
+                        const g = НСД(pNum, pDen);
+                        const sNum = pNum / g;
+                        const sDen = pDen / g;
+
+                        новіЗавдання.push({
+                            id: i + 1,
+                            формула: `${w1}\\frac{${n1}}{${d1}} \\cdot ${w2}\\frac{${n2}}{${d2}}`,
+                            правильнаЦіла: Math.floor(sNum / sDen),
+                            правильнийЧисельник: sNum % sDen,
+                            правильнийЗнаменник: sDen
+                        });
+                    }
+                    else {
+                        const decs = [{ d: '0{,}5', n: 1, den: 2 }, { d: '0{,}2', n: 1, den: 5 }, { d: '0{,}4', n: 2, den: 5 }];
+                        const chosen = decs[ВипадковеЦіле(0, decs.length - 1)];
+                        
+                        let f2_den = ВипадковеЦіле(2, 6); let f2_num = ВипадковеЦіле(1, f2_den - 1);
+                        while(НСД(f2_num, f2_den) !== 1) f2_num = ВипадковеЦіле(1, f2_den - 1);
+
+                        const pNum = chosen.n * f2_num;
+                        const pDen = chosen.den * f2_den;
+                        const g = НСД(pNum, pDen);
+                        const sNum = pNum / g;
+                        const sDen = pDen / g;
+
+                        новіЗавдання.push({
+                            id: i + 1,
+                            формула: `${chosen.d} \\cdot \\frac{${f2_num}}{${f2_den}}`,
+                            правильнаЦіла: Math.floor(sNum / sDen),
+                            правильнийЧисельник: sNum % sDen,
+                            правильнийЗнаменник: sDen
+                        });
+                    }
+                }
+
+                встановитиСписокЗавдань(новіЗавдання);
+                встановитиПоточнийІндекс(0);
+                встановитиРезультати([]);
+                встановитиВведенуЦілу('');
+                встановитиВведенийЧисельник('');
+                встановитиВведенийЗнаменник('');
+                встановитиСтан('тестування');
+            };
+
+            const ЗберегтиУФонд = async (правильних) => {
+                if (!window.firebaseAPI || !window.firebaseAPI.isReady) return;
+                try {
+                    const { db, collection, addDoc, auth } = window.firebaseAPI;
+                    if (!auth.currentUser) return;
+                    
+                    const оцінка = Math.round((правильних / 10) * 12);
+                    const ref = collection(db, 'artifacts', APP_ID, 'public', 'data', 'test_results');
+                    
+                    await addDoc(ref, {
+                        studentName: імяУчня,
+                        score: правильних,
+                        grade: оцінка,
+                        total: 10,
+                        timestamp: Date.now(),
+                        dateString: new Date().toLocaleString('uk-UA')
+                    });
+                } catch (e) {
+                    console.error("Помилка при збереженні", e);
+                }
+            };
+
+            const ЗафіксуватиВідповідь = () => {
+                const currentTask = списокЗавдань[поточнийІндекс];
+                
+                if (введенаЦіла.trim() === '' && введенийЧисельник.trim() === '' && введенийЗнаменник.trim() === '') {
+                    встановитиПомилкуВводу('Будь ласка, введіть відповідь перед тим, як переходити далі.');
+                    return;
+                }
+
+                const uWhole = введенаЦіла.trim() === '' ? 0 : parseInt(введенаЦіла, 10);
+                const uNum = введенийЧисельник.trim() === '' ? 0 : parseInt(введенийЧисельник, 10);
+                const uDen = введенийЗнаменник.trim() === '' ? 1 : parseInt(введенийЗнаменник, 10);
+
+                if (isNaN(uWhole) || isNaN(uNum) || isNaN(uDen) || uDen === 0) {
+                    встановитиПомилкуВводу("Введіть коректні числа (знаменник не може бути нулем).");
+                    return;
+                }
+                
+                встановитиПомилкуВводу('');
+
+                const expectedWhole = currentTask.правильнаЦіла;
+                const expectedNum = currentTask.правильнийЧисельник;
+                const expectedDen = currentTask.правильнийЗнаменник;
+
+                const userTotalNum = uWhole * uDen + uNum;
+                const expectedTotalNum = expectedWhole * expectedDen + expectedNum;
+
+                const isValueCorrect = (userTotalNum * expectedDen === expectedTotalNum * uDen);
+                const isSimplified = (uNum === 0 && uDen === 1) || (uNum > 0 && НСД(uNum, uDen) === 1);
+                const isProper = (uNum < uDen) || (uDen === 1);
+
+                const правильно = isValueCorrect && isSimplified && isProper;
+
+                const оновленіРезультати = [
+                    ...результати,
+                    {
+                        завдання: currentTask,
+                        правильно: правильно
+                    }
+                ];
+
+                встановитиРезультати(оновленіРезультати);
+
+                if (поточнийІндекс + 1 < списокЗавдань.length) {
+                    встановитиПоточнийІндекс(поточнийІндекс + 1);
+                    встановитиВведенуЦілу('');
+                    встановитиВведенийЧисельник('');
+                    встановитиВведенийЗнаменник('');
+                } else {
+                    const підсумковийБал = оновленіРезультати.filter(r => r.правильно).length;
+                    ЗберегтиУФонд(підсумковийБал);
+                    встановитиСтан('фініш');
+                }
+            };
+
+            const ПравильнихВідповідей = результати.filter(r => r.правильно).length;
+
+            return (
+                <div class="bg-white border border-orange-200 rounded-3xl p-6 shadow-sm">
+                    {стан === 'старт' && (
+                        <div class="text-center py-8 space-y-4">
+                            <div class="w-16 h-16 bg-orange-50 text-orange-500 rounded-3xl flex items-center justify-center mx-auto text-3xl font-bold shadow-sm">
+                                🏅
+                            </div>
+                            <h2 class="text-xl font-extrabold text-gray-900">Контрольна перевірка знань</h2>
+                            <p class="text-sm text-gray-700 max-w-md mx-auto leading-relaxed font-medium">
+                                Тестування складається з 10 практичних завдань усіх типів. Підказки вимкнено. Ваш результат буде збережено у Журнал вчителя.
+                            </p>
+                            
+                            <div class="mt-6 max-w-xs mx-auto mb-4">
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                    Введіть Прізвище та Ім'я:
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Шевченко Тарас"
+                                    value={імяУчня}
+                                    onChange={(e) => встановитиІмяУчня(e.target.value)}
+                                    class={`w-full px-4 py-3 text-center text-sm font-bold border-2 rounded-xl focus:outline-none shadow-sm transition-colors ${
+                                        помилкаІмені ? 'border-rose-400 bg-rose-50' : 'border-orange-300 focus:border-orange-300 bg-white'
+                                    } text-gray-900`}
+                                />
+                                {помилкаІмені && <p class="text-xs text-rose-600 mt-2 font-bold">Обов'язкове поле для початку тесту</p>}
+                            </div>
+
+                            <button
+                                onClick={ПочатиТест}
+                                class="px-8 py-3.5 bg-orange-700 hover:bg-orange-800 text-white font-bold text-sm rounded-2xl shadow-md transition-all mt-2"
+                            >
+                                Розпочати тестування
+                            </button>
+                        </div>
+                    )}
+
+                    {стан === 'тестування' && (
+                        <div>
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center text-xs font-bold text-gray-500 mb-2">
+                                    <span>Учень: <span class="text-gray-900">{імяУчня}</span> | Завдання {поточнийІндекс + 1} з 10</span>
+                                    <span>{Math.round(((поточнийІндекс) / 10) * 100)}% Виконано</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-orange-100 rounded-full overflow-hidden border border-orange-200">
+                                    <div
+                                        class="h-full bg-orange-400 transition-all duration-300 shadow-sm"
+                                        style={{ width: `${((поточнийІндекс + 1) / 10) * 100}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-orange-50 rounded-2xl p-6 border border-orange-200 text-center mb-6">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Обчисліть вираз</span>
+                                <div class="font-bold text-gray-900">
+                                    <Formula math={`${списокЗавдань[поточнийІндекс].формула} =`} block />
+                                </div>
+                            </div>
+
+                            <div class="max-w-md mx-auto mb-4">
+                                <div class="flex items-center justify-center space-x-2 bg-orange-50 p-4 rounded-2xl border border-orange-200">
+                                    {(списокЗавдань[поточнийІндекс].правильнаЦіла !== 0 || (списокЗавдань[поточнийІндекс].правильнаЦіла === 0 && списокЗавдань[поточнийІндекс].правильнийЧисельник === 0)) && (
+                                        <div class="flex flex-col items-center mr-2">
+                                            <span class="text-[10px] text-gray-500 font-bold mb-1">Ціла частина</span>
+                                            <input
+                                                type="number" min="0" step="1"
+                                                value={введенаЦіла}
+                                                onChange={(e) => встановитиВведенуЦілу(e.target.value)}
+                                                class="w-16 h-12 text-center text-lg font-bold border-2 border-orange-300 rounded-xl focus:border-orange-300 focus:outline-none bg-white text-gray-900"
+                                            />
+                                        </div>
+                                    )}
+                                    
+                                    <div class="flex flex-col items-center space-y-1">
+                                        <span class="text-[10px] text-gray-500 font-bold">Чисельник</span>
+                                        <input
+                                            type="number" min="0" step="1"
+                                            value={введенийЧисельник}
+                                            onChange={(e) => встановитиВведенийЧисельник(e.target.value)}
+                                            class="w-16 h-10 text-center text-md font-bold border-2 border-orange-300 rounded-xl focus:border-orange-300 focus:outline-none bg-white text-gray-900"
+                                        />
+                                        <div class="w-16 h-0.5 bg-gray-800 rounded-full"></div>
+                                        <input
+                                            type="number" min="1" step="1"
+                                            value={введенийЗнаменник}
+                                            onChange={(e) => встановитиВведенийЗнаменник(e.target.value)}
+                                            class="w-16 h-10 text-center text-md font-bold border-2 border-orange-300 rounded-xl focus:border-orange-300 focus:outline-none bg-white text-gray-900"
+                                        />
+                                        <span class="text-[10px] text-gray-500 font-bold mt-1">Знаменник</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {помилкаВводу && (
+                                <div class="max-w-md mx-auto mb-4 text-center text-sm font-bold text-rose-600 bg-rose-50 p-2 rounded-xl border border-rose-200">
+                                    {помилкаВводу}
+                                </div>
+                            )}
+
+                            <div class="text-center">
+                                <button
+                                    onClick={ЗафіксуватиВідповідь}
+                                    class="px-8 py-3 bg-orange-700 hover:bg-orange-800 text-white font-bold text-sm rounded-2xl transition-all shadow-md"
+                                >
+                                    {поточнийІндекс + 1 === 10 ? 'Завершити тестування' : 'Відповісти та далі'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {стан === 'фініш' && (
+                        <div class="space-y-6">
+                            <div class="bg-orange-50 border border-orange-200 p-6 rounded-3xl text-center shadow-sm">
+                                <span class="text-xs font-bold text-orange-700 uppercase tracking-widest block mb-1">Підсумковий результат</span>
+                                <h3 class="text-2xl font-extrabold text-gray-900 mb-2">
+                                    Успішно виконано {ПравильнихВідповідей} з 10 завдань
+                                </h3>
+                                <p class="text-sm text-gray-700 font-medium mb-4">
+                                    Оцінка: <span class="font-bold text-gray-900 text-lg">{Math.round((ПравильнихВідповідей / 10) * 12)} балів</span>
+                                </p>
+                                <div class="text-xs font-bold bg-white text-gray-900 inline-block px-4 py-2 border border-orange-200 rounded-xl shadow-sm">
+                                    👤 {імяУчня}
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Деталізація результатів:</h4>
+                                {результати.map((res, index) => (
+                                    <div
+                                        key={index}
+                                        class={`p-4 rounded-2xl border flex items-center justify-between text-sm ${
+                                            res.правильно
+                                                ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                                                : 'bg-rose-50/80 border-rose-200 text-rose-900'
+                                        }`}
+                                    >
+                                        <div class="flex items-center space-x-3">
+                                            <span class="font-bold text-gray-400">{index + 1}.</span>
+                                            <Formula math={`${res.завдання.формула}`} />
+                                        </div>
+                                        <div class="font-bold">
+                                            {res.правильно ? (
+                                                <span class="text-emerald-700 flex items-center space-x-1">
+                                                    <span>Правильно</span>
+                                                    <span>✓</span>
+                                                </span>
+                                            ) : (
+                                                <span class="text-rose-700 flex items-center space-x-1">
+                                                    <span>Помилка</span>
+                                                    <span>✗</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 4. ЖУРНАЛ ВЧИТЕЛЯ
+        // ==========================================
+        function РозділЖурнал({ закритиЖурнал, парольВведено, встановитиПарольВведено }) {
+            const [пароль, встановитиПароль] = useState('');
+            const [помилка, встановитиПомилку] = useState('');
+            const [результати, встановитиРезультати] = useState([]);
+            const [завантаження, встановитиЗавантаження] = useState(false);
+
+            const ПеревіритиПароль = () => {
+                if (пароль === '8019') {
+                    встановитиПарольВведено(true);
+                    встановитиПомилку('');
+                } else {
+                    встановитиПомилку('Невірний пароль доступу');
+                    встановитиПароль('');
+                }
+            };
+
+            useEffect(() => {
+                let unsubscribe;
+                if (парольВведено && window.firebaseAPI && window.firebaseAPI.isReady) {
+                    встановитиЗавантаження(true);
+                    const { db, collection, onSnapshot, query, auth } = window.firebaseAPI;
+                    if (auth.currentUser) {
+                        const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'test_results'));
+                        unsubscribe = onSnapshot(q, (snapshot) => {
+                            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            data.sort((a, b) => b.timestamp - a.timestamp);
+                            встановитиРезультати(data);
+                            встановитиЗавантаження(false);
+                        }, (err) => {
+                            console.error("Помилка завантаження бази", err);
+                            встановитиЗавантаження(false);
+                        });
+                    } else {
+                        встановитиЗавантаження(false);
+                    }
+                }
+                return () => {
+                    if (unsubscribe) unsubscribe();
+                };
+            }, [парольВведено]);
+
+            if (!парольВведено) {
+                return (
+                    <div class="bg-white border border-orange-200 rounded-3xl p-8 shadow-sm max-w-sm mx-auto mt-4 text-center relative">
+                        <button 
+                            onClick={закритиЖурнал}
+                            class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 font-bold"
+                            title="Закрити"
+                        >
+                            ✕
+                        </button>
+                        <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold mb-4">
+                            🔒
+                        </div>
+                        <h2 class="text-lg font-bold text-gray-900 mb-2">Журнал вчителя</h2>
+                        <p class="text-xs text-gray-500 mb-6 font-medium">Введіть пароль для доступу до бази результатів.</p>
+                        
+                        <input
+                            type="password"
+                            placeholder="Пароль..."
+                            value={пароль}
+                            onChange={(e) => встановитиПароль(e.target.value)}
+                            class={`w-full px-4 py-3 text-center text-sm font-bold border-2 rounded-xl focus:outline-none mb-4 transition-colors ${
+                                помилка ? 'border-rose-400 bg-rose-50' : 'border-orange-300 focus:border-orange-400 bg-white'
+                            } text-gray-900`}
+                        />
+                        {помилка && <p class="text-xs text-rose-600 mb-4 font-bold">{помилка}</p>}
+                        
+                        <button
+                            onClick={ПеревіритиПароль}
+                            class="w-full py-3 bg-gray-900 hover:bg-black text-white font-bold text-sm rounded-xl shadow-md transition-all"
+                        >
+                            Увійти
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div class="bg-white border border-orange-200 rounded-3xl p-6 shadow-sm relative">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-extrabold text-gray-900">Результати учнів</h2>
+                        <div class="space-x-2">
+                            <button 
+                                onClick={() => встановитиПарольВведено(false)}
+                                class="text-xs font-bold text-gray-500 hover:text-gray-900 px-3 py-2 bg-orange-100 rounded-lg transition-colors"
+                            >
+                                Вийти
+                            </button>
+                            <button 
+                                onClick={закритиЖурнал}
+                                class="text-xs font-bold text-white bg-gray-800 hover:bg-black px-3 py-2 rounded-lg transition-colors"
+                            >
+                                Закрити журнал
+                            </button>
+                        </div>
+                    </div>
+
+                    {завантаження ? (
+                        <div class="text-center py-8 text-sm font-bold text-gray-500">
+                            Завантаження даних із хмари...
+                        </div>
+                    ) : результати.length === 0 ? (
+                        <div class="text-center py-8 text-sm font-bold text-gray-500 bg-orange-50 rounded-2xl border border-orange-200">
+                            Журнал поки що порожній.
+                        </div>
+                    ) : (
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-orange-50 border-b border-orange-200">
+                                        <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-tl-xl">Учень / Учениця</th>
+                                        <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Дата</th>
+                                        <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Правильно</th>
+                                        <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right rounded-tr-xl">Оцінка (12)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {результати.map((res) => (
+                                        <tr key={res.id} class="border-b border-orange-100 hover:bg-orange-50 transition-colors">
+                                            <td class="p-3 text-sm font-bold text-gray-900">{res.studentName}</td>
+                                            <td class="p-3 text-xs font-medium text-gray-500">{res.dateString}</td>
+                                            <td class="p-3 text-sm font-bold text-gray-700">{res.score} / {res.total}</td>
+                                            <td class="p-3 text-sm font-bold text-right text-gray-900">
+                                                <span class="bg-orange-200 px-2.5 py-1 rounded-lg">{res.grade}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Додаток />);
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>

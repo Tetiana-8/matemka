@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер: Основна властивість дробу</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF9F1; /* фон 6 класу */
+            min-height: 100vh;
+        }
+        .fraction-box {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            padding: 0 4px;
+        }
+        .fraction-line {
+            width: 100%;
+            height: 3px;
+            background-color: #334155;
+            margin: 4px 0;
+            border-radius: 2px;
+        }
+        .shake-error {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+          authDomain: "math-5-892a5.firebaseapp.com",
+          projectId: "math-5-892a5",
+          storageBucket: "math-5-892a5.firebasestorage.app",
+          messagingSenderId: "163114803328",
+          appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+          measurementId: "G-E06VKZ2GP5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Fixed single appId so all devices/accounts access the exact same Firebase folder
+        const appId = 'math-fractions-6th';
+        const COLLECTION_NAME = 'results_[ОСНОВНА ВЛАСТИВІСТЬ ДРОБУ]';
+
+        window.db = db;
+        window.auth = auth;
+        window.appId = appId;
+        window.COLLECTION_NAME = COLLECTION_NAME;
+        window.firebaseDocs = { collection, addDoc, onSnapshot, deleteDoc, doc };
+
+        let authPromise = null;
+        window.ensureAuth = async () => {
+            if (!authPromise) {
+                authPromise = (async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            try {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } catch (tokenErr) {
+                                console.warn("Fallback to anonymous auth:", tokenErr);
+                                await signInAnonymously(auth);
+                            }
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch(err) {
+                        console.error("Firebase auth error:", err);
+                    }
+                })();
+            }
+            return authPromise;
+        };
+        window.ensureAuth();
+    </script>
+</head>
+<body class="text-slate-800 flex flex-col justify-between min-h-screen relative p-4 md:p-8">
+
+    <!-- Top Left Teacher Lock Icon (Unobtrusive) -->
+    <div class="absolute top-4 left-4 z-20">
+        <button onclick="openTeacherLogin()" class="w-9 h-9 bg-orange-200/60 hover:bg-orange-300/80 text-orange-800 rounded-full flex items-center justify-center transition shadow-sm" title="Журнал вчителя">
+            <i class="fa-solid fa-lock text-sm"></i>
+        </button>
+    </div>
+
+    <!-- Main Interactive Card Container (Light Soft-Green Background) -->
+    <main class="max-w-3xl w-full mx-auto my-auto py-6">
+        <div class="bg-orange-50/90 rounded-3xl p-6 md:p-10 shadow-xl border border-orange-200/90 flex flex-col items-center text-center space-y-6">
+            
+            <!-- Instruction Header -->
+            <div id="task-instruction" class="text-xl md:text-2xl font-black text-slate-800 transition-all">
+                Завантаження завдання...
+            </div>
+
+            <!-- Task Workspace -->
+            <div id="task-workspace" class="flex items-center justify-center gap-3 md:gap-4 flex-wrap text-2xl md:text-3xl font-black py-4 min-h-[120px] w-full">
+                <!-- Dynamically populated fraction expressions -->
+            </div>
+
+            <!-- Feedback & Hint Button Message Area -->
+            <div class="flex flex-col items-center space-y-2 min-h-[3rem]">
+                <div id="task-feedback" class="text-base md:text-lg font-extrabold transition-all"></div>
+                
+                <!-- Dynamic Hint Button (Appears on error) -->
+                <button id="btn-hint" onclick="toggleHintModal()" class="hidden bg-orange-100 hover:bg-orange-200 text-orange-900 font-extrabold text-sm py-2 px-5 rounded-2xl shadow-sm border border-orange-300 transition transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-orange-500 text-base animate-pulse"></i>
+                    <span>Потрібна підказка?</span>
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-4 w-full max-w-md pt-2">
+                <button onclick="checkAnswer(true)" class="flex-1 bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow-md transition transform active:scale-95">
+                    Перевірити <i class="fa-solid fa-check ml-1.5 text-sm"></i>
+                </button>
+                <button onclick="nextTask()" class="bg-orange-100/80 hover:bg-orange-200 text-orange-800 font-bold text-lg py-3.5 px-6 rounded-2xl transition">
+                    Далі <i class="fa-solid fa-arrow-right ml-1 text-sm"></i>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Hint Modal -->
+    <div id="modal-hint" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-4 text-center border border-orange-200 relative animate-fade-in">
+            <button onclick="toggleHintModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto text-orange-600 text-2xl">
+                <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-slate-800">Підказка</h3>
+                <div id="hint-content-text" class="text-slate-700 font-semibold text-sm md:text-base mt-3 leading-relaxed bg-orange-50/70 p-4 rounded-2xl border border-orange-200/80">
+                    <!-- Dynamic hint text inserted here -->
+                </div>
+            </div>
+            <button onclick="toggleHintModal()" class="w-full bg-orange-300 hover:bg-orange-800 text-orange-950 font-black py-3 rounded-xl shadow-md transition active:scale-95">
+                Зрозуміло! Спробую ще раз
+            </button>
+        </div>
+    </div>
+
+    <!-- Student Name Modal (Shown at start) -->
+    <div id="modal-student" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl space-y-5 text-center border border-orange-100">
+            <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto text-orange-600 text-2xl">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-slate-800">Введіть ваше ім'я</h3>
+                <p class="text-slate-500 text-xs mt-1">Прізвище та ім'я для збереження успіхів:</p>
+            </div>
+            <input type="text" id="student-name-input" placeholder="" autofocus class="w-full text-center px-4 py-3 rounded-xl border-2 border-orange-200 font-bold text-slate-800 text-base focus:outline-none focus:border-orange-500">
+            <button onclick="saveStudentName()" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95">
+                Почати тренування
+            </button>
+        </div>
+    </div>
+
+    <!-- Teacher Password Modal -->
+    <div id="modal-password" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center relative border border-orange-100">
+            <button onclick="closeModal('modal-password')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto text-orange-600 text-xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800">Журнал вчителя</h3>
+            <input type="password" id="teacher-password-input" placeholder="Пароль" class="w-full text-center px-4 py-2.5 rounded-xl border-2 border-orange-200 font-black text-slate-800 text-base focus:outline-none focus:border-orange-500">
+            <div id="password-error" class="text-rose-500 text-xs font-bold hidden">Невірний пароль</div>
+            <button onclick="checkTeacherPassword()" class="w-full bg-orange-300 hover:bg-orange-800 text-slate-900 font-black py-2.5 rounded-xl shadow-md transition">
+                Увійти
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal (Replaces browser confirm) -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center border border-rose-100">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirm-modal-title" class="text-lg font-black text-slate-800">Підтвердження</h3>
+            <p id="confirm-modal-text" class="text-xs font-semibold text-slate-600 leading-relaxed"></p>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeModal('modal-confirm')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
+                    Скасувати
+                </button>
+                <button id="confirm-modal-action-btn" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-2.5 rounded-xl text-xs shadow-md transition">
+                    Так, видалити
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Journal Modal (Exact screenshot design) -->
+    <div id="modal-journal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-6 hidden">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-4xl w-full h-[85vh] shadow-2xl flex flex-col border border-orange-100">
+            
+            <!-- Header section matching screenshot -->
+            <div class="flex justify-between items-start pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-orange-950">Журнал результатів учнів</h2>
+                    <div class="flex items-center gap-2 text-xs font-bold text-orange-600 mt-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        Firebase (math-5-892a5) підключено
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="fetchJournalResults()" class="bg-orange-100 hover:bg-orange-200 text-orange-800 px-4 py-2 rounded-2xl text-xs font-black transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Оновити
+                    </button>
+                    <button onclick="closeModal('modal-journal')" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center text-sm font-bold transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Header & Content Container -->
+            <div class="flex-1 overflow-y-auto mt-4 pr-1">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-orange-50 text-orange-900 text-xs font-black rounded-2xl overflow-hidden">
+                            <th class="p-3.5 rounded-l-2xl">Ім'я учня</th>
+                            <th class="p-3.5">Рівні</th>
+                            <th class="p-3.5 text-center">Вірно / Помилки</th>
+                            <th class="p-3.5 text-center">Всього</th>
+                            <th class="p-3.5 text-right">Час</th>
+                            <th class="p-3.5 rounded-r-2xl text-center">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="journal-table-body" class="divide-y divide-slate-100 text-xs font-semibold">
+                        <tr>
+                            <td colspan="6" class="text-center py-10 text-slate-400 font-bold">Завантаження результатів...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Buttons matching screenshot -->
+            <div class="flex justify-between items-center pt-4 border-t border-slate-100 mt-2">
+                <button onclick="clearAllJournalData()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold px-5 py-3 rounded-2xl text-xs transition">
+                    Очистити журнал
+                </button>
+                <button onclick="closeModal('modal-journal')" class="bg-orange-700 hover:bg-orange-800 text-white font-black px-8 py-3 rounded-2xl text-xs transition shadow-md hover:shadow-lg">
+                    Закрити
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer with Author Attribution -->
+    <div class="text-gray-500 text-[10px] tracking-wider text-center py-4">
+        Автор розробки <span class="font-bold text-gray-900">Ковтун Тетяна</span> за технічної підтримки <span class="text-blue-600">Gemini</span>
+    </div>
+
+    <script>
+        /* --- STATE VARIABLES --- */
+        let state = {
+            studentName: '',
+            solvedCount: 0,
+            errorsCount: 0,
+            maxLevelReached: 1,
+            taskTypeSequence: ['mult', 'chain', 'div', 'chain'],
+            taskSequenceIndex: 0,
+            currentTaskType: 'mult', // 'mult', 'div', or 'chain'
+            currentHintText: '',
+            isTransitioning: false,
+            // For Multiply/Divide Task
+            mdTargetNum: 0,
+            mdTargetDen: 0,
+            // For Chain Task
+            chainItems: []
+        };
+
+        let journalDataCache = [];
+
+        /* --- AUDIO SYNTHESIZER --- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === 'wrong') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(130, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        /* --- STUDENT NAME MANAGEMENT --- */
+        function saveStudentName() {
+            const input = document.getElementById('student-name-input').value.trim();
+            if (!input) {
+                const el = document.getElementById('student-name-input');
+                if (el) {
+                    el.classList.add('border-rose-400', 'bg-rose-50');
+                    el.placeholder = "Будь ласка, введіть ім'я!";
+                }
+                return;
+            }
+            state.studentName = input;
+            closeModal('modal-student');
+            saveResultToFirebase("Розпочато тренування");
+            nextTask();
+        }
+
+        /* --- CONFIRMATION MODAL HELPER --- */
+        let pendingConfirmAction = null;
+        function showConfirmDialog(title, text, actionFn) {
+            document.getElementById('confirm-modal-title').textContent = title;
+            document.getElementById('confirm-modal-text').textContent = text;
+            pendingConfirmAction = actionFn;
+            document.getElementById('confirm-modal-action-btn').onclick = async () => {
+                closeModal('modal-confirm');
+                if (pendingConfirmAction) {
+                    await pendingConfirmAction();
+                    pendingConfirmAction = null;
+                }
+            };
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        /* --- HINT SYSTEM LOGIC --- */
+        function toggleHintModal() {
+            const modal = document.getElementById('modal-hint');
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('hint-content-text').innerHTML = state.currentHintText || "Згадай основну властивість дробу: якщо чисельник і знаменник помножити або поділити на одне й те саме натуральне число, то отримаємо дріб, що дорівнює даному.";
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        /* --- TEACHER JOURNAL LOGIC --- */
+        function openTeacherLogin() {
+            document.getElementById('teacher-password-input').value = '';
+            document.getElementById('password-error').classList.add('hidden');
+            document.getElementById('modal-password').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function checkTeacherPassword() {
+            const pwd = document.getElementById('teacher-password-input').value;
+            if (pwd === '8019') {
+                closeModal('modal-password');
+                document.getElementById('modal-journal').classList.remove('hidden');
+                fetchJournalResults();
+            } else {
+                document.getElementById('password-error').classList.remove('hidden');
+            }
+        }
+
+        async function saveResultToFirebase(activity = "Виконано завдання") {
+            if (!state.studentName || !window.db) return;
+
+            try {
+                await window.ensureAuth();
+                const { collection, addDoc } = window.firebaseDocs;
+                const colRef = collection(window.db, 'artifacts', window.appId, 'public', 'data', window.COLLECTION_NAME);
+                
+                const now = new Date();
+                const formattedTime = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const formattedDate = now.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                await addDoc(colRef, {
+                    studentName: state.studentName,
+                    solvedCount: state.solvedCount,
+                    errorsCount: state.errorsCount,
+                    maxLevelReached: state.maxLevelReached,
+                    activity: activity,
+                    timestamp: now.toISOString(),
+                    formattedTime: formattedTime,
+                    formattedDate: formattedDate
+                });
+            } catch (e) {
+                console.error("Firebase save error:", e);
+            }
+        }
+
+        async function fetchJournalResults() {
+            if (!window.db) return;
+            try {
+                await window.ensureAuth();
+                const { collection, onSnapshot } = window.firebaseDocs;
+                const colRef = collection(window.db, 'artifacts', window.appId, 'public', 'data', window.COLLECTION_NAME);
+
+                onSnapshot(colRef, (snapshot) => {
+                    journalDataCache = [];
+                    snapshot.forEach((docSnap) => {
+                        journalDataCache.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    renderJournalTable();
+                }, (error) => {
+                    console.error("Journal snapshot error:", error);
+                });
+            } catch (e) {
+                console.error("Fetch journal error:", e);
+            }
+        }
+
+        /* Render journal table matching screenshot design */
+        function renderJournalTable() {
+            const tbody = document.getElementById('journal-table-body');
+
+            if (journalDataCache.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-slate-400 font-bold">Журнал порожній</td></tr>`;
+                return;
+            }
+
+            // Group entries per student to show aggregated summary
+            const studentsMap = {};
+
+            journalDataCache.forEach(item => {
+                const sName = (item.studentName || 'Анонім').trim();
+                if (!studentsMap[sName]) {
+                    studentsMap[sName] = {
+                        studentName: sName,
+                        solvedCount: 0,
+                        errorsCount: 0,
+                        maxLevel: 1,
+                        lastTimestamp: item.timestamp || '',
+                        formattedTime: item.formattedTime || '-',
+                        formattedDate: item.formattedDate || '-',
+                        docIds: []
+                    };
+                }
+
+                studentsMap[sName].docIds.push(item.id);
+                if (item.solvedCount > studentsMap[sName].solvedCount) {
+                    studentsMap[sName].solvedCount = item.solvedCount;
+                }
+                if (item.errorsCount > studentsMap[sName].errorsCount) {
+                    studentsMap[sName].errorsCount = item.errorsCount;
+                }
+                const levelVal = item.maxLevelReached || (item.solvedCount ? Math.floor(item.solvedCount / 2) + 1 : 1);
+                if (levelVal > studentsMap[sName].maxLevel) {
+                    studentsMap[sName].maxLevel = levelVal;
+                }
+                if (new Date(item.timestamp) > new Date(studentsMap[sName].lastTimestamp)) {
+                    studentsMap[sName].lastTimestamp = item.timestamp;
+                    studentsMap[sName].formattedTime = item.formattedTime || '-';
+                    studentsMap[sName].formattedDate = item.formattedDate || '-';
+                }
+            });
+
+            const studentList = Object.values(studentsMap);
+            studentList.sort((a, b) => new Date(b.lastTimestamp || 0) - new Date(a.lastTimestamp || 0));
+
+            tbody.innerHTML = studentList.map(st => {
+                // Generate level string e.g. "Рівень 1, Рівень 2"
+                const levelsArr = [];
+                for (let l = 1; l <= Math.max(1, st.maxLevel); l++) {
+                    levelsArr.push(`Рівень ${l}`);
+                }
+                const levelsStr = levelsArr.join(', ');
+                const encodedName = encodeURIComponent(st.studentName);
+
+                return `
+                    <tr class="hover:bg-orange-50/40 transition">
+                        <td class="p-3.5 font-extrabold text-slate-900">${st.studentName}</td>
+                        <td class="p-3.5 font-bold text-orange-700">${levelsStr}</td>
+                        <td class="p-3.5 text-center">
+                            <div class="inline-flex items-center gap-2">
+                                <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-xl text-xs font-extrabold">
+                                    ${st.solvedCount || 0} вірно
+                                </span>
+                                <span class="bg-rose-100 text-rose-700 px-3 py-1 rounded-xl text-xs font-extrabold">
+                                    ${st.errorsCount || 0} помилок
+                                </span>
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-center font-black text-orange-950">${st.solvedCount || 0} завд.</td>
+                        <td class="p-3.5 text-right font-semibold text-slate-400 text-[11px] leading-tight">
+                            <div>${st.formattedTime || '-'}</div>
+                            <div>${st.formattedDate || '-'}</div>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteStudentData('${encodedName}')" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg transition" title="Видалити запис учня">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteStudentData(encodedName) {
+            const name = decodeURIComponent(encodedName);
+            showConfirmDialog(
+                "Видалити учня",
+                `Ви дійсно хочете видалити всі записи учня "${name}" з журналу?`,
+                async () => {
+                    try {
+                        await window.ensureAuth();
+                        const { doc, deleteDoc } = window.firebaseDocs;
+                        const itemsToDelete = journalDataCache.filter(item => (item.studentName || '').trim() === name);
+                        
+                        const deletePromises = itemsToDelete.map(item => {
+                            const docRef = doc(window.db, 'artifacts', window.appId, 'public', 'data', window.COLLECTION_NAME, item.id);
+                            return deleteDoc(docRef);
+                        });
+                        await Promise.all(deletePromises);
+                    } catch (e) {
+                        console.error("Delete student error:", e);
+                    }
+                }
+            );
+        }
+
+        function clearAllJournalData() {
+            showConfirmDialog(
+                "Очистити журнал",
+                "Ви дійсно хочете повністю очистити весь журнал результатів? Цю дію неможливо скасувати.",
+                async () => {
+                    try {
+                        await window.ensureAuth();
+                        const { doc, deleteDoc } = window.firebaseDocs;
+                        const deletePromises = journalDataCache.map(item => {
+                            const docRef = doc(window.db, 'artifacts', window.appId, 'public', 'data', window.COLLECTION_NAME, item.id);
+                            return deleteDoc(docRef);
+                        });
+                        await Promise.all(deletePromises);
+                        journalDataCache = [];
+                        renderJournalTable();
+                    } catch (e) {
+                        console.error("Clear all error:", e);
+                    }
+                }
+            );
+        }
+
+        /* FAST PROGRESSION & FASTER DIFFICULTY JUMPS */
+        function getDifficulty() {
+            const count = state.solvedCount;
+            
+            // Rapid dynamic scaling:
+            // Jump multipliers and numerators/denominators quickly after just 2-3 solved tasks
+            let minFactor = 2 + Math.floor(count * 0.8);
+            let maxFactor = 4 + Math.floor(count * 1.6);
+            let maxBaseNum = 3 + Math.floor(count * 1.2);
+            
+            // Allow larger non-linear jumps
+            if (count >= 3) {
+                minFactor += 1;
+                maxFactor += 3;
+            }
+            if (count >= 6) {
+                minFactor += 2;
+                maxFactor += 5;
+            }
+
+            state.maxLevelReached = Math.max(state.maxLevelReached, Math.floor(count / 2) + 1);
+
+            return {
+                level: count + 1,
+                minFactor: Math.min(minFactor, 12),
+                maxFactor: Math.min(maxFactor, 25),
+                maxBaseNum: Math.min(maxBaseNum, 16)
+            };
+        }
+
+        function nextTask() {
+            state.isTransitioning = false;
+            document.getElementById('task-feedback').textContent = '';
+            document.getElementById('btn-hint').classList.add('hidden'); // Hide hint on new task
+            
+            // Systematically cycle through types so all 3 modes appear regularly
+            state.currentTaskType = state.taskTypeSequence[state.taskSequenceIndex];
+            state.taskSequenceIndex = (state.taskSequenceIndex + 1) % state.taskTypeSequence.length;
+
+            if (state.currentTaskType === 'mult') {
+                generateMultDivTask(true);
+            } else if (state.currentTaskType === 'div') {
+                generateMultDivTask(false);
+            } else {
+                generateChainTask();
+            }
+        }
+
+        /* Task Type 1 & 2: Multiply or Divide */
+        function generateMultDivTask(isMultiply) {
+            const diff = getDifficulty();
+
+            if (isMultiply) {
+                const num = Math.floor(Math.random() * diff.maxBaseNum) + 1;
+                const den = num + Math.floor(Math.random() * 6) + 1;
+                const factor = Math.floor(Math.random() * (diff.maxFactor - diff.minFactor + 1)) + diff.minFactor;
+
+                state.mdTargetNum = num * factor;
+                state.mdTargetDen = den * factor;
+
+                // Set hint text
+                state.currentHintText = `
+                    <p class="mb-2"><strong>Завдання:</strong> помножити чисельник і знаменник на <strong>${factor}</strong>.</p>
+                    <p class="text-orange-800">1) Чисельник: <strong>${num} × ${factor} = ${state.mdTargetNum}</strong></p>
+                    <p class="text-orange-800">2) Знаменник: <strong>${den} × ${factor} = ${state.mdTargetDen}</strong></p>
+                    <p class="text-xs text-slate-500 mt-2">Записавши ці числа у відповідні ячейки, ти отримаєш рівний дріб!</p>
+                `;
+
+                document.getElementById('task-instruction').innerHTML = 
+                    `Помнож чисельник і знаменник на <span class="text-orange-700 font-black text-2xl md:text-3xl mx-1">${factor}</span>:`;
+
+                document.getElementById('task-workspace').innerHTML = `
+                    <div class="fraction-box text-slate-800">
+                        <span>${num}</span>
+                        <div class="fraction-line"></div>
+                        <span>${den}</span>
+                    </div>
+
+                    <span class="text-slate-400 font-black">=</span>
+
+                    <div class="fraction-box">
+                        <input type="number" id="md-user-num" oninput="autoCheck('md-num')" placeholder="?" class="w-16 h-12 md:w-20 md:h-14 text-center text-orange-800 font-black bg-white border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">
+                        <div class="fraction-line"></div>
+                        <input type="number" id="md-user-den" oninput="autoCheck('md-den')" placeholder="?" class="w-16 h-12 md:w-20 md:h-14 text-center text-orange-800 font-black bg-white border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">
+                    </div>
+                `;
+            } else {
+                // Divide (Simplification)
+                const baseNum = Math.floor(Math.random() * diff.maxBaseNum) + 1;
+                const baseDen = baseNum + Math.floor(Math.random() * 6) + 1;
+                const factor = Math.floor(Math.random() * (diff.maxFactor - diff.minFactor + 1)) + diff.minFactor;
+
+                const startNum = baseNum * factor;
+                const startDen = baseDen * factor;
+
+                state.mdTargetNum = baseNum;
+                state.mdTargetDen = baseDen;
+
+                // Set hint text
+                state.currentHintText = `
+                    <p class="mb-2"><strong>Завдання:</strong> скоротити дріб, поділивши на <strong>${factor}</strong>.</p>
+                    <p class="text-orange-800">1) Чисельник: <strong>${startNum} : ${factor} = ${baseNum}</strong></p>
+                    <p class="text-orange-800">2) Знаменник: <strong>${startDen} : ${factor} = ${baseDen}</strong></p>
+                    <p class="text-xs text-slate-500 mt-2">Поділи обидва числа на ${factor} і впиши результати!</p>
+                `;
+
+                document.getElementById('task-instruction').innerHTML = 
+                    `Поділи чисельник і знаменник на <span class="text-orange-700 font-black text-2xl md:text-3xl mx-1">${factor}</span>:`;
+
+                document.getElementById('task-workspace').innerHTML = `
+                    <div class="fraction-box text-slate-800">
+                        <span>${startNum}</span>
+                        <div class="fraction-line"></div>
+                        <span>${startDen}</span>
+                    </div>
+
+                    <span class="text-slate-400 font-black">=</span>
+
+                    <div class="fraction-box">
+                        <input type="number" id="md-user-num" oninput="autoCheck('md-num')" placeholder="?" class="w-16 h-12 md:w-20 md:h-14 text-center text-orange-800 font-black bg-white border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">
+                        <div class="fraction-line"></div>
+                        <input type="number" id="md-user-den" oninput="autoCheck('md-den')" placeholder="?" class="w-16 h-12 md:w-20 md:h-14 text-center text-orange-800 font-black bg-white border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                const el = document.getElementById('md-user-num');
+                if (el) el.focus();
+            }, 50);
+        }
+
+        /* Task Type 3: Equal Fraction Chain (Non-sequential multipliers, max 3-4 compact items) */
+        function generateChainTask() {
+            const diff = getDifficulty();
+            document.getElementById('task-instruction').textContent = "Заповни пропущені числа у ланцюжку:";
+
+            const baseNum = Math.floor(Math.random() * diff.maxBaseNum) + 1;
+            let baseDen = baseNum + Math.floor(Math.random() * 5) + 1;
+
+            function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+            const g = gcd(baseNum, baseDen);
+            const num = baseNum / g;
+            const den = baseDen / g;
+
+            // Compact chain with 3 fractions, using NON-SEQUENTIAL jumpy multipliers (e.g. 2, 5, 9 or 3, 7, 12)
+            const availableMultipliers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15].filter(m => m <= diff.maxFactor);
+            
+            // Randomly select 2 larger/jumpy multipliers for 2nd and 3rd fraction
+            let m1 = availableMultipliers[Math.floor(Math.random() * Math.min(4, availableMultipliers.length))];
+            let remaining = availableMultipliers.filter(m => m > m1 + 1);
+            let m2 = remaining.length > 0 ? remaining[Math.floor(Math.random() * remaining.length)] : m1 + 3;
+
+            const multipliers = [1, m1, m2];
+
+            state.chainItems = multipliers.map((m, idx) => {
+                const fNum = num * m;
+                const fDen = den * m;
+
+                if (idx === 0) {
+                    return { num: fNum, den: fDen, hideNum: false, hideDen: false };
+                } else {
+                    // Randomly decide whether numerator or denominator is missing
+                    const hideNumerator = (idx % 2 === 1) ? Math.random() > 0.4 : Math.random() < 0.4;
+                    return {
+                        num: fNum,
+                        den: fDen,
+                        hideNum: hideNumerator,
+                        hideDen: !hideNumerator,
+                        multiplier: m
+                    };
+                }
+            });
+
+            // Set hint text for chain
+            state.currentHintText = `
+                <p class="mb-2"><strong>Як знайти невідоме число в ланцюжку:</strong></p>
+                <p class="text-slate-700">1. Порівняй перший дріб <strong>${num}/${den}</strong> із тим, де є пропуск.</p>
+                <p class="text-slate-700">2. Подивись, у скільки разів збільшилося відоме число (чисельник або знаменник).</p>
+                <p class="text-orange-800 font-bold mt-1">3. Помнож інше число на цей самий множник!</p>
+            `;
+
+            let workspaceHTML = '';
+            state.chainItems.forEach((item, index) => {
+                if (index > 0) {
+                    workspaceHTML += `<span class="text-slate-400 font-black text-xl md:text-2xl">=</span>`;
+                }
+
+                let numHTML = item.hideNum 
+                    ? `<input type="number" id="chain-input-num-${index}" oninput="autoCheck('chain', ${index}, 'num')" data-target="${item.num}" placeholder="?" class="w-14 h-11 md:w-16 md:h-12 text-center text-orange-800 font-black border-2 border-orange-300 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">`
+                    : `<span>${item.num}</span>`;
+
+                let denHTML = item.hideDen 
+                    ? `<input type="number" id="chain-input-den-${index}" oninput="autoCheck('chain', ${index}, 'den')" data-target="${item.den}" placeholder="?" class="w-14 h-11 md:w-16 md:h-12 text-center text-orange-800 font-black border-2 border-orange-300 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition">`
+                    : `<span>${item.den}</span>`;
+
+                workspaceHTML += `
+                    <div class="fraction-box bg-white px-3 py-2 rounded-2xl shadow-sm border border-orange-200">
+                        ${numHTML}
+                        <div class="fraction-line"></div>
+                        ${denHTML}
+                    </div>
+                `;
+            });
+
+            document.getElementById('task-workspace').innerHTML = workspaceHTML;
+
+            // Focus on first input
+            setTimeout(() => {
+                const firstInput = document.querySelector('#task-workspace input');
+                if (firstInput) firstInput.focus();
+            }, 50);
+        }
+
+        function autoCheck(source, index, field) {
+            if (state.isTransitioning) return;
+
+            if (state.currentTaskType === 'mult' || state.currentTaskType === 'div') {
+                const uNumEl = document.getElementById('md-user-num');
+                const uDenEl = document.getElementById('md-user-den');
+                if (!uNumEl || !uDenEl) return;
+
+                const uNum = parseInt(uNumEl.value);
+                const uDen = parseInt(uDenEl.value);
+
+                // Auto cursor jumping from numerator to denominator when numerator is correct
+                if (source === 'md-num' && uNum === state.mdTargetNum) {
+                    uNumEl.classList.add('border-orange-500', 'bg-orange-50');
+                    uDenEl.focus();
+                }
+
+                if (!isNaN(uNum) && !isNaN(uDen)) {
+                    if (uNum === state.mdTargetNum && uDen === state.mdTargetDen) {
+                        triggerSuccess();
+                    }
+                }
+            } 
+            else if (state.currentTaskType === 'chain') {
+                // Focus jump when typing in chain
+                if (source === 'chain') {
+                    const currentInput = document.getElementById(`chain-input-${field}-${index}`);
+                    if (currentInput) {
+                        const targetVal = parseInt(currentInput.getAttribute('data-target'));
+                        const userVal = parseInt(currentInput.value);
+
+                        if (userVal === targetVal) {
+                            currentInput.classList.add('border-orange-500', 'bg-orange-50');
+                            // Find next empty input box and auto-focus
+                            const allInputs = Array.from(document.querySelectorAll('#task-workspace input'));
+                            const emptyNext = allInputs.find(inp => !inp.value || parseInt(inp.value) !== parseInt(inp.getAttribute('data-target')));
+                            if (emptyNext) {
+                                emptyNext.focus();
+                            }
+                        }
+                    }
+                }
+
+                let allCorrect = true;
+                let allFilled = true;
+
+                state.chainItems.forEach((item, idx) => {
+                    if (idx === 0) return;
+
+                    if (item.hideNum) {
+                        const input = document.getElementById(`chain-input-num-${idx}`);
+                        if (!input) return;
+                        const val = parseInt(input.value);
+                        if (isNaN(val)) allFilled = false;
+                        else if (val !== item.num) allCorrect = false;
+                    }
+
+                    if (item.hideDen) {
+                        const input = document.getElementById(`chain-input-den-${idx}`);
+                        if (!input) return;
+                        const val = parseInt(input.value);
+                        if (isNaN(val)) allFilled = false;
+                        else if (val !== item.den) allCorrect = false;
+                    }
+                });
+
+                if (allFilled && allCorrect) {
+                    triggerSuccess();
+                }
+            }
+        }
+
+        function triggerSuccess() {
+            if (state.isTransitioning) return;
+            state.isTransitioning = true;
+
+            const fb = document.getElementById('task-feedback');
+            fb.className = "text-emerald-700 font-black text-xl animate-bounce";
+            fb.textContent = "Чудово! Все правильно! ✨";
+
+            document.getElementById('btn-hint').classList.add('hidden'); // Hide hint button on success
+
+            playSound('correct');
+            state.solvedCount += 1;
+            saveResultToFirebase("Розв'язано завдання");
+
+            setTimeout(() => {
+                nextTask();
+            }, 1200);
+        }
+
+        /* Manual Answer Checking (when student clicks 'Перевірити') */
+        function checkAnswer(manualClick = false) {
+            if (state.isTransitioning) return;
+            const fb = document.getElementById('task-feedback');
+
+            if (state.currentTaskType === 'mult' || state.currentTaskType === 'div') {
+                const uNumEl = document.getElementById('md-user-num');
+                const uDenEl = document.getElementById('md-user-den');
+                
+                if (!uNumEl || !uDenEl) return;
+
+                const uNum = parseInt(uNumEl.value);
+                const uDen = parseInt(uDenEl.value);
+
+                if (isNaN(uNum) || isNaN(uDen)) {
+                    if (manualClick) {
+                        fb.className = "text-orange-600 font-bold";
+                        fb.textContent = "Введи значення у обидві ячейки!";
+                    }
+                    return;
+                }
+
+                if (uNum === state.mdTargetNum && uDen === state.mdTargetDen) {
+                    triggerSuccess();
+                } else {
+                    state.errorsCount += 1;
+                    saveResultToFirebase("Помилка при відповіді");
+                    fb.className = "text-rose-600 font-black";
+                    fb.textContent = "Неправильно, спробуй ще раз!";
+                    document.getElementById('btn-hint').classList.remove('hidden'); // Show hint button
+                    playSound('wrong');
+                }
+            } 
+            else if (state.currentTaskType === 'chain') {
+                let allCorrect = true;
+                let missingInputs = false;
+
+                state.chainItems.forEach((item, index) => {
+                    if (index === 0) return;
+
+                    if (item.hideNum) {
+                        const input = document.getElementById(`chain-input-num-${index}`);
+                        if (!input) return;
+                        const val = parseInt(input.value);
+                        if (isNaN(val)) {
+                            missingInputs = true;
+                        } else if (val === item.num) {
+                            input.className = "w-14 h-11 md:w-16 md:h-12 text-center text-orange-800 font-black border-2 border-orange-500 bg-orange-100/60 rounded-xl shadow-sm";
+                        } else {
+                            input.className = "w-14 h-11 md:w-16 md:h-12 text-center text-rose-600 font-black border-2 border-rose-500 bg-rose-50 rounded-xl shake-error shadow-sm";
+                            allCorrect = false;
+                        }
+                    }
+
+                    if (item.hideDen) {
+                        const input = document.getElementById(`chain-input-den-${index}`);
+                        if (!input) return;
+                        const val = parseInt(input.value);
+                        if (isNaN(val)) {
+                            missingInputs = true;
+                        } else if (val === item.den) {
+                            input.className = "w-14 h-11 md:w-16 md:h-12 text-center text-orange-800 font-black border-2 border-orange-500 bg-orange-100/60 rounded-xl shadow-sm";
+                        } else {
+                            input.className = "w-14 h-11 md:w-16 md:h-12 text-center text-rose-600 font-black border-2 border-rose-500 bg-rose-50 rounded-xl shake-error shadow-sm";
+                            allCorrect = false;
+                        }
+                    }
+                });
+
+                if (missingInputs && manualClick) {
+                    fb.className = "text-orange-600 font-bold";
+                    fb.textContent = "Заповни всі пропущені ячейки!";
+                    return;
+                }
+
+                if (allCorrect && !missingInputs) {
+                    triggerSuccess();
+                } else {
+                    state.errorsCount += 1;
+                    saveResultToFirebase("Помилка у ланцюжку");
+                    fb.className = "text-rose-600 font-black";
+                    fb.textContent = "Перевір червоні числа!";
+                    document.getElementById('btn-hint').classList.remove('hidden'); // Show hint button
+                    playSound('wrong');
+                }
+            }
+        }
+
+        /* --- EVENT LISTENERS --- */
+        window.onload = function() {
+            document.getElementById('modal-student').classList.remove('hidden');
+            const studentInput = document.getElementById('student-name-input');
+            if (studentInput) {
+                studentInput.focus();
+            }
+
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (!document.getElementById('modal-student').classList.contains('hidden')) {
+                        saveStudentName();
+                    } else if (!document.getElementById('modal-password').classList.contains('hidden')) {
+                        checkTeacherPassword();
+                    } else if (!document.getElementById('modal-hint').classList.contains('hidden')) {
+                        toggleHintModal();
+                    } else {
+                        checkAnswer(true);
+                    }
+                }
+            });
+        };
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
