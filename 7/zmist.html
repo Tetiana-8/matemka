@@ -170,7 +170,9 @@ ZMIST.forEach(r=>{
     const isT=k=>typeof k==="number"||/^[ag]\d+$/.test(k);
     const nTem=p.temy.filter(x=>isT(x[0])).length;
     const nMat=p.temy.reduce((s,x)=>s+((ROZROBKY[x[0]]||[]).length),0);
-    let html=`<summary>${p.t}<span class="count">${nTem?nTem+" тем":""}${nMat?" · "+nMat+" матеріалів":""}</span></summary><ul>`;
+    const pl=(n,f)=>{const a=n%100,b=n%10;return n+" "+(a>=11&&a<=14?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]);};
+    const cnt=[nTem?pl(nTem,["тема","теми","тем"]):"",nMat?pl(nMat,["матеріал","матеріали","матеріалів"]):""].filter(Boolean).join(" · ");
+    let html=`<summary>${p.t}<span class="count">${cnt}</span></summary><ul>`;
     p.temy.forEach(([k,name])=>{
       if(k==="check"){ html+=`<li class="check">✔ ${name}</li>`; return; }
       if(k==="chvert1"){ html+=`<li class="pidsumok">★ ${name}${btns(k)}</li>`; return; }
