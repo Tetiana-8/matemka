@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Тренажер: додавання і віднімання многочленів</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    /* Колір 7 класу: шляхетний синій. Старі рожеві, індиго й фуксія замінено на синю гаму. */
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pink: {
+          50:'#F5F9FC',100:'#DCE9F2',200:'#C6DCE9',300:'#A8CADD',400:'#6FA3C4',
+          500:'#3887AF',600:'#2A6592',700:'#235580',800:'#1F4E73',900:'#173F5F',950:'#0F2F45'
+        },
+            indigo: {
+          50:'#F5F9FC',100:'#DCE9F2',200:'#C6DCE9',300:'#A8CADD',400:'#6FA3C4',
+          500:'#3887AF',600:'#2A6592',700:'#235580',800:'#1F4E73',900:'#173F5F',950:'#0F2F45'
+        },
+            fuchsia: { 50:'#F5F9FC',100:'#E6F0F5',200:'#BFD6E6',300:'#9EC0D8',400:'#6FA3C4',500:'#3887AF',600:'#2A6592',700:'#235580',800:'#1F4E73',900:'#173F5F',950:'#123350' }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      box-sizing: border-box;
+    }
+    button {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #EAF2F7;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #0f172a;
+    }
+    .math {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      letter-spacing: 0.02em;
+    }
+    .math sup {
+      font-size: 0.65em;
+      line-height: 0;
+    }
+    .pop {
+      animation: pop 0.25s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.97); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="h-screen max-h-screen flex flex-col justify-between overflow-hidden select-none p-2 sm:p-3">
+  <main class="w-full max-w-2xl md:max-w-3xl mx-auto flex-1 flex flex-col justify-between min-h-0">
+    <!-- Header -->
+    <header class="text-center py-1 flex-shrink-0">
+      <h1 class="text-xl sm:text-2xl font-extrabold text-indigo-700 leading-tight">Многочлени: додавання і віднімання</h1>
+      <p class="text-slate-600 text-xs mt-0.5">Інтерактивний тренажер для учнів 7 класу</p>
+    </header>
+
+    <!-- Navigation & Compact Top Score Counter -->
+    <div class="flex items-center justify-between gap-2 my-1 flex-shrink-0">
+      <div class="grid grid-cols-3 gap-1.5 flex-1" id="levels"></div>
+      <!-- Small compact counter in top right -->
+      <div class="bg-white/90 backdrop-blur rounded-xl px-3 py-1.5 border border-pink-200 shadow-sm flex items-center gap-1 shrink-0 text-xs sm:text-sm font-semibold text-emerald-700">
+        <span>✅</span>
+        <span id="scoreCounter" class="font-extrabold">0</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <section class="bg-white/95 backdrop-blur rounded-2xl shadow-md border border-pink-100 p-3 sm:p-4 flex-1 flex flex-col justify-between min-h-0 my-1 overflow-y-auto">
+      <div>
+        <p id="levelNote" class="text-[11px] sm:text-xs text-slate-500 font-medium mb-1"></p>
+        <p class="text-xs sm:text-sm text-slate-700 font-semibold mb-1">Виконай дію та спрости вираз:</p>
+        
+        <!-- Formula Display -->
+        <div id="task" class="math text-xl sm:text-2xl md:text-3xl font-semibold text-center py-2.5 px-2 bg-pink-50/60 rounded-xl border border-pink-100 my-1 overflow-x-auto whitespace-nowrap"></div>
+
+        <!-- Input and Check Action -->
+        <div class="flex gap-2 my-2">
+          <input id="ans" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+            placeholder="Відповідь, напр. 3x^2 - 2x + 5"
+            inputmode="none" enterkeyhint="done"
+            class="math flex-1 min-w-0 border-2 border-slate-300 bg-white rounded-xl px-3 py-2 text-lg sm:text-xl focus:outline-none focus:border-indigo-500 transition-colors">
+          <button id="check" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm sm:text-base font-semibold rounded-xl px-4 sm:px-5 transition shadow-sm">Перевірити</button>
+        </div>
+
+        <!-- Compact Virtual Keypad with Dynamic Power Keys -->
+        <div class="bg-slate-50/90 rounded-xl p-2 border border-slate-200/80 my-1">
+          <div id="vars" class="flex flex-wrap gap-1.5 mb-1.5"></div>
+          <div id="keys" class="grid grid-cols-4 gap-1.5"></div>
+          <div class="text-center mt-1">
+            <button id="kbd" type="button" class="text-[11px] font-medium text-slate-500 hover:text-indigo-600 transition underline">⌨ Використати клавіатуру пристрою</button>
+          </div>
+        </div>
+
+        <!-- Feedback Area -->
+        <div id="fb" class="hidden my-2 rounded-xl p-3 text-xs sm:text-sm"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap gap-2 mt-2 pt-1 border-t border-slate-100 flex-shrink-0">
+        <button id="hint" class="bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-xs sm:text-sm font-semibold rounded-xl px-3 py-2 transition shadow-sm">💡 Розв’язання</button>
+        <button id="next" class="bg-indigo-100 hover:bg-indigo-200 active:scale-95 text-indigo-900 text-xs sm:text-sm font-semibold rounded-xl px-4 sm:px-5 transition shadow-sm ml-auto">Наступне →</button>
+      </div>
+
+      <!-- Detailed Solution View -->
+      <div id="sol" class="hidden mt-2 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs sm:text-sm space-y-2"></div>
+    </section>
+  </main>
+
+  <!-- Footer with exact attribution requested -->
+  <footer class="text-center text-slate-500 text-[11px] tracking-wide py-1 flex-shrink-0">
+    Автор розробки <span class="font-bold text-slate-800">Ковтун Тетяна</span>
+  </footer>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const pick = arr => arr[rnd(0, arr.length - 1)];
+    const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+    const NOTES = {
+      1: 'Рівень 1: додавання та віднімання простіших многочленів з однією змінною.',
+      2: 'Рівень 2: віднімання та додавання трьохчленів — уважно розкривай дужки зі знаком «−»!',
+      3: 'Рівень 3: вирази з двома змінними (двочлен та тричлен).'
+    };
+
+    let level = 1, task = null, total = 0, solved = false, hinted = false;
+
+    /* ---------- Formatting & Rendering Helpers ---------- */
+    const mono = k => k.replace(/\^(\d)/g, '<sup>$1</sup>');
+
+    function term(k, c, first) {
+      if (c === 0) return '';
+      const a = Math.abs(c);
+      const body = k === '' ? a : (a === 1 ? '' : a) + mono(k);
+      if (first) return (c < 0 ? '−' : '') + body;
+      return ' ' + (c < 0 ? '−' : '+') + ' ' + body;
+    }
+
+    function polyHTML(arr, order) {
+      if (!arr || !arr.length) return '0';
+      const s = [...arr].sort((x, y) => {
+        const ix = order.indexOf(x.k);
+        const iy = order.indexOf(y.k);
+        return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy);
+      });
+      
+      const filtered = s.filter(t => t.c !== 0);
+      if (!filtered.length) return '0';
+      return filtered.map((t, i) => term(t.k, t.c, i === 0)).join('');
+    }
+
+    const mapToArr = m => Object.entries(m).map(([k, c]) => ({ k, c }));
+
+    /* ---------- Task Generator ---------- */
+    function subset(pool, n) {
+      const idx = pool.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, n).sort((a, b) => a - b);
+      return idx.map(i => pool[i]);
+    }
+
+    function genPoly(pool, n, maxc) {
+      return subset(pool, n).map((k, i) => {
+        let c = 0;
+        while (!c) c = rnd(-maxc, maxc);
+        if (i === 0 && Math.random() < 0.7) c = Math.abs(c);
+        return { k, c };
+      });
+    }
+
+    function compute(p, q, op) {
+      const m = {}, s = op === '-' ? -1 : 1;
+      p.forEach(t => m[t.k] = (m[t.k] || 0) + t.c);
+      q.forEach(t => m[t.k] = (m[t.k] || 0) + s * t.c);
+      Object.keys(m).forEach(k => { if (Math.abs(m[k]) < 1e-9) delete m[k]; });
+      return m;
+    }
+
+    function genTask(lv) {
+      for (let attempt = 0; attempt < 500; attempt++) {
+        let pool, vars, op, p, q, maxc = 8;
+        if (lv === 1) {
+          const v = pick(['x', 'a', 'y', 'b', 'm', 'n']);
+          vars = [v];
+          pool = [v + '^2', v, ''];
+          op = Math.random() < 0.5 ? '+' : '-';
+          p = genPoly(pool, rnd(2, 3), maxc);
+          q = genPoly(pool, rnd(2, 3), maxc);
+        } else if (lv === 2) {
+          const v = pick(['x', 'a', 'y', 'b', 'c', 't']);
+          vars = [v];
+          pool = Math.random() < 0.5 ? [v + '^3', v + '^2', v, ''] : [v + '^4', v + '^2', v, ''];
+          op = Math.random() < 0.65 ? '-' : '+';
+          p = genPoly(pool, rnd(2, 3), maxc);
+          q = genPoly(pool, rnd(2, 3), maxc);
+        } else {
+          const [u, w] = pick([['x', 'y'], ['a', 'b'], ['m', 'n'], ['p', 'q']]);
+          vars = [u, w]; maxc = 6;
+          pool = [u + '^2', u + w, w + '^2', u, w, ''];
+          op = Math.random() < 0.7 ? '-' : '+';
+          p = genPoly(pool, rnd(2, 3), maxc);
+          q = genPoly(pool, rnd(2, 3), maxc);
+        }
+
+        const res = compute(p, q, op);
+        if (Object.keys(res).length >= 1) {
+          return { p, q, op, order: pool, vars, res };
+        }
+      }
+      return {
+        p: [{ k: 'x^2', c: 3 }, { k: 'x', c: 2 }],
+        q: [{ k: 'x^2', c: 1 }, { k: '', c: -5 }],
+        op: '-', order: ['x^2', 'x', ''], vars: ['x'],
+        res: { 'x^2': 2, 'x': 2, '': 5 }
+      };
+    }
+
+    /* ---------- Input Validation & Evaluation ---------- */
+    function parse(input) {
+      let s = input.toLowerCase()
+        .replace(/[−–—]/g, '-')
+        .replace(/\s+/g, '')
+        .replace(/[·*]/g, '')
+        .replace(/²/g, '^2')
+        .replace(/³/g, '^3')
+        .replace(/⁴/g, '^4')
+        .replace(/,/g, '.');
+
+      if (!s) return { err: 'Введи відповідь у полі.' };
+      if (/[()]/.test(s)) return { err: 'У відповіді не повинно бути дужок — розкрий їх і спрости вираз.' };
+      if (s === '0') return { map: {}, dup: false };
+
+      const terms = s.match(/[+-]?[^+-]+/g) || [];
+      if (terms.join('') !== s) return { err: 'Не вдалося розібрати запис. Перевір знаки «+» і «−».' };
+
+      const map = {}, cnt = {};
+
+      for (const t of terms) {
+        const m = /^([+-])?(\d+(?:\.\d+)?)?((?:[a-z](?:\^\d)?)*)$/.exec(t);
+        if (!m) return { err: 'Не можу прочитати «' + esc(t) + '».' };
+
+        const ex = {};
+        const varMatches = m[3].match(/[a-z](?:\^\d)?/g) || [];
+        varMatches.forEach(f => {
+          const v = f[0];
+          const pow = f.length > 1 ? parseInt(f.slice(2), 10) : 1;
+          ex[v] = (ex[v] || 0) + pow;
+        });
+
+        const key = Object.keys(ex).filter(l => ex[l] > 0).sort().map(l => l + (ex[l] > 1 ? '^' + ex[l] : '')).join('');
+        if (m[2] === undefined && key === '') return { err: 'Не можу прочитати «' + esc(t) + '».' };
+
+        const sign = m[1] === '-' ? -1 : 1;
+        const coef = m[2] === undefined ? 1 : parseFloat(m[2]);
+        const c = sign * coef;
+
+        map[key] = Math.round(((map[key] || 0) + c) * 1e9) / 1e9;
+        cnt[key] = (cnt[key] || 0) + 1;
+      }
+
+      const dup = Object.values(cnt).some(n => n > 1);
+      Object.keys(map).forEach(k => { if (Math.abs(map[k]) < 1e-9) delete map[k]; });
+      return { map, dup };
+    }
+
+    const sameMap = (a, b) => {
+      const ka = Object.keys(a), kb = Object.keys(b);
+      return ka.length === kb.length && ka.every(k => Math.abs((a[k] || 0) - (b[k] || 0)) < 1e-7);
+    };
+
+    /* ---------- Interface Controls ---------- */
+    function showFb(kind, html) {
+      const f = $('fb');
+      const cls = {
+        ok: 'bg-emerald-50 border-2 border-emerald-500 text-emerald-900',
+        bad: 'bg-rose-50 border-2 border-rose-500 text-rose-900',
+        warn: 'bg-amber-50 border-2 border-amber-500 text-amber-900'
+      };
+      f.className = 'my-2 rounded-xl p-3 text-xs sm:text-sm pop ' + cls[kind];
+      f.innerHTML = html;
+    }
+
+    function setInputState(kind) {
+      const base = 'math flex-1 min-w-0 border-2 bg-white rounded-xl px-3 py-2 text-lg sm:text-xl focus:outline-none transition-colors ';
+      $('ans').className = base + ({
+        ok: 'border-emerald-500 bg-emerald-50 text-emerald-950',
+        bad: 'border-rose-500 bg-rose-50 text-rose-950',
+        none: 'border-slate-300 focus:border-indigo-500 text-slate-900'
+      }[kind]);
+    }
+
+    function mk(t, cls, extra, displayText) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = displayText || t;
+      b.className = 'math select-none rounded-xl h-10 sm:h-11 text-base sm:text-lg font-semibold shadow-sm active:scale-95 transition flex items-center justify-center ' + cls + ' ' + (extra || '');
+      b.onmousedown = e => e.preventDefault();
+      b.onclick = () => insert(t);
+      return b;
+    }
+
+    function renderKeys() {
+      const V = $('vars'), K = $('keys');
+      V.innerHTML = ''; K.innerHTML = '';
+
+      // Collect specific powers present in task order (excluding pure numeric constant '')
+      const powerTerms = task.order.filter(k => k !== '');
+
+      // Create explicit keys for variables/powers needed in this task
+      powerTerms.forEach(termKey => {
+        // Form visual representation (e.g. x^2 -> x²)
+        const formattedDisplay = termKey
+          .replace(/\^2/g, '²')
+          .replace(/\^3/g, '³')
+          .replace(/\^4/g, '⁴');
+
+        V.appendChild(mk(termKey, 'bg-fuchsia-200 text-fuchsia-950 hover:bg-fuchsia-300 border border-fuchsia-300', 'flex-1 min-w-[45px]', formattedDisplay));
+      });
+
+      // Navigation & Clear keys
+      V.appendChild(mk('◀', 'bg-pink-100 text-pink-900 hover:bg-pink-200 border border-pink-200', 'w-9 sm:w-11'));
+      V.appendChild(mk('▶', 'bg-pink-100 text-pink-900 hover:bg-pink-200 border border-pink-200', 'w-9 sm:w-11'));
+      V.appendChild(mk('C', 'bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-200', 'w-9 sm:w-11'));
+
+      // Standard keypad layout without caret (^)
+      ['7', '8', '9', '⌫', '4', '5', '6', '+', '1', '2', '3', '−', '0'].forEach(t => {
+        const cls = /\d/.test(t)
+          ? 'bg-white border border-pink-200 text-slate-800 hover:bg-pink-50'
+          : t === '⌫'
+          ? 'bg-rose-200 text-rose-900 hover:bg-rose-300 border border-rose-300'
+          : 'bg-pink-200 text-pink-950 hover:bg-pink-300 border border-pink-300';
+        K.appendChild(mk(t, cls));
+      });
+    }
+
+    function insert(t) {
+      if (solved) return;
+      const i = $('ans');
+      const s = i.selectionStart ?? i.value.length;
+      const e = i.selectionEnd ?? s;
+
+      if (t === 'C') {
+        i.value = '';
+        setInputState('none');
+      } else if (t === '◀') {
+        const p = Math.max(0, s - 1);
+        i.setSelectionRange(p, p);
+      } else if (t === '▶') {
+        const p = Math.min(i.value.length, e + 1);
+        i.setSelectionRange(p, p);
+      } else if (t === '⌫') {
+        if (s !== e) {
+          i.setRangeText('', s, e, 'end');
+        } else if (s > 0) {
+          i.setRangeText('', s - 1, s, 'end');
+        }
+      } else {
+        i.setRangeText(t, s, e, 'end');
+      }
+
+      if (t !== 'C') setInputState('none');
+      i.focus({ preventScroll: true });
+    }
+
+    function renderLevels() {
+      const names = ['1 · Базовий', '2 · Середній', '3 · Просунутий'];
+      $('levels').innerHTML = '';
+      names.forEach((n, i) => {
+        const b = document.createElement('button');
+        const on = level === i + 1;
+        b.className = 'rounded-xl py-1.5 text-xs font-bold transition-all shadow-sm ' +
+          (on ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-700 hover:bg-indigo-50 border border-pink-100');
+        b.textContent = n;
+        b.onclick = () => {
+          level = i + 1;
+          renderLevels();
+          newTask();
+        };
+        $('levels').appendChild(b);
+      });
+      $('levelNote').textContent = NOTES[level];
+    }
+
+    function updateScore() {
+      $('scoreCounter').textContent = total;
+    }
+
+    function newTask() {
+      task = genTask(level);
+      solved = false;
+      hinted = false;
+
+      $('task').innerHTML = '(' + polyHTML(task.p, task.order) + ') ' + (task.op === '-' ? '−' : '+') +
+        ' (' + polyHTML(task.q, task.order) + ')';
+      
+      $('ans').value = '';
+      $('ans').disabled = false;
+      $('check').disabled = false;
+      $('check').classList.remove('opacity-50');
+      
+      setInputState('none');
+      $('fb').className = 'hidden';
+      $('sol').className = 'hidden';
+      $('sol').innerHTML = '';
+
+      renderKeys();
+      $('ans').focus({ preventScroll: true });
+    }
+
+    function name(k) { return k === '' ? 'вільного члена (числа)' : mono(k); }
+
+    function check() {
+      if (solved) return;
+      const r = parse($('ans').value);
+
+      if (r.err) {
+        setInputState('bad');
+        return showFb('warn', '⚠️ ' + r.err);
+      }
+      if (r.dup) {
+        setInputState('bad');
+        return showFb('warn', '⚠️ У відповіді ще є подібні доданки. Зведи їх.');
+      }
+
+      if (sameMap(r.map, task.res)) {
+        solved = true;
+        setInputState('ok');
+        $('ans').disabled = true;
+        $('check').disabled = true;
+        $('check').classList.add('opacity-50');
+        total++;
+        updateScore();
+
+        const praise = ['Чудово!', 'Молодець!', 'Відмінно!', 'Так тримати!', 'Блискуче!'];
+        const msg = '✅ ' + pick(praise) + ' Відповідь правильна.';
+
+        showFb('ok', msg + '<div class="math mt-1 text-lg font-bold text-emerald-800">Правильний вигляд: ' + polyHTML(mapToArr(task.res), task.order) + '</div>');
+        return;
+      }
+
+      setInputState('bad');
+
+      const tips = [];
+      const keys = new Set([...Object.keys(r.map), ...Object.keys(task.res)]);
+      
+      [...keys].sort((a, b) => task.order.indexOf(a) - task.order.indexOf(b)).forEach(k => {
+        const a = r.map[k], c = task.res[k];
+        if (a === c) return;
+        if (a === undefined) tips.push('Бракує доданка з ' + name(k) + '.');
+        else if (c === undefined) tips.push('Доданок з ' + name(k) + ' зайвий.');
+        else tips.push('Перевір коефіцієнт при ' + (k === '' ? 'вільному члені' : mono(k)) + '.');
+      });
+
+      let extra = '';
+      if (task.op === '-' && sameMap(r.map, compute(task.p, task.q, '+'))) {
+        extra = '<div class="mt-1 font-semibold text-rose-800">💡 Схоже, ти не змінив(ла) знаки в другій дужці!</div>';
+      }
+
+      showFb('bad', '❌ Спробуй ще раз.<ul class="list-disc ml-5 mt-1 space-y-0.5">' +
+        tips.map(t => '<li>' + t + '</li>').join('') + '</ul>' + extra);
+    }
+
+    function solution() {
+      hinted = true;
+      const { p, q, op, order } = task, s = op === '-' ? -1 : 1;
+      const items = [...p.map(t => ({ k: t.k, c: t.c, f: false })), ...q.map(t => ({ k: t.k, c: s * t.c, f: op === '-' }))];
+      
+      const expanded = items.map((it, i) => {
+        const h = term(it.k, it.c, i === 0);
+        return it.f ? '<span class="text-rose-600 font-bold">' + h + '</span>' : h;
+      }).join('');
+
+      const sign = op === '-' ? '−' : '+';
+      let h = '<div><div class="font-bold text-amber-900">Крок 1. Розкриваємо дужки</div>';
+      h += op === '-'
+        ? '<p>Перед другою дужкою стоїть «<b>−</b>», тому <b>всі знаки</b> в ній міняємо на протилежні:</p>'
+        : '<p>Перед другою дужкою стоїть «<b>+</b>», тому знаки не змінюються:</p>';
+      h += '<div class="math text-base mt-1 overflow-x-auto whitespace-nowrap p-1.5 bg-amber-100/60 rounded-lg">(' + polyHTML(p, order) + ') ' + sign + ' (' + polyHTML(q, order) + ') = ' + expanded + '</div></div>';
+
+      h += '<div><div class="font-bold text-amber-900 mt-2">Крок 2. Зводимо подібні доданки</div><ul class="mt-1 space-y-0.5">';
+      
+      order.forEach(k => {
+        const g = items.filter(it => it.k === k);
+        if (!g.length) return;
+        const sum = g.reduce((a, it) => a + it.c, 0);
+        const lhs = g.map((it, i) => term(k, it.c, i === 0)).join('');
+        h += '<li class="math bg-white/70 p-1 rounded border border-amber-200/60">' + (k === '' ? 'Числа' : 'Змінна ' + mono(k)) + ': ' + lhs + ' = <b>' +
+          (sum === 0 ? '0' : term(k, sum, true)) + '</b></li>';
+      });
+      
+      h += '</ul></div>';
+      h += '<div><div class="font-bold text-amber-900 mt-2">Крок 3. Відповідь</div><div class="math text-lg font-bold text-emerald-700 bg-emerald-50/80 p-1.5 rounded-lg border border-emerald-200 inline-block mt-0.5">' + polyHTML(mapToArr(task.res), order) + '</div></div>';
+      
+      $('sol').className = 'mt-2 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs sm:text-sm space-y-2 pop';
+      $('sol').innerHTML = h;
+    }
+
+    /* ---------- Event Handling ---------- */
+    $('check').onclick = check;
+    $('hint').onclick = solution;
+    $('next').onclick = () => newTask();
+
+    $('ans').addEventListener('keydown', e => {
+      if (e.key === 'Enter') solved ? newTask() : check();
+    });
+
+    $('ans').addEventListener('input', () => {
+      if (!solved) setInputState('none');
+    });
+
+    let sysKb = false;
+    $('kbd').onclick = () => {
+      sysKb = !sysKb;
+      $('ans').setAttribute('inputmode', sysKb ? 'text' : 'none');
+      $('kbd').textContent = sysKb ? '🔢 Екранна клавіатура' : '⌨ Використати клавіатуру пристрою';
+      $('ans').blur();
+      $('ans').focus();
+    };
+
+    /* ---------- Start App ---------- */
+    window.onload = function() {
+      renderLevels();
+      updateScore();
+      newTask();
+    };
+  </script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
