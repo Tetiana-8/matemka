@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Тест. Відрізок. Довжина відрізка (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,500;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;--acc:#be185d;--acc2:#db2777;
+  --ok:#1e9e62;--okbg:#e6f7ee;--bad:#e0464e;--badbg:#fdecee;
+  --card:#ffffff;--line:#f5d0e3;--soft:#fdeff5;--sel:#fde1ee;
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+html,body{margin:0}
+body{
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);min-height:100vh;
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%);
+  background-attachment:fixed;
+}
+.wrap{max-width:860px;margin:0 auto;padding:26px 16px 40px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 10px 30px rgba(120,20,70,.16);padding:22px 24px;margin-bottom:18px}
+header.card{text-align:center;padding:26px 24px}
+h1{margin:0;font-size:clamp(1.4rem,3.8vw,2.1rem);font-weight:900;line-height:1.25;
+  background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+.student{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.student label{display:block;font-weight:800;font-size:.9rem;color:var(--muted);text-align:left;margin-bottom:4px}
+.student input{width:100%;font:inherit;font-size:1.05rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;outline:none;background:var(--soft)}
+.student input:focus{border-color:var(--acc);background:#fff}
+.student input.need{border-color:var(--bad);background:var(--badbg)}
+.studentMsg{color:var(--bad);font-weight:800;margin-top:8px;min-height:1.2em}
+
+.q{position:relative;transition:box-shadow .2s}
+.qh{display:flex;gap:14px;align-items:flex-start}
+.num{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:1.15rem;
+  background:linear-gradient(135deg,#be185d,#ec4899)}
+.qt{flex:1;font-size:1.1rem;font-weight:700;line-height:1.5;padding-top:6px}
+.qt i,.opt i,.lbl i,.plbl i{font-family:"Times New Roman",Georgia,serif;font-size:1.12em}
+.expr{display:block;text-align:center;font-size:1.35rem;font-weight:800;margin:10px 0 2px;letter-spacing:.02em}
+.mark{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:none;place-items:center;font-size:1.4rem;font-weight:900;color:#fff}
+.q.ok .mark{display:grid;background:var(--ok)}
+.q.bad .mark{display:grid;background:var(--bad)}
+.q.ok{box-shadow:0 0 0 3px var(--ok),0 10px 30px rgba(120,20,70,.16)}
+.q.bad{box-shadow:0 0 0 3px var(--bad),0 10px 30px rgba(120,20,70,.16)}
+.fig{display:flex;justify-content:center;margin:12px 0 4px}
+.fig svg{width:100%;max-width:420px;height:auto}
+.part{margin-top:14px}
+.plbl{font-weight:800;color:var(--ink);margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.opt{font:inherit;font-weight:700;font-size:1.02rem;padding:10px 16px;border-radius:14px;border:2px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer;transition:.15s}
+.opt:hover{border-color:#f0a3c8}
+.opt.sel{border-color:var(--acc);background:var(--sel);box-shadow:0 0 0 3px rgba(190,24,93,.16)}
+.numrow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-weight:800;font-size:1.1rem}
+.numrow .lbl{color:var(--ink)}
+.numrow input{width:120px;font:inherit;font-size:1.15rem;font-weight:800;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--soft);outline:none;text-align:center}
+.numrow input:focus{border-color:var(--acc);background:#fff}
+.numrow .u{color:var(--muted)}
+.locked .opt{cursor:default}
+.locked .opt:hover{border-color:var(--line)}
+.locked .opt.sel:hover{border-color:var(--acc)}
+
+.actions{text-align:center}
+.btn{font:inherit;font-weight:900;font-size:1.15rem;border:0;border-radius:16px;padding:14px 34px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#be185d,#ec4899);box-shadow:0 8px 20px rgba(190,24,93,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:#fff;color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.warn{color:var(--bad);font-weight:800;margin:0 0 12px}
+.warn:empty{display:none}
+.result{text-align:center}
+.result .big{font-size:clamp(2.4rem,8vw,3.4rem);font-weight:900;margin:4px 0;
+  background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .who{font-weight:800;color:var(--muted);font-size:1.1rem}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:14px 0 18px}
+.chip{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:.95rem}
+.chip.y{background:var(--ok)}.chip.n{background:var(--bad)}
+footer{text-align:center;font-size:10px;letter-spacing:.05em;color:#6b7280;margin-top:8px;user-select:none}
+footer b{font-weight:700}
+
+/* журнал учителя */
+#keyBtn{position:fixed;top:10px;right:12px;z-index:20;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.55);font-size:1.05rem;cursor:pointer;opacity:.7}
+#keyBtn:hover{opacity:1}
+#overlay{position:fixed;inset:0;background:rgba(60,15,45,.5);z-index:30;display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+#overlay.on{display:flex}
+.modal{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:1150px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal h2{margin:0 0 12px;font-weight:900}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.modal input{font:inherit;font-size:1.05rem;padding:9px 12px;border:2px solid var(--line);border-radius:12px;outline:none}
+.sbtn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:9px 16px;cursor:pointer;background:var(--acc);color:#fff}
+.sbtn.g{background:#fbe4ef;color:var(--acc)}
+.sbtn.r{background:var(--bad)}
+.tblwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{background:var(--soft);position:sticky;top:0;font-weight:900}
+td.nm{text-align:left;font-weight:700;cursor:pointer;color:var(--acc)}
+td.y{color:var(--ok);font-weight:900}td.n{color:var(--bad);font-weight:900}
+tr.det td{white-space:normal;text-align:left;background:#fffafd;font-size:.92rem}
+tr.det table{font-size:.9rem}
+tr.det th{position:static}
+.pmsg{color:var(--bad);font-weight:800}
+
+@media (max-width:640px){
+  .card{padding:18px 16px}
+  .student{grid-template-columns:1fr}
+  .num,.mark{width:34px;height:34px}
+  .qt{font-size:1.02rem;padding-top:4px}
+  .expr{font-size:1.15rem}
+}
+</style>
+</head>
+<body>
+<button id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+
+<div class="wrap">
+  <header class="card">
+    <h1>Тест. Відрізок. Довжина відрізка (5 клас)</h1>
+    <div class="student">
+      <div><label for="sur">Прізвище</label><input id="sur" autocomplete="off"></div>
+      <div><label for="nam">Ім'я</label><input id="nam" autocomplete="off"></div>
+    </div>
+    <div class="studentMsg" id="studentMsg"></div>
+  </header>
+
+  <main id="questions"></main>
+
+  <div class="card actions" id="actions">
+    <p class="warn" id="warn"></p>
+    <button class="btn" id="checkBtn">Перевірити</button>
+  </div>
+
+  <div class="card result" id="result" hidden></div>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<div id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== Firebase (база math-5-892a5) ===================== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain:"math-5-892a5.firebaseapp.com",
+  projectId:"math-5-892a5",
+  storageBucket:"math-5-892a5.firebasestorage.app",
+  messagingSenderId:"163114803328",
+  appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId:"G-E06VKZ2GP5"
+};
+const APP_ID='default-app-id';
+const COLLECTION='results_vidrizky_5';
+const TEACHER_PASSWORD='8019';
+const FBV='10.12.2';
+const TEST_NAME='Відрізок. Довжина відрізка (5 клас)';
+
+let fbPromise=null;
+function fb(){
+  if(!fbPromise){
+    fbPromise=(async()=>{
+      const [appM,authM,fs]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app=appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return {db:fs.getFirestore(app),fs};
+    })();
+    fbPromise.catch(()=>{fbPromise=null});
+  }
+  return fbPromise;
+}
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){
+  try{const {db,fs}=await fb();await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}
+  catch(e){console.warn('save failed',e)}
+}
+async function loadResults(){
+  const {db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  const out=[];snap.forEach(d=>out.push(d.data()));
+  return out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+async function clearResults(list){
+  const {db,fs}=await fb();
+  for(const r of list){await fs.deleteDoc(fs.doc(coll(db,fs),r.id));}
+}
+fb().catch(()=>{}); // підключаємося заздалегідь
+
+/* ===================== Випадкові числа ===================== */
+/* Кожен учень отримує свій варіант. Щоб відкрити один і той самий варіант, додайте до адреси ?v=число */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function newSeed(){
+  let v=null;try{v=new URLSearchParams(location.search).get('v')}catch(e){}
+  if(v&&/^\d+$/.test(v))return +v;
+  return (Date.now()^Math.floor(Math.random()*4294967296))>>>0;
+}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[ri(0,a.length-1)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const I=s=>`<i>${s}</i>`;
+const plain=h=>String(h).replace(/<br\s*\/?>/g,' ').replace(/<[^>]+>/g,'').replace(/&nbsp;| /g,' ').replace(/&minus;/g,'−').replace(/\s+/g,' ').trim();
+
+/* ===================== Рисунки ===================== */
+const f1=n=>(+n).toFixed(1);
+const FIG='#7a2a62', TICK='#3a1736', TXT='#3a1736', RED='#e0464e', PUR='#7c3aed';
+function txt(x,y,t,o={}){
+  return `<text x="${f1(x)}" y="${f1(y)}" text-anchor="middle" dominant-baseline="central" font-family="${o.serif?'Times New Roman,Georgia,serif':'Nunito,sans-serif'}" font-size="${o.size||16}" font-weight="${o.w||800}" ${o.it?'font-style="italic"':''} fill="${o.fill||TXT}">${t}</text>`;
+}
+/* відрізок з точками: P — точки [{n,v}] за зростанням v; S — дужки з підписами; TK — рівні відрізки (позначки) */
+function figSeg(P,S,TK,label){
+  const W=380,x0=36,x1=344,y=58;
+  const vmin=P[0].v,vmax=P[P.length-1].v;
+  const X=v=>x0+(v-vmin)/(vmax-vmin)*(x1-x0);
+  let o=`<line x1="${f1(X(vmin))}" y1="${y}" x2="${f1(X(vmax))}" y2="${y}" stroke="${FIG}" stroke-width="3.2" stroke-linecap="round"/>`;
+  (TK||[]).forEach(([i,j])=>{
+    const m=(X(P[i].v)+X(P[j].v))/2;
+    o+=`<line x1="${f1(m)}" y1="${y-9}" x2="${f1(m)}" y2="${y+9}" stroke="${TICK}" stroke-width="2.6" stroke-linecap="round"/>`;
+  });
+  let rows=0;
+  S.forEach(s=>{
+    const xa=X(P[s.i].v),xb=X(P[s.j].v),yy=y+34+(s.r||0)*36,col=s.q?RED:PUR;
+    rows=Math.max(rows,(s.r||0)+1);
+    o+=`<path d="M${f1(xa)} ${yy-8}L${f1(xa)} ${yy}L${f1(xb)} ${yy}L${f1(xb)} ${yy-8}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    o+=txt((xa+xb)/2,yy+17,s.l,{size:s.q?20:16,fill:col});
+  });
+  P.forEach(p=>{
+    o+=`<circle cx="${f1(X(p.v))}" cy="${y}" r="5" fill="#fff" stroke="${FIG}" stroke-width="3"/>`;
+    o+=txt(X(p.v),y-24,p.n,{size:22,w:700,serif:true,it:true});
+  });
+  const H=y+34+(rows-1)*36+38;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label||'Відрізок з позначеними точками'}">${o}</svg>`;
+}
+/* лінійка: відрізок AB від позначки p до позначки q (одна велика поділка — 1 см) */
+function figRuler(p,q){
+  const W=420,H=165,x0=22,x1=398,N=15,st=(x1-x0)/N,ry=92,rh=44;
+  const X=v=>x0+v*st;
+  let o=`<rect x="${x0-8}" y="${ry}" width="${x1-x0+16}" height="${rh}" rx="6" fill="#fff7e0" stroke="#c9a227" stroke-width="2"/>`;
+  for(let v=0;v<=N;v++){
+    o+=`<line x1="${f1(X(v))}" y1="${ry}" x2="${f1(X(v))}" y2="${ry+18}" stroke="#6b5200" stroke-width="2"/>`;
+    o+=txt(X(v),ry+31,v,{size:13,fill:'#6b5200',w:700});
+    if(v<N)o+=`<line x1="${f1(X(v)+st/2)}" y1="${ry}" x2="${f1(X(v)+st/2)}" y2="${ry+10}" stroke="#6b5200" stroke-width="1.4"/>`;
+  }
+  const ya=44;
+  o+=`<line x1="${f1(X(p))}" y1="${ya}" x2="${f1(X(q))}" y2="${ya}" stroke="${FIG}" stroke-width="3.4" stroke-linecap="round"/>`;
+  [[p,'A'],[q,'B']].forEach(([v,n])=>{
+    o+=`<line x1="${f1(X(v))}" y1="${ya}" x2="${f1(X(v))}" y2="${ry}" stroke="${FIG}" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+    o+=`<circle cx="${f1(X(v))}" cy="${ya}" r="5" fill="#fff" stroke="${FIG}" stroke-width="3"/>`;
+    o+=txt(X(v),ya-22,n,{size:22,w:700,serif:true,it:true});
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Відрізок AB біля шкали лінійки">${o}</svg>`;
+}
+
+/* ===================== Завдання (кожне — з випадковими числами) ===================== */
+/* Частини: num — число, choice — вибір відповіді. Кожне завдання — 1 бал */
+const UN={'мм':1,'см':10,'дм':100,'м':1000,'км':1000000};
+function genTasks(){
+  const T=[];
+
+  /* 1. Довжина відрізка AB, якщо відомі AC і CB */
+  {
+    const a=ri(12,48),b=ri(12,48);
+    T.push({t:`Точка ${I('C')} лежить на відрізку ${I('AB')}. ${I('AC')} = ${a} см, ${I('CB')} = ${b} см. Знайдіть довжину відрізка ${I('AB')}.`,
+      fig:figSeg([{n:'A',v:0},{n:'C',v:a},{n:'B',v:a+b}],[{i:0,j:1,l:a+' см'},{i:1,j:2,l:b+' см'},{i:0,j:2,l:'?',r:1,q:1}],null,'Відрізок AB з точкою C'),
+      parts:[{k:'num',lbl:`${I('AB')} =`,unit:'см',ans:a+b}]});
+  }
+
+  /* 2. Довжина частини відрізка */
+  {
+    const ab=ri(40,95),ac=ri(15,ab-15);
+    T.push({t:`Точка ${I('C')} лежить на відрізку ${I('AB')}. ${I('AB')} = ${ab} см, ${I('AC')} = ${ac} см. Знайдіть довжину відрізка ${I('CB')}.`,
+      fig:figSeg([{n:'A',v:0},{n:'C',v:ac},{n:'B',v:ab}],[{i:0,j:1,l:ac+' см'},{i:1,j:2,l:'?',q:1},{i:0,j:2,l:ab+' см',r:1}],null,'Відрізок AB з точкою C'),
+      parts:[{k:'num',lbl:`${I('CB')} =`,unit:'см',ans:ab-ac}]});
+  }
+
+  /* 3. Перехід до менших одиниць */
+  {
+    const kind=ri(0,3);let v,ask,u,ans;
+    if(kind===0){const d=ri(2,9),c=ri(1,9);v=`${d} дм ${c} см`;ask='сантиметрах';u='см';ans=d*10+c}
+    else if(kind===1){const m=ri(2,9),d=ri(1,9);v=`${m} м ${d} дм`;ask='дециметрах';u='дм';ans=m*10+d}
+    else if(kind===2){const c=ri(3,19),mm=ri(1,9);v=`${c} см ${mm} мм`;ask='міліметрах';u='мм';ans=c*10+mm}
+    else{const k=ri(2,9),m=ri(11,99)*10-ri(0,1)*5;v=`${k} км ${m} м`;ask='метрах';u='м';ans=k*1000+m}
+    T.push({t:`Виразіть довжину відрізка в ${ask}:<span class="expr">${v}</span>`,
+      parts:[{k:'num',lbl:'Відповідь:',unit:u,ans}]});
+  }
+
+  /* 4. Правильна рівність з одиницями довжини */
+  {
+    const pool=[['дм','см',10],['см','мм',10],['м','дм',10],['м','см',100],['дм','мм',100],['км','м',1000]];
+    const ci=ri(0,pool.length-1),c=pool[ci];
+    const nTxt=(p,right)=>{const n=ri(2,9);const f=right?p[2]:(p[2]===10?100:p[2]===100?10:100);return `${n} ${p[0]} = ${n*f} ${p[1]}`};
+    const wrongs=shuffle(pool.filter((_,i)=>i!==ci)).slice(0,3).map(p=>nTxt(p,false));
+    const opts=[nTxt(c,true)].concat(wrongs);
+    T.push({t:`Яка з рівностей правильна?`,parts:[{k:'choice',opts,order:shuffle([0,1,2,3]),ans:0}]});
+  }
+
+  /* 5. Порівняння довжин, записаних у різних одиницях */
+  {
+    let L,mm;
+    for(;;){
+      const d=ri(3,9),c=ri(1,9),z=ri(300,990),w=ri(31,99);
+      mm=[(d*10+c)*10,z,w*10];L=[`${d} дм ${c} см`,`${z} мм`,`${w} см`];
+      if(new Set(mm).size===3&&Math.max(...mm)!==Math.min(...mm))break;
+    }
+    const longest=ri(0,1)===0;
+    const target=longest?Math.max(...mm):Math.min(...mm);
+    T.push({t:`Довжини трьох відрізків записано в різних одиницях. Який відрізок ${longest?'найдовший':'найкоротший'}?`,
+      parts:[{k:'choice',opts:L,order:shuffle([0,1,2]),ans:mm.indexOf(target)}]});
+  }
+
+  /* 6. Середина відрізка: знайти половину */
+  {
+    const ab=2*ri(7,40),m=ab/2;
+    T.push({t:`Точка ${I('M')} — середина відрізка ${I('AB')}. ${I('AB')} = ${ab} см. Знайдіть довжину відрізка ${I('AM')}.`,
+      fig:figSeg([{n:'A',v:0},{n:'M',v:m},{n:'B',v:ab}],[{i:0,j:2,l:ab+' см'},{i:0,j:1,l:'?',r:1,q:1}],[[0,1],[1,2]],'Відрізок AB із серединою M'),
+      parts:[{k:'num',lbl:`${I('AM')} =`,unit:'см',ans:m}]});
+  }
+
+  /* 7. Середина відрізка: знайти весь відрізок */
+  {
+    const m=ri(6,35);
+    T.push({t:`Точка ${I('M')} — середина відрізка ${I('AB')}. ${I('AM')} = ${m} см. Знайдіть довжину відрізка ${I('AB')}.`,
+      fig:figSeg([{n:'A',v:0},{n:'M',v:m},{n:'B',v:2*m}],[{i:0,j:1,l:m+' см'},{i:0,j:2,l:'?',r:1,q:1}],[[0,1],[1,2]],'Відрізок AB із серединою M'),
+      parts:[{k:'num',lbl:`${I('AB')} =`,unit:'см',ans:2*m}]});
+  }
+
+  /* 8. Три частини відрізка */
+  {
+    const a=ri(8,35),b=ri(8,35),c=ri(8,35);
+    T.push({t:`На відрізку ${I('AD')} позначено точки ${I('B')} і ${I('C')}. ${I('AB')} = ${a} см, ${I('BC')} = ${b} см, ${I('CD')} = ${c} см. Знайдіть довжину відрізка ${I('AD')}.`,
+      fig:figSeg([{n:'A',v:0},{n:'B',v:a},{n:'C',v:a+b},{n:'D',v:a+b+c}],[{i:0,j:1,l:a+' см'},{i:1,j:2,l:b+' см'},{i:2,j:3,l:c+' см'},{i:0,j:3,l:'?',r:1,q:1}],null,'Відрізок AD з точками B і C'),
+      parts:[{k:'num',lbl:`${I('AD')} =`,unit:'см',ans:a+b+c}]});
+  }
+
+  /* 9. Задача на різницю довжин частин */
+  {
+    const x=ri(8,25),d=ri(2,12),ab=2*x+d;
+    T.push({t:`Точка ${I('C')} лежить на відрізку ${I('AB')}, ${I('AB')} = ${ab} см. Відрізок ${I('AC')} на ${d} см довший за відрізок ${I('CB')}. Знайдіть довжину відрізка ${I('AC')}.`,
+      parts:[{k:'num',lbl:`${I('AC')} =`,unit:'см',ans:x+d}]});
+  }
+
+  /* 10. Вимірювання відрізка лінійкою */
+  {
+    const p=ri(1,6),q=p+ri(4,Math.min(8,14-p));
+    T.push({t:`Відрізок ${I('AB')} розміщено біля шкали лінійки (одна велика поділка — 1 см). Знайдіть довжину відрізка ${I('AB')}.`,
+      qp:`Відрізок AB біля шкали лінійки: точка A на позначці ${p} см, точка B на позначці ${q} см. Довжина AB?`,
+      fig:figRuler(p,q),parts:[{k:'num',lbl:`${I('AB')} =`,unit:'см',ans:q-p}]});
+  }
+
+  /* 11. Властивість довжини відрізка */
+  {
+    const [A,B,C]=pick([['A','B','C'],['M','N','K'],['P','Q','R'],['X','Y','Z']]);
+    const opts=[`${A}${B} = ${A}${C} + ${C}${B}`,`${A}${C} = ${A}${B} + ${C}${B}`,`${C}${B} = ${A}${B} + ${A}${C}`,`${A}${B} = ${A}${C} − ${C}${B}`].map(s=>s.replace(/[A-Z]/g,m=>I(m)));
+    T.push({t:`Точка ${I(C)} лежить на відрізку ${I(A+B)}. Яка рівність правильна?`,
+      parts:[{k:'choice',opts,order:shuffle([0,1,2,3]),ans:0}]});
+  }
+
+  /* 12. Різні одиниці в одній задачі */
+  {
+    const a=ri(4,19),b=ri(3,9);
+    T.push({t:`Довжина відрізка ${I('AB')} дорівнює ${a} см, а відрізок ${I('CD')} на ${b} мм довший. Знайдіть довжину відрізка ${I('CD')} у міліметрах.`,
+      parts:[{k:'num',lbl:`${I('CD')} =`,unit:'мм',ans:a*10+b}]});
+  }
+
+  return T;
+}
+
+/* ===================== Побудова тесту ===================== */
+const $=s=>document.querySelector(s);
+const qWrap=$('#questions');
+let TASKS=[],N=0,state=null;
+
+function parseNum(s){
+  s=String(s).replace(/[\s ]/g,'').replace(',','.');
+  if(!/^-?\d+(\.\d+)?$/.test(s))return NaN;
+  return Number(s);
+}
+function partRight(p,a){
+  if(a===null||a===undefined)return false;
+  if(p.k==='choice')return a===p.ans;
+  if(p.k==='num')return parseNum(a)===p.ans;
+  return false;
+}
+function partAnsText(p,a){
+  if(a===null||a===undefined)return '';
+  if(p.k==='choice')return plain(p.opts[a]);
+  return String(a);
+}
+function partCorrectText(p){
+  if(p.k==='choice')return plain(p.opts[p.ans]);
+  return String(p.ans);
+}
+
+function partHTML(qi,pi,p){
+  const lbl=p.lbl?`<span class="lbl">${p.lbl}</span>`:'';
+  if(p.k==='choice'){
+    return `<div class="part">${p.lbl?`<div class="plbl">${p.lbl}</div>`:''}<div class="opts">${p.order.map(i=>`<button class="opt" data-q="${qi}" data-p="${pi}" data-i="${i}">${p.opts[i]}</button>`).join('')}</div></div>`;
+  }
+  return `<div class="part numrow">${lbl}<input data-q="${qi}" data-p="${pi}" inputmode="numeric" autocomplete="off" aria-label="Відповідь">${p.unit?`<span class="u">${p.unit}</span>`:''}</div>`;
+}
+
+function build(){
+  rnd=mulberry32(newSeed());
+  TASKS=genTasks();N=TASKS.length;
+  state={ans:TASKS.map(t=>t.parts.map(()=>null)),checked:false};
+  resetWatch();
+  qWrap.innerHTML='';
+  TASKS.forEach((q,qi)=>{
+    const el=document.createElement('section');
+    el.className='card q';el.id='q'+qi;
+    let h=`<div class="qh"><span class="num">${qi+1}</span><div class="qt">${q.t}</div><span class="mark"></span></div>`;
+    if(q.fig)h+=`<div class="fig">${q.fig}</div>`;
+    h+=q.parts.map((p,pi)=>partHTML(qi,pi,p)).join('');
+    el.innerHTML=h;
+    qWrap.appendChild(el);
+  });
+  $('#result').hidden=true;
+  $('#actions').hidden=false;
+  clearWarn();
+}
+qWrap.addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b||state.checked)return;
+  const qi=+b.dataset.q,pi=+b.dataset.p;
+  b.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');state.ans[qi][pi]=+b.dataset.i;clearWarn();
+});
+qWrap.addEventListener('input',e=>{
+  const inp=e.target.closest('input');if(!inp||state.checked)return;
+  const qi=+inp.dataset.q,pi=+inp.dataset.p;
+  const v=inp.value.trim();state.ans[qi][pi]=v===''?null:v;
+  clearWarn();
+});
+
+let warnedEmpty=false;
+function clearWarn(){$('#warn').textContent='';warnedEmpty=false;$('#checkBtn').textContent='Перевірити'}
+['#sur','#nam'].forEach(s=>$(s).addEventListener('input',e=>{e.target.classList.remove('need');$('#studentMsg').textContent=''}));
+function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+$('#checkBtn').addEventListener('click',()=>{
+  const sur=$('#sur').value.trim(),nam=$('#nam').value.trim();
+  if(!sur||!nam){
+    if(!sur)$('#sur').classList.add('need');
+    if(!nam)$('#nam').classList.add('need');
+    $('#studentMsg').textContent='Введіть прізвище та ім’я, щоб перевірити тест.';
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  const empty=state.ans.filter(a=>a.some(x=>x===null)).length;
+  if(empty&&!warnedEmpty){
+    warnedEmpty=true;
+    $('#warn').textContent=`Ви відповіли не на всі запитання: ${empty} ${plural(empty,'завдання','завдання','завдань')}.`;
+    $('#checkBtn').textContent='Все одно перевірити';
+    return;
+  }
+  finish(sur,nam);
+});
+
+function finish(sur,nam){
+  state.checked=true;
+  const marks=TASKS.map((q,i)=>q.parts.every((p,pi)=>partRight(p,state.ans[i][pi]))?1:0);
+  const score=marks.reduce((s,x)=>s+x,0);
+  TASKS.forEach((q,i)=>{
+    const el=$('#q'+i);el.classList.add('locked',marks[i]?'ok':'bad');
+    el.querySelector('.mark').textContent=marks[i]?'✓':'✗';
+    el.querySelectorAll('input').forEach(x=>x.readOnly=true);
+  });
+  $('#sur').readOnly=$('#nam').readOnly=true;
+  $('#actions').hidden=true;
+  const r=$('#result');
+  r.innerHTML=`<div class="who">${esc(sur)} ${esc(nam)}</div>
+    <div class="big">${score} з ${N}</div>
+    <div style="font-weight:800;color:var(--muted)">${plural(score,'бал','бали','балів')}</div>
+    <div class="chips">${marks.map((m,i)=>`<span class="chip ${m?'y':'n'}">${i+1}</span>`).join('')}</div>
+    <button class="btn ghost" id="againBtn">Пройти ще раз</button>`;
+  r.hidden=false;
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  $('#againBtn').addEventListener('click',()=>{
+    $('#sur').readOnly=$('#nam').readOnly=false;
+    build();window.scrollTo({top:0,behavior:'smooth'});
+  });
+  back();
+  const now=Date.now();
+  saveResult({
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${sur} ${nam}`,surname:sur,firstName:nam,
+    ts:now,date:new Date(now).toISOString(),
+    score,max:N,tasks:marks,
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,
+    qtext:TASKS.map(q=>q.qp||plain(q.t)),
+    answers:TASKS.map((q,i)=>q.parts.map((p,pi)=>partAnsText(p,state.ans[i][pi])).join(' | ')),
+    correct:TASKS.map(q=>q.parts.map(partCorrectText).join(' | ')),
+    test:TEST_NAME
+  });
+}
+
+/* ===================== Журнал учителя ===================== */
+const overlay=$('#overlay'),modal=$('#modal');
+let rows=[];
+$('#keyBtn').addEventListener('click',()=>{
+  modal.innerHTML=`<h2>🔑 Журнал учителя</h2>
+    <div class="row"><input type="password" id="pw" placeholder="Пароль" autocomplete="off">
+    <button class="sbtn" id="pwOk">Увійти</button><button class="sbtn g" id="close1">Закрити</button></div>
+    <div class="pmsg" id="pmsg"></div>`;
+  overlay.classList.add('on');
+  const pw=$('#pw');pw.focus();
+  const go=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else{$('#pmsg').textContent='Неправильний пароль';pw.select()}};
+  $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
+  $('#close1').onclick=closeModal;
+});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
+function closeModal(){overlay.classList.remove('on');modal.innerHTML=''}
+const fmtDate=ts=>new Date(ts).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const NT=12;
+
+async function showJournal(msg){
+  modal.innerHTML=`<h2>🔑 Журнал учителя — «Відрізок. Довжина відрізка»</h2>
+    <div class="row"><button class="sbtn" id="refresh">Оновити</button><button class="sbtn g" id="csv">Завантажити CSV</button><button class="sbtn r" id="clr">Очистити</button><button class="sbtn g" id="close2">Закрити</button><span id="cnt" style="font-weight:800;color:var(--muted)"></span></div>
+    <div class="pmsg" id="jmsg">${msg?esc(msg):''}</div>
+    <div id="jbody">Завантаження…</div>`;
+  $('#close2').onclick=closeModal;$('#refresh').onclick=()=>showJournal();$('#csv').onclick=downloadCSV;
+  $('#clr').onclick=()=>{
+    $('#jmsg').innerHTML=`Видалити всі результати? <button class="sbtn r" id="clrYes">Так, очистити</button> <button class="sbtn g" id="clrNo">Ні</button>`;
+    $('#clrNo').onclick=()=>{$('#jmsg').textContent=''};
+    $('#clrYes').onclick=async()=>{
+      $('#jmsg').textContent='Видалення…';
+      try{await clearResults(rows);showJournal('Результати видалено.')}
+      catch(e){$('#jmsg').textContent='Не вдалося видалити результати.'}
+    };
+  };
+  try{rows=await loadResults()}catch(e){$('#jbody').innerHTML='<div class="pmsg">Не вдалося підключитися до бази результатів.</div>';return}
+  $('#cnt').textContent=`Записів: ${rows.length}`;
+  if(!rows.length){$('#jbody').innerHTML='<p>Результатів поки немає.</p>';return}
+  const cols=NT+6;
+  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th title="Скільки хвилин:секунд минуло від початку тесту до перевірки">Час</th><th title="Скільки разів учень виходив з вікна тесту (інша вкладка чи програма)">Виходів</th><th>Бал</th>${Array.from({length:NT},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
+  const body=rows.map((r,k)=>`<tr data-k="${k}"><td>${k+1}</td><td class="nm" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td>${timeCells(r)}<td><b>${r.score}/${r.max||NT}</b></td>${
+    Array.from({length:NT},(_,i)=>{const m=(r.tasks||[])[i];return m?'<td class="y">✓</td>':'<td class="n">✗</td>'}).join('')}</tr>`).join('');
+  $('#jbody').innerHTML=`<div class="tblwrap"><table id="jt">${head}${body}</table></div>`;
+  $('#jt').addEventListener('click',e=>{
+    const td=e.target.closest('td.nm');if(!td)return;
+    const tr=td.parentNode,nx=tr.nextSibling;
+    if(nx&&nx.classList&&nx.classList.contains('det')){nx.remove();return}
+    const r=rows[+tr.dataset.k];
+    const det=document.createElement('tr');det.className='det';
+    det.innerHTML=`<td colspan="${cols}"><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th></tr>${
+      (r.qtext||[]).map((t,i)=>`<tr><td>${i+1}</td><td style="text-align:left;white-space:normal">${esc(t)}</td><td>${esc((r.answers||[])[i]||'—')}</td><td>${esc((r.correct||[])[i]||'')}</td></tr>`).join('')}</table></td>`;
+    tr.after(det);
+  });
+}
+function timeCells(r){
+  if(r.durationSec==null)return '<td>—</td><td>—</td>';
+  const lv=r.leaves||0,aw=r.awaySec||0;
+  const fast=r.durationSec<120;
+  return `<td${fast?' class="n"':''} title="${fast?'Дуже швидко':''}">${fmtDur(r.durationSec)}</td><td${lv>=3?' class="n"':''} title="Поза вікном: ${fmtDur(aw)}">${lv}</td>`;
+}
+function downloadCSV(){
+  if(!rows.length)return;
+  const hdr=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал',...Array.from({length:NT},(_,i)=>'Завд. '+(i+1))];
+  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),r.durationSec==null?'':fmtDur(r.durationSec),r.durationSec==null?'':(r.leaves||0),r.durationSec==null?'':fmtDur(r.awaySec||0),`${r.score}/${r.max||NT}`,...Array.from({length:NT},(_,i)=>(r.tasks||[])[i]?'+':'-')]));
+  const csv='﻿'+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Відрізок_5клас_результати.csv';a.click();
+}
+
+/* ---------- доброчесність: час виконання і виходи з вікна ---------- */
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0}}
+function leave(){if(!state||state.checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+function fmtDur(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+build();
+})();
+</script>
+</body>
+</html>
