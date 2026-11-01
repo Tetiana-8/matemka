@@ -122,7 +122,14 @@
       <span class="small" id="pwdMsg" style="color:var(--bad)"></span>
     </div>
     <div id="resBox" class="hidden">
-      <div class="row"><button class="btn light" id="refreshBtn" style="padding:8px 18px;font-size:15px">Оновити</button><span class="small" id="resInfo"></span></div>
+      <div class="row"><button class="btn light" id="refreshBtn" style="padding:8px 18px;font-size:15px">Оновити</button>
+        <button class="btn light" id="clearBtn" style="padding:8px 18px;font-size:15px">Очистити</button>
+        <span id="clearAsk" class="row hidden">
+          <span class="small" style="color:#dc2626;font-weight:800">Видалити всі результати?</span>
+          <button class="btn" id="clearYes" style="padding:8px 18px;font-size:15px;background:#dc2626">Так, очистити</button>
+          <button class="btn light" id="clearNo" style="padding:8px 18px;font-size:15px">Скасувати</button>
+        </span>
+        <span class="small" id="resInfo"></span></div>
       <div class="tbl" id="tbl"></div>
     </div>
   </div>
@@ -428,6 +435,18 @@ const tryLogin = () => {
 document.getElementById("pwdBtn").addEventListener("click", tryLogin);
 document.getElementById("pwd").addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
 document.getElementById("refreshBtn").addEventListener("click", loadResults);
+document.getElementById("clearBtn").addEventListener("click", () => { document.getElementById("clearBtn").classList.add("hidden"); document.getElementById("clearAsk").classList.remove("hidden"); });
+document.getElementById("clearNo").addEventListener("click", () => { document.getElementById("clearAsk").classList.add("hidden"); document.getElementById("clearBtn").classList.remove("hidden"); });
+document.getElementById("clearYes").addEventListener("click", async () => {
+  document.getElementById("clearAsk").classList.add("hidden"); document.getElementById("clearBtn").classList.remove("hidden");
+  try {
+    await authReady;
+    const snap = await colRef().get();
+    const jobs = []; snap.forEach(d => jobs.push(d.ref.delete()));
+    await Promise.all(jobs);
+  } catch (e) { console.warn(e); document.getElementById("resInfo").textContent = "Не вдалося очистити"; return; }
+  loadResults();
+});
 
 async function loadResults() {
   const info = document.getElementById("resInfo"), tbl = document.getElementById("tbl");
