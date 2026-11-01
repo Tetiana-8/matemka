@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Тест. Натуральні числа, додавання і віднімання (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,500;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;--acc:#be185d;--acc2:#db2777;
+  --ok:#1e9e62;--okbg:#e6f7ee;--bad:#e0464e;--badbg:#fdecee;
+  --card:#ffffff;--line:#f5d0e3;--soft:#fdeff5;--sel:#fde1ee;
+  --cw:min(52px,11.4vw);
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+html,body{margin:0}
+body{
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);min-height:100vh;
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%);
+  background-attachment:fixed;
+}
+.wrap{max-width:860px;margin:0 auto;padding:26px 16px 40px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 10px 30px rgba(120,20,70,.16);padding:22px 24px;margin-bottom:18px}
+header.card{text-align:center;padding:26px 24px}
+h1{margin:0;font-size:clamp(1.4rem,3.8vw,2.1rem);font-weight:900;line-height:1.25;
+  background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+.student{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.student label{display:block;font-weight:800;font-size:.9rem;color:var(--muted);text-align:left;margin-bottom:4px}
+.student input{width:100%;font:inherit;font-size:1.05rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;outline:none;background:var(--soft)}
+.student input:focus{border-color:var(--acc);background:#fff}
+.student input.need{border-color:var(--bad);background:var(--badbg)}
+.studentMsg{color:var(--bad);font-weight:800;margin-top:8px;min-height:1.2em}
+
+.q{position:relative;transition:box-shadow .2s}
+.qh{display:flex;gap:14px;align-items:flex-start}
+.num{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:1.15rem;
+  background:linear-gradient(135deg,#be185d,#ec4899)}
+.qt{flex:1;font-size:1.1rem;font-weight:700;line-height:1.5;padding-top:6px}
+.qt b.hl{color:var(--acc);font-weight:900;text-transform:uppercase}
+.badge{display:inline-block;font-weight:900;font-size:.9rem;padding:2px 12px;border-radius:999px;margin-right:6px;vertical-align:1px}
+.badge.add{background:#e6f7ee;color:#157a4b;border:2px solid #b8e6cd}
+.badge.sub{background:#f3eaff;color:#7a3fb8;border:2px solid #dcc8f5}
+.mark{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:none;place-items:center;font-size:1.4rem;font-weight:900;color:#fff}
+.q.ok .mark{display:grid;background:var(--ok)}
+.q.bad .mark{display:grid;background:var(--bad)}
+.q.ok{box-shadow:0 0 0 3px var(--ok),0 10px 30px rgba(120,20,70,.16)}
+.q.bad{box-shadow:0 0 0 3px var(--bad),0 10px 30px rgba(120,20,70,.16)}
+
+/* число з цифрами-картками */
+.digits{display:flex;justify-content:center;flex-wrap:nowrap;gap:6px;margin:16px 0 4px}
+.digits .gap{width:12px;flex:0 0 auto}
+.dcard{font:inherit;font-weight:900;font-size:clamp(1.6rem,7vw,2.6rem);width:clamp(40px,11.5vw,64px);height:clamp(54px,15vw,82px);
+  border-radius:16px;border:2px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer;transition:.15s;padding:0}
+.dcard:hover{border-color:#f0a3c8;transform:translateY(-2px)}
+.dcard.sel{border-color:var(--acc);background:var(--sel);box-shadow:0 0 0 4px rgba(190,24,93,.18)}
+.bignum{text-align:center;font-weight:900;font-size:clamp(2rem,9vw,3.2rem);letter-spacing:.02em;margin:12px 0 2px}
+
+/* відповідь числом */
+.numrow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;font-weight:800;font-size:1.1rem}
+.numrow .lbl{color:var(--ink)}
+.numrow input{width:150px;font:inherit;font-size:1.2rem;font-weight:800;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--soft);outline:none;text-align:center}
+.numrow input:focus{border-color:var(--acc);background:#fff}
+
+/* стовпчик */
+.colwrap{display:flex;justify-content:center;margin:16px 0 4px}
+.col{display:grid;grid-template-columns:calc(var(--cw)*.6) repeat(6,var(--cw));gap:5px;align-items:center}
+.col .op{text-align:center;font-weight:900;font-size:clamp(1.5rem,6vw,2.4rem)}
+.col .op.add{color:#157a4b}.col .op.sub{color:#7a3fb8}
+.col .dg{height:var(--cw);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(1.5rem,6.4vw,2.6rem)}
+.col .line{grid-column:1/-1;border-top:4px solid var(--ink);margin:3px 0;border-radius:2px}
+.col input{width:var(--cw);height:calc(var(--cw)*1.15);padding:0;text-align:center;font:inherit;font-weight:900;font-size:clamp(1.4rem,6vw,2.4rem);
+  border:2px solid var(--line);background:var(--soft);border-radius:12px;outline:none;color:var(--ink)}
+.col input:focus{border-color:var(--acc);background:#fff;box-shadow:0 0 0 3px rgba(190,24,93,.18)}
+.col .blank{height:calc(var(--cw)*1.15)}
+.locked .dcard{cursor:default}
+.locked .dcard:hover{border-color:var(--line);transform:none}
+.locked .dcard.sel:hover{border-color:var(--acc)}
+
+.actions{text-align:center}
+.btn{font:inherit;font-weight:900;font-size:1.15rem;border:0;border-radius:16px;padding:14px 34px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#be185d,#ec4899);box-shadow:0 8px 20px rgba(190,24,93,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:#fff;color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.warn{color:var(--bad);font-weight:800;margin:0 0 12px}
+.warn:empty{display:none}
+.result{text-align:center}
+.result .big{font-size:clamp(2.4rem,8vw,3.4rem);font-weight:900;margin:4px 0;
+  background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .who{font-weight:800;color:var(--muted);font-size:1.1rem}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:14px 0 18px}
+.chip{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:900;color:#fff;font-size:.95rem}
+.chip.y{background:var(--ok)}.chip.n{background:var(--bad)}
+footer{text-align:center;font-size:10px;letter-spacing:.05em;color:#6b7280;margin-top:8px;user-select:none}
+footer b{font-weight:700}
+
+/* журнал учителя */
+#keyBtn{position:fixed;top:10px;right:12px;z-index:20;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.55);font-size:1.05rem;cursor:pointer;opacity:.7}
+#keyBtn:hover{opacity:1}
+#overlay{position:fixed;inset:0;background:rgba(60,15,45,.5);z-index:30;display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+#overlay.on{display:flex}
+.modal{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:1150px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal h2{margin:0 0 12px;font-weight:900}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.modal input{font:inherit;font-size:1.05rem;padding:9px 12px;border:2px solid var(--line);border-radius:12px;outline:none}
+.sbtn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:9px 16px;cursor:pointer;background:var(--acc);color:#fff}
+.sbtn.g{background:#fbe4ef;color:var(--acc)}
+.sbtn.r{background:var(--bad)}
+.tblwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{background:var(--soft);position:sticky;top:0;font-weight:900}
+td.nm{text-align:left;font-weight:700;cursor:pointer;color:var(--acc)}
+td.y{color:var(--ok);font-weight:900}td.n{color:var(--bad);font-weight:900}
+tr.det td{white-space:normal;text-align:left;background:#fffafd;font-size:.92rem}
+tr.det table{font-size:.9rem}
+tr.det th{position:static}
+.pmsg{color:var(--bad);font-weight:800}
+
+@media (max-width:640px){
+  .card{padding:18px 16px}
+  .student{grid-template-columns:1fr}
+  .num,.mark{width:34px;height:34px}
+  .qt{font-size:1.02rem;padding-top:4px}
+  .digits{gap:4px}
+}
+</style>
+</head>
+<body>
+<button id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+
+<div class="wrap">
+  <header class="card">
+    <h1>Тест. Натуральні числа, додавання і віднімання (5 клас)</h1>
+    <div class="student">
+      <div><label for="sur">Прізвище</label><input id="sur" autocomplete="off"></div>
+      <div><label for="nam">Ім'я</label><input id="nam" autocomplete="off"></div>
+    </div>
+    <div class="studentMsg" id="studentMsg"></div>
+  </header>
+
+  <main id="questions"></main>
+
+  <div class="card actions" id="actions">
+    <p class="warn" id="warn"></p>
+    <button class="btn" id="checkBtn">Перевірити</button>
+  </div>
+
+  <div class="card result" id="result" hidden></div>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<div id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== Firebase (база math-5-892a5) ===================== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain:"math-5-892a5.firebaseapp.com",
+  projectId:"math-5-892a5",
+  storageBucket:"math-5-892a5.firebasestorage.app",
+  messagingSenderId:"163114803328",
+  appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId:"G-E06VKZ2GP5"
+};
+const APP_ID='default-app-id';
+const COLLECTION='results_hw1_natural_5';
+const TEACHER_PASSWORD='8019';
+const FBV='10.12.2';
+const TEST_NAME='Натуральні числа, додавання і віднімання (5 клас)';
+
+let fbPromise=null;
+function fb(){
+  if(!fbPromise){
+    fbPromise=(async()=>{
+      const [appM,authM,fs]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app=appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return {db:fs.getFirestore(app),fs};
+    })();
+    fbPromise.catch(()=>{fbPromise=null});
+  }
+  return fbPromise;
+}
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){
+  try{const {db,fs}=await fb();await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}
+  catch(e){console.warn('save failed',e)}
+}
+async function loadResults(){
+  const {db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  const out=[];snap.forEach(d=>out.push(d.data()));
+  return out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+async function clearResults(list){
+  const {db,fs}=await fb();
+  for(const r of list){await fs.deleteDoc(fs.doc(coll(db,fs),r.id));}
+}
+fb().catch(()=>{}); // підключаємося заздалегідь
+
+/* ===================== Випадкові числа ===================== */
+/* Кожен учень отримує свій варіант. Щоб відкрити один і той самий варіант, додайте до адреси ?v=число */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function newSeed(){
+  let v=null;try{v=new URLSearchParams(location.search).get('v')}catch(e){}
+  if(v&&/^\d+$/.test(v))return +v;
+  return (Date.now()^Math.floor(Math.random()*4294967296))>>>0;
+}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const plain=h=>String(h).replace(/<br\s*\/?>/g,' ').replace(/<[^>]+>/g,'').replace(/&nbsp;| /g,' ').replace(/&minus;/g,'−').replace(/\s+/g,' ').trim();
+
+/* Шестицифрове число, усі цифри різні (щоб відповідь-цифра вказувала на одне місце) */
+function unique6(){
+  const first=ri(1,9);
+  const pool=shuffle([0,1,2,3,4,5,6,7,8,9].filter(d=>d!==first));
+  return +([first].concat(pool.slice(0,5)).join(''));
+}
+
+/* ===================== Завдання ===================== */
+const PLACES=[ /* [назва розряду, степінь десяти] */
+  ['одиниць тисяч',3],['десятків тисяч',4],['сотень тисяч',5],['сотень',2],['десятків',1]
+];
+const COUNTS=[ /* [назва, дільник] */
+  ['сотень',100],['десятків тисяч',10000],['тисяч',1000],['десятків',10]
+];
+function genTasks(){
+  const T=[];
+
+  /* 1–3. Яка цифра стоїть у розряді… (клацнути на цифру) */
+  shuffle(PLACES).slice(0,3).forEach(([name,e])=>{
+    const n=unique6();
+    T.push({kind:'pick',n,ans:Math.floor(n/Math.pow(10,e))%10,
+      t:`Яка цифра стоїть у розряді <b class="hl">${name}</b> у числі? Клацніть на неї.`,
+      tt:`Яка цифра стоїть у розряді ${name} у числі ${fmt(n)}?`});
+  });
+
+  /* 4–6. Скільки всього … у числі (впис числа) */
+  shuffle(COUNTS).slice(0,3).forEach(([name,d])=>{
+    const n=ri(100000,999999);
+    T.push({kind:'num',ans:Math.floor(n/d),
+      t:`Скільки всього <b class="hl">${name}</b> у числі <span style="white-space:nowrap">${fmt(n)}</span>?`,
+      tt:`Скільки всього ${name} у числі ${fmt(n)}?`});
+  });
+
+  /* 7–10. Письмові дії стовпчиком: додавання, віднімання, додавання, віднімання */
+  [true,false,true,false].forEach(add=>{
+    let a,b,r;
+    if(add){a=ri(100000,500000);b=ri(100000,400000);r=a+b}
+    else{a=ri(500000,900000);b=ri(100000,a-10000);r=a-b}
+    T.push({kind:'col',add,a,b,ans:r,
+      t:`<span class="badge ${add?'add':'sub'}">${add?'Додавання':'Віднімання'}</span> Обчисліть стовпчиком у зошиті та впишіть результат у клітинки.`,
+      tt:`${fmt(a)} ${add?'+':'−'} ${fmt(b)}`});
+  });
+  return T;
+}
+
+/* ===================== Побудова тесту ===================== */
+const $=s=>document.querySelector(s);
+const qWrap=$('#questions');
+let TASKS=[],N=0,state=null;
+
+function parseNum(s){
+  s=String(s).replace(/[\s  ]/g,'').replace(',','.');
+  if(!/^\d+$/.test(s))return NaN;
+  return Number(s);
+}
+function isDone(t,a){
+  if(a===null||a===undefined)return false;
+  if(t.kind==='col')return String(a).indexOf('_')<0;
+  return true;
+}
+function isRight(t,a){
+  if(!isDone(t,a))return false;
+  if(t.kind==='pick')return Number(a)===t.ans;
+  return parseNum(a)===t.ans;
+}
+
+function digitsHTML(n){
+  const s=String(n);let h='<div class="digits">';
+  for(let i=0;i<s.length;i++){
+    if(i===3)h+='<span class="gap"></span>';
+    h+=`<button type="button" class="dcard" data-d="${s[i]}" aria-label="цифра ${s[i]}">${s[i]}</button>`;
+  }
+  return h+'</div>';
+}
+function colHTML(t,qi){
+  const L=6,sa=String(t.a).padStart(L,' '),sb=String(t.b).padStart(L,' '),rl=String(t.ans).length;
+  const dg=s=>s.split('').map(c=>`<span class="dg">${c===' '?'':c}</span>`).join('');
+  let cells='';
+  for(let i=0;i<L;i++){
+    cells+= i<L-rl ? '<span class="blank"></span>'
+      : `<input class="cell" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="цифра відповіді" data-q="${qi}">`;
+  }
+  return `<div class="colwrap"><div class="col" data-q="${qi}">
+    <span></span>${dg(sa)}
+    <span class="op ${t.add?'add':'sub'}">${t.add?'+':'−'}</span>${dg(sb)}
+    <div class="line"></div>
+    <span></span>${cells}
+  </div></div>`;
+}
+
+function build(){
+  rnd=mulberry32(newSeed());
+  TASKS=genTasks();N=TASKS.length;
+  state={ans:TASKS.map(()=>null),checked:false};
+  resetWatch();
+  qWrap.innerHTML='';
+  TASKS.forEach((t,qi)=>{
+    const el=document.createElement('section');
+    el.className='card q';el.id='q'+qi;
+    let h=`<div class="qh"><span class="num">${qi+1}</span><div class="qt">${t.t}</div><span class="mark"></span></div>`;
+    if(t.kind==='pick')h+=digitsHTML(t.n).replace(/<div class="digits">/,`<div class="digits" data-q="${qi}">`);
+    else if(t.kind==='num')h+=`<div class="numrow"><span class="lbl">Відповідь:</span><input type="text" inputmode="numeric" autocomplete="off" aria-label="Відповідь" data-q="${qi}" data-k="num"></div>`;
+    else h+=colHTML(t,qi);
+    el.innerHTML=h;
+    qWrap.appendChild(el);
+  });
+  $('#result').hidden=true;
+  $('#actions').hidden=false;
+  clearWarn();
+}
+
+/* --- клацання по цифрах --- */
+qWrap.addEventListener('click',e=>{
+  const b=e.target.closest('.dcard');if(!b||state.checked)return;
+  const box=b.parentNode,qi=+box.dataset.q;
+  box.querySelectorAll('.dcard').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');state.ans[qi]=b.dataset.d;clearWarn();
+});
+
+/* --- введення числа --- */
+qWrap.addEventListener('input',e=>{
+  const inp=e.target.closest('input');if(!inp||state.checked)return;
+  const qi=+inp.dataset.q;
+  if(inp.classList.contains('cell')){
+    inp.value=inp.value.replace(/[^0-9]/g,'');
+    updateCol(inp.closest('.col'),qi);
+    if(inp.value.length===1){
+      const box=inp.closest('.col'),cells=colCells(box),i=cells.indexOf(inp);
+      const j=box._dir==='b'?i-1:i+1;
+      if(cells[j]){box._auto=true;cells[j].focus();cells[j].select();}
+    }
+  }else{
+    const v=inp.value.trim();state.ans[qi]=v===''?null:v;
+  }
+  clearWarn();
+});
+
+/* --- клітинки стовпчика: напрям введення і клавіші --- */
+const colCells=box=>Array.from(box.querySelectorAll('input.cell'));
+function updateCol(box,qi){
+  const vals=colCells(box).map(c=>c.value===''?'_':c.value);
+  state.ans[qi]=vals.every(v=>v==='_')?null:vals.join('');
+}
+qWrap.addEventListener('focusin',e=>{
+  const inp=e.target.closest('input.cell');if(!inp)return;
+  const box=inp.closest('.col'),cells=colCells(box),i=cells.indexOf(inp);
+  inp.select();
+  if(box._auto){box._auto=false;return}
+  if(i===cells.length-1)box._dir='b';          /* почали з одиниць — рухаємося вліво */
+  else if(i===0)box._dir='f';
+  else if(!box._dir)box._dir='b';
+});
+qWrap.addEventListener('keydown',e=>{
+  const inp=e.target.closest('input.cell');if(!inp||state.checked)return;
+  const box=inp.closest('.col'),cells=colCells(box),i=cells.indexOf(inp);
+  const go=(j,dir)=>{if(!cells[j])return;if(dir)box._dir=dir;box._auto=true;cells[j].focus();cells[j].select();};
+  if(e.key==='Backspace'&&inp.value===''){e.preventDefault();go(box._dir==='b'?i+1:i-1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();go(i-1,'b');}
+  else if(e.key==='ArrowRight'){e.preventDefault();go(i+1,'f');}
+  else if(e.key==='Enter'){e.preventDefault();}
+});
+
+let warnedEmpty=false;
+function clearWarn(){$('#warn').textContent='';warnedEmpty=false;$('#checkBtn').textContent='Перевірити'}
+['#sur','#nam'].forEach(s=>$(s).addEventListener('input',e=>{e.target.classList.remove('need');$('#studentMsg').textContent=''}));
+function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+$('#checkBtn').addEventListener('click',()=>{
+  const sur=$('#sur').value.trim(),nam=$('#nam').value.trim();
+  if(!sur||!nam){
+    if(!sur)$('#sur').classList.add('need');
+    if(!nam)$('#nam').classList.add('need');
+    $('#studentMsg').textContent='Введіть прізвище та ім’я, щоб перевірити тест.';
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  const empty=TASKS.filter((t,i)=>!isDone(t,state.ans[i])).length;
+  if(empty&&!warnedEmpty){
+    warnedEmpty=true;
+    $('#warn').textContent=`Ви відповіли не на всі запитання: ${empty} ${plural(empty,'завдання','завдання','завдань')}.`;
+    $('#checkBtn').textContent='Все одно перевірити';
+    return;
+  }
+  finish(sur,nam);
+});
+
+function ansText(t,a){
+  if(a===null||a===undefined)return '';
+  if(t.kind==='col')return String(a).replace(/_/g,'·');
+  return String(a);
+}
+
+function finish(sur,nam){
+  state.checked=true;
+  const marks=TASKS.map((t,i)=>isRight(t,state.ans[i])?1:0);
+  const score=marks.reduce((s,x)=>s+x,0);
+  TASKS.forEach((t,i)=>{
+    const el=$('#q'+i);el.classList.add('locked',marks[i]?'ok':'bad');
+    el.querySelector('.mark').textContent=marks[i]?'✓':'✗';
+    el.querySelectorAll('input').forEach(x=>x.readOnly=true);
+  });
+  $('#sur').readOnly=$('#nam').readOnly=true;
+  $('#actions').hidden=true;
+  const r=$('#result');
+  r.innerHTML=`<div class="who">${esc(sur)} ${esc(nam)}</div>
+    <div class="big">${score} з ${N}</div>
+    <div style="font-weight:800;color:var(--muted)">${plural(score,'бал','бали','балів')}</div>
+    <div class="chips">${marks.map((m,i)=>`<span class="chip ${m?'y':'n'}">${i+1}</span>`).join('')}</div>
+    <button class="btn ghost" id="againBtn">Пройти ще раз</button>`;
+  r.hidden=false;
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  $('#againBtn').addEventListener('click',()=>{
+    $('#sur').readOnly=$('#nam').readOnly=false;
+    build();window.scrollTo({top:0,behavior:'smooth'});
+  });
+  back();
+  const now=Date.now();
+  saveResult({
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${sur} ${nam}`,surname:sur,firstName:nam,
+    ts:now,date:new Date(now).toISOString(),
+    score,max:N,tasks:marks,
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,
+    qtext:TASKS.map(t=>t.tt||plain(t.t)),
+    answers:TASKS.map((t,i)=>ansText(t,state.ans[i])),
+    correct:TASKS.map(t=>String(t.ans)),
+    test:TEST_NAME
+  });
+}
+
+/* ===================== Журнал учителя ===================== */
+const overlay=$('#overlay'),modal=$('#modal');
+let rows=[];
+$('#keyBtn').addEventListener('click',()=>{
+  modal.innerHTML=`<h2>🔑 Журнал учителя</h2>
+    <div class="row"><input type="password" id="pw" placeholder="Пароль" autocomplete="off">
+    <button class="sbtn" id="pwOk">Увійти</button><button class="sbtn g" id="close1">Закрити</button></div>
+    <div class="pmsg" id="pmsg"></div>`;
+  overlay.classList.add('on');
+  const pw=$('#pw');pw.focus();
+  const go=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else{$('#pmsg').textContent='Неправильний пароль';pw.select()}};
+  $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
+  $('#close1').onclick=closeModal;
+});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
+function closeModal(){overlay.classList.remove('on');modal.innerHTML=''}
+const fmtDate=ts=>new Date(ts).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const NT=10;
+
+async function showJournal(msg){
+  modal.innerHTML=`<h2>🔑 Журнал учителя — «Натуральні числа, додавання і віднімання»</h2>
+    <div class="row"><button class="sbtn" id="refresh">Оновити</button><button class="sbtn g" id="csv">Завантажити CSV</button><button class="sbtn r" id="clr">Очистити</button><button class="sbtn g" id="close2">Закрити</button><span id="cnt" style="font-weight:800;color:var(--muted)"></span></div>
+    <div class="pmsg" id="jmsg">${msg?esc(msg):''}</div>
+    <div id="jbody">Завантаження…</div>`;
+  $('#close2').onclick=closeModal;$('#refresh').onclick=()=>showJournal();$('#csv').onclick=downloadCSV;
+  $('#clr').onclick=()=>{
+    $('#jmsg').innerHTML=`Видалити всі результати? <button class="sbtn r" id="clrYes">Так, очистити</button> <button class="sbtn g" id="clrNo">Ні</button>`;
+    $('#clrNo').onclick=()=>{$('#jmsg').textContent=''};
+    $('#clrYes').onclick=async()=>{
+      $('#jmsg').textContent='Видалення…';
+      try{await clearResults(rows);showJournal('Результати видалено.')}
+      catch(e){$('#jmsg').textContent='Не вдалося видалити результати.'}
+    };
+  };
+  try{rows=await loadResults()}catch(e){$('#jbody').innerHTML='<div class="pmsg">Не вдалося підключитися до бази результатів.</div>';return}
+  $('#cnt').textContent=`Записів: ${rows.length}`;
+  if(!rows.length){$('#jbody').innerHTML='<p>Результатів поки немає.</p>';return}
+  const cols=NT+6;
+  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th title="Скільки хвилин:секунд минуло від початку тесту до перевірки">Час</th><th title="Скільки разів учень виходив з вікна тесту (інша вкладка чи програма)">Виходів</th><th>Бал</th>${Array.from({length:NT},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
+  const body=rows.map((r,k)=>`<tr data-k="${k}"><td>${k+1}</td><td class="nm" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td>${timeCells(r)}<td><b>${r.score}/${r.max||NT}</b></td>${
+    Array.from({length:NT},(_,i)=>{const m=(r.tasks||[])[i];return m?'<td class="y">✓</td>':'<td class="n">✗</td>'}).join('')}</tr>`).join('');
+  $('#jbody').innerHTML=`<div class="tblwrap"><table id="jt">${head}${body}</table></div>`;
+  $('#jt').addEventListener('click',e=>{
+    const td=e.target.closest('td.nm');if(!td)return;
+    const tr=td.parentNode,nx=tr.nextSibling;
+    if(nx&&nx.classList&&nx.classList.contains('det')){nx.remove();return}
+    const r=rows[+tr.dataset.k];
+    const det=document.createElement('tr');det.className='det';
+    det.innerHTML=`<td colspan="${cols}"><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th></tr>${
+      (r.qtext||[]).map((t,i)=>`<tr><td>${i+1}</td><td style="text-align:left;white-space:normal">${esc(t)}</td><td>${esc((r.answers||[])[i]||'—')}</td><td>${esc((r.correct||[])[i]||'')}</td></tr>`).join('')}</table></td>`;
+    tr.after(det);
+  });
+}
+function timeCells(r){
+  if(r.durationSec==null)return '<td>—</td><td>—</td>';
+  const lv=r.leaves||0,aw=r.awaySec||0;
+  const fast=r.durationSec<120;
+  return `<td${fast?' class="n"':''} title="${fast?'Дуже швидко':''}">${fmtDur(r.durationSec)}</td><td${lv>=3?' class="n"':''} title="Поза вікном: ${fmtDur(aw)}">${lv}</td>`;
+}
+function downloadCSV(){
+  if(!rows.length)return;
+  const hdr=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал',...Array.from({length:NT},(_,i)=>'Завд. '+(i+1))];
+  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),r.durationSec==null?'':fmtDur(r.durationSec),r.durationSec==null?'':(r.leaves||0),r.durationSec==null?'':fmtDur(r.awaySec||0),`${r.score}/${r.max||NT}`,...Array.from({length:NT},(_,i)=>(r.tasks||[])[i]?'+':'-')]));
+  const csv='﻿'+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='ДЗ_Урок1_5клас_результати.csv';a.click();
+}
+
+/* ---------- доброчесність: час виконання і виходи з вікна ---------- */
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0}}
+function leave(){if(!state||state.checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+function fmtDur(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+build();
+})();
+</script>
+</body>
+</html>
