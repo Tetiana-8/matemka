@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Додавання в стовпчик</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --u:44px;                      /* базова одиниця розміру: підбирається під екран у fit() */
+  --ink:#3a1736;--muted:#8a5a78;
+  --acc:#be185d;--acc2:#e5508a;--accL:#fce7f3;--soft:#fdeff5;--soft2:#fff7fa;--line:#f3cfe0;
+  --ok:#1e9e62;--okbg:#e6f7ee;--bad:#e0464e;--badbg:#fdecee;
+}
+*{box-sizing:border-box}
+html{font-size:var(--u);min-height:100%;background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+body{
+  margin:0;height:100vh;height:100dvh;overflow:hidden;padding:.25rem;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%);background-attachment:fixed;
+  touch-action:manipulation;
+}
+button{font-family:inherit}
+button:focus{outline:none}
+button:focus-visible{outline:3px solid rgba(190,24,93,.55);outline-offset:2px}
+
+/* ---------- сторінка тренажера (усе в rem: 1rem = --u) ---------- */
+.app{width:max-content;display:flex;flex-direction:column;align-items:center;gap:.25rem;-webkit-user-select:none;user-select:none}
+.card{position:relative;background:#fff;border:2px solid var(--line);border-radius:.6rem;box-shadow:0 10px 30px rgba(120,20,70,.16);
+  padding:.45rem;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+body.land .card{flex-direction:row;gap:.5rem}
+.left{display:flex;flex-direction:column;gap:.4rem;width:9.2rem}
+body.land .left{width:9.2rem}
+
+.bar{display:flex;align-items:center;padding-right:1.3rem;height:1.05rem}
+body.land .bar{padding-right:0}
+.levels{display:flex;align-items:center;gap:.18rem}
+.lcap{font-weight:800;font-size:.36rem;color:var(--muted);margin-right:.1rem}
+.lvl{flex:none;width:1.05rem;height:1.05rem;padding:0;border:2px solid var(--line);border-radius:50%;background:var(--soft);color:#9d174d;
+  font-weight:900;font-size:.44rem;line-height:1;cursor:pointer;transition:.12s}
+.lvl:hover{border-color:#f0a3c8}
+.lvl.on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 2px 6px rgba(190,24,93,.3)}
+#keyBtn{position:absolute;top:.4rem;right:.4rem;width:1.05rem;height:1.05rem;padding:0;border-radius:50%;border:1px solid var(--line);
+  background:rgba(255,255,255,.7);font-size:.42rem;line-height:1;cursor:pointer;opacity:.7}
+#keyBtn:hover{opacity:1}
+
+.sheet{background:var(--soft2);border:2px solid var(--line);border-radius:.5rem;padding:.4rem;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.grid{display:grid;row-gap:.1rem;justify-items:center;align-items:center}
+.cc{width:1rem;height:1rem;display:flex;align-items:center;justify-content:center}
+.digit{width:.86rem;height:.86rem;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:var(--ink);
+  background:#fff;border:2px solid var(--line);border-radius:.2rem;box-shadow:0 1px 3px rgba(120,20,70,.06)}
+.carry{width:.62rem;height:.62rem;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.36rem;color:#9d174d;
+  background:var(--accL);border:2px dashed var(--acc2);border-radius:.16rem;cursor:pointer}
+.ans{width:.9rem;height:.9rem;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.56rem;color:var(--ink);
+  background:#fff;border:2px solid var(--acc2);border-radius:.2rem;cursor:pointer;box-shadow:0 2px 4px rgba(190,24,93,.12)}
+.plus{font-weight:900;font-size:.7rem;color:var(--acc)}
+.line{grid-column:1/-1;width:100%;height:.09rem;min-height:3px;margin:.04rem 0;background:var(--ink);border-radius:9px}
+.carry.active{border-style:solid;border-color:var(--acc);background:#fff;box-shadow:0 0 0 3px rgba(190,24,93,.25)}
+.ans.active{border-color:var(--acc);background:var(--soft);box-shadow:0 0 0 3px rgba(190,24,93,.28)}
+.ans.good{border-color:var(--ok);background:var(--okbg);color:#14663f}
+.ans.wrong{border-color:var(--bad);background:var(--badbg);color:#a3232b}
+
+.fb{width:100%;height:1.15rem;display:flex;align-items:center;justify-content:center}
+.fb span{max-width:100%;padding:.06rem .3rem;border:2px solid;border-radius:.3rem;font-weight:800;font-size:.36rem;line-height:1.12;text-align:center}
+.fb span:empty{display:none}
+.fb .ok{color:#14663f;background:var(--okbg);border-color:#8fd3b0}
+.fb .bad{color:#a3232b;background:var(--badbg);border-color:#efa3a8}
+.fb .warn{color:#8a5a00;background:#fff6e5;border-color:#f3d9a4}
+.actions{display:flex;justify-content:center;gap:.35rem;width:100%;padding-top:.3rem;border-top:1px solid var(--line)}
+.btn{height:1.05rem;padding:0 .45rem;border:0;border-radius:.4rem;color:#fff;font-weight:800;font-size:.4rem;white-space:nowrap;cursor:pointer;
+  box-shadow:0 3px 8px rgba(190,24,93,.25);transition:transform .1s}
+.btn:active{transform:scale(.96)}
+.btn.a{background:var(--acc2)}
+.btn.b{background:var(--acc)}
+
+.pad{align-self:stretch;display:grid;grid-template-columns:repeat(5,1fr);gap:.22rem;padding:.33rem;background:var(--accL);border:1px solid var(--line);border-radius:.5rem}
+body.land .pad{align-self:center;width:6.6rem}
+.k{height:1rem;padding:0;border:1.5px solid var(--line);border-radius:.3rem;background:#fff;color:#9d174d;font-weight:900;font-size:.46rem;cursor:pointer;
+  box-shadow:0 2px 4px rgba(120,20,70,.07);transition:.08s}
+.k:active{background:#fde1ee;transform:scale(.95)}
+.k.w2{grid-column:span 2;font-size:.34rem;background:#fde1ee}
+.k.w3{grid-column:span 3;font-size:.34rem;color:var(--muted)}
+
+footer{text-align:center;font-size:10px;letter-spacing:.05em;color:#6b7280;line-height:1.5}
+footer b{font-weight:700}
+
+/* ---------- вікна (у px, щоб не залежати від --u) ---------- */
+.ov{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:16px;overflow:auto;background:rgba(60,15,45,.5);
+  font-size:clamp(16px,.5vw + 11px,22px)}
+.ov.on{display:flex}
+.ov.top{align-items:flex-start}
+.modal{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center;margin:auto}
+.modal.wide{max-width:1000px;text-align:left}
+.modal h1{margin:0 0 4px;font-size:1.5em;font-weight:900;line-height:1.25;color:transparent;background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text}
+.modal h2{margin:0 0 12px;font-size:1.25em;font-weight:900}
+.fld{text-align:left;margin-top:14px}
+.fld label{display:block;font-weight:800;font-size:.9em;color:var(--muted);margin-bottom:4px}
+.modal input{width:100%;font:inherit;padding:10px 14px;border:2px solid var(--line);border-radius:12px;outline:none;background:var(--soft)}
+.modal input:focus{border-color:var(--acc);background:#fff}
+.modal input.need{border-color:var(--bad);background:var(--badbg)}
+.msg{min-height:1.3em;margin-top:10px;color:var(--bad);font-weight:800}
+.go{width:100%;margin-top:6px;padding:12px;border:0;border-radius:14px;color:#fff;font:inherit;font-weight:900;cursor:pointer;
+  background:linear-gradient(135deg,#be185d,#ec4899);box-shadow:0 8px 20px rgba(190,24,93,.3)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.sbtn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:9px 16px;cursor:pointer;background:var(--acc);color:#fff}
+.sbtn.g{background:#fbe4ef;color:var(--acc)}
+.sbtn.r{background:var(--bad)}
+.pmsg{color:var(--bad);font-weight:800;min-height:1.3em}
+.tblwrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.95em}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{background:var(--soft);position:sticky;top:0;font-weight:900}
+td.nm{text-align:left;font-weight:700}
+td.y{color:var(--ok);font-weight:900}
+td.n{color:var(--bad);font-weight:900}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="card">
+    <div class="left">
+      <div class="bar">
+        <div class="levels" id="levels" role="group" aria-label="Рівень">
+          <span class="lcap">Рівень</span>
+          <button type="button" class="lvl on" data-l="1">1</button>
+          <button type="button" class="lvl" data-l="2">2</button>
+          <button type="button" class="lvl" data-l="3">3</button>
+          <button type="button" class="lvl" data-l="4">4</button>
+        </div>
+      </div>
+      <div class="sheet">
+        <div class="grid" id="grid"></div>
+        <div class="fb" aria-live="polite"><span id="fbText"></span></div>
+        <div class="actions">
+          <button type="button" class="btn a" id="checkBtn">Перевірити</button>
+          <button type="button" class="btn b" id="newBtn">Новий приклад</button>
+        </div>
+      </div>
+    </div>
+    <div class="pad" id="pad">
+      <button type="button" class="k" data-k="1">1</button>
+      <button type="button" class="k" data-k="2">2</button>
+      <button type="button" class="k" data-k="3">3</button>
+      <button type="button" class="k" data-k="4">4</button>
+      <button type="button" class="k" data-k="5">5</button>
+      <button type="button" class="k" data-k="6">6</button>
+      <button type="button" class="k" data-k="7">7</button>
+      <button type="button" class="k" data-k="8">8</button>
+      <button type="button" class="k" data-k="9">9</button>
+      <button type="button" class="k" data-k="0">0</button>
+      <button type="button" class="k w2" data-k="back">⌫ Стерти</button>
+      <button type="button" class="k w3" data-k="clear">Очистити</button>
+    </div>
+    <button type="button" id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+  </div>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<!-- початок: ім'я учня -->
+<div class="ov on" id="startOv">
+  <div class="modal">
+    <h1>Додавання в стовпчик</h1>
+    <div class="fld"><label for="sur">Прізвище</label><input id="sur" autocomplete="off"></div>
+    <div class="fld"><label for="nam">Ім'я</label><input id="nam" autocomplete="off"></div>
+    <div class="msg" id="startMsg"></div>
+    <button type="button" class="go" id="startBtn">Почати</button>
+  </div>
+</div>
+
+<!-- журнал учителя -->
+<div class="ov top" id="overlay"><div class="modal wide" id="modal"></div></div>
+
+<script>
+(function(){"use strict";
+
+/* ===================== Firebase (база math-5-892a5) ===================== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain:"math-5-892a5.firebaseapp.com",
+  projectId:"math-5-892a5",
+  storageBucket:"math-5-892a5.firebasestorage.app",
+  messagingSenderId:"163114803328",
+  appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId:"G-E06VKZ2GP5"
+};
+const APP_ID='default-app-id';
+const COLLECTION='results_addcolumn_5';
+const TEACHER_PASSWORD='8019';
+const FBV='10.12.2';
+const TEST_NAME='Додавання в стовпчик (5 клас)';
+
+let fbPromise=null;
+function fb(){
+  if(!fbPromise){
+    fbPromise=(async()=>{
+      const [appM,authM,fs]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app=appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return {db:fs.getFirestore(app),fs};
+    })();
+    fbPromise.catch(()=>{fbPromise=null});
+  }
+  return fbPromise;
+}
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+
+/* Один запис на учня. Лічильники додаються через increment, тому
+   кілька пристроїв чи вкладок не перезаписують одне одного. */
+async function writeDelta(d){
+  const {db,fs}=await fb();
+  const data={
+    id:d.id,name:d.name,surname:d.surname,firstName:d.firstName,
+    ts:d.ts,date:d.date,test:TEST_NAME,
+    correct:fs.increment(d.correct),incorrect:fs.increment(d.incorrect),total:fs.increment(d.correct+d.incorrect),
+    durationSec:fs.increment(d.durationSec),leaves:fs.increment(d.leaves),awaySec:fs.increment(d.awaySec)
+  };
+  if(d.levels.length) data.levels=fs.arrayUnion(...d.levels);
+  await fs.setDoc(fs.doc(coll(db,fs),d.id),data,{merge:true});
+}
+let queue=[],sending=false;
+function enqueue(d){queue.push(d);flush()}
+async function flush(){
+  if(sending)return;
+  sending=true;
+  try{
+    while(queue.length){await writeDelta(queue[0]);queue.shift()}
+  }catch(e){
+    console.warn('save failed',e);          // учням нічого не показуємо
+    setTimeout(flush,15000);
+  }finally{sending=false}
+}
+async function loadResults(){
+  const {db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  const out=[];snap.forEach(d=>out.push(Object.assign({},d.data(),{_id:d.id})));
+  return out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+async function clearResults(list){
+  const {db,fs}=await fb();
+  for(const r of list){await fs.deleteDoc(fs.doc(coll(db,fs),r._id))}
+}
+fb().catch(()=>{});   // підключаємося заздалегідь
+
+/* ===================== Допоміжне ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const dig=n=>rnd(Math.pow(10,n-1),Math.pow(10,n)-1);          // n-цифрове число
+const RANKS=['одиниць','десятків','сотень','одиниць тисяч','десятків тисяч','сотень тисяч','одиниць мільйонів'];
+function docId(name){
+  const clean=name.trim().replace(/\s+/g,' ').toLowerCase();
+  try{
+    let bin='';new TextEncoder().encode(clean).forEach(b=>bin+=String.fromCharCode(b));
+    return 'std_'+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  }catch(e){return 'std_'+encodeURIComponent(clean).replace(/%/g,'_')}
+}
+const fmtDate=ts=>ts?new Date(ts).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+const fmtDur=s=>{s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+
+/* ===================== Стан ===================== */
+let level=1,numA=0,numB=0,cols=0;
+let P={err:false,done:false};
+let active=null,timer=0,student=null;
+
+function genNumbers(l){
+  if(l===1)return [dig(3),dig(3)];
+  if(l===2)return [dig(4),dig(4)];
+  if(l===3)return [dig(5),dig(5)];
+  if(Math.random()>0.4)return [dig(6),Math.random()>0.5?dig(4):dig(6)];
+  return [dig(5),dig(4)];
+}
+
+/* ===================== Підбір розміру під екран ===================== */
+const root=document.documentElement,app=$('#app');
+let lastU=0;
+function measure(land){
+  document.body.classList.toggle('land',land);
+  root.style.setProperty('--u','50px');
+  return {w:app.offsetWidth,h:app.offsetHeight};
+}
+function fit(){
+  const cs=getComputedStyle(document.body);
+  const aw=document.body.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  const ah=document.body.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+  if(aw<=0||ah<=0)return;
+  let best=null;
+  [true,false].forEach(land=>{
+    const m=measure(land);
+    const u=50*Math.min(aw/m.w,ah/m.h);
+    if(!best||u>best.u+0.01)best={land,u};
+  });
+  let u=Math.max(12,Math.min(72,best.u*0.98));
+  document.body.classList.toggle('land',best.land);
+  for(let i=0;i<8;i++){
+    root.style.setProperty('--u',u.toFixed(2)+'px');
+    if((app.offsetWidth<=aw+0.5&&app.offsetHeight<=ah+0.5)||u<=12)break;
+    u=Math.max(12,u*0.97);
+  }
+  lastU=u;
+}
+let fitRaf=0;
+function scheduleFit(){if(!fitRaf)fitRaf=requestAnimationFrame(()=>{fitRaf=0;fit()})}
+window.addEventListener('resize',scheduleFit);
+if(window.ResizeObserver)new ResizeObserver(scheduleFit).observe(document.body);   // панелька-олівець звужує сторінку
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scheduleFit);
+
+/* ===================== Побудова прикладу ===================== */
+function setActive(el){
+  document.querySelectorAll('.active').forEach(e=>e.classList.remove('active'));
+  active=el;if(el)el.classList.add('active');
+}
+function ansBox(c){return $('#grid .ans[data-c="'+c+'"]')}
+function cell(child){const d=document.createElement('div');d.className='cc';if(child)d.appendChild(child);return d}
+
+function render(){
+  const sum=numA+numB,n=String(sum).length;
+  cols=n;
+  const s1=String(numA).padStart(n,' '),s2=String(numB).padStart(n,' ');
+  const g=$('#grid');g.innerHTML='';
+  g.style.gridTemplateColumns='repeat('+(n+1)+',1rem)';
+  // перенос
+  g.appendChild(cell());
+  for(let i=0;i<n;i++){
+    let el=null;
+    if(i<n-1){el=document.createElement('div');el.className='carry';el.dataset.c=i;el.dataset.t='carry'}
+    g.appendChild(cell(el));
+  }
+  // перше число
+  g.appendChild(cell());
+  for(let i=0;i<n;i++){
+    let el=null;
+    if(s1[i]!==' '){el=document.createElement('div');el.className='digit';el.textContent=s1[i]}
+    g.appendChild(cell(el));
+  }
+  // знак + і друге число
+  const pl=document.createElement('div');pl.className='plus';pl.textContent='+';g.appendChild(cell(pl));
+  for(let i=0;i<n;i++){
+    let el=null;
+    if(s2[i]!==' '){el=document.createElement('div');el.className='digit';el.textContent=s2[i]}
+    g.appendChild(cell(el));
+  }
+  // риска
+  const ln=document.createElement('div');ln.className='line';g.appendChild(ln);
+  // відповідь
+  g.appendChild(cell());
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');el.className='ans';el.dataset.c=i;el.dataset.t='ans';
+    g.appendChild(cell(el));
+  }
+  setActive(ansBox(n-1));
+}
+
+function showFb(text,kind){
+  const f=$('#fbText');
+  f.textContent=text||'';f.className=text?kind:'';
+}
+
+function newProblem(){
+  clearTimeout(timer);
+  P={err:false,done:false};
+  showFb('');
+  const p=genNumbers(level);numA=p[0];numB=p[1];
+  render();
+}
+
+function setLevel(l){
+  level=l;
+  document.querySelectorAll('.lvl').forEach(b=>b.classList.toggle('on',+b.dataset.l===l));
+  newProblem();
+}
+
+/* ===================== Введення ===================== */
+function pressNum(d){
+  if(!active||P.done)return;
+  active.textContent=d;
+  active.classList.remove('good','wrong');
+  showFb('');
+  if(active.dataset.t==='ans'){
+    const c=+active.dataset.c;
+    if(c>0)setActive(ansBox(c-1));
+  }
+  const all=[...document.querySelectorAll('#grid .ans')];
+  if(all.every(b=>b.textContent!==''))check(false);
+}
+function pressBack(){
+  if(!active||P.done)return;
+  active.textContent='';active.classList.remove('good','wrong');showFb('');
+}
+function pressClear(){
+  if(P.done)return;
+  document.querySelectorAll('#grid .ans, #grid .carry').forEach(b=>{b.textContent='';b.classList.remove('good','wrong')});
+  showFb('');setActive(ansBox(cols-1));
+}
+
+/* ===================== Перевірка ===================== */
+function check(manual){
+  if(!student||P.done)return;
+  const boxes=[...document.querySelectorAll('#grid .ans')];
+  if(boxes.some(b=>b.textContent==='')){
+    if(manual)showFb('Заповніть усі клітинки.','warn');
+    return;
+  }
+  const exp=String(numA+numB);
+  let bad=-1;
+  for(let i=cols-1;i>=0;i--){
+    const b=ansBox(i);
+    if(b.textContent===exp[i]){b.classList.remove('wrong');b.classList.add('good')}
+    else{b.classList.remove('good');b.classList.add('wrong');if(bad<0)bad=cols-1-i}
+  }
+  boxes.forEach(b=>b.classList.remove('active'));
+  if(bad<0){
+    P.done=true;
+    showFb('Правильно!','ok');
+    if(!P.err)record('ok');
+    clearTimeout(timer);
+    timer=setTimeout(newProblem,1500);
+  }else{
+    if(!P.err){P.err=true;record('bad')}
+    showFb('Помилка в розряді '+RANKS[bad]+'. Спробуйте ще раз.','bad');
+    setActive(ansBox(cols-1-bad));
+  }
+}
+
+/* ===================== Запис результатів і доброчесність ===================== */
+let W={last:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function takeWatch(withTime){
+  const now=Date.now();
+  if(W.awayAt){W.awaySec+=Math.round((now-W.awayAt)/1000);W.awayAt=now}
+  const d={leaves:W.leaves,awaySec:W.awaySec,durationSec:0};
+  if(withTime){d.durationSec=Math.round(Math.min(300,(now-W.last)/1000));W.last=now}   // паузи понад 5 хв не рахуємо
+  W.leaves=0;W.awaySec=0;
+  return d;
+}
+function baseRec(){
+  const now=Date.now();
+  return {id:student.id,name:student.name,surname:student.sur,firstName:student.nam,ts:now,date:new Date(now).toISOString()};
+}
+function record(kind){
+  const w=takeWatch(true);
+  enqueue(Object.assign(baseRec(),{
+    levels:['Рівень '+level],correct:kind==='ok'?1:0,incorrect:kind==='bad'?1:0,
+    durationSec:w.durationSec,leaves:w.leaves,awaySec:w.awaySec}));
+}
+function leave(){if(!student||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
+function back(){
+  if(!W.awayAt)return;
+  W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0;
+  if(student&&W.leaves){
+    const w=takeWatch(false);
+    enqueue(Object.assign(baseRec(),{levels:[],correct:0,incorrect:0,durationSec:0,leaves:w.leaves,awaySec:w.awaySec}));
+  }
+}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+/* ===================== Початок роботи ===================== */
+function start(){
+  const sur=$('#sur').value.trim().replace(/\s+/g,' '),nam=$('#nam').value.trim().replace(/\s+/g,' ');
+  $('#sur').classList.toggle('need',!sur);$('#nam').classList.toggle('need',!nam);
+  if(!sur||!nam){$('#startMsg').textContent="Введіть прізвище та ім'я.";return}
+  const name=sur+' '+nam;
+  student={sur,nam,name,id:docId(name)};
+  W={last:Date.now(),leaves:0,awaySec:0,awayAt:0};
+  $('#startOv').classList.remove('on');
+  enqueue(Object.assign(baseRec(),{levels:['Рівень '+level],correct:0,incorrect:0,durationSec:0,leaves:0,awaySec:0}));
+  newProblem();
+}
+$('#startBtn').addEventListener('click',start);
+['#sur','#nam'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter')start()}));
+
+/* ===================== Події ===================== */
+$('#levels').addEventListener('click',e=>{const b=e.target.closest('.lvl');if(b&&student)setLevel(+b.dataset.l)});
+$('#grid').addEventListener('click',e=>{const b=e.target.closest('.ans,.carry');if(b&&!P.done)setActive(b)});
+$('#pad').addEventListener('click',e=>{
+  const b=e.target.closest('[data-k]');if(!b||!student)return;
+  const k=b.dataset.k;
+  if(k==='back')pressBack();else if(k==='clear')pressClear();else pressNum(k);
+});
+$('#checkBtn').addEventListener('click',()=>check(true));
+$('#newBtn').addEventListener('click',()=>{if(student)newProblem()});
+document.addEventListener('keydown',e=>{
+  if(!student||$('#overlay').classList.contains('on'))return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key>='0'&&e.key<='9')pressNum(e.key);
+  else if(e.key==='Backspace')pressBack();
+  else if(e.key==='Enter'&&!e.target.closest('button'))check(true);
+});
+
+/* ===================== Журнал учителя ===================== */
+const overlay=$('#overlay'),modal=$('#modal');
+let rows=[];
+function closeModal(){overlay.classList.remove('on');modal.innerHTML=''}
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('on'))closeModal()});
+$('#keyBtn').addEventListener('click',()=>{
+  modal.innerHTML=`<h2>🔑 Журнал учителя</h2>
+    <div class="row"><input type="password" id="pw" placeholder="Пароль" autocomplete="off" style="max-width:240px">
+    <button class="sbtn" id="pwOk">Увійти</button><button class="sbtn g" id="close1">Закрити</button></div>
+    <div class="pmsg" id="pmsg"></div>`;
+  overlay.classList.add('on');
+  const pw=$('#pw');pw.focus();
+  const go=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else{$('#pmsg').textContent='Неправильний пароль.';pw.select()}};
+  $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
+  $('#close1').onclick=closeModal;
+});
+const levelsText=r=>(r.levels||[]).map(x=>String(x).replace('Рівень ','')).sort().join(', ')||'—';
+
+async function showJournal(msg){
+  modal.innerHTML=`<h2>🔑 Журнал учителя — «Додавання в стовпчик»</h2>
+    <div class="row"><button class="sbtn" id="refresh">Оновити</button><button class="sbtn g" id="csv">Завантажити CSV</button><button class="sbtn r" id="clr">Очистити</button><button class="sbtn g" id="close2">Закрити</button><span id="cnt" style="font-weight:800;color:var(--muted)"></span></div>
+    <div class="pmsg" id="jmsg">${msg?esc(msg):''}</div>
+    <div id="jbody">Завантаження…</div>`;
+  $('#close2').onclick=closeModal;$('#refresh').onclick=()=>showJournal();$('#csv').onclick=downloadCSV;
+  $('#clr').onclick=()=>{
+    $('#jmsg').innerHTML=`Видалити всі результати? <button class="sbtn r" id="clrYes">Так, очистити</button> <button class="sbtn g" id="clrNo">Ні</button>`;
+    $('#clrNo').onclick=()=>{$('#jmsg').textContent=''};
+    $('#clrYes').onclick=async()=>{
+      $('#jmsg').textContent='Видалення…';
+      try{await clearResults(rows);showJournal('Результати видалено.')}
+      catch(e){$('#jmsg').textContent='Не вдалося видалити результати.'}
+    };
+  };
+  try{rows=await loadResults()}catch(e){$('#jbody').innerHTML='<div class="pmsg">Не вдалося підключитися до бази результатів.</div>';return}
+  $('#cnt').textContent='Записів: '+rows.length;
+  if(!rows.length){$('#jbody').innerHTML='<p>Результатів поки немає.</p>';return}
+  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th title="Скільки хвилин:секунд учень працював у тренажері (паузи понад 5 хв не рахуються)">Час</th><th title="Скільки разів учень виходив з вікна (інша вкладка чи програма)">Виходів</th><th>Рівні</th><th>Правильно</th><th>Помилки</th><th>Всього</th></tr>`;
+  const body=rows.map((r,k)=>{
+    const lv=r.leaves;
+    return `<tr><td>${k+1}</td><td class="nm">${esc(r.name||'Анонім')}</td><td>${fmtDate(r.ts)}</td>
+      <td>${r.durationSec==null?'—':fmtDur(r.durationSec)}</td>
+      <td${(lv||0)>=3?' class="n"':''} title="Поза вікном: ${fmtDur(r.awaySec)}">${lv==null?'—':lv}</td>
+      <td>${esc(levelsText(r))}</td><td class="y">${r.correct||0}</td><td${(r.incorrect||0)>0?' class="n"':''}>${r.incorrect||0}</td><td><b>${r.total||0}</b></td></tr>`;
+  }).join('');
+  $('#jbody').innerHTML=`<div class="tblwrap"><table>${head}${body}</table></div>`;
+}
+function downloadCSV(){
+  if(!rows.length)return;
+  const hdr=["Прізвище та ім'я",'Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Рівні','Правильно','Помилки','Всього'];
+  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),r.durationSec==null?'':fmtDur(r.durationSec),r.leaves==null?'':r.leaves,r.leaves==null?'':fmtDur(r.awaySec),levelsText(r),r.correct||0,r.incorrect||0,r.total||0]));
+  const csv='﻿'+lines.map(l=>l.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Додавання_в_стовпчик_5клас_результати.csv';a.click();
+}
+
+/* ===================== Старт ===================== */
+render();            // приклад-заготовка під вікном імені; новий з'явиться після «Почати»
+fit();
+$('#sur').focus();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
