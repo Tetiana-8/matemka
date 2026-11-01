@@ -11,10 +11,10 @@
 /* Layout: урок-презентація — ліва панель з текстом (40%), права — креслення на «зошитовій» сітці (60%) */
 :root{
   --bg:#ffffff; --ink:#3a2b33; --muted:#86707c;
-  --rose:#d6336c; --rose-deep:#a61e4d; --rose-soft:#fde3ec; --rose-faint:#fff2f6;
-  --panelL:#fdecf2; --panelR:#fffafc; --line:#f2c9d8; --grid:#f7dbe6;
+  --rose:#be185d; --rose-deep:#9d174d; --rose-soft:#fce7f3; --rose-faint:#fff2f6;
+  --panelL:#fdeff5; --panelR:#fff7fa; --line:#f3cfe0; --grid:#f7dbe6;
   --acute:#2f9e6e; --right:#2b7bbf; --obtuse:#e07a1f;
-  --iso:#d6336c; --equi:#12858a; --scal:#b8860b;
+  --iso:#be185d; --equi:#12858a; --scal:#b8860b;
   --ok:#2f9e6e; --bad:#d94848;
   --f-body:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;
   --f-letter:'PT Serif',Georgia,'Times New Roman',serif;
@@ -62,8 +62,8 @@ b,strong{font-weight:800}
 .nb.off{background:#f3eef0;color:#b3a6ad;border-color:#e6dde1;cursor:not-allowed;box-shadow:none;opacity:.85}
 .nb.popped{animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
 
-footer{flex:none;text-align:center;padding-block:.45rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:#fbf7f9;border-top:1px solid #efe4e9;font-size:.72rem;color:var(--muted);letter-spacing:.02em}
-footer b{color:#3a2b33}
+footer{flex:none;text-align:center;padding:6px 16px 4px;font-size:10px;letter-spacing:.05em;color:#6b7280;user-select:none}
+footer b{font-weight:700}
 
 /* ---------- Блоки контенту ---------- */
 .card{background:#fff;border-radius:14px;padding:clamp(14px,1.6vw,28px);border:1px solid #f6dbe5;box-shadow:0 1px 3px rgba(166,30,77,.05);display:flex;flex-direction:column;gap:.9rem;line-height:1.5}
@@ -192,7 +192,7 @@ footer b{color:#3a2b33}
     </div>
   </div>
 
-  <footer>Автор розробки <b>Ковтун Тетяна</b> за технічної підтримки Claude</footer>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
 </div>
 
 <script>
@@ -201,7 +201,7 @@ footer b{color:#3a2b33}
 const $=s=>document.querySelector(s);
 const startEl=$('#start'), lessonEl=$('#lesson'), left=$('#left'), inner=$('#leftInner'), nav=$('#nav'), right=$('#right'), svg=$('#svg'), layer=$('#layer');
 
-const COL={ink:'#3a2b33',muted:'#86707c',rose:'#d6336c',acute:'#2f9e6e',right:'#2b7bbf',obtuse:'#e07a1f',iso:'#d6336c',equi:'#12858a',scal:'#b8860b',grey:'#8f7f87'};
+const COL={ink:'#3a2b33',muted:'#86707c',rose:'#be185d',acute:'#2f9e6e',right:'#2b7bbf',obtuse:'#e07a1f',iso:'#be185d',equi:'#12858a',scal:'#b8860b',grey:'#8f7f87'};
 const NAMES={acute:'гострокутний',right:'прямокутний',obtuse:'тупокутний',iso:'рівнобедрений',equi:'рівносторонній',scal:'різносторонній'};
 const ANGNAME=d=>d<90?'гострий':(d===90?'прямий':'тупий');
 const ANGCOL=d=>d<90?COL.acute:(d===90?COL.right:COL.obtuse);
@@ -305,7 +305,7 @@ function drawTri(o){
 function setLayer(html){layer.innerHTML=html}
 /* найменший кут — 1 дуга, більший — 2, найбільший — 3; рівні кути — однаково */
 function rankCounts(A){const v=[...new Set(A.filter(d=>d!==90))].sort((a,b)=>a-b);return A.map(d=>d===90?1:v.indexOf(d)+1)}
-const EL3=['#d6336c','#2b7bbf','#2f9e6e'];
+const EL3=['#be185d','#2b7bbf','#2f9e6e'];
 const ISO_BASE='#1f7a8c';
 const BR_ANG='#c2185b', BR_SIDE='#1f7a8c';
 
@@ -587,8 +587,17 @@ function tryMove(i,t){
 function dispAngles(D){
   const a=angsOf(D.P);
   if(D.kind==='right'){const r=D.ri,i1=(r+1)%3,i2=(r+2)%3,out=[0,0,0];out[r]=90;out[i1]=Math.round(a[i1]);out[i2]=90-out[i1];return out}
-  if(D.kind==='acute')return a.map(x=>Math.min(Math.round(x),89));
-  const mi=a.indexOf(Math.max(...a));return a.map((x,i)=>i===mi?Math.max(Math.round(x),91):Math.min(Math.round(x),89));
+  // гострокутний / тупокутний: кути цілі, вид зберігається, а сума завжди 180°
+  const mi=a.indexOf(Math.max(...a)),obt=D.kind!=='acute';
+  const ok=(i,v)=>obt?(i===mi?v>=91:(v<=89&&v>=1)):(v<=89&&v>=1);
+  const out=a.map((x,i)=>{let v=Math.round(x);if(obt)v=i===mi?Math.max(v,91):Math.min(v,89);else v=Math.min(v,89);return v});
+  for(let g=0;g<12;g++){
+    const diff=180-out.reduce((s,v)=>s+v,0);if(!diff)break;
+    const st=Math.sign(diff);let best=-1,bd=-1e9;
+    out.forEach((v,i)=>{if(ok(i,v+st)){const d=(a[i]-v)*st;if(d>bd){bd=d;best=i}}});
+    if(best<0)break;out[best]+=st;
+  }
+  return out;
 }
 const angRow=(i,d)=>`∠<span class="L">${'ABC'[i]}</span> = ${d}° — <b style="color:${ANGCOL(d)}">${ANGNAME(d)}</b>`;
 function drawAngleDT(anim){
@@ -653,7 +662,7 @@ function quizLeft(){
 function drawQuiz(){
   const q=QUIZ[S.q],m=qMeta(q);
   const P=fit(triFromAngles(q.a[0],q.a[1],q.rot));
-  setLayer(drawTri({P,names:q.n.split(''),color:COL.rose,angles:q.a,angCol:ANGCOL,ticks:m.tk,anim:true,fillOp:.07}));
+  setLayer(drawTri({P,names:q.n.split(''),color:COL.rose,angles:q.a,angCol:ANGCOL,ticks:m.tk,anim:true,fillOp:.07,multiArc:true}));
   S.qok={};
 }
 function quizClick(btn){
@@ -755,8 +764,9 @@ inner.addEventListener('click',e=>{
 });
 })();
 </script>
-<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ (початок) =====================
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
      Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
      Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
 <style>
 #pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -765,61 +775,74 @@ inner.addEventListener('click',e=>{
 .pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
 .pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
 .pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
 #pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
 #pm-panel *{box-sizing:border-box}
 #pm-panel[hidden],#pm-fab[hidden]{display:none!important}
-#pm-panel{position:fixed;right:8px;top:50%;transform:translateY(-50%);z-index:2147483600;width:140px;max-height:calc(100vh - 12px);overflow-y:auto;background:#fff;border:2px solid #555;border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.3);padding:8px}
-#pm-panel.pm-left{right:auto;left:8px}
-#pm-fab{position:fixed;right:8px;top:50%;margin-top:-27px;width:54px;height:54px;border-radius:50%;border:2px solid #555;background:#fff;font-size:26px;line-height:1;cursor:pointer;z-index:2147483600;box-shadow:0 3px 12px rgba(0,0,0,.3);padding:0}
-#pm-fab.pm-left{right:auto;left:8px}
-.pm-head{display:flex;gap:6px;margin-bottom:6px}
-.pm-head button{flex:1;height:34px;border:2px solid #ddd;border-radius:10px;background:#f7f7f7;font-size:16px;cursor:pointer}
-#pm-mode{font-size:12px;font-weight:700;text-align:center;padding:5px 2px;border-radius:8px;background:#eee;color:#333;margin-bottom:6px}
-#pm-mode.m-pen{background:#ffe8c7;color:#7a4300}
-#pm-mode.m-eraser{background:#e3f0ff;color:#0f3e75}
-#pm-mode.m-paper{background:#eaf7e6;color:#1d5a12}
-.pm-colors{display:flex;justify-content:space-between;padding:4px 4px 8px}
-.pm-c{width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #999;cursor:pointer;padding:0}
-.pm-c.on{box-shadow:0 0 0 3px #222}
-.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.pm-b{display:flex;flex-direction:column;align-items:center;justify-content:center;height:56px;border:2px solid #ddd;border-radius:12px;background:#f7f7f7;cursor:pointer;font:inherit;padding:2px;color:#222}
-.pm-b b{font-size:22px;line-height:1.1;font-weight:400}
-.pm-b i{font-style:normal;font-size:10px;color:#444;line-height:1.15;margin-top:1px}
-.pm-b.on{background:#ffe8c7;border-color:#f08a00}
-.pm-b:active{transform:scale(.96)}
-.pm-bar{display:block;width:30px;border-radius:4px;background:#222;height:3px;margin:9px 0}
-.pm-b.on .pm-bar{height:8px;margin:7px 0}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
 </style>
 
 <canvas id="pm-ink"></canvas>
 <div id="pm-paper"></div>
 
-<button id="pm-fab" type="button" title="Відкрити панельку для письма">✏️</button>
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
 
 <div id="pm-panel" hidden>
-  <div class="pm-head">
-    <button type="button" data-a="side" title="Перемістити на інший бік">⇄</button>
-    <button type="button" data-a="hide" title="Сховати панельку">✕</button>
-  </div>
-  <div id="pm-mode"></div>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
   <div class="pm-colors">
     <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
     <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
     <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
     <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
   </div>
-  <div class="pm-grid">
-    <button type="button" class="pm-b" data-a="pen"><b>✏️</b><i>Писати</i></button>
-    <button type="button" class="pm-b" data-a="eraser"><b>🧽</b><i>Гумка</i></button>
-    <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><b><span class="pm-bar"></span></b><i>Товщина</i></button>
-    <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><b>△</b><i>Рівні фігури</i></button>
-    <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><b>⬜</b><i>Біле поле</i></button>
-    <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><b>🗒️</b><i>Вся дошка</i></button>
-    <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><b>▦</b><i>Клітинка</i></button>
-    <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><b>👁️</b><i>Прибрати біле</i></button>
-    <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><b>↶</b><i>Назад</i></button>
-    <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><b>🗑️</b><i>Стерти все</i></button>
-  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
 </div>
 
 <script>
@@ -828,7 +851,7 @@ inner.addEventListener('click',e=>{
 
   var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
   var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
-  var layer = document.getElementById('pm-paper'), modeEl = document.getElementById('pm-mode');
+  var layer = document.getElementById('pm-paper');
   document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
 
   var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
@@ -955,7 +978,7 @@ inner.addEventListener('click',e=>{
     }
     var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
     if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
-      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
       var out = [];
       for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
       return out;
@@ -1090,10 +1113,19 @@ inner.addEventListener('click',e=>{
   ink.addEventListener('pointercancel', end);
 
   /* ---------- панель ---------- */
-  var LABEL = { pen: '✏️ Пишу', eraser: '🧽 Стираю', paper: '⬜ Малюю біле поле' };
+  var root = document.documentElement, dockW = 26;
   function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
   function ui(){
     ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
     q('pen').classList.toggle('on', st.tool === 'pen');
     q('eraser').classList.toggle('on', st.tool === 'eraser');
     q('paper').classList.toggle('on', st.tool === 'paper');
@@ -1102,22 +1134,21 @@ inner.addEventListener('click',e=>{
     q('grid').classList.toggle('on', st.grid);
     var cs = panel.querySelectorAll('.pm-c');
     for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
-    modeEl.textContent = st.tool ? LABEL[st.tool] : '👆 Керую уроком';
-    modeEl.className = st.tool ? 'm-' + st.tool : '';
-    modeEl.id = 'pm-mode';
   }
   function setTool(t){ st.tool = t; ui(); }
   function board(){
-    var el = mkSheet(sx(), sy(), document.documentElement.clientWidth, document.documentElement.clientHeight);
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
     addSheet(el); setTool('pen');
   }
   panel.addEventListener('click', function(e){
     var b = e.target.closest('[data-a]'); if (!b) return;
     var a = b.getAttribute('data-a');
-    if (a === 'pen') setTool(st.tool === 'pen' ? null : 'pen');
-    else if (a === 'eraser') setTool(st.tool === 'eraser' ? null : 'eraser');
-    else if (a === 'paper') setTool(st.tool === 'paper' ? null : 'paper');
-    else if (a === 'color'){ st.color = b.getAttribute('data-c'); if (st.tool !== 'pen') st.tool = 'pen'; ui(); }
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
     else if (a === 'width'){ st.thick = !st.thick; ui(); }
     else if (a === 'smart'){ st.smart = !st.smart; ui(); }
     else if (a === 'grid'){
@@ -1129,18 +1160,19 @@ inner.addEventListener('click',e=>{
     else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
     else if (a === 'undo') undo();
     else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
-    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); }
-    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
   });
-  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
   document.addEventListener('keydown', function(e){
     if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
   });
 
   window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
-  size(); ui();
+  size(); ui(); dock();
 })();
 </script>
-<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ (кінець) ===================== -->
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
 </body>
 </html>
