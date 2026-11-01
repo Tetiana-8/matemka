@@ -438,6 +438,7 @@ function build(){
   rnd=mulberry32(newSeed());
   TASKS=genTasks();N=TASKS.length;
   state={ans:TASKS.map(t=>t.parts.map(()=>null)),checked:false};
+  resetWatch();
   qWrap.innerHTML='';
   TASKS.forEach((q,qi)=>{
     const el=document.createElement('section');
@@ -519,12 +520,14 @@ function finish(sur,nam){
     $('#sur').readOnly=$('#nam').readOnly=false;
     build();window.scrollTo({top:0,behavior:'smooth'});
   });
+  back();
   const now=Date.now();
   saveResult({
     id:now+'_'+Math.random().toString(36).slice(2,8),
     name:`${sur} ${nam}`,surname:sur,firstName:nam,
     ts:now,date:new Date(now).toISOString(),
     score,max:N,tasks:marks,
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,
     qtext:TASKS.map(q=>plain(q.t)),
     answers:TASKS.map((q,i)=>q.parts.map((p,pi)=>partAnsText(p,state.ans[i][pi])).join(' | ')),
     correct:TASKS.map(q=>q.parts.map(partCorrectText).join(' | ')),
@@ -569,9 +572,9 @@ async function showJournal(msg){
   try{rows=await loadResults()}catch(e){$('#jbody').innerHTML='<div class="pmsg">Не вдалося підключитися до бази результатів.</div>';return}
   $('#cnt').textContent=`Записів: ${rows.length}`;
   if(!rows.length){$('#jbody').innerHTML='<p>Результатів поки немає.</p>';return}
-  const cols=NT+4;
-  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th>Бал</th>${Array.from({length:NT},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
-  const body=rows.map((r,k)=>`<tr data-k="${k}"><td>${k+1}</td><td class="nm" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td><td><b>${r.score}/${r.max||NT}</b></td>${
+  const cols=NT+6;
+  const head=`<tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th title="Скільки хвилин:секунд минуло від початку тесту до перевірки">Час</th><th title="Скільки разів учень виходив з вікна тесту (інша вкладка чи програма)">Виходів</th><th>Бал</th>${Array.from({length:NT},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
+  const body=rows.map((r,k)=>`<tr data-k="${k}"><td>${k+1}</td><td class="nm" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td>${timeCells(r)}<td><b>${r.score}/${r.max||NT}</b></td>${
     Array.from({length:NT},(_,i)=>{const m=(r.tasks||[])[i];return m?'<td class="y">✓</td>':'<td class="n">✗</td>'}).join('')}</tr>`).join('');
   $('#jbody').innerHTML=`<div class="tblwrap"><table id="jt">${head}${body}</table></div>`;
   $('#jt').addEventListener('click',e=>{
@@ -585,15 +588,31 @@ async function showJournal(msg){
     tr.after(det);
   });
 }
+function timeCells(r){
+  if(r.durationSec==null)return '<td>—</td><td>—</td>';
+  const lv=r.leaves||0,aw=r.awaySec||0;
+  const fast=r.durationSec<120;
+  return `<td${fast?' class="n"':''} title="${fast?'Дуже швидко':''}">${fmtDur(r.durationSec)}</td><td${lv>=3?' class="n"':''} title="Поза вікном: ${fmtDur(aw)}">${lv}</td>`;
+}
 function downloadCSV(){
   if(!rows.length)return;
-  const hdr=['Прізвище та ім\'я','Дата','Бал',...Array.from({length:NT},(_,i)=>'Завд. '+(i+1))];
-  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),`${r.score}/${r.max||NT}`,...Array.from({length:NT},(_,i)=>(r.tasks||[])[i]?'+':'-')]));
+  const hdr=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал',...Array.from({length:NT},(_,i)=>'Завд. '+(i+1))];
+  const lines=[hdr].concat(rows.map(r=>[r.name,fmtDate(r.ts),r.durationSec==null?'':fmtDur(r.durationSec),r.durationSec==null?'':(r.leaves||0),r.durationSec==null?'':fmtDur(r.awaySec||0),`${r.score}/${r.max||NT}`,...Array.from({length:NT},(_,i)=>(r.tasks||[])[i]?'+':'-')]));
   const csv='\ufeff'+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='Додавання_віднімання_5клас_результати.csv';a.click();
 }
+
+/* ---------- доброчесність: час виконання і виходи з вікна ---------- */
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0}}
+function leave(){if(!state||state.checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+function fmtDur(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 
 build();
 })();
