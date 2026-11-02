@@ -18,10 +18,12 @@
         .animate-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
         .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
-        @keyframes drawStroke { from { stroke-dashoffset: 12000; } to { stroke-dashoffset: 0; } }
-        .animate-draw { stroke-dasharray: 12000; stroke-dashoffset: 12000; animation: drawStroke 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes drawStroke { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+        .animate-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawStroke 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fadeInPoint { from { opacity: 0; } to { opacity: 1; } }
         .animate-fade-in-point { animation: fadeInPoint 0.8s ease-out forwards; }
+        @keyframes blink { 0%,100% { box-shadow: 0 0 0 0 rgba(107,33,168,0.55); transform: scale(1); } 50% { box-shadow: 0 0 0 9px rgba(107,33,168,0); transform: scale(1.04); } }
+        .blink { animation: blink 1.3s ease-in-out infinite; border-color: #6B21A8 !important; background: #F3E8FF !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -101,80 +103,49 @@
             return sc;
         };
 
+        // Пункт «чи належить точка графіку»: спочатку точка на осі й на графіку, потім обчислення, потім висновок
+        const pt = (label, o, calc, concl, ans, extra) => ({
+            label,
+            steps: [
+                { t: r`Відмічаємо на осі $Ox$ точку $x=` + o.xl + r`$ і знаходимо відповідну точку графіка`, g: 1 },
+                { t: calc, g: 2 },
+                { t: concl, g: 3 },
+                ...(extra ? [{ t: extra, g: 3 }] : [])
+            ],
+            ans,
+            scene: (s) => {
+                const y = Math.pow(o.x, o.n);
+                const sc = base(o.view, o.xt, o.yt, [{ f: pw(o.n), dom: o.dom, c: C.brand }], o.fn);
+                if (s >= 1) { sc.segs.push({ x1: o.x, y1: 0, x2: o.x, y2: y, c: C.dark, dash: 1 }); sc.pts.push(P(o.x, y, { c: C.brand })); }
+                if (s >= 2) sc.segs.push({ x1: 0, y1: y, x2: o.x, y2: y, c: C.dark, dash: 1 });
+                if (s >= 3) {
+                    if (o.ok) sc.pts.push(P(o.x, y, { c: C.green, ring: 1, tex: o.tex, pos: o.pos || 'tr' }));
+                    else {
+                        sc.segs.push({ x1: o.x, y1: y, x2: o.x, y2: o.gy, c: C.red, w: 3 });
+                        sc.pts.push(P(o.x, o.gy, { c: C.red, hollow: 1, tex: o.tex, pos: o.pos || 'tr' }));
+                    }
+                }
+                return sc;
+            }
+        });
+
         /* ============ Вправи ============ */
         const EX = [
             /* ---------- 3.1 ---------- */
             {
                 id: '3.1', name: r`Чи проходить графік функції $y=x^{-4}$ через точку`,
                 cond: r`Чи проходить графік функції $y=x^{-4}$ через точку:`,
-                note: r`$y=x^{-4}=\dfrac{1}{x^{4}}$, $x\neq 0$. Підставляємо $x$ у формулу й порівнюємо з ординатою точки.`,
+                note: r`$y=x^{-4}=\dfrac{1}{x^{4}}$, $x\neq 0$. Знаходимо $y$ за графіком і за формулою, порівнюємо з ординатою точки.`,
                 items: [
-                    {
-                        label: r`A\left(2;\dfrac{1}{16}\right)`,
-                        steps: [
-                            { t: r`$x=2$: $y=2^{-4}=\dfrac{1}{2^{4}}=\dfrac{1}{16}$`, g: 1 },
-                            { t: r`$\dfrac{1}{16}=\dfrac{1}{16}$`, g: 2 }
-                        ],
-                        ans: { t: r`Так, проходить`, k: 'yes' },
-                        scene: (s) => {
-                            const sc = base({ x0: -1, x1: 3, y0: -0.15, y1: 1.25 }, ints(-1, 3), [tk(1 / 16, r`\frac{1}{16}`), tk(1)], [{ f: pw(-4), dom: [[0.3, 3]], c: C.brand }], r`y=x^{-4}`);
-                            if (s >= 1) { sc.segs.push(...dash(2, 1 / 16)); sc.pts.push(P(2, 1 / 16, { c: C.brand })); }
-                            if (s >= 2) sc.pts.push(P(2, 1 / 16, { c: C.green, ring: 1, tex: r`A`, pos: 'tr' }));
-                            return sc;
-                        }
-                    },
-                    {
-                        label: r`B\left(-2;\dfrac{1}{8}\right)`,
-                        steps: [
-                            { t: r`$x=-2$: $y=(-2)^{-4}=\dfrac{1}{(-2)^{4}}=\dfrac{1}{16}$`, g: 1 },
-                            { t: r`$\dfrac{1}{16}\neq\dfrac{1}{8}$`, g: 2 }
-                        ],
-                        ans: { t: r`Ні, не проходить`, k: 'no' },
-                        scene: (s) => {
-                            const sc = base({ x0: -3, x1: 1, y0: -0.05, y1: 0.25 }, ints(-3, 1), [tk(1 / 16, r`\frac{1}{16}`), tk(1 / 8, r`\frac{1}{8}`)], [{ f: pw(-4), dom: [[-3, -0.5], [0.5, 1]], c: C.brand }], r`y=x^{-4}`);
-                            if (s >= 1) { sc.segs.push(...dash(-2, 1 / 16)); sc.pts.push(P(-2, 1 / 16, { c: C.brand })); }
-                            if (s >= 2) {
-                                sc.segs.push({ x1: 0, y1: 1 / 8, x2: -2, y2: 1 / 8, c: C.dark, dash: 1 });
-                                sc.segs.push({ x1: -2, y1: 1 / 16, x2: -2, y2: 1 / 8, c: C.red, w: 3 });
-                                sc.pts.push(P(-2, 1 / 8, { c: C.red, hollow: 1, tex: r`B`, pos: 'tl' }));
-                            }
-                            return sc;
-                        }
-                    },
-                    {
-                        label: r`C\left(\dfrac{1}{3};81\right)`,
-                        steps: [
-                            { t: r`$x=\dfrac{1}{3}$: $y=\left(\dfrac{1}{3}\right)^{-4}=3^{4}=81$`, g: 1 },
-                            { t: r`$81=81$`, g: 2 }
-                        ],
-                        ans: { t: r`Так, проходить`, k: 'yes' },
-                        scene: (s) => {
-                            const sc = base({ x0: -0.3, x1: 1.2, y0: -8, y1: 110 }, [tk(1 / 3, r`\frac{1}{3}`), tk(1)], [tk(81), tk(100)], [{ f: pw(-4), dom: [[0.2, 1.2]], c: C.brand }], r`y=x^{-4}`);
-                            if (s >= 1) { sc.segs.push(...dash(1 / 3, 81)); sc.pts.push(P(1 / 3, 81, { c: C.brand })); }
-                            if (s >= 2) sc.pts.push(P(1 / 3, 81, { c: C.green, ring: 1, tex: r`C`, pos: 'tr' }));
-                            return sc;
-                        }
-                    },
-                    {
-                        label: r`D\left(\sqrt{2};-\dfrac{1}{4}\right)`,
-                        steps: [
-                            { t: r`$x=\sqrt{2}$: $y=(\sqrt{2})^{-4}=\dfrac{1}{(\sqrt{2})^{4}}=\dfrac{1}{4}$`, g: 1 },
-                            { t: r`$\dfrac{1}{4}\neq-\dfrac{1}{4}$`, g: 2 },
-                            { t: r`$x^{-4}=\dfrac{1}{x^{4}}>0$ при $x\neq 0$, тому $y<0$ неможливо`, g: 2 }
-                        ],
-                        ans: { t: r`Ні, не проходить`, k: 'no' },
-                        scene: (s) => {
-                            const q = Math.SQRT2;
-                            const sc = base({ x0: -2, x1: 2, y0: -0.5, y1: 1.25 }, [tk(-2), tk(-1), tk(1), tk(2), tk(q, r`\sqrt{2}`, 18)], [tk(-0.25, r`-\frac{1}{4}`), tk(0.25, r`\frac{1}{4}`), tk(1)], [{ f: pw(-4), dom: [[-2, -0.6], [0.6, 2]], c: C.brand }], r`y=x^{-4}`);
-                            if (s >= 1) { sc.segs.push(...dash(q, 0.25)); sc.pts.push(P(q, 0.25, { c: C.brand })); }
-                            if (s >= 2) {
-                                sc.segs.push({ x1: 0, y1: -0.25, x2: q, y2: -0.25, c: C.dark, dash: 1 });
-                                sc.segs.push({ x1: q, y1: 0.25, x2: q, y2: -0.25, c: C.red, w: 3 });
-                                sc.pts.push(P(q, -0.25, { c: C.red, hollow: 1, tex: r`D`, pos: 'tr' }));
-                            }
-                            return sc;
-                        }
-                    }
+                    pt(r`A\left(2;\dfrac{1}{16}\right)`, { n: -4, x: 2, xl: r`2`, view: { x0: -3, x1: 3, y0: -0.15, y1: 1.25 }, xt: ints(-3, 3), yt: [tk(1 / 16, r`\frac{1}{16}`), tk(1)], dom: [[-3, -0.3], [0.3, 3]], fn: r`y=x^{-4}`, ok: true, tex: r`A` },
+                        r`$x=2$: $y=2^{-4}=\dfrac{1}{2^{4}}=\dfrac{1}{16}$`, r`$\dfrac{1}{16}=\dfrac{1}{16}$`, { t: r`Так, проходить`, k: 'yes' }),
+                    pt(r`B\left(-2;\dfrac{1}{8}\right)`, { n: -4, x: -2, xl: r`-2`, gy: 1 / 8, view: { x0: -3, x1: 3, y0: -0.05, y1: 0.25 }, xt: ints(-3, 3), yt: [tk(1 / 16, r`\frac{1}{16}`), tk(1 / 8, r`\frac{1}{8}`)], dom: [[-3, -0.5], [0.5, 3]], fn: r`y=x^{-4}`, ok: false, tex: r`B`, pos: 'tl' },
+                        r`$x=-2$: $y=(-2)^{-4}=\dfrac{1}{(-2)^{4}}=\dfrac{1}{16}$`, r`$\dfrac{1}{16}\neq\dfrac{1}{8}$`, { t: r`Ні, не проходить`, k: 'no' }),
+                    pt(r`C\left(\dfrac{1}{3};81\right)`, { n: -4, x: 1 / 3, xl: r`\dfrac{1}{3}`, view: { x0: -1.2, x1: 1.2, y0: -8, y1: 110 }, xt: [tk(-1), tk(1 / 3, r`\frac{1}{3}`), tk(1)], yt: [tk(81), tk(100)], dom: [[-1.2, -0.2], [0.2, 1.2]], fn: r`y=x^{-4}`, ok: true, tex: r`C` },
+                        r`$x=\dfrac{1}{3}$: $y=\left(\dfrac{1}{3}\right)^{-4}=3^{4}=81$`, r`$81=81$`, { t: r`Так, проходить`, k: 'yes' }),
+                    pt(r`D\left(\sqrt{2};-\dfrac{1}{4}\right)`, { n: -4, x: Math.SQRT2, xl: r`\sqrt{2}`, gy: -0.25, view: { x0: -2, x1: 2, y0: -0.5, y1: 1.25 }, xt: [tk(-2), tk(-1), tk(1), tk(2), tk(Math.SQRT2, r`\sqrt{2}`, 18)], yt: [tk(-0.25, r`-\frac{1}{4}`), tk(0.25, r`\frac{1}{4}`), tk(1)], dom: [[-2, -0.6], [0.6, 2]], fn: r`y=x^{-4}`, ok: false, tex: r`D` },
+                        r`$x=\sqrt{2}$: $y=(\sqrt{2})^{-4}=\dfrac{1}{(\sqrt{2})^{4}}=\dfrac{1}{4}$`, r`$\dfrac{1}{4}\neq-\dfrac{1}{4}$`, { t: r`Ні, не проходить`, k: 'no' },
+                        r`$x^{-4}=\dfrac{1}{x^{4}}>0$ при $x\neq 0$, тому ордината $-\dfrac{1}{4}$ неможлива`)
                 ]
             },
             /* ---------- 3.2 ---------- */
@@ -186,60 +157,24 @@
                     {
                         label: r`A(0;0)`,
                         steps: [
-                            { t: r`$y=x^{-5}=\dfrac{1}{x^{5}}$, тому $x\neq 0$`, g: 1 },
-                            { t: r`$x=0\notin D(y)$`, g: 2 }
+                            { t: r`Точка $A$ має абсцису $x=0$ — вона лежить на осі $Oy$`, g: 1 },
+                            { t: r`$y=x^{-5}=\dfrac{1}{x^{5}}$, тому $x\neq 0$; графік вісь $Oy$ не перетинає`, g: 2 },
+                            { t: r`$x=0\notin D(y)$`, g: 3 }
                         ],
                         ans: { t: r`Ні, не проходить`, k: 'no' },
                         scene: (s) => {
                             const sc = base({ x0: -2, x1: 2, y0: -3, y1: 3 }, ints(-2, 2), ints(-3, 3), [{ f: pw(-5), dom: [[-2, -0.4], [0.4, 2]], c: C.brand }], r`y=x^{-5}`);
-                            if (s >= 1) sc.segs.push({ x1: 0, y1: -3, x2: 0, y2: 3, c: C.red, dash: 1, w: 2.5 });
-                            if (s >= 2) sc.pts.push(P(0, 0, { c: C.red, hollow: 1, tex: r`A`, pos: 'tr' }));
+                            if (s >= 2) sc.segs.push({ x1: 0, y1: -3, x2: 0, y2: 3, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 3) sc.pts.push(P(0, 0, { c: C.red, hollow: 1, tex: r`A`, pos: 'tr' }));
                             return sc;
                         }
                     },
-                    {
-                        label: r`B(-1;-1)`,
-                        steps: [
-                            { t: r`$x=-1$: $y=(-1)^{-5}=\dfrac{1}{(-1)^{5}}=\dfrac{1}{-1}=-1$`, g: 1 },
-                            { t: r`$-1=-1$`, g: 2 }
-                        ],
-                        ans: { t: r`Так, проходить`, k: 'yes' },
-                        scene: (s) => {
-                            const sc = base({ x0: -2, x1: 2, y0: -3, y1: 3 }, ints(-2, 2), ints(-3, 3), [{ f: pw(-5), dom: [[-2, -0.4], [0.4, 2]], c: C.brand }], r`y=x^{-5}`);
-                            if (s >= 1) { sc.segs.push(...dash(-1, -1)); sc.pts.push(P(-1, -1, { c: C.brand })); }
-                            if (s >= 2) sc.pts.push(P(-1, -1, { c: C.green, ring: 1, tex: r`B`, pos: 'bl' }));
-                            return sc;
-                        }
-                    },
-                    {
-                        label: r`C\left(\dfrac{1}{2};32\right)`,
-                        steps: [
-                            { t: r`$x=\dfrac{1}{2}$: $y=\left(\dfrac{1}{2}\right)^{-5}=2^{5}=32$`, g: 1 },
-                            { t: r`$32=32$`, g: 2 }
-                        ],
-                        ans: { t: r`Так, проходить`, k: 'yes' },
-                        scene: (s) => {
-                            const sc = base({ x0: -0.3, x1: 1.2, y0: -6, y1: 45 }, [tk(1 / 2, r`\frac{1}{2}`), tk(1)], [tk(32), tk(10)], [{ f: pw(-5), dom: [[0.3, 1.2]], c: C.brand }], r`y=x^{-5}`);
-                            if (s >= 1) { sc.segs.push(...dash(0.5, 32)); sc.pts.push(P(0.5, 32, { c: C.brand })); }
-                            if (s >= 2) sc.pts.push(P(0.5, 32, { c: C.green, ring: 1, tex: r`C`, pos: 'tr' }));
-                            return sc;
-                        }
-                    },
-                    {
-                        label: r`D\left(-3;-\dfrac{1}{243}\right)`,
-                        steps: [
-                            { t: r`$x=-3$: $y=(-3)^{-5}=\dfrac{1}{(-3)^{5}}=-\dfrac{1}{243}$`, g: 1 },
-                            { t: r`$-\dfrac{1}{243}=-\dfrac{1}{243}$`, g: 2 }
-                        ],
-                        ans: { t: r`Так, проходить`, k: 'yes' },
-                        scene: (s) => {
-                            const y = -1 / 243;
-                            const sc = base({ x0: -4, x1: 0.8, y0: -0.06, y1: 0.03 }, [tk(-4), tk(-3, undefined, 26), tk(-2), tk(-1)], [tk(-1 / 32, r`-\frac{1}{32}`)], [{ f: pw(-5), dom: [[-4, -1.3], [1.2, 1.5]], c: C.brand }], r`y=x^{-5}`);
-                            if (s >= 1) { sc.segs.push(...dash(-3, y)); sc.pts.push(P(-3, y, { c: C.brand })); }
-                            if (s >= 2) sc.pts.push(P(-3, y, { c: C.green, ring: 1, tex: r`D\left(-3;-\frac{1}{243}\right)`, pos: 'tr' }));
-                            return sc;
-                        }
-                    }
+                    pt(r`B(-1;-1)`, { n: -5, x: -1, xl: r`-1`, view: { x0: -2, x1: 2, y0: -3, y1: 3 }, xt: ints(-2, 2), yt: ints(-3, 3), dom: [[-2, -0.4], [0.4, 2]], fn: r`y=x^{-5}`, ok: true, tex: r`B`, pos: 'bl' },
+                        r`$x=-1$: $y=(-1)^{-5}=\dfrac{1}{(-1)^{5}}=\dfrac{1}{-1}=-1$`, r`$-1=-1$`, { t: r`Так, проходить`, k: 'yes' }),
+                    pt(r`C\left(\dfrac{1}{2};32\right)`, { n: -5, x: 0.5, xl: r`\dfrac{1}{2}`, view: { x0: -1.2, x1: 1.2, y0: -45, y1: 45 }, xt: [tk(-1), tk(0.5, r`\frac{1}{2}`), tk(1)], yt: [tk(-32), tk(32)], dom: [[-1.2, -0.3], [0.3, 1.2]], fn: r`y=x^{-5}`, ok: true, tex: r`C` },
+                        r`$x=\dfrac{1}{2}$: $y=\left(\dfrac{1}{2}\right)^{-5}=2^{5}=32$`, r`$32=32$`, { t: r`Так, проходить`, k: 'yes' }),
+                    pt(r`D\left(-3;-\dfrac{1}{243}\right)`, { n: -5, x: -3, xl: r`-3`, view: { x0: -6, x1: 6, y0: -0.06, y1: 0.06 }, xt: [tk(-5), tk(-4), tk(-3, undefined, 26), tk(-2), tk(-1), tk(1), tk(2), tk(3), tk(4), tk(5)], yt: [tk(-1 / 32, r`-\frac{1}{32}`), tk(1 / 32, r`\frac{1}{32}`)], dom: [[-6, -0.5], [0.5, 6]], fn: r`y=x^{-5}`, ok: true, tex: r`D\left(-3;-\frac{1}{243}\right)`, pos: 'tl' },
+                        r`$x=-3$: $y=(-3)^{-5}=\dfrac{1}{(-3)^{5}}=-\dfrac{1}{243}$`, r`$-\dfrac{1}{243}=-\dfrac{1}{243}$`, { t: r`Так, проходить`, k: 'yes' })
                 ]
             },
             /* ---------- 3.3 ---------- */
@@ -256,7 +191,7 @@
                             { t: r`$f(1{,}6)>f(2)$`, g: 2 }
                         ],
                         ans: { t: r`$f(1{,}6)>f(2)$`, k: 'neutral' },
-                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -0.5, x1: 3.2, y0: -0.15, y1: 1.3 }, [[0.7, 3.2]],
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -3.2, x1: 3.2, y0: -1.3, y1: 1.3 }, [[-3.2, -0.7], [0.7, 3.2]],
                             [{ x: 1.6, xl: r`1{,}6`, lbl: r`f(1{,}6)`, pos: 'tr' }, { x: 2, xl: r`2`, lbl: r`f(2)`, pos: 'tr' }])
                     },
                     {
@@ -267,7 +202,7 @@
                             { t: r`$f(-5{,}6)<f(-6{,}5)$`, g: 2 }
                         ],
                         ans: { t: r`$f(-5{,}6)<f(-6{,}5)$`, k: 'neutral' },
-                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -8, x1: 1.5, y0: -0.32, y1: 0.06 }, [[-8, -0.5]],
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -8, x1: 8, y0: -0.32, y1: 0.32 }, [[-8, -0.5], [0.5, 8]],
                             [{ x: -5.6, xl: r`-5{,}6`, lbl: r`f(-5{,}6)`, pos: 'tr' }, { x: -6.5, xl: r`-6{,}5`, lbl: r`f(-6{,}5)`, pos: 'bl', dy: 18 }])
                     },
                     {
@@ -289,7 +224,7 @@
                             { t: r`$f(0{,}1)>f(-10)$`, g: 2 }
                         ],
                         ans: { t: r`$f(0{,}1)>f(-10)$`, k: 'neutral' },
-                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -12.5, x1: 3.5, y0: -3, y1: 12 }, [[-12.5, -0.3], [0.09, 3.5]],
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -12.5, x1: 12.5, y0: -12, y1: 12 }, [[-12.5, -0.09], [0.09, 12.5]],
                             [{ x: 0.1, xl: r`0{,}1`, lbl: r`f(0{,}1)`, pos: 'r', tick: false }, { x: -10, xl: r`-10`, lbl: r`f(-10)`, pos: 'tl' }])
                     }
                 ]
@@ -308,7 +243,7 @@
                             { t: r`$f(6{,}2)<f(5{,}5)$`, g: 2 }
                         ],
                         ans: { t: r`$f(6{,}2)<f(5{,}5)$`, k: 'neutral' },
-                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -0.8, x1: 8, y0: -0.006, y1: 0.06 }, [[0.4, 8]],
+                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -8, x1: 8, y0: -0.006, y1: 0.06 }, [[-8, -0.4], [0.4, 8]],
                             [{ x: 5.5, xl: r`5{,}5`, lbl: r`f(5{,}5)`, pos: 'tr' }, { x: 6.2, xl: r`6{,}2`, lbl: r`f(6{,}2)`, pos: 'tr', dy: 18 }])
                     },
                     {
@@ -319,7 +254,7 @@
                             { t: r`$f(-1{,}6)>f(-1{,}7)$`, g: 2 }
                         ],
                         ans: { t: r`$f(-1{,}6)>f(-1{,}7)$`, k: 'neutral' },
-                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -2.6, x1: 0.8, y0: -0.05, y1: 0.7 }, [[-2.6, -0.4], [0.4, 0.8]],
+                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -2.6, x1: 2.6, y0: -0.05, y1: 0.7 }, [[-2.6, -0.4], [0.4, 2.6]],
                             [{ x: -1.6, xl: r`-1{,}6`, lbl: r`f(-1{,}6)`, pos: 'br' }, { x: -1.7, xl: r`-1{,}7`, lbl: r`f(-1{,}7)`, pos: 'tl', dy: 26 }])
                     },
                     {
@@ -362,7 +297,7 @@
             },
             /* ---------- 3.5 ---------- */
             {
-                id: '3.5', name: r`Область визначення`,
+                id: '3.5', noBase: true, name: r`Область визначення`,
                 cond: r`Знайдіть область визначення функції:`,
                 note: null,
                 items: [
@@ -419,7 +354,7 @@
                         ],
                         ans: { t: r`$\max=64$; $\min=1$`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -0.25, x1: 1.6, y0: -6, y1: 80 }, [tk(0.5, r`\frac{1}{2}`), tk(1)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[0.36, 1.6]], c: C.brand }], r`y=x^{-6}`);
+                            const sc = base({ x0: -1.6, x1: 1.6, y0: -6, y1: 80 }, [tk(0.5, r`\frac{1}{2}`), tk(1)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[-1.6, -0.36], [0.36, 1.6]], c: C.brand }], r`y=x^{-6}`);
                             if (s >= 1) sc.segs.push({ x1: 0.5, y1: 0, x2: 1, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(0.5, 64)); sc.pts.push(P(0.5, 64, { c: C.green, tex: r`\max`, pos: 'tr' })); }
                             if (s >= 3) { sc.segs.push(...dash(1, 1)); sc.pts.push(P(1, 1, { c: C.red, tex: r`\min`, pos: 'tr' })); }
@@ -435,7 +370,7 @@
                         ],
                         ans: { t: r`$\max=64$; $\min=1$`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -1.6, x1: 0.25, y0: -6, y1: 80 }, [tk(-1), tk(-0.5, r`-\frac{1}{2}`)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[-1.6, -0.36]], c: C.brand }], r`y=x^{-6}`);
+                            const sc = base({ x0: -1.6, x1: 1.6, y0: -6, y1: 80 }, [tk(-1), tk(-0.5, r`-\frac{1}{2}`)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[-1.6, -0.36], [0.36, 1.6]], c: C.brand }], r`y=x^{-6}`);
                             if (s >= 1) sc.segs.push({ x1: -1, y1: 0, x2: -0.5, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(-1, 1)); sc.pts.push(P(-1, 1, { c: C.red, tex: r`\min`, pos: 'tl' })); }
                             if (s >= 3) { sc.segs.push(...dash(-0.5, 64)); sc.pts.push(P(-0.5, 64, { c: C.green, tex: r`\max`, pos: 'tl' })); }
@@ -451,7 +386,7 @@
                         ],
                         ans: { t: r`$\max=1$; найменшого значення немає`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -0.6, x1: 6, y0: -0.25, y1: 2.2 }, ints(1, 6), [tk(1)], [{ f: pw(-6), dom: [[0.75, 6]], c: C.brand }], r`y=x^{-6}`);
+                            const sc = base({ x0: -6, x1: 6, y0: -0.25, y1: 2.2 }, ints(1, 6), [tk(1)], [{ f: pw(-6), dom: [[-6, -0.75], [0.75, 6]], c: C.brand }], r`y=x^{-6}`);
                             if (s >= 1) sc.segs.push({ x1: 1, y1: 0, x2: 6, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(1, 1)); sc.pts.push(P(1, 1, { c: C.green, tex: r`\max`, pos: 'tr' })); }
                             if (s >= 3) sc.pts.push(P(4, 0, { c: C.red, nodot: 1, tex: r`\min\ \text{немає}`, pos: 't' }));
@@ -475,7 +410,7 @@
                         ],
                         ans: { t: r`$\max=27$; $\min=\dfrac{1}{8}$`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -0.5, x1: 2.6, y0: -3, y1: 32 }, [tk(1 / 3, r`\frac{1}{3}`), tk(1), tk(2)], [tk(10), tk(20), tk(27)], [{ f: pw(-3), dom: [[0.32, 2.6]], c: C.brand }], r`y=x^{-3}`);
+                            const sc = base({ x0: -2.6, x1: 2.6, y0: -32, y1: 32 }, [tk(1 / 3, r`\frac{1}{3}`), tk(1), tk(2)], [tk(-27), tk(27)], [{ f: pw(-3), dom: [[-2.6, -0.32], [0.32, 2.6]], c: C.brand }], r`y=x^{-3}`);
                             if (s >= 1) sc.segs.push({ x1: 1 / 3, y1: 0, x2: 2, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(1 / 3, 27)); sc.pts.push(P(1 / 3, 27, { c: C.green, tex: r`\max`, pos: 'tr' })); }
                             if (s >= 3) { sc.segs.push({ x1: 2, y1: 0, x2: 2, y2: 1 / 8, c: C.dark, dash: 1 }); sc.pts.push(P(2, 1 / 8, { c: C.red, tex: r`\min=\dfrac{1}{8}`, pos: 't' })); }
@@ -491,7 +426,7 @@
                         ],
                         ans: { t: r`$\max=-\dfrac{1}{8}$; $\min=-1$`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -2.8, x1: 0.8, y0: -1.4, y1: 0.35 }, [tk(-2), tk(-1)], [tk(-1), tk(-0.125, r`-\frac{1}{8}`)], [{ f: pw(-3), dom: [[-2.8, -0.65], [0.45, 0.8]], c: C.brand }], r`y=x^{-3}`);
+                            const sc = base({ x0: -2.8, x1: 2.8, y0: -1.4, y1: 1.4 }, [tk(-2), tk(-1)], [tk(-1), tk(-0.125, r`-\frac{1}{8}`)], [{ f: pw(-3), dom: [[-2.8, -0.65], [0.65, 2.8]], c: C.brand }], r`y=x^{-3}`);
                             if (s >= 1) sc.segs.push({ x1: -2, y1: 0, x2: -1, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(-2, -0.125)); sc.pts.push(P(-2, -0.125, { c: C.green, tex: r`\max`, pos: 'bl' })); }
                             if (s >= 3) { sc.segs.push(...dash(-1, -1)); sc.pts.push(P(-1, -1, { c: C.red, tex: r`\min`, pos: 'tr' })); }
@@ -507,7 +442,7 @@
                         ],
                         ans: { t: r`$\min=-\dfrac{1}{27}$; найбільшого значення немає`, k: 'neutral' },
                         scene: (s) => {
-                            const sc = base({ x0: -9, x1: 1.2, y0: -0.1, y1: 0.025 }, [tk(-9), tk(-6), tk(-3)], [tk(-1 / 27, r`-\frac{1}{27}`)], [{ f: pw(-3), dom: [[-9, -1.2]], c: C.brand }], r`y=x^{-3}`);
+                            const sc = base({ x0: -9, x1: 9, y0: -0.1, y1: 0.1 }, [tk(-9), tk(-6), tk(-3)], [tk(-1 / 27, r`-\frac{1}{27}`)], [{ f: pw(-3), dom: [[-9, -1.2], [1.2, 9]], c: C.brand }], r`y=x^{-3}`);
                             if (s >= 1) sc.segs.push({ x1: -9, y1: 0, x2: -3, y2: 0, c: C.green, w: 8, op: 0.45 });
                             if (s >= 2) { sc.segs.push(...dash(-3, -1 / 27)); sc.pts.push(P(-3, -1 / 27, { c: C.red, tex: r`\min`, pos: 'bl' })); }
                             if (s >= 3) sc.pts.push(P(-7.5, 0, { c: C.green, nodot: 1, tex: r`\max\ \text{немає}`, pos: 'b' }));
@@ -518,7 +453,7 @@
             },
             /* ---------- 3.8 ---------- */
             {
-                id: '3.8', name: r`Графік функції з нульовим показником`,
+                id: '3.8', noBase: true, name: r`Графік функції з нульовим показником`,
                 cond: r`Побудуйте графік функції:`,
                 note: r`$a^{0}=1$ при $a\neq 0$. Вираз $0^{0}$ не має змісту.`,
                 items: [
@@ -566,7 +501,7 @@
             },
             /* ---------- 3.9 ---------- */
             {
-                id: '3.9', name: r`Графік рівняння`,
+                id: '3.9', noBase: true, name: r`Графік рівняння`,
                 cond: r`Побудуйте графік рівняння:`,
                 note: r`Вираз $a^{0}$ існує тільки при $a\neq 0$ і тоді дорівнює $1$.`,
                 items: [
@@ -651,8 +586,9 @@
                     const N = 700;
                     for (let i = 0; i <= N; i++) {
                         const x = a + (b - a) * i / N;
-                        const y = cu.f(x);
-                        if (!isFinite(y) || Math.abs(y) > 200 * rng + 1e3) { pen = false; continue; }
+                        let y = cu.f(x);
+                        if (!isFinite(y)) { pen = false; continue; }
+                        y = Math.max(v.y0 - rng, Math.min(v.y1 + rng, y));
                         d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(y).toFixed(1) + ' ';
                         pen = true;
                     }
@@ -692,7 +628,7 @@
                     {/* графіки */}
                     <g clipPath="url(#plotClip)">
                         {sc.curves.map((cu, i) => (
-                            <path key={'c' + i} d={pathFor(cu)} fill="none" stroke={cu.c} strokeWidth={big ? 4.5 : 3.5} strokeLinecap="round" className="animate-draw" />
+                            <path key={'c' + i} d={pathFor(cu)} pathLength="1" fill="none" stroke={cu.c} strokeWidth={big ? 4.5 : 3.5} strokeLinecap="round" className="animate-draw" />
                         ))}
                         {sc.segs.map((s, i) => (
                             <line key={'s' + i} x1={X(s.x1)} y1={Y(s.y1)} x2={X(s.x2)} y2={Y(s.y2)} stroke={s.c} strokeWidth={s.w || 1.6} strokeDasharray={s.dash ? '6 5' : null} strokeLinecap={s.w > 5 ? 'round' : 'butt'} opacity={s.op || 1} className="animate-fade-in-point" />
@@ -710,9 +646,10 @@
                     {/* точки */}
                     {sc.pts.map((p, i) => {
                         const cx = X(p.x), cy = Y(p.y);
-                        const R = big ? 7 : 5.5;
+                        const R = big ? 8 : 6;
                         return (
                             <g key={'p' + i} className="animate-fade-in-point">
+                                {!p.nodot && <circle cx={cx} cy={cy} r={R + 10} fill={p.c} opacity="0.2" />}
                                 {p.nodot ? null : p.ring
                                     ? <circle cx={cx} cy={cy} r={R + 5} fill="none" stroke={p.c} strokeWidth="3" />
                                     : p.hollow
@@ -730,15 +667,17 @@
         };
 
         /* ============ Застосунок ============ */
-        const NAVB = "px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer flex items-center gap-1.5 lg:gap-3";
+        const NAVB = "px-3 py-1 md:px-3.5 md:py-1.5 lg:px-5 lg:py-2 xl:px-6 xl:py-2.5 min-h-[1.9rem] md:min-h-[2.2rem] lg:min-h-[2.6rem] xl:min-h-[3rem] rounded-full font-semibold transition-all shadow-sm active:scale-95 text-[0.75rem] sm:text-sm lg:text-base xl:text-lg cursor-pointer flex items-center gap-1.5 lg:gap-2";
 
         const App = () => {
             const [started, setStarted] = useState(false);
             const [ex, setEx] = useState(null);
-            const [it, setIt] = useState(0);
-            const [shown, setShown] = useState(1);
+            const [it, setIt] = useState(null);
+            const [shown, setShown] = useState(0);
+            const [gShown, setGShown] = useState(false);
             const [done, setDone] = useState({});
             const boxRef = useRef(null);
+            const scRef = useRef(null);
             const [dim, setDim] = useState({ w: 800, h: 600 });
 
             useEffect(() => {
@@ -750,23 +689,34 @@
                 return () => ob.disconnect();
             }, [started, ex]);
 
-            const open = (i) => { setEx(i); setIt(0); setShown(1); };
-            const E = ex !== null ? EX[ex] : null;
-            const I = E ? E.items[it] : null;
+            useEffect(() => {
+                const el = scRef.current;
+                if (el && shown > 0) setTimeout(() => { el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }, 60);
+            }, [shown, it]);
 
-            const pick = (i) => { setIt(i); setShown(1); };
+            const open = (i) => { setEx(i); setIt(null); setShown(0); setGShown(!!EX[i].noBase); };
+            const E = ex !== null ? EX[ex] : null;
+            const I = E && it !== null ? E.items[it] : null;
+
+            const pick = (i) => { if (!gShown) return; setIt(i); setShown(0); };
             const reveal = () => {
                 const n = shown + 1;
                 setShown(n);
                 if (n >= I.steps.length) setDone(d => ({ ...d, [ex + '-' + it]: true }));
             };
-            useEffect(() => {
-                if (I && I.steps.length <= 1) setDone(d => ({ ...d, [ex + '-' + it]: true }));
-            }, [ex, it]);
-
             const stage = I ? Math.max(0, ...I.steps.slice(0, shown).map(s => s.g)) : 0;
-            const sc = I ? I.scene(stage) : null;
-            const finished = I && shown >= I.steps.length;
+            const steps = I ? I.steps : [];
+            let sc = null;
+            if (E) {
+                if (I) sc = I.scene(stage);
+                else {
+                    const b0 = E.items[0].scene(0);
+                    sc = gShown ? b0 : { ...b0, curves: [], segs: [], pts: [], rects: [], xt: [], yt: [], fn: '', caption: null };
+                }
+            }
+            const finished = !!I && shown >= I.steps.length;
+            const nextIdx = E ? E.items.findIndex((_, i) => !done[ex + '-' + i]) : -1;
+            const blinkOf = (i) => gShown && i === nextIdx && i !== it || (gShown && i === nextIdx && finished);
 
             const ansCls = { yes: 'bg-green-50 border-green-300 text-green-800', no: 'bg-red-50 border-red-300 text-red-800', neutral: 'bg-white border-purple-300 text-brand' };
 
@@ -805,7 +755,7 @@
                             <>
                                 {/* ЛІВА ПАНЕЛЬ */}
                                 <div className={`w-full ${ex === null ? 'h-full md:w-full' : 'h-[55%] md:h-full md:w-[40%]'} bg-panelLeft relative z-10 flex flex-col order-2 md:order-1 border-r border-slate-200 overflow-hidden`}>
-                                    <div className="w-full h-full p-3 md:p-4 lg:p-6 xl:p-8 pb-16 md:pb-20 lg:pb-24 flex flex-col overflow-y-auto no-scrollbar relative">
+                                    <div className="w-full flex-1 min-h-0 p-3 md:p-4 lg:p-6 xl:p-8 flex flex-col overflow-y-auto no-scrollbar relative" ref={scRef}>
                                         {ex === null && renderMenu()}
 
                                         {E && (
@@ -815,7 +765,7 @@
                                                     <p className={`font-bold text-slate-800 leading-snug self-center ${TXT}`}><Rich s={E.cond} /></p>
                                                 </div>
 
-                                                {E.note && (
+                                                {E.note && gShown && (
                                                     <div className={`bg-white/70 rounded-lg p-2.5 lg:p-4 border border-purple-100 font-medium text-slate-700 ${TXT}`}><Rich s={E.note} /></div>
                                                 )}
 
@@ -823,7 +773,7 @@
                                                     {E.items.map((m, i) => (
                                                         <button key={i} onClick={() => pick(i)}
                                                             className={`px-3 py-1.5 lg:px-4 lg:py-2.5 min-h-[2.4rem] rounded-full border font-bold transition-all active:scale-95 cursor-pointer ${TXT}
-                                                            ${i === it ? 'bg-brand text-white border-brand shadow-md' : 'bg-white text-slate-700 border-purple-200 hover:bg-brandLight'}`}>
+                                                            ${i === it ? 'bg-brand text-white border-brand shadow-md' : 'bg-white text-slate-700 border-purple-200 hover:bg-brandLight'} ${blinkOf(i) ? 'blink' : ''} ${!gShown ? 'opacity-80' : ''}`}>
                                                             {done[ex + '-' + i] && i !== it && <i className="fa-solid fa-check text-green-600 mr-1.5"></i>}
                                                             {(i + 1) + ') '}<Rich s={'$' + m.label + '$'} />
                                                         </button>
@@ -831,14 +781,14 @@
                                                 </div>
 
                                                 <div className="space-y-2 lg:space-y-3" key={ex + '-' + it}>
-                                                    {I.steps.slice(0, shown).map((s, i) => (
+                                                    {steps.slice(0, shown).map((s, i) => (
                                                         <div key={i} className={`flex items-start gap-2.5 lg:gap-3 bg-white rounded-lg p-2.5 lg:p-4 border border-slate-200 animate-fade-in font-medium text-slate-800 ${TXT}`}>
                                                             <span className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-brandLight text-brand font-extrabold text-xs lg:text-base flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                                                             <span className="leading-relaxed"><Rich s={s.t} /></span>
                                                         </div>
                                                     ))}
 
-                                                    {!finished && (
+                                                    {I && !finished && (
                                                         <div className="flex justify-center pt-1">
                                                             <button onClick={reveal} aria-label="Далі"
                                                                 className="w-11 h-11 lg:w-14 lg:h-14 rounded-full bg-brand text-white shadow-md flex items-center justify-center animate-bounce cursor-pointer active:scale-95">
@@ -859,7 +809,7 @@
 
                                     {/* Навігація */}
                                     {ex !== null && (
-                                        <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 lg:bottom-6 lg:right-6 z-30 flex gap-2 lg:gap-4 items-center">
+                                        <div className="shrink-0 flex justify-end gap-2 lg:gap-3 items-center px-3 py-2 lg:px-6 lg:py-3 border-t border-purple-200/60 bg-panelLeft z-30">
                                             <button onClick={() => setEx(null)} className={`${NAVB} border border-purple-200 bg-[#f4ebff] text-purple-700 hover:bg-purple-100/80`}>
                                                 <i className="fa-solid fa-list-ul"></i> Зміст
                                             </button>
@@ -874,12 +824,18 @@
                                 {/* ПРАВА ПАНЕЛЬ */}
                                 {ex !== null && (
                                     <div ref={boxRef} className="w-full h-[45%] md:h-full md:w-[60%] bg-panelRight shadow-inner relative z-0 overflow-hidden order-1 md:order-2">
-                                        <Chart sc={sc} dim={dim} k={ex + '-' + it} />
-                                        <button onClick={() => setShown(1)} title="Спочатку"
+                                        <Chart sc={sc} dim={dim} k={ex + '-' + (it === null ? 0 : it) + '-' + gShown} />
+                                        {!gShown && (
+                                            <button onClick={() => setGShown(true)}
+                                                className="blink absolute left-1/2 -translate-x-1/2 bottom-5 z-30 px-5 py-2.5 lg:px-8 lg:py-4 rounded-full bg-white border-2 border-brand text-brand font-extrabold shadow-md cursor-pointer flex items-center gap-2 text-sm lg:text-xl">
+                                                <i className="fa-solid fa-chart-line"></i> Показати графік
+                                            </button>
+                                        )}
+                                        <button onClick={() => { setShown(0); }} title="Спочатку"
                                             className="absolute top-2 left-2 z-30 w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-white border border-purple-200 text-brand shadow-sm flex items-center justify-center cursor-pointer active:scale-95">
                                             <i className="fa-solid fa-rotate-right"></i>
                                         </button>
-                                        <div className="absolute top-2 right-3 z-30 font-bold text-[#8E44AD] text-[16px] lg:text-[24px]"><Latex math={sc.fn} /></div>
+                                        <div className="absolute top-2 right-3 z-30 font-bold text-[#8E44AD] text-[16px] lg:text-[24px]">{sc.fn ? <Latex math={sc.fn} /> : null}</div>
                                         {sc.caption && <div className="absolute bottom-1 left-3 z-30 text-[11px] lg:text-[14px] text-slate-500 font-medium">{sc.caption}</div>}
                                     </div>
                                 )}
