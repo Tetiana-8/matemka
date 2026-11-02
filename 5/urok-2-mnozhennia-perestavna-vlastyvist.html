@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Урок 16 (2): Множення. Переставна властивість множення (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;
+  --acc:#be185d;--acc2:#e5508a;--accL:#fce7f3;--soft:#fdeff5;--soft2:#fff7fa;--line:#f3cfe0;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --o1:#0f766e;--o2:#7c3aed;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px);background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);touch-action:manipulation;
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+button{font-family:inherit;cursor:pointer}
+button:focus{outline:none}
+button:focus-visible{outline:3px solid rgba(190,24,93,.55);outline-offset:2px}
+b,strong{font-weight:900}
+
+#app{flex:1;min-height:0;display:flex;flex-direction:column;padding:.5rem .7rem .2rem}
+.stage{display:none;flex:1;min-height:0;flex-direction:column}
+.stage.on{display:flex}
+.card{position:relative;flex:1;min-height:0;overflow:auto;background:#fff;border:2px solid var(--line);border-radius:.9rem;
+  box-shadow:0 .5rem 1.6rem rgba(120,20,70,.14);padding:1rem 1.2rem;display:flex;flex-direction:column;align-items:center}
+.card.start{background:linear-gradient(160deg,#fff 0%,#fff7fa 100%)}
+.inner{margin:auto;width:100%;max-width:58rem;display:flex;flex-direction:column;align-items:center;gap:.8rem}
+.inner.wide{max-width:72rem;gap:.5rem}
+.h1{font-size:2.8rem;font-weight:900;color:var(--acc);margin:0;text-align:center}
+.topic{font-size:1.55rem;font-weight:800;text-align:center;max-width:36rem;line-height:1.3;margin:0 0 .6rem}
+.title2{font-size:1.5rem;font-weight:900;color:var(--acc);margin:0;text-align:center}
+.q{font-size:1.5rem;font-weight:800;text-align:center;line-height:1.45;margin:0}
+.q small{display:block;font-size:1.05rem;font-weight:700;color:var(--muted)}
+.hl{color:var(--acc)}
+.o1{color:var(--o1)}.o2{color:var(--o2)}
+.box{width:100%;background:var(--soft2);border:2px solid var(--line);border-radius:.8rem;padding:.8rem 1rem;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.box.white{background:#fff}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.6rem}
+.lbl{font-size:1.4rem;font-weight:800;margin:0;text-align:center}
+.cols{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:stretch;width:100%}
+.cols>.box{flex:1 1 24rem;max-width:36rem}
+.eq{font-size:1.9rem;font-weight:900;text-align:center}
+.mbcap{font-size:1rem;font-weight:800;color:var(--muted);text-align:center;min-height:1.3rem}
+
+/* кнопки */
+.btn{border:0;border-radius:.6rem;padding:.5rem 1.05rem;color:#fff;font-weight:800;font-size:1.05rem;
+  box-shadow:0 .2rem .5rem rgba(190,24,93,.25);transition:transform .1s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.a{background:var(--acc)}
+.btn.b{background:var(--acc2)}
+.btn.g{background:#fff;color:var(--acc);border:2px solid var(--line);box-shadow:none}
+.btn.big{font-size:1.45rem;padding:.65rem 1.9rem;border-radius:2rem}
+.btn.s{font-size:.95rem;padding:.35rem .8rem}
+
+/* поля */
+.num{width:7rem;font:inherit;font-weight:900;font-size:1.5rem;text-align:center;color:var(--ink);background:#fff;
+  border:2px solid var(--line);border-radius:.5rem;padding:.25rem .3rem;-moz-appearance:textfield}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(190,24,93,.2)}
+.num.good{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.num.wrong{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.num.sm{width:7.5rem;font-size:1.3rem}
+
+/* відгук */
+.fb{padding:.4rem .9rem;border:2px solid;border-radius:.6rem;font-weight:800;font-size:1.1rem;text-align:center;line-height:1.4;width:100%}
+.fb.ok{color:var(--oktx);background:var(--okbg);border-color:var(--okln)}
+.fb.bad{color:var(--badtx);background:var(--badbg);border-color:var(--badln)}
+.fb.warn{color:var(--warntx);background:var(--warnbg);border-color:var(--warnln)}
+.row .fb{width:auto}
+
+/* варіанти відповідей */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;width:100%;max-width:44rem}
+.opts.one{grid-template-columns:1fr}
+.opt{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:#fff;border:2px solid var(--line);border-radius:.7rem;
+  font-weight:900;font-size:1.35rem;color:var(--ink);box-shadow:0 2px 6px rgba(120,20,70,.08);text-align:left}
+.opt:hover{border-color:var(--acc2)}
+.opt .let{flex:none;width:2rem;height:2rem;border-radius:.5rem;background:var(--accL);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.opt .val{flex:1;text-align:center}
+.opts.one .opt .val{text-align:left}
+.opt.long{font-size:1.15rem}
+.opt.good{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.pick{border:2px solid var(--line);background:#fff;color:var(--acc);border-radius:.6rem;padding:.3rem .9rem;font-weight:800;font-size:1.1rem;min-height:2.4rem}
+.pick:hover{border-color:var(--acc2)}
+.pick.good{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.pick.wrong{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.pick.on{background:var(--acc);border-color:var(--acc);color:#fff}
+
+/* кроки розв'язання */
+.go{flex:none;width:2.6rem;height:2.6rem;border:0;border-radius:50%;background:var(--acc2);color:#fff;font-size:1.4rem;font-weight:900;
+  box-shadow:0 .25rem .7rem rgba(190,24,93,.35);animation:bounce 1.1s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(.3rem)}}
+.step{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%;background:var(--accL);border:2px solid var(--line);border-radius:.7rem;padding:.4rem .7rem}
+.step .n{flex:none;width:2rem;height:2rem;border-radius:50%;background:#fff;color:var(--acc);font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--line)}
+.step .t{flex:1;text-align:center;font-weight:900;font-size:1.35rem;line-height:1.35}
+.step .u{flex:none;min-width:2.6rem;font-weight:800;font-size:1rem;color:var(--muted)}
+.stack{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.stp{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.note{width:100%;background:#fff;border:2px dashed var(--line);border-radius:.6rem;padding:.3rem .7rem;font-weight:800;font-size:1.05rem;text-align:center;color:var(--muted);line-height:1.4}
+.cond{width:100%;background:var(--warnbg);border:2px solid var(--warnln);border-radius:.8rem;padding:.7rem 1rem;text-align:left;font-weight:800;font-size:1.3rem;line-height:1.5}
+.cond b{font-weight:900}
+.vis{width:100%;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.2rem}
+.vis svg{display:block;width:100%;height:auto;max-height:17vh}
+.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem;width:100%;align-items:start}
+.wl{display:flex;flex-direction:column;align-items:center;gap:.6rem;min-width:0}
+.side{display:flex;flex-direction:column;gap:.6rem;min-width:0;background:var(--soft2);border:2px solid var(--line);border-radius:.8rem;padding:.6rem;align-self:stretch}
+.cboxes{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center}
+.cbox{flex:1 1 9rem;background:#fff;border:2px solid var(--line);border-radius:.7rem;padding:.35rem .6rem;text-align:center}
+.cbox h5,.sol h5{margin:0 0 .2rem;font-size:.95rem;color:var(--acc);font-weight:900}
+.cmono{display:inline-block;font-family:ui-monospace,"Courier New",monospace;font-weight:800;font-size:1.25rem;line-height:1.3;white-space:pre;text-align:left;color:var(--ink)}
+.ceq{font-weight:900;font-size:1.05rem;margin-top:.2rem;color:var(--oktx)}
+.sol{background:var(--okbg);border:2px solid var(--okln);border-radius:.7rem;padding:.5rem .8rem;text-align:left}
+.sol p{margin:.15rem 0;font-weight:800;font-size:1.1rem;line-height:1.4}
+.sol .solans{margin-top:.3rem;font-weight:900;font-size:1.2rem;color:var(--oktx)}
+@media (max-width:900px){.work{grid-template-columns:1fr}}
+.cmp{display:flex;align-items:center;gap:.8rem;width:100%;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.5rem .8rem;flex-wrap:wrap}
+.cmp .no{flex:none;width:2rem;height:2rem;border-radius:50%;background:var(--accL);color:var(--acc);font-weight:900;display:flex;align-items:center;justify-content:center}
+.cmp .side{flex:1;display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem;font-weight:800;font-size:1.15rem;text-align:left;line-height:1.4;min-width:12rem}
+.cmp .signs{flex:none;display:flex;gap:.5rem}
+.cmp.good{background:var(--okbg);border-color:var(--ok)}
+.cmp.wrong{background:var(--badbg);border-color:var(--bad)}
+.cmp .fix{flex-basis:100%;text-align:center;font-weight:800;font-size:1rem;color:var(--oktx)}
+.def{width:100%;background:var(--accL);border:2px solid var(--line);border-left:.5rem solid var(--acc);border-radius:.7rem;padding:.55rem .9rem;font-weight:800;font-size:1.2rem;text-align:left;line-height:1.5}
+.def .fm{display:block;text-align:center;font-size:1.6rem;margin-top:.3rem}
+.sum4{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;width:100%}
+.sum4 .sumc{grid-column:span 2}.sum4 .sumc.w3{grid-column:span 3}
+.sumc{background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.5rem .7rem;text-align:center;font-weight:900}
+.sumc.closed{cursor:pointer;background:var(--accL)}.sumc.closed>div{display:none}.sumc.closed small{margin:0;font-size:1.15rem}.sumc.closed small::after{content:' ▾'}
+.sumc small{display:block;color:var(--acc);font-size:1rem;margin-bottom:.2rem}
+.sumc div{font-size:1.25rem}
+.endr{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;width:100%;font-weight:800;font-size:1.1rem}
+.endr .ans{color:var(--acc);font-weight:900}
+.plus{position:absolute;right:.8rem;bottom:.8rem;width:2.4rem;height:2.4rem;border-radius:50%;border:2px solid var(--warnln);background:var(--warnbg);color:var(--warntx);font-size:1.5rem;font-weight:900;padding:0;line-height:1}
+.bonus{background:var(--warnbg);border-color:var(--warnln)}
+.end{background:var(--ok);color:#fff;border-radius:1rem;padding:.8rem 1.2rem;font-weight:900;font-size:1.4rem;text-align:center}
+
+/* нижня панель */
+#bottomNav{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.4rem .9rem}
+#bottomNav .left{display:flex;align-items:center;gap:.6rem}
+.gem{flex:none;width:2.4rem;height:2.4rem;padding:0;border-radius:.6rem;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center}
+.gem svg{width:1.6rem;height:1.6rem}
+.gem.corner{position:absolute;right:.9rem;top:.9rem}
+#candle{position:relative;flex:none;width:.55rem;height:2.2rem;border:1px solid var(--line);border-radius:9px;background:#fff;padding:2px;display:flex;flex-direction:column;justify-content:flex-end}
+#candleFill{width:100%;background:var(--acc2);border-radius:9px;transition:height 1s linear}
+#candle .tip{display:none;position:absolute;left:1.2rem;top:50%;transform:translateY(-50%);background:#fff;border:2px solid var(--line);border-radius:.6rem;
+  padding:.2rem .6rem;font-weight:900;font-size:.85rem;white-space:nowrap;text-align:center;z-index:50;box-shadow:0 4px 12px rgba(120,20,70,.18)}
+#candle:hover .tip{display:block}
+.tip b{display:block;color:var(--acc);font-size:1rem}
+.tip span{color:var(--muted)}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+
+/* вікно вчителя */
+.modal{position:fixed;inset:0;z-index:2147483000;background:rgba(58,23,54,.45);display:flex;align-items:center;justify-content:center;padding:1rem}
+.mbox{position:relative;width:100%;max-width:38rem;max-height:100%;overflow:auto;background:#fff;border:2px solid var(--line);border-radius:1rem;padding:1rem 1.2rem;box-shadow:0 1rem 3rem rgba(58,23,54,.35)}
+.mbox h3{display:flex;align-items:center;gap:.6rem;margin:0 0 .6rem;font-size:1.2rem;color:var(--acc);border-bottom:2px solid var(--line);padding-bottom:.4rem}
+.mbox h4{margin:0 0 .2rem;font-size:1rem;color:var(--acc)}
+.mbox p{margin:0;font-size:.95rem;line-height:1.4;font-weight:600}
+.mcard{background:var(--soft2);border:2px solid var(--line);border-radius:.7rem;padding:.5rem .7rem;margin-bottom:.5rem}
+.mbox ul{list-style:none;margin:0;padding:0}
+.mbox li{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.35rem .5rem;border-bottom:1px solid var(--line);cursor:pointer;font-weight:800;font-size:.95rem;border-radius:.4rem}
+.mbox li:hover{background:var(--accL)}
+.mbox li:last-child{border-bottom:0}
+.mbox li span.m{flex:none;background:var(--accL);color:var(--acc);border-radius:2rem;padding:.05rem .6rem;font-size:.85rem}
+.x{position:absolute;right:.7rem;top:.5rem;border:0;background:none;font-size:1.8rem;color:var(--muted);line-height:1}
+
+/* світлофор */
+.tlv{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%;max-width:44rem}
+.tlb{position:relative;display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .6rem;border-radius:1rem;border:3px solid;font-family:inherit;text-align:center}
+.tlb.g{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.tlb.y{background:var(--warnbg);border-color:#e0a82e;color:var(--warntx)}
+.tlb.r{background:var(--badbg);border-color:var(--bad);color:var(--badtx)}
+.tlb .dot{width:2.6rem;height:2.6rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;font-weight:900}
+.tlb.g .dot{background:var(--ok)}.tlb.y .dot{background:#f0b429}.tlb.r .dot{background:var(--bad)}
+.tlb b{font-size:1.2rem}.tlb small{font-size:.85rem;font-weight:700}
+.tlb .cnt{position:absolute;top:-.6rem;right:-.6rem;min-width:1.8rem;height:1.8rem;padding:0 .4rem;border-radius:2rem;background:var(--acc);color:#fff;font-weight:900;font-size:1rem;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.light{display:flex;flex-direction:column;align-items:center}
+.light .house{background:#7a4a68;border:3px solid #5d3650;border-radius:1rem;padding:.6rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 .4rem 1rem rgba(58,23,54,.3)}
+.lamp{width:3rem;height:3rem;border-radius:50%;border:2px solid rgba(255,255,255,.35);transition:all .3s}
+.lamp.r{background:#c98a93}.lamp.y{background:#cdbb8b}.lamp.g{background:#8fb9a0}
+.lamp.r.on{background:#f0475b;box-shadow:0 0 1.6rem #f0475b;transform:scale(1.08)}
+.lamp.y.on{background:#f5b82e;box-shadow:0 0 1.6rem #f5b82e;transform:scale(1.08)}
+.lamp.g.on{background:#2dbd73;box-shadow:0 0 1.6rem #2dbd73;transform:scale(1.08)}
+.light .stand{width:1rem;height:1.2rem;background:#5d3650;border-radius:0 0 .3rem .3rem}
+.cf{position:fixed;top:40vh;width:.5rem;height:.8rem;border-radius:2px;z-index:2147483100;pointer-events:none;animation:cf 1.4s ease-out forwards}
+@keyframes cf{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+
+@media (max-width:700px){
+  .opts{grid-template-columns:1fr}
+  .tlv{grid-template-columns:1fr}
+  .sum4{grid-template-columns:1fr}.sum4 .sumc,.sum4 .sumc.w3{grid-column:auto}
+  .h1{font-size:2.2rem}
+}
+@media (prefers-reduced-motion:reduce){.go{animation:none}.cf{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 0. Стартовий екран -->
+<section class="stage" id="stage-0"><div class="card start"><div class="inner">
+  <button class="gem corner" onclick="toggleModal()" title="Методична картка для вчителя"><span class="gemsvg"></span></button>
+  <h2 class="h1">Урок 16 (2)</h2>
+  <p class="topic">Тема: Множення. Переставна властивість множення</p>
+  <button class="btn a big" onclick="goTo(1)">Почати ▶</button>
+</div></div></section>
+
+<!-- 1. Актуалізація -->
+<section class="stage" id="stage-1"><div class="card"><div class="inner">
+  <h3 class="title2">Актуалізація</h3>
+  <div class="mbcap" id="acNo"></div>
+  <p class="q" id="acQ"></p>
+  <div class="box white">
+    <div id="acExp" class="eq hl"></div>
+    <div class="row" id="acRow"><span class="lbl">Відповідь:</span><input class="num" type="number" id="acAns" onkeydown="if(event.key==='Enter')acCheck()"></div>
+    <div class="opts" id="acOpts" hidden></div>
+  </div>
+  <div class="row"><button class="btn a" id="acCheckBtn" onclick="acCheck()">✓ Перевірити</button><button class="btn b" onclick="acGen()">Інше запитання</button><button class="btn a" id="acNext" onclick="acNextQ()" hidden>Далі запитання →</button></div>
+  <div id="acFb" class="fb" hidden></div>
+  <div id="acEnd" class="end" hidden>Усі завдання виконано правильно!</div>
+</div></div></section>
+
+<section class="stage" id="stage-2"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 419. Порядок дій</h3>
+  <div class="mbcap" id="t419Cap"></div>
+  <div class="cond" id="t419Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t419Steps"></div>
+  <div id="t419Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t419')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t419Cb"></div><div id="t419Sol"></div></div></div>
+  
+</div></div></section>
+<section class="stage" id="stage-3"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 421. Значення виразу</h3>
+  <div class="mbcap" id="t421Cap"></div>
+  <div class="cond" id="t421Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t421Steps"></div>
+  <div id="t421Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t421')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t421Cb"></div><div id="t421Sol"></div></div></div>
+  
+</div></div></section>
+<section class="stage" id="stage-4"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 424</h3>
+  <div class="mbcap" id="t424Cap"></div>
+  <div class="cond" id="t424Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t424Steps"></div>
+  <div id="t424Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t424')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t424Cb"></div><div id="t424Sol"></div></div></div>
+  
+</div></div></section>
+<section class="stage" id="stage-5"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 425. Задача на ціну</h3>
+  <div class="mbcap" id="t425Cap"></div>
+  <div class="cond" id="t425Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t425Steps"></div>
+  <div id="t425Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t425')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t425Cb"></div><div id="t425Sol"></div></div></div>
+  <div id="bon450" class="box bonus" hidden><b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: вправа 450 (знайди помилку)</b>
+<p class="q" style="font-size:1.1rem"><small>Василь Ледащенко списав із ГДЗ розв’язання задачі 426 (42 л молока по 96 коп. і 16 кг сиру по 2 грн): 42 · 96 + 16 · 2 = 4064 (грн). У чому помилка?</small></p>
+<div class="opts one" id="o450"></div><div id="fb450" class="fb" hidden></div></div>
+</div><button class="plus" onclick="$('bon450').hidden=!$('bon450').hidden" title="Додаткове завдання">+</button></div></section>
+<section class="stage" id="stage-6"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 427</h3>
+  <div class="mbcap" id="t427Cap"></div>
+  <div class="cond" id="t427Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t427Steps"></div>
+  <div id="t427Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t427')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t427Cb"></div><div id="t427Sol"></div></div></div>
+  
+</div></div></section>
+<section class="stage" id="stage-7"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправи 428, 429. Шлях, швидкість, час</h3>
+  <div class="mbcap" id="t428Cap"></div>
+  <div class="cond" id="t428Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t428Steps"></div>
+  <div id="t428Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t428')">Нова задача</button></div>
+  <div class="side"><div class="cboxes" id="t428Cb"></div><div id="t428Sol"></div></div></div>
+  
+</div></div></section>
+<section class="stage" id="stage-8"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправи 434, 436, 432. Рух двох об’єктів</h3>
+  <div class="mbcap" id="t434Cap"></div>
+  <div class="cond" id="t434Text"></div>
+  <div class="work"><div class="wl">
+  <div class="stack" id="t434Steps"></div>
+  <div id="t434Fb" class="fb" hidden></div>
+  <button class="btn b" onclick="taskNew('t434')">Нова задача</button></div>
+  <div class="side"><div class="vis" id="t434VisBox" hidden><div id="t434Vis"></div></div><div class="cboxes" id="t434Cb"></div><div id="t434Sol"></div></div></div>
+  
+</div></div></section>
+
+
+<!-- 9. Вправа 439 -->
+<section class="stage" id="stage-9"><div class="card"><div class="inner wide">
+  <h3 class="title2">Вправа 439. Як зміниться добуток</h3>
+  <div class="mbcap" id="mcCap"></div>
+  <div class="cond" id="mcText"></div>
+  <div class="opts one" id="mcOpts"></div>
+  <div id="mcFb" class="fb" hidden></div>
+  <button class="btn b" onclick="genMc()">Нова задача</button>
+  <div id="bon438" class="box bonus" hidden>
+    <b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: вправа 438</b>
+    <p class="q" style="font-size:1.1rem"><small>Чи є правильним твердження? Оберіть «Так» або «Ні».</small></p>
+    <div id="b438List" class="stack"></div>
+    <button class="btn a" onclick="b438Check()">✓ Перевірити відповіді</button>
+    <div id="b438Fb" class="fb" hidden></div>
+  </div>
+</div><button class="plus" onclick="$('bon438').hidden=!$('bon438').hidden" title="Додаткове завдання">+</button></div></section>
+
+<!-- 10. Підсумок уроку -->
+<section class="stage" id="stage-10"><div class="card"><div class="inner wide">
+  <h3 class="title2">Підсумок уроку</h3>
+  <div class="sum4">
+    <div class="sumc closed" onclick="sumOpen(this)"><small>Добуток</small><div><i class="o1">a</i> · <i class="o2">b</i> = <i class="hl">c</i></div></div>
+    <div class="sumc closed" onclick="sumOpen(this)"><small>Переставна властивість</small><div><i>ab</i> = <i>ba</i></div></div>
+    <div class="sumc closed" onclick="sumOpen(this)"><small>Шлях</small><div><i>s</i> = <i>v</i> · <i>t</i></div></div>
+    <div class="sumc w3 closed" onclick="sumOpen(this)"><small>Рух назустріч і в протилежних напрямках</small><div style="font-size:1.15rem;line-height:1.4">швидкості додаємо: <i>v</i><sub>1</sub> + <i>v</i><sub>2</sub></div></div>
+    <div class="sumc w3 closed" onclick="sumOpen(this)"><small>Рух в одному напрямку</small><div style="font-size:1.15rem;line-height:1.4">швидкості віднімаємо: з більшої швидкості віднімаємо меншу</div></div>
+  </div>
+  <div class="box" id="selfBox" hidden>
+    <b class="lbl" style="font-size:1.2rem;color:var(--acc)">Перевірте себе</b>
+    <div id="endList" class="stack"></div>
+  </div>
+</div></div></section>
+
+<!-- 11. Рефлексія «Світлофор» -->
+<section class="stage" id="stage-11"><div class="card"><div class="inner">
+  <div id="tlVote" style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
+    <p class="q">Картка самоперевірки. Оцініть свою роботу</p>
+    <div class="tlv">
+      <button class="tlb g" onclick="vote('green')"><span class="cnt" id="cnt-green">0</span><span class="dot">✓</span><b>Зелений</b><small>Усе зрозуміло, виконую завдання без помилок</small></button>
+      <button class="tlb y" onclick="vote('yellow')"><span class="cnt" id="cnt-yellow">0</span><span class="dot">–</span><b>Жовтий</b><small>Розумію правила, але трапляються помилки</small></button>
+      <button class="tlb r" onclick="vote('red')"><span class="cnt" id="cnt-red">0</span><span class="dot">!</span><b>Червоний</b><small>Тема складна, потрібна допомога вчителя</small></button>
+    </div>
+    <div class="row"><button class="btn a big" onclick="confirmVote()">ОК</button><button class="btn g" onclick="resetVote()">Скинути</button></div>
+    <div id="tlHint" class="fb warn" hidden></div>
+  </div>
+  <div id="tlResult" hidden style="display:flex;flex-direction:column;align-items:center;gap:.8rem">
+    <div class="light"><div class="house"><div class="lamp r" id="lamp-red"></div><div class="lamp y" id="lamp-yellow"></div><div class="lamp g" id="lamp-green"></div></div><div class="stand"></div></div>
+    <div id="tlMsg" class="fb"></div>
+    <div class="row"><button class="btn a big" onclick="finishLesson()">Завершити урок</button><button class="btn b" onclick="restartLesson()">↻ Почати спочатку</button></div>
+  </div>
+</div></div></section>
+
+</div>
+
+<nav id="bottomNav" hidden>
+  <div class="left">
+    <button class="btn g" id="prevBtn" onclick="nav(-1)">← Назад</button>
+    <button class="gem" onclick="toggleModal()" title="Зміст та методична картка"><span class="gemsvg"></span></button>
+    <div id="candle" onclick="resetTimer()" title="Натисніть, щоб перезапустити таймер"><div class="tip"><b id="tLeft">--:--</b><span id="tTotal">-- хв</span></div><div id="candleFill" style="height:100%"></div></div>
+  </div>
+  <button class="btn a" id="nextBtn" onclick="nav(1)">Далі →</button>
+</nav>
+
+<footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+
+<div id="teacherModal" class="modal" hidden onclick="if(event.target===this)toggleModal()"><div class="mbox">
+  <button class="x" onclick="toggleModal()" title="Закрити">&times;</button>
+  <h3><span class="gemsvg" style="width:1.6rem;height:1.6rem;display:inline-flex"></span>Методична картка та зміст уроку 16 (2)</h3>
+  <div class="mcard"><h4>Мета уроку</h4><p>Закріпити поняття добутку та переставну властивість множення (п. 16 підручника Мерзляка та ін., 5 клас); удосконалити вміння множити натуральні числа, обчислювати значення виразів, розв’язувати текстові задачі на ціну, масу й рух (вправи 419–439); дослідити, як змінюється добуток зі зміною множників.</p></div>
+  <div class="mcard"><h4>Ключові компетентності</h4><p>Математична компетентність, уміння вчитися впродовж життя, критичне мислення (перевірка міркувань на прикладах).</p></div>
+  <div class="mcard"><h4>Перебіг уроку (натисніть, щоб перейти)</h4><ul>
+<li onclick="goTo(1);toggleModal()"><span>1. Актуалізація: що ми вивчили на першому уроці</span><span class="m">5 хв</span></li>
+<li onclick="goTo(2);toggleModal()"><span>2. Вправа 419: порядок дій у виразах</span><span class="m">5,5 хв</span></li>
+<li onclick="goTo(3);toggleModal()"><span>3. Вправа 421: значення виразу зі змінною</span><span class="m">4 хв</span></li>
+<li onclick="goTo(4);toggleModal()"><span>4. Вправа 424: задача</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(5);toggleModal()"><span>5. Вправа 425: задача на ціну (додатково: 450)</span><span class="m">4 хв</span></li>
+<li onclick="goTo(6);toggleModal()"><span>6. Вправа 427: задача на порівняння</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(7);toggleModal()"><span>7. Вправи 428, 429: шлях, швидкість, час</span><span class="m">4 хв</span></li>
+<li onclick="goTo(8);toggleModal()"><span>8. Вправи 434, 436, 432: рух двох об’єктів</span><span class="m">5,5 хв</span></li>
+<li onclick="goTo(9);toggleModal()"><span>9. Вправа 439: як зміниться добуток (додатково: 438)</span><span class="m">4 хв</span></li>
+<li onclick="goTo(10);toggleModal()"><span>10. Підсумок уроку</span><span class="m">2,5 хв</span></li>
+<li onclick="goTo(11);toggleModal()"><span>11. Рефлексія «Світлофор»</span><span class="m">3,5 хв</span></li>
+  </ul></div>
+</div></div>
+
+<script>
+/* ===== спільне ядро уроку ===== */
+var cur = 0, TOTAL = 0, LAST = 0, totalScore = 0, tTot = 0, tLeft = 0, tInt = null;
+var GEM = '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="18,14 46,14 58,28 6,28" fill="#f472b6"/><polygon points="18,14 32,14 32,28 18,28" fill="#f9a8d4"/><polygon points="25,14 32,14 32,28" fill="#fdf2f8"/><polygon points="32,14 46,14 32,28" fill="#db2777"/><polygon points="6,28 18,14 18,28" fill="#fbcfe8"/><polygon points="58,28 46,14 46,28" fill="#be185d"/><polygon points="6,28 58,28 32,58" fill="#db2777"/><polygon points="6,28 32,28 32,58" fill="#f472b6"/><polygon points="58,28 32,28 32,58" fill="#be185d"/><polygon points="20,28 32,28 32,58" fill="#f9a8d4" opacity="0.6"/><path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#fde68a"/><path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#fde68a" opacity="0.9"/></svg>';
+function $(i){ return document.getElementById(i); }
+function rnd(a, b){ return Math.floor(Math.random() * (b - a + 1)) + a; }
+function shuffle(a){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function plural(n, f1, f2, f5){ var m = Math.abs(n) % 100, k = m % 10; if (m > 10 && m < 20) return f5; if (k > 1 && k < 5) return f2; if (k === 1) return f1; return f5; }
+function addScore(p){ totalScore += p; }
+function show(id, kind, html){ var e = $(id); e.className = 'fb ' + kind; e.innerHTML = html; e.hidden = false; return e; }
+function hide(id){ var e = $(id); if (e) e.hidden = true; }
+function put(id, html){ $(id).innerHTML = html; }
+function fmt(n){ var s = String(n); return s.length < 5 ? s : s.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+function confetti(n){
+  var cols = ['#be185d', '#e5508a', '#f9a8d4', '#1e9e62', '#f0b429', '#7c3aed'];
+  for (var i = 0; i < (n || 30); i++){
+    var p = document.createElement('i'); p.className = 'cf';
+    p.style.left = (35 + Math.random() * 30) + 'vw'; p.style.background = cols[i % cols.length];
+    p.style.setProperty('--dx', (Math.random() * 60 - 30) + 'vw'); p.style.setProperty('--dy', (35 + Math.random() * 50) + 'vh');
+    p.style.animationDelay = (Math.random() * .15) + 's';
+    document.body.appendChild(p);
+    setTimeout((function(q){ return function(){ q.remove(); }; })(p), 1700);
+  }
+}
+function minText(sec){ var m = sec / 60; return (Math.round(m * 10) / 10).toString().replace('.', ',') + ' хв'; }
+function toggleModal(){ var m = $('teacherModal'); m.hidden = !m.hidden; }
+
+/* таймер-свічка */
+function startTimer(n){
+  if (tInt) clearInterval(tInt);
+  tTot = (typeof DUR !== 'undefined' && DUR[n]) || 0; tLeft = tTot;
+  var c = $('candle');
+  if (!c) return;
+  if (tTot <= 0){ c.hidden = true; return; }
+  c.hidden = false; paintTimer();
+  tInt = setInterval(function(){ if (tLeft > 0){ tLeft--; paintTimer(); } else { clearInterval(tInt); } }, 1000);
+}
+function paintTimer(){
+  if (tTot <= 0) return;
+  $('candleFill').style.height = Math.max(0, tLeft / tTot * 100) + '%';
+  var m = Math.floor(tLeft / 60), s = tLeft % 60;
+  $('tLeft').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  $('tTotal').textContent = minText(tTot);
+}
+function resetTimer(){ if (cur > 0 && cur < LAST) startTimer(cur); }
+
+/* перехід між етапами */
+function goTo(n){
+  cur = n;
+  var st = document.querySelectorAll('.stage');
+  for (var i = 0; i < st.length; i++) st[i].classList.toggle('on', i === n);
+  $('bottomNav').hidden = (n === 0 || n === LAST);
+  $('prevBtn').disabled = (n === 0);
+  $('nextBtn').disabled = (n === LAST);
+  startTimer(n);
+  var c = st[n].querySelector('.card'); if (c) c.scrollTop = 0;
+  if (typeof onStage === 'function') setTimeout(function(){ onStage(n); }, 60);
+}
+function nav(d){ var n = cur + d; if (n >= 0 && n <= LAST) goTo(n); }
+
+/* світлофор-рефлексія */
+var tlVotes = { green: 0, yellow: 0, red: 0 };
+function vote(c){ tlVotes[c]++; $('cnt-' + c).textContent = tlVotes[c]; hide('tlHint'); }
+function resetVote(){
+  tlVotes = { green: 0, yellow: 0, red: 0 };
+  ['green', 'yellow', 'red'].forEach(function(c){ $('cnt-' + c).textContent = 0; });
+  $('tlVote').hidden = false; $('tlResult').hidden = true; hide('tlHint');
+}
+function confirmVote(){
+  var total = tlVotes.green + tlVotes.yellow + tlVotes.red;
+  if (!total){ show('tlHint', 'warn', 'Натисніть на кольори, щоб врахувати голоси учнів.'); return; }
+  $('tlVote').hidden = true; $('tlResult').hidden = false;
+  var w = 'green'; if (tlVotes.yellow > tlVotes[w]) w = 'yellow'; if (tlVotes.red > tlVotes[w]) w = 'red';
+  ['red', 'yellow', 'green'].forEach(function(c){ $('lamp-' + c).classList.toggle('on', c === w); });
+  var m = $('tlMsg'); m.className = 'fb ' + (w === 'green' ? 'ok' : w === 'yellow' ? 'warn' : 'bad');
+  m.style.fontSize = '1.4rem'; m.innerHTML = TL_MSG[w];
+}
+function finishLesson(){
+  confetti(90);
+  var m = $('tlMsg'); m.className = 'end'; m.style.fontSize = '';
+  m.innerHTML = '🎉 ' + END_TEXT + ' Балів: <b>' + totalScore + '</b>. Молодці!';
+}
+function restartLesson(){
+  totalScore = 0; resetVote();
+  if (typeof resetAll === 'function') resetAll();
+  goTo(0);
+}
+function startCore(){
+  var g = document.querySelectorAll('.gemsvg'); for (var i = 0; i < g.length; i++) g[i].innerHTML = GEM;
+  TOTAL = document.querySelectorAll('.stage').length; LAST = TOTAL - 1;
+  resetVote();
+  if (typeof resetAll === 'function') resetAll();
+  goTo(0);
+}
+
+/* ===== дані уроку ===== */
+var DUR = [0, 300, 330, 240, 210, 240, 210, 240, 330, 240, 150, 210];
+var TL_MSG = { green: 'Чудова робота! Ви добре засвоїли матеріал.', yellow: 'Добре! Трохи практики, і помилок не буде.', red: 'Не здавайтеся! Ми обов’язково розберемо цю тему детальніше.' };
+var END_TEXT = 'Урок 16 (2) завершено!';
+var LET = ['А', 'Б', 'В', 'Г'];
+var KEYS = ['t419', 't421', 't424', 't425', 't427', 't428', 't434'];
+
+function mark(id, ok){ var e = $(id); e.classList.remove('good', 'wrong'); e.classList.add(ok ? 'good' : 'wrong'); }
+function plain(id){ var e = $(id); e.value = ''; e.classList.remove('good', 'wrong'); e.readOnly = false; }
+function sumStr(x, n){ return Array(n).fill(x).join(' + '); }
+function swapNote(a, b){ return 'Можна й ' + b + ' · ' + a + ': від перестановки множників добуток не змінюється.'; }
+function raz(n){ return plural(n, 'раз', 'рази', 'разів'); }
+
+/* ---------- етап 1: актуалізація (з першого уроку теми) ---------- */
+function pair(){ var a = rnd(3, 9), b; do { b = rnd(3, 9); } while (b === a); return [a, b]; }
+function acNames(){
+  var p = pair(), a = p[0], b = p[1], c = a * b, two = rnd(0, 1);
+  var all = ['множниками', 'добутком', 'доданками', 'сумою'];
+  return two
+    ? { type: 'opts', q: 'Як називають число ' + c + ' та запис ' + a + ' · ' + b + ' у рівності ' + a + ' · ' + b + ' = ' + c + '?', exp: '', opts: all, ans: 'добутком' }
+    : { type: 'opts', q: 'Як називають числа ' + a + ' і ' + b + ' у рівності ' + a + ' · ' + b + ' = ' + c + '?', exp: '', opts: all, ans: 'множниками' };
+}
+function acSum(){
+  var p = pair(), v = p[0], n = p[1];
+  var right = v + ' · ' + n;
+  return { type: 'opts', q: 'Запишіть суму у вигляді добутку.', exp: sumStr(v, n), opts: [right, v + ' + ' + n, v + ' · ' + v, v + ' · ' + (n + 1)], ans: right };
+}
+function acPerm(){
+  var a = rnd(12, 99), b = rnd(3, 9);
+  return { type: 'num', q: 'Скористайтеся переставною властивістю множення. Впишіть пропущене число.', exp: a + ' · ' + b + ' = ' + b + ' · <span class="hl">□</span>', ans: a };
+}
+function ac01(){
+  var n = rnd(12, 999), k = rnd(0, 4), e;
+  if (k === 0) e = n + ' · 1'; else if (k === 1) e = '1 · ' + n; else if (k === 2) e = n + ' · 0'; else if (k === 3) e = '0 · ' + n; else e = '0 · 0';
+  return { type: 'num', q: 'Знайдіть добуток.', exp: e + ' =', ans: (k < 2) ? n : 0 };
+}
+function acTF(){
+  var p = pair(), a = p[0], b = p[1], n = rnd(12, 98);
+  var list = [
+    [a + ' · ' + b + ' = ' + b + ' · ' + a, true], ['0 · ' + n + ' = 0', true], [n + ' · 1 = ' + n, true],
+    [n + ' · 1 = 1', false], [n + ' · 0 = ' + n, false], [a + ' · ' + b + ' = ' + a + ' + ' + b, false]
+  ];
+  var it = list[rnd(0, list.length - 1)];
+  return { type: 'opts', q: 'Чи правильна рівність?', exp: it[0], opts: ['Так', 'Ні'], ans: it[1] ? 'Так' : 'Ні' };
+}
+var AC = [acNames, acSum, acPerm, ac01, acTF], ac = { k: 0, done: false };
+function acGen(){
+  var g = AC[ac.k](); ac.g = g; ac.done = false;
+  $('acNo').textContent = 'Запитання ' + (ac.k + 1) + ' з ' + AC.length;
+  $('acQ').textContent = g.q; put('acExp', g.exp || '');
+  hide('acFb'); plain('acAns'); $('acNext').hidden = true; $('acEnd').hidden = true;
+  $('acRow').hidden = g.type !== 'num'; $('acCheckBtn').hidden = g.type !== 'num'; $('acOpts').hidden = g.type === 'num';
+  if (g.type === 'opts'){
+    var list = (g.opts.length > 2) ? shuffle(g.opts.slice()) : g.opts.slice(), h = '';
+    ac.o = list;
+    list.forEach(function(t, i){ h += '<button class="opt" id="acO' + i + '" onclick="acPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
+    put('acOpts', h);
+  }
+  setTimeout(function(){ if (cur === 1 && g.type === 'num') $('acAns').focus(); }, 50);
+}
+function acOk(){ ac.done = true; show('acFb', 'ok', '✓ Правильно!'); addScore(5); confetti(20); $('acNext').hidden = false; }
+function acCheck(){
+  if (ac.done || ac.g.type !== 'num') return;
+  var raw = $('acAns').value.trim(); if (raw === '') return;
+  if (parseInt(raw, 10) === ac.g.ans){ mark('acAns', true); acOk(); }
+  else { mark('acAns', false); show('acFb', 'bad', '✗ Неправильно. Спробуйте ще раз.'); }
+}
+function acPick(i){
+  if (ac.done) return;
+  var b = $('acO' + i);
+  if (ac.o[i] === ac.g.ans){ b.classList.add('good'); acOk(); }
+  else { b.classList.add('wrong'); b.disabled = true; show('acFb', 'bad', '✗ Неправильно. Спробуйте інший варіант.'); }
+}
+function acNextQ(){
+  ac.k++;
+  if (ac.k >= AC.length){
+    ['acQ', 'acNo', 'acExp'].forEach(function(i){ put(i, ''); }); $('acRow').hidden = true; $('acOpts').hidden = true; $('acCheckBtn').hidden = true;
+    $('acNext').hidden = true; hide('acFb'); $('acEnd').hidden = false; ac.k = AC.length - 1; return;
+  }
+  acGen();
+}
+
+/* ---------- кроки розв'язання (спільний рушій етапів 2–8) ---------- */
+var GEN = {}, T = {};
+function isOn(k){ return cur === KEYS.indexOf(k) + 2; }
+function dg(n){ return String(n).replace(/ /g, ''); }
+function padL(s, w){ return ' '.repeat(Math.max(0, w - s.length)) + s; }
+function colCalc(t, res){
+  var m = dg(t).match(/^(\d+)\s*([·+−])\s*(\d+)$/); if (!m) return '';
+  var a = m[1], op = m[2], b = m[3], r = String(res), rows, w;
+  if (op === '·'){
+    if (a.length === 1 && b.length === 1) return '';
+    var top = a, bot = b;
+    if (a.length < b.length || (a.length === b.length && false)){ top = b; bot = a; }
+    var ds = bot.split('').reverse(), parts = [];
+    ds.forEach(function(d, i){ d = +d; if (d > 0) parts.push(String(+top * d) + ' '.repeat(i)); });
+    var multi = bot.length > 1 && parts.length > 1;
+    w = Math.max(top.length, bot.length + 1, r.length);
+    if (multi) parts.forEach(function(p){ w = Math.max(w, p.length); });
+    rows = [padL(top, w), '×' + padL(bot, w - 1), '─'.repeat(w)];
+    if (multi){ parts.forEach(function(p){ rows.push(padL(p, w)); }); rows.push('─'.repeat(w)); }
+    rows.push(padL(r, w));
+  } else {
+    w = Math.max(a.length, b.length, r.length) + 1;
+    rows = [padL(a, w), op + padL(b, w - 1), '─'.repeat(w), padL(r, w)];
+  }
+  return '<div class="cmono">' + rows.join('\n') + '</div>';
+}
+function taskNew(k){
+  var st = T[k] || (T[k] = { n: 0 });
+  var g = GEN[k](st.n); st.n++; st.g = g; st.done = false;
+  $(k + 'Cap').textContent = g.cap || ' ';
+  put(k + 'Text', g.text);
+  var vb = $(k + 'VisBox'); if (vb){ vb.hidden = !g.vis; if (g.vis) put(k + 'Vis', g.vis); }
+  var h = '', cb = '';
+  g.steps.forEach(function(s, i){
+    h += '<div class="stp" id="' + k + 'S' + i + '"' + (i ? ' hidden' : '') + '>' +
+      '<div class="step"><span class="n">' + (i + 1) + '</span><span class="t">' + s.t + '</span><b>=</b>' +
+      '<input class="num sm" type="number" inputmode="numeric" id="' + k + 'A' + i + '" oninput="taskIn(\'' + k + '\',' + i + ')">' +
+      '<span class="u">' + (s.u || '') + '</span></div>' +
+      '<div class="note" id="' + k + 'N' + i + '" hidden></div>';
+    if (i < g.steps.length - 1) h += '<button class="go" id="' + k + 'G' + i + '" onclick="taskGo(\'' + k + '\',' + i + ')" hidden title="Наступна дія">↓</button>';
+    h += '</div>';
+    cb += '<div class="cbox" id="' + k + 'C' + i + '" hidden><h5>Дія ' + (i + 1) + '</h5>' + colCalc(s.t, s.a) +
+      '<div class="ceq">' + s.t + ' = ' + fmt(s.a) + '</div></div>';
+  });
+  put(k + 'Steps', h); put(k + 'Cb', cb); put(k + 'Sol', ''); hide(k + 'Fb');
+  setTimeout(function(){ var a = $(k + 'A0'); if (a && isOn(k)) a.focus(); }, 60);
+}
+function solHTML(g){
+  var h = '<div class="sol"><h5>Розв’язання</h5>';
+  g.steps.forEach(function(s, i){
+    h += '<p>' + (i + 1) + ') ' + s.t + ' = ' + fmt(s.a) + (s.u ? ' (' + s.u + ')' : '') + (s.d ? ' — ' + s.d : '') + '</p>';
+  });
+  var ans = g.ans.indexOf('Відповідь') === 0 ? g.ans : 'Відповідь: ' + g.ans;
+  return h + '<div class="solans">' + ans + '</div></div>';
+}
+function taskIn(k, i){
+  var st = T[k], g = st.g, s = g.steps[i], el = $(k + 'A' + i);
+  el.classList.remove('good', 'wrong'); hide(k + 'Fb');
+  var raw = el.value.trim(); if (raw === '') return;
+  var v = parseInt(raw, 10), as = String(s.a);
+  if (v === s.a){
+    el.classList.add('good'); el.readOnly = true;
+    if (s.note){ var n = $(k + 'N' + i); n.innerHTML = s.note; n.hidden = false; }
+    $(k + 'C' + i).hidden = false;
+    if (i < g.steps.length - 1) $(k + 'G' + i).hidden = false;
+    else { st.done = true; put(k + 'Sol', solHTML(g)); var vb2 = $(k + 'VisBox'); if (vb2) vb2.hidden = true; show(k + 'Fb', 'ok', '✓ Правильно! Порівняйте зі своїм розв’язанням праворуч.'); addScore(10); confetti(35); }
+  } else if (raw.length >= as.length){
+    el.classList.add('wrong'); show(k + 'Fb', 'bad', '✗ Неправильно. ' + (s.hint || 'Спробуйте ще раз.'));
+  }
+}
+function taskGo(k, i){
+  $(k + 'G' + i).hidden = true; $(k + 'S' + (i + 1)).hidden = false;
+  var a = $(k + 'A' + (i + 1)); if (a) a.focus();
+}
+
+/* ---------- вправа 419: порядок дій ---------- */
+function e419(kind, p){
+  var text, steps, ans, P;
+  if (kind === 'amc'){
+    P = p.a * p.b;
+    text = p.a + ' · ' + p.b + ' − ' + fmt(p.c);
+    steps = [{ t: p.a + ' · ' + p.b, a: P, d: 'виконуємо множення', hint: 'Множимо в стовпчик: ' + p.a + ' · ' + p.b + '.', note: swapNote(p.a, p.b) },
+             { t: fmt(P) + ' − ' + fmt(p.c), a: P - p.c, d: 'віднімаємо', hint: 'Від добутку віднімаємо ' + fmt(p.c) + '.' }];
+    ans = text + ' = ' + fmt(P - p.c);
+  } else if (kind === 'apb'){
+    P = p.a * p.b;
+    text = p.x + ' + ' + p.a + ' · ' + p.b;
+    steps = [{ t: p.a + ' · ' + p.b, a: P, d: 'множення виконуємо першим', hint: 'Спочатку виконуємо множення.' },
+             { t: p.x + ' + ' + fmt(P), a: p.x + P, d: 'додаємо', hint: 'Тепер додаємо.' }];
+    ans = text + ' = ' + fmt(p.x + P);
+  } else {
+    var s1 = p.a + p.b, s2 = p.c - p.d;
+    text = '(' + p.a + ' + ' + p.b + ') · (' + p.c + ' − ' + p.d + ')';
+    steps = [{ t: p.a + ' + ' + p.b, a: s1, d: 'значення першої дужки', hint: 'Спочатку виконуємо дії в дужках.' },
+             { t: p.c + ' − ' + p.d, a: s2, d: 'значення другої дужки', hint: 'Друга дужка: віднімаємо.' },
+             { t: s1 + ' · ' + s2, a: s1 * s2, d: 'множимо значення дужок', hint: 'Помножте значення дужок.' }];
+    ans = text + ' = ' + fmt(s1 * s2);
+  }
+  return { text: 'Обчисліть: <b class="hl">' + text + '</b>', steps: steps, ans: ans };
+}
+GEN.t419 = function(n){
+  var g;
+  if (n === 0){ g = e419('amc', { a: 412, b: 42, c: 7304 }); g.cap = 'Вправа 419 (1) підручника'; return g; }
+  if (n === 1){ g = e419('par', { a: 294, b: 16, c: 348, d: 279 }); g.cap = 'Вправа 419 (3) підручника'; return g; }
+  var kind = ['amc', 'apb', 'par'][(n - 2) % 3], p;
+  if (kind === 'amc'){ var a = rnd(120, 899), b = rnd(21, 69); p = { a: a, b: b, c: rnd(1000, Math.floor(a * b / 2)) }; }
+  else if (kind === 'apb'){ p = { x: rnd(100, 900), a: rnd(12, 49), b: rnd(120, 499) }; }
+  else { var c = rnd(300, 500); p = { a: rnd(100, 400), b: rnd(10, 60), c: c, d: rnd(100, c - 50) }; }
+  return e419(kind, p);
+};
+
+/* ---------- вправа 421: значення виразу ---------- */
+function e421(kind, p){
+  var text, steps, ans, P;
+  if (kind === 'A'){
+    P = p.k * p.x;
+    text = 'Обчисліть значення виразу <b class="hl">' + p.k + 'x + ' + p.c + '</b>, якщо <b>x = ' + p.x + '</b>.';
+    steps = [{ t: p.k + ' · ' + p.x, a: P, d: 'підставляємо x і множимо', hint: 'Запис ' + p.k + 'x означає ' + p.k + ' · x. Підставте x = ' + p.x + '.', note: swapNote(p.k, p.x) },
+             { t: fmt(P) + ' + ' + p.c, a: P + p.c, d: 'додаємо', hint: 'До добутку додаємо ' + p.c + '.' }];
+    ans = p.k + ' · ' + p.x + ' + ' + p.c + ' = ' + fmt(P + p.c);
+  } else {
+    var d = p.c - p.x; P = d * p.y;
+    text = 'Обчисліть значення виразу <b class="hl">(' + p.c + ' − x) · y</b>, якщо <b>x = ' + p.x + ', y = ' + fmt(p.y) + '</b>.';
+    steps = [{ t: p.c + ' − ' + p.x, a: d, d: 'значення дужки', hint: 'Спочатку виконуємо дію в дужках.' },
+             { t: d + ' · ' + fmt(p.y), a: P, d: 'множимо на y', hint: 'Помножте значення дужки на y = ' + fmt(p.y) + '.' }];
+    ans = '(' + p.c + ' − ' + p.x + ') · ' + fmt(p.y) + ' = ' + fmt(P);
+  }
+  return { text: text, steps: steps, ans: ans };
+}
+GEN.t421 = function(n){
+  var g;
+  if (n === 0){ g = e421('A', { k: 17, x: 58, c: 432 }); g.cap = 'Вправа 421 (1) підручника'; return g; }
+  if (n === 1){ g = e421('B', { c: 739, x: 554, y: 4900 }); g.cap = 'Вправа 421 (2) підручника'; return g; }
+  if (n % 2 === 0) return e421('A', { k: rnd(12, 29), x: rnd(21, 89), c: rnd(100, 900) });
+  var c = rnd(500, 900); return e421('B', { c: c, x: rnd(100, c - 50), y: rnd(12, 99) * 10 });
+};
+
+/* ---------- вправа 424 ---------- */
+GEN.t424 = function(n){
+  if (n === 0){
+    return { cap: 'Вправа 424 підручника',
+      text: 'Для нормального функціонування організму людина щодня має отримувати <b>90 мг</b> вітаміну С. Куріння однієї цигарки руйнує <b>5 мг</b> вітаміну С. Скільки міліграмів цього вітаміну краде в себе той, хто викурює <b>12 цигарок</b> на день? Скільки міліграмів вітаміну С надходитиме до організму того, хто курить, якщо він споживатиме вітамін за нормою?',
+      steps: [{ t: '5 · 12', a: 60, u: 'мг', d: 'руйнується вітаміну С', hint: 'Кожна цигарка руйнує 5 мг, а цигарок 12.', note: swapNote(5, 12) },
+              { t: '90 − 60', a: 30, u: 'мг', d: 'надійде до організму', hint: 'Від норми віднімаємо те, що зруйновано.' }],
+      ans: 'Відповідь: 60 мг; 30 мг.' };
+  }
+  var cnt = rnd(9, 15), k = rnd(3, 6), tot = [100, 120][rnd(0, 1)], P = cnt * k;
+  return { text: 'У коробці було <b>' + tot + ' олівців</b>. <b>' + cnt + ' ' + plural(cnt, 'учень', 'учні', 'учнів') + '</b> узяли по <b>' + k + ' ' + plural(k, 'олівець', 'олівці', 'олівців') + '</b>. Скільки олівців узяли учні? Скільки олівців залишилося в коробці?',
+    steps: [{ t: k + ' · ' + cnt, a: P, u: 'шт.', d: 'олівців узяли учні', hint: 'Кожен узяв по ' + k + ', учнів ' + cnt + '.', note: swapNote(k, cnt) },
+            { t: tot + ' − ' + P, a: tot - P, u: 'шт.', d: 'олівців залишилося в коробці', hint: 'Від усіх олівців віднімаємо ті, що взяли.' }],
+    ans: 'Відповідь: ' + P + ' ' + plural(P, 'олівець', 'олівці', 'олівців') + '; залишилося ' + (tot - P) + '.' };
+};
+
+/* ---------- вправа 425 ---------- */
+var BUYERS = [['Оленка', 'купила', 'вона'], ['Марко', 'купив', 'він'], ['Дарина', 'купила', 'вона'], ['Тарас', 'купив', 'він']];
+GEN.t425 = function(n){
+  if (n === 0){
+    return { cap: 'Вправа 425 підручника',
+      text: 'Готуючись до школи, Буратіно купив <b>34 зошити по 12 сольдо</b> та <b>18 зошитів по 16 сольдо</b>. Скільки сольдо заплатив Буратіно за всі зошити?',
+      steps: [{ t: '34 · 12', a: 408, u: 'сольдо', d: 'вартість перших зошитів', hint: 'Кількість зошитів помножте на ціну одного: 34 · 12.', note: swapNote(34, 12) },
+              { t: '18 · 16', a: 288, u: 'сольдо', d: 'вартість других зошитів', hint: 'Другі зошити: 18 · 16.' },
+              { t: '408 + 288', a: 696, u: 'сольдо', d: 'вартість усієї покупки', hint: 'Додайте вартість обох покупок.' }],
+      ans: 'Відповідь: 696 сольдо.' };
+  }
+  var by = BUYERS[rnd(0, 3)], n1 = rnd(20, 45), p1 = rnd(10, 19), n2 = rnd(12, 30), p2 = rnd(11, 25), a = n1 * p1, b = n2 * p2;
+  return { text: by[0] + ' ' + by[1] + ' <b>' + n1 + ' ' + plural(n1, 'зошит', 'зошити', 'зошитів') + ' по ' + p1 + ' грн</b> та <b>' + n2 + ' ' + plural(n2, 'блокнот', 'блокноти', 'блокнотів') + ' по ' + p2 + ' грн</b>. Скільки гривень ' + by[2] + ' заплатив' + (by[2] === 'вона' ? 'ла' : '') + ' за всю покупку?',
+    steps: [{ t: n1 + ' · ' + p1, a: a, u: 'грн', d: 'вартість зошитів', hint: 'Кількість зошитів помножте на ціну одного.', note: swapNote(n1, p1) },
+            { t: n2 + ' · ' + p2, a: b, u: 'грн', d: 'вартість блокнотів', hint: 'Кількість блокнотів помножте на ціну одного.' },
+            { t: a + ' + ' + b, a: a + b, u: 'грн', d: 'вартість усієї покупки', hint: 'Додайте вартість обох покупок.' }],
+    ans: 'Відповідь: ' + (a + b) + ' грн.' };
+};
+
+/* ---------- вправа 427 ---------- */
+GEN.t427 = function(n){
+  if (n === 0){
+    return { cap: 'Вправа 427 підручника',
+      text: 'За п’ять місяців (з травня по вересень) одна тополя поглинає <b>44 кг</b> вуглекислого газу, а один дуб — <b>28 кг</b>. На скільки більше кілограмів вуглекислого газу поглинають за цей період <b>40 тополь</b>, ніж <b>40 дубів</b>?',
+      steps: [{ t: '44 · 40', a: 1760, u: 'кг', d: 'поглинають 40 тополь', hint: 'Скільки поглинають 40 тополь: 44 · 40.', note: swapNote(44, 40) },
+              { t: '28 · 40', a: 1120, u: 'кг', d: 'поглинають 40 дубів', hint: 'Скільки поглинають 40 дубів: 28 · 40.' },
+              { t: '1760 − 1120', a: 640, u: 'кг', d: 'на скільки більше', hint: '«На скільки більше» — знаходимо різницю.' }],
+      ans: 'Відповідь: на 640 кг.' };
+  }
+  var a = rnd(35, 60), b = rnd(20, a - 8), m = rnd(20, 50), A = a * m, B = b * m;
+  return { text: 'З однієї яблуні за сезон збирають <b>' + a + ' кг</b> яблук, а з однієї груші — <b>' + b + ' кг</b> груш. У саду ростуть <b>' + m + ' ' + plural(m, 'яблуня', 'яблуні', 'яблунь') + '</b> і <b>' + m + ' ' + plural(m, 'груша', 'груші', 'груш') + '</b>. На скільки кілограмів більше яблук, ніж груш, збирають у цьому саду за сезон?',
+    steps: [{ t: a + ' · ' + m, a: A, u: 'кг', d: 'урожай яблук', hint: 'Урожай яблук: ' + a + ' · ' + m + '.', note: swapNote(a, m) },
+            { t: b + ' · ' + m, a: B, u: 'кг', d: 'урожай груш', hint: 'Урожай груш: ' + b + ' · ' + m + '.' },
+            { t: fmt(A) + ' − ' + fmt(B), a: A - B, u: 'кг', d: 'на скільки більше', hint: '«На скільки більше» — знаходимо різницю.' }],
+    ans: 'Відповідь: на ' + (A - B) + ' кг.' };
+};
+
+/* ---------- вправи 428, 429: шлях ---------- */
+GEN.t428 = function(n){
+  var tx, v1, t1, v2, t2, c1, c2, cap = '', note = true;
+  if (n === 0){
+    cap = 'Вправа 428 підручника'; v1 = 8; t1 = 14; v2 = 4; t2 = 23; c1 = 'Річкою'; c2 = 'Суходолом';
+    tx = 'Вирушивши в похід, туристка <b>14 год</b> пливла річкою на човні зі швидкістю <b>8 км/год</b> і йшла пішки <b>23 год</b> зі швидкістю <b>4 км/год</b>. Який шлях, річкою чи суходолом, вона подолала більший і на скільки кілометрів?';
+  } else if (n === 1){
+    cap = 'Вправа 429 підручника'; v1 = 27; t1 = 5; v2 = 21; t2 = 7; c1 = 'Річкою'; c2 = 'Озером';
+    tx = 'Івасик-Телесик плив на моторному човні <b>5 год</b> річкою зі швидкістю <b>27 км/год</b>, потім <b>7 год</b> озером зі швидкістю <b>21 км/год</b>. Який шлях, річкою чи озером, був довшим і на скільки кілометрів?';
+  } else {
+    do { v1 = rnd(10, 16); t1 = rnd(2, 5); v2 = rnd(4, 6); t2 = rnd(3, 6); } while (v1 * t1 === v2 * t2);
+    c1 = 'На велосипеді'; c2 = 'Пішки';
+    tx = 'Дарина їхала <b>' + t1 + ' год</b> на велосипеді зі швидкістю <b>' + v1 + ' км/год</b> і йшла пішки <b>' + t2 + ' год</b> зі швидкістю <b>' + v2 + ' км/год</b>. Який шлях, на велосипеді чи пішки, вона подолала більший і на скільки кілометрів?';
+  }
+  var s1 = v1 * t1, s2 = v2 * t2, big = Math.max(s1, s2), small = Math.min(s1, s2), who = s1 > s2 ? c1 : c2;
+  return { cap: cap, text: tx,
+    steps: [{ t: v1 + ' · ' + t1, a: s1, u: 'км', d: 'перший шлях', hint: 'Шлях дорівнює добутку швидкості й часу: s = v · t.', note: swapNote(v1, t1) },
+            { t: v2 + ' · ' + t2, a: s2, u: 'км', d: 'другий шлях', hint: 'Знову s = v · t.' },
+            { t: big + ' − ' + small, a: big - small, u: 'км', d: 'різниця шляхів', hint: 'Від більшого шляху віднімаємо менший.' }],
+    ans: 'Відповідь: ' + who.toLowerCase() + ' шлях більший на ' + (big - small) + ' км.' };
+};
+
+/* ---------- вправи 434, 436, 432: рух двох об'єктів ---------- */
+function schemeSVG(type, l1, l2, q){
+  var c1 = '#0f766e', c2 = '#7c3aed', c3 = '#be185d', s = '<svg viewBox="0 0 600 230" role="img" aria-label="Схема руху">';
+  s += '<defs><marker id="ah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="' + c1 + '"/></marker>' +
+       '<marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="' + c2 + '"/></marker></defs>';
+  function tx(x, y, t, col){ return '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="25" font-weight="800" font-family="Nunito,sans-serif" fill="' + col + '">' + t + '</text>'; }
+  function brace(x1, x2, y, t){ return '<path d="M' + x1 + ',' + y + ' v14 H' + x2 + ' v-14" fill="none" stroke="' + c3 + '" stroke-width="3"/>' + tx((x1 + x2) / 2, y + 46, t, c3); }
+  if (type === 'opp'){
+    s += '<line x1="30" y1="110" x2="570" y2="110" stroke="#cbd5e1" stroke-width="3"/><circle cx="300" cy="110" r="9" fill="#3a1736"/>' +
+         '<line x1="288" y1="110" x2="90" y2="110" stroke="' + c1 + '" stroke-width="6" marker-end="url(#ah1)"/>' +
+         '<line x1="312" y1="110" x2="510" y2="110" stroke="' + c2 + '" stroke-width="6" marker-end="url(#ah2)"/>' +
+         tx(190, 84, l1, c1) + tx(410, 84, l2, c2) + brace(90, 510, 150, q);
+  } else if (type === 'meet'){
+    s += '<line x1="30" y1="110" x2="570" y2="110" stroke="#cbd5e1" stroke-width="3"/><circle cx="60" cy="110" r="9" fill="#3a1736"/><circle cx="540" cy="110" r="9" fill="#3a1736"/>' +
+         '<line x1="76" y1="110" x2="272" y2="110" stroke="' + c1 + '" stroke-width="6" marker-end="url(#ah1)"/>' +
+         '<line x1="524" y1="110" x2="328" y2="110" stroke="' + c2 + '" stroke-width="6" marker-end="url(#ah2)"/>' +
+         tx(170, 84, l1, c1) + tx(430, 84, l2, c2) + brace(60, 540, 150, q);
+  } else {
+    s += '<circle cx="60" cy="80" r="9" fill="#3a1736"/><circle cx="60" cy="140" r="9" fill="#3a1736"/>' +
+         '<line x1="76" y1="80" x2="300" y2="80" stroke="' + c1 + '" stroke-width="6" marker-end="url(#ah1)"/>' +
+         '<line x1="76" y1="140" x2="480" y2="140" stroke="' + c2 + '" stroke-width="6" marker-end="url(#ah2)"/>' +
+         '<line x1="300" y1="80" x2="300" y2="166" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 5"/><line x1="480" y1="140" x2="480" y2="166" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 5"/>' +
+         tx(190, 62, l1, c1) + tx(280, 126, l2, c2) + brace(300, 480, 166, q).replace('y="212"', 'y="212"');
+  }
+  return s + '</svg>';
+}
+GEN.t434 = function(n){
+  if (n === 0){
+    return { cap: 'Вправа 434 підручника',
+      text: 'З однієї станції в протилежних напрямках одночасно відійшли два поїзди. Один із них рухався зі швидкістю <b>64 км/год</b>, а другий — зі швидкістю <b>57 км/год</b>. Якою буде відстань між ними через <b>9 год</b> після початку руху?',
+      vis: schemeSVG('opp', '64 км/год', '57 км/год', '? км'),
+      steps: [{ t: '64 + 57', a: 121, u: 'км/год', d: 'швидкість віддалення', hint: 'Поїзди їдуть у протилежних напрямках: швидкості додаємо.', note: 'На стільки кілометрів щогодини збільшується відстань між поїздами.' },
+              { t: '121 · 9', a: 1089, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час: s = v · t.' }],
+      ans: 'Відповідь: 1089 км.' };
+  }
+  if (n === 1){
+    return { cap: 'Вправа 436 підручника',
+      text: 'Із міст Конотоп і Сміла одночасно назустріч один одному виїхали велосипедист і легковий автомобіль. Велосипедист їхав зі швидкістю <b>11 км/год</b>, автомобіль — у <b>7 разів</b> швидше. Знайдіть відстань між цими містами, якщо велосипедист і автомобіль зустрілися через <b>4 год</b> після початку руху.',
+      vis: schemeSVG('meet', '11 км/год', 'у 7 разів швидше', '? км'),
+      steps: [{ t: '11 · 7', a: 77, u: 'км/год', d: 'швидкість автомобіля', hint: 'Автомобіль їхав у 7 разів швидше: 11 · 7.', note: swapNote(11, 7) },
+              { t: '11 + 77', a: 88, u: 'км/год', d: 'швидкість зближення', hint: 'Вони їдуть назустріч: швидкості додаємо.', note: 'На стільки кілометрів щогодини зменшується відстань між ними.' },
+              { t: '88 · 4', a: 352, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час: s = v · t.' }],
+      ans: 'Відповідь: 352 км.' };
+  }
+  if (n === 2){
+    return { cap: 'Вправа 432 підручника',
+      text: 'З одного порту в інший одночасно відійшли теплохід і катер. Швидкість теплохода — <b>28 км/год</b>, а швидкість катера — <b>36 км/год</b>. Якою буде відстань між ними через <b>5 год</b> після початку руху?',
+      vis: schemeSVG('same', '28 км/год', '36 км/год', '? км'),
+      steps: [{ t: '36 − 28', a: 8, u: 'км/год', d: 'швидкість віддалення', hint: 'Рухаються в одному напрямку: від більшої швидкості віднімаємо меншу.', note: 'На стільки кілометрів щогодини збільшується відстань між ними.' },
+              { t: '8 · 5', a: 40, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час: s = v · t.' }],
+      ans: 'Відповідь: 40 км.' };
+  }
+  var type = ['opp', 'meet', 'same'][(n - 3) % 3], v1, v2, k, t;
+  if (type === 'opp'){
+    v1 = rnd(40, 90); do { v2 = rnd(40, 90); } while (v2 === v1); t = rnd(2, 9);
+    return { text: 'З одного міста в протилежних напрямках одночасно виїхали два автомобілі. Швидкість першого — <b>' + v1 + ' км/год</b>, а другого — <b>' + v2 + ' км/год</b>. Якою буде відстань між ними через <b>' + t + ' год</b> після початку руху?',
+      vis: schemeSVG('opp', v1 + ' км/год', v2 + ' км/год', '? км'),
+      steps: [{ t: v1 + ' + ' + v2, a: v1 + v2, u: 'км/год', d: 'швидкість віддалення', hint: 'Протилежні напрямки: швидкості додаємо.', note: 'На стільки кілометрів щогодини збільшується відстань між ними.' },
+              { t: (v1 + v2) + ' · ' + t, a: (v1 + v2) * t, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час.' }],
+      ans: 'Відповідь: ' + (v1 + v2) * t + ' км.' };
+  }
+  if (type === 'meet'){
+    v1 = rnd(8, 14); k = rnd(3, 7); t = rnd(2, 5); v2 = v1 * k;
+    return { text: 'Із двох сіл одночасно назустріч один одному виїхали велосипедист і мотоцикліст. Велосипедист їхав зі швидкістю <b>' + v1 + ' км/год</b>, а мотоцикліст — у <b>' + k + ' ' + raz(k) + '</b> швидше. Знайдіть відстань між селами, якщо вони зустрілися через <b>' + t + ' год</b> після початку руху.',
+      vis: schemeSVG('meet', v1 + ' км/год', 'у ' + k + ' ' + raz(k) + ' швидше', '? км'),
+      steps: [{ t: v1 + ' · ' + k, a: v2, u: 'км/год', d: 'швидкість мотоцикліста', hint: 'Мотоцикліст їхав у ' + k + ' ' + raz(k) + ' швидше: ' + v1 + ' · ' + k + '.', note: swapNote(v1, k) },
+              { t: v1 + ' + ' + v2, a: v1 + v2, u: 'км/год', d: 'швидкість зближення', hint: 'Назустріч: швидкості додаємо.', note: 'На стільки кілометрів щогодини зменшується відстань між ними.' },
+              { t: (v1 + v2) + ' · ' + t, a: (v1 + v2) * t, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час.' }],
+      ans: 'Відповідь: ' + (v1 + v2) * t + ' км.' };
+  }
+  v1 = rnd(20, 40); v2 = v1 + rnd(5, 20); t = rnd(2, 6);
+  return { text: 'З одного пункту в одному напрямку одночасно виїхали вантажний і легковий автомобілі. Швидкість вантажного — <b>' + v1 + ' км/год</b>, а легкового — <b>' + v2 + ' км/год</b>. Якою буде відстань між ними через <b>' + t + ' год</b> після початку руху?',
+    vis: schemeSVG('same', v1 + ' км/год', v2 + ' км/год', '? км'),
+    steps: [{ t: v2 + ' − ' + v1, a: v2 - v1, u: 'км/год', d: 'швидкість віддалення', hint: 'Один напрямок: від більшої швидкості віднімаємо меншу.', note: 'На стільки кілометрів щогодини збільшується відстань між ними.' },
+            { t: (v2 - v1) + ' · ' + t, a: (v2 - v1) * t, u: 'км', d: 'шукана відстань', hint: 'Відстань = швидкість · час.' }],
+    ans: 'Відповідь: ' + (v2 - v1) * t + ' км.' };
+};
+
+/* ---------- вправа 450 (додатково до етапу 5) ---------- */
+var o450 = { done: false, list: [] };
+function build450(){
+  o450.done = false; hide('fb450');
+  var right = '42 · 96 — це копійки, а 16 · 2 — гривні: їх не можна додавати без переведення';
+  o450.right = right;
+  o450.list = shuffle([right, 'Множники треба було записати в іншому порядку: 96 · 42', '16 · 2 дорівнює 18', 'Помилки немає']);
+  var h = '';
+  o450.list.forEach(function(t, i){ h += '<button class="opt long" id="o450_' + i + '" onclick="pick450(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
+  put('o450', h);
+}
+function pick450(i){
+  if (o450.done) return;
+  var b = $('o450_' + i);
+  if (o450.list[i] === o450.right){
+    b.classList.add('good'); o450.done = true; addScore(5); confetti(25);
+    show('fb450', 'ok', '✓ Правильно! 42 · 96 = 4032 коп. = 40 грн 32 коп.; 16 · 2 = 32 грн; разом 72 грн 32 коп.');
+  } else { b.classList.add('wrong'); b.disabled = true; show('fb450', 'bad', '✗ Неправильно. Подумайте, в яких одиницях виражено кожну суму.'); }
+}
+
+/* ---------- етап 9: вправа 439 ---------- */
+var mcN = 0, mc = {};
+function up(n){ return 'збільшиться у ' + n + ' ' + raz(n); }
+function down(n){ return 'зменшиться в ' + n + ' ' + raz(n); }
+function genMc(){
+  var sp, n = mcN++;
+  if (n === 0) sp = { k: 1, p: 8 };
+  else if (n === 1) sp = { k: 2, d: 5 };
+  else if (n === 2) sp = { k: 3, m: 6 };
+  else if (n === 3) sp = { k: 4, p: 3, q: 40 };
+  else if (n === 4) sp = { k: 5, p: 12, d: 3 };
+  else {
+    var k = rnd(1, 5); sp = { k: k };
+    if (k === 1) sp.p = rnd(3, 12); else if (k === 2) sp.d = rnd(2, 9); else if (k === 3) sp.m = rnd(3, 9);
+    else if (k === 4){ sp.p = rnd(2, 9); sp.q = rnd(10, 50); } else { sp.d = rnd(3, 6); var r = rnd(2, 5); sp.p = sp.d * r; }
+  }
+  var cond, right, wrong, a, b, na, nb, ratio, inc = true;
+  if (sp.k === 1){
+    cond = 'один із множників збільшити у ' + sp.p + ' ' + raz(sp.p); right = up(sp.p); wrong = ['збільшиться на ' + sp.p, up(sp.p * 2), down(sp.p)];
+    a = rnd(3, 9); b = rnd(3, 9); na = a * sp.p; nb = b; ratio = sp.p;
+  } else if (sp.k === 2){
+    cond = 'один із множників зменшити в ' + sp.d + ' ' + raz(sp.d); right = down(sp.d); wrong = ['зменшиться на ' + sp.d, up(sp.d), 'не зміниться'];
+    a = sp.d * rnd(2, 6); b = rnd(3, 9); na = a / sp.d; nb = b; ratio = sp.d; inc = false;
+  } else if (sp.k === 3){
+    cond = 'кожний із множників збільшити в ' + sp.m + ' ' + raz(sp.m); right = up(sp.m * sp.m); wrong = [up(sp.m), up(2 * sp.m), 'не зміниться'];
+    a = rnd(2, 5); b = rnd(2, 5); na = a * sp.m; nb = b * sp.m; ratio = sp.m * sp.m;
+  } else if (sp.k === 4){
+    cond = 'один множник збільшити в ' + sp.p + ' ' + raz(sp.p) + ', а другий — у ' + sp.q + ' ' + raz(sp.q); right = up(sp.p * sp.q); wrong = [up(sp.p + sp.q), up(sp.p), up(sp.q)];
+    a = rnd(2, 4); b = rnd(2, 4); na = a * sp.p; nb = b * sp.q; ratio = sp.p * sp.q;
+  } else {
+    var r2 = sp.p / sp.d;
+    cond = 'один множник збільшити у ' + sp.p + ' ' + raz(sp.p) + ', а другий зменшити в ' + sp.d + ' ' + raz(sp.d); right = up(r2); wrong = [up(sp.p), down(sp.d), up(sp.p - sp.d)];
+    a = rnd(2, 5); b = sp.d * rnd(2, 4); na = a * sp.p; nb = b / sp.d; ratio = r2;
+  }
+  var P = a * b, NP = na * nb;
+  var ex = '<b>Перевірка:</b> ' + a + ' · ' + b + ' = ' + P + '; ' + na + ' · ' + nb + ' = ' + NP + '; ' + (inc ? NP + ' : ' + P : P + ' : ' + NP) + ' = ' + ratio + '.';
+  mc = { right: right, list: shuffle([right].concat(wrong)), ex: ex, done: false };
+  $('mcCap').textContent = n < 5 ? 'Вправа 439 (' + (n + 1) + ') підручника' : ' ';
+  put('mcText', 'Як зміниться добуток двох натуральних чисел, якщо <b class="hl">' + cond + '</b>?');
+  var h = '';
+  mc.list.forEach(function(t, i){ h += '<button class="opt" id="mcO' + i + '" onclick="mcPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
+  put('mcOpts', h); hide('mcFb');
+}
+function mcPick(i){
+  if (mc.done) return;
+  var b = $('mcO' + i);
+  if (mc.list[i] === mc.right){ b.classList.add('good'); mc.done = true; show('mcFb', 'ok', '✓ Правильно! Добуток ' + mc.right + '.<br>' + mc.ex); addScore(10); confetti(30); }
+  else { b.classList.add('wrong'); b.disabled = true; show('mcFb', 'bad', '✗ Неправильно. Перевірте на невеликих числах.'); }
+}
+
+/* ---------- вправа 438 (додатково до етапу 9) ---------- */
+var B438 = [
+  { t: 'Добуток двох натуральних чисел більший за їхню суму.', ok: false, fix: 'Ні: 1 · 5 = 5, а 1 + 5 = 6.' },
+  { t: 'Будь-яке натуральне число можна подати у вигляді добутку двох натуральних чисел.', ok: true, fix: '' },
+  { t: 'Будь-яке натуральне число можна подати у вигляді добутку двох різних натуральних чисел.', ok: false, fix: 'Ні: число 1 = 1 · 1, множники однакові.' }
+];
+function build438(){
+  var h = '';
+  B438.forEach(function(it, i){
+    it.sel = null;
+    h += '<div class="cmp" id="b438R' + i + '"><span class="no">' + (i + 1) + '</span><span class="side">' + it.t + '</span><span class="signs">' +
+      '<button class="pick" id="b438Y' + i + '" onclick="b438Sel(' + i + ',true)">Так</button><button class="pick" id="b438N' + i + '" onclick="b438Sel(' + i + ',false)">Ні</button></span><span class="fix" id="b438X' + i + '" hidden></span></div>';
+  });
+  put('b438List', h); hide('b438Fb');
+}
+function b438Sel(i, v){
+  B438[i].sel = v; $('b438Y' + i).classList.toggle('on', v === true); $('b438N' + i).classList.toggle('on', v === false);
+  $('b438R' + i).classList.remove('good', 'wrong'); hide('b438Fb');
+}
+function b438Check(){
+  if (B438.some(function(it){ return it.sel === null; })){ show('b438Fb', 'warn', 'Оберіть «Так» або «Ні» для кожного твердження.'); return; }
+  var all = true;
+  B438.forEach(function(it, i){
+    var ok = it.sel === it.ok; if (!ok) all = false;
+    $('b438R' + i).classList.remove('good', 'wrong'); $('b438R' + i).classList.add(ok ? 'good' : 'wrong');
+  });
+  if (all){
+    B438.forEach(function(it, i){ if (it.fix){ var x = $('b438X' + i); x.textContent = it.fix; x.hidden = false; } });
+    show('b438Fb', 'ok', '✓ Правильно!'); addScore(10); confetti(35);
+  } else show('b438Fb', 'bad', '✗ Є неправильні відповіді. Виправте червоні рядки.');
+}
+
+/* ---------- етап 10: підсумок ---------- */
+var ENDINGS = [
+  { s: 'Від перестановки множників добуток', e: 'не змінюється.' },
+  { s: 'Якщо один із множників збільшити в кілька разів, а другий не змінювати, то добуток', e: 'збільшиться в стільки само разів.' },
+  { s: 'Шлях дорівнює добутку', e: 'швидкості й часу: s = v · t.' },
+  { s: 'Якщо об’єкти рухаються назустріч або в протилежних напрямках, то щогодини відстань між ними змінюється на', e: 'суму їхніх швидкостей.' },
+  { s: 'У виразі з дужками спочатку виконуємо', e: 'дії в дужках.' },
+  { s: 'Множення виконуємо раніше за', e: 'додавання і віднімання.' }
+];
+function resetEnds(){
+  var h = '';
+  ENDINGS.forEach(function(x, i){ h += '<div class="endr"><span>' + x.s + '</span><button class="btn g s" id="endB' + i + '" onclick="endShow(' + i + ')">Показати</button><span class="ans" id="endA' + i + '" hidden>' + x.e + '</span></div>'; });
+  put('endList', h);
+}
+function sumReset(){
+  var c = document.querySelectorAll('#stage-10 .sumc'); for (var i = 0; i < c.length; i++) c[i].classList.add('closed');
+  $('selfBox').hidden = true;
+}
+function sumOpen(el){
+  el.classList.remove('closed');
+  if (!document.querySelector('#stage-10 .sumc.closed')) $('selfBox').hidden = false;
+}
+function endShow(i){ $('endB' + i).hidden = true; $('endA' + i).hidden = false; }
+
+function onStage(n){
+  if (n === 1 && !$('acRow').hidden) $('acAns').focus();
+  if (n >= 2 && n <= 8){ var a = $(KEYS[n - 2] + 'A0'); if (a && !a.readOnly) a.focus(); }
+}
+function resetAll(){
+  ac.k = 0; acGen(); T = {}; KEYS.forEach(function(k){ taskNew(k); });
+  mcN = 0; genMc(); build450(); build438(); $('bon438').hidden = true; $('bon450').hidden = true; resetEnds(); sumReset();
+}
+
+startCore();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
