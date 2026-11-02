@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Степенева функція з цілим показником: вправи 3.1–3.9</title>
+
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        @keyframes drawStroke { from { stroke-dashoffset: 12000; } to { stroke-dashoffset: 0; } }
+        .animate-draw { stroke-dasharray: 12000; stroke-dashoffset: 12000; animation: drawStroke 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes fadeInPoint { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in-point { animation: fadeInPoint 0.8s ease-out forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        graphite: '#2C3E50',
+                        panelLeft: '#F2E6FF',
+                        panelRight: '#FAF5FF',
+                        brand: '#6B21A8',
+                        brandLight: '#F3E8FF'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 overflow-hidden text-graphite selection:bg-purple-600 selection:text-white font-sans h-screen w-screen relative">
+
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel" data-type="module" data-presets="react">
+        const { useState, useEffect, useRef } = React;
+        const r = String.raw;
+
+        const TXT = "text-[14px] sm:text-[15px] md:text-[17px] lg:text-[21px] xl:text-[25px]";
+
+        const Latex = ({ math, block = false }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    try { window.katex.render(math, ref.current, { displayMode: block, throwOnError: false }); }
+                    catch (e) { console.error(e); }
+                }
+            }, [math, block]);
+            return <span ref={ref} />;
+        };
+
+        // Текст з формулами між знаками $
+        const Rich = ({ s }) => {
+            const p = s.split('$');
+            return <>{p.map((x, i) => i % 2 ? <Latex key={i} math={x} /> : <span key={i}>{x}</span>)}</>;
+        };
+
+        /* ============ Кольори графіків ============ */
+        const C = { brand: '#8E44AD', green: '#27AE60', red: '#E74C3C', blue: '#2980B9', gray: '#94a3b8', dark: '#34495E' };
+
+        /* ============ Побудова сцен графіків ============ */
+        const pw = (n) => (x) => Math.pow(x, n);
+        const inv1 = (x) => 1 / x;
+        const inv2 = (x) => 1 / (x * x);
+        const tk = (v, l, dy) => ({ v, l: l === undefined ? String(v) : l, dy: dy || 0 });
+        const ints = (a, b) => { const o = []; for (let i = a; i <= b; i++) if (i !== 0) o.push(tk(i)); return o; };
+        const dash = (x, y, c = C.dark) => [
+            { x1: x, y1: 0, x2: x, y2: y, c, dash: 1 },
+            { x1: 0, y1: y, x2: x, y2: y, c, dash: 1 }
+        ];
+        const P = (x, y, o = {}) => ({ x, y, ...o });
+        const base = (view, xt, yt, curves, fn, extra = {}) => ({ view, xt, yt, curves, fn, segs: [], pts: [], rects: [], ...extra });
+
+        // Порівняння значень на схематичному графіку
+        // items: [{x, xl (підпис на осі), lbl (підпис точки), pos, dy}]
+        const cmpScene = (g, fnTex, view, dom, items, opts = {}) => (s) => {
+            const sc = base(view, items.filter(i => i.tick !== false).map(i => tk(i.x, i.xl, i.dy)), [], [{ f: g, dom, c: C.brand }], fnTex, { caption: 'Схематичний графік' });
+            if (s >= 1) items.forEach(i => { if (!i.late) sc.segs.push({ x1: i.x, y1: 0, x2: i.x, y2: g(i.x), c: C.dark, dash: 1 }); });
+            if (s >= 2) items.forEach(i => {
+                sc.segs.push({ x1: 0, y1: g(i.x), x2: i.x, y2: g(i.x), c: C.dark, dash: 1 });
+                sc.pts.push(P(i.x, g(i.x), { c: i.c || C.green, tex: i.lbl, pos: i.pos }));
+            });
+            if (opts.extra) opts.extra(sc, s);
+            return sc;
+        };
+
+        /* ============ Вправи ============ */
+        const EX = [
+            /* ---------- 3.1 ---------- */
+            {
+                id: '3.1', name: r`Чи проходить графік функції $y=x^{-4}$ через точку`,
+                cond: r`Чи проходить графік функції $y=x^{-4}$ через точку:`,
+                note: r`$y=x^{-4}=\dfrac{1}{x^{4}}$, $x\neq 0$. Підставляємо $x$ у формулу й порівнюємо з ординатою точки.`,
+                items: [
+                    {
+                        label: r`A\left(2;\dfrac{1}{16}\right)`,
+                        steps: [
+                            { t: r`$x=2$: $y=2^{-4}=\dfrac{1}{2^{4}}=\dfrac{1}{16}$`, g: 1 },
+                            { t: r`$\dfrac{1}{16}=\dfrac{1}{16}$`, g: 2 }
+                        ],
+                        ans: { t: r`Так, проходить`, k: 'yes' },
+                        scene: (s) => {
+                            const sc = base({ x0: -1, x1: 3, y0: -0.15, y1: 1.25 }, ints(-1, 3), [tk(1 / 16, r`\frac{1}{16}`), tk(1)], [{ f: pw(-4), dom: [[0.3, 3]], c: C.brand }], r`y=x^{-4}`);
+                            if (s >= 1) { sc.segs.push(...dash(2, 1 / 16)); sc.pts.push(P(2, 1 / 16, { c: C.brand })); }
+                            if (s >= 2) sc.pts.push(P(2, 1 / 16, { c: C.green, ring: 1, tex: r`A`, pos: 'tr' }));
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`B\left(-2;\dfrac{1}{8}\right)`,
+                        steps: [
+                            { t: r`$x=-2$: $y=(-2)^{-4}=\dfrac{1}{(-2)^{4}}=\dfrac{1}{16}$`, g: 1 },
+                            { t: r`$\dfrac{1}{16}\neq\dfrac{1}{8}$`, g: 2 }
+                        ],
+                        ans: { t: r`Ні, не проходить`, k: 'no' },
+                        scene: (s) => {
+                            const sc = base({ x0: -3, x1: 1, y0: -0.05, y1: 0.25 }, ints(-3, 1), [tk(1 / 16, r`\frac{1}{16}`), tk(1 / 8, r`\frac{1}{8}`)], [{ f: pw(-4), dom: [[-3, -0.5], [0.5, 1]], c: C.brand }], r`y=x^{-4}`);
+                            if (s >= 1) { sc.segs.push(...dash(-2, 1 / 16)); sc.pts.push(P(-2, 1 / 16, { c: C.brand })); }
+                            if (s >= 2) {
+                                sc.segs.push({ x1: 0, y1: 1 / 8, x2: -2, y2: 1 / 8, c: C.dark, dash: 1 });
+                                sc.segs.push({ x1: -2, y1: 1 / 16, x2: -2, y2: 1 / 8, c: C.red, w: 3 });
+                                sc.pts.push(P(-2, 1 / 8, { c: C.red, hollow: 1, tex: r`B`, pos: 'tl' }));
+                            }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`C\left(\dfrac{1}{3};81\right)`,
+                        steps: [
+                            { t: r`$x=\dfrac{1}{3}$: $y=\left(\dfrac{1}{3}\right)^{-4}=3^{4}=81$`, g: 1 },
+                            { t: r`$81=81$`, g: 2 }
+                        ],
+                        ans: { t: r`Так, проходить`, k: 'yes' },
+                        scene: (s) => {
+                            const sc = base({ x0: -0.3, x1: 1.2, y0: -8, y1: 110 }, [tk(1 / 3, r`\frac{1}{3}`), tk(1)], [tk(81), tk(100)], [{ f: pw(-4), dom: [[0.2, 1.2]], c: C.brand }], r`y=x^{-4}`);
+                            if (s >= 1) { sc.segs.push(...dash(1 / 3, 81)); sc.pts.push(P(1 / 3, 81, { c: C.brand })); }
+                            if (s >= 2) sc.pts.push(P(1 / 3, 81, { c: C.green, ring: 1, tex: r`C`, pos: 'tr' }));
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`D\left(\sqrt{2};-\dfrac{1}{4}\right)`,
+                        steps: [
+                            { t: r`$x=\sqrt{2}$: $y=(\sqrt{2})^{-4}=\dfrac{1}{(\sqrt{2})^{4}}=\dfrac{1}{4}$`, g: 1 },
+                            { t: r`$\dfrac{1}{4}\neq-\dfrac{1}{4}$`, g: 2 },
+                            { t: r`$x^{-4}=\dfrac{1}{x^{4}}>0$ при $x\neq 0$, тому $y<0$ неможливо`, g: 2 }
+                        ],
+                        ans: { t: r`Ні, не проходить`, k: 'no' },
+                        scene: (s) => {
+                            const q = Math.SQRT2;
+                            const sc = base({ x0: -2, x1: 2, y0: -0.5, y1: 1.25 }, [tk(-2), tk(-1), tk(1), tk(2), tk(q, r`\sqrt{2}`, 18)], [tk(-0.25, r`-\frac{1}{4}`), tk(0.25, r`\frac{1}{4}`), tk(1)], [{ f: pw(-4), dom: [[-2, -0.6], [0.6, 2]], c: C.brand }], r`y=x^{-4}`);
+                            if (s >= 1) { sc.segs.push(...dash(q, 0.25)); sc.pts.push(P(q, 0.25, { c: C.brand })); }
+                            if (s >= 2) {
+                                sc.segs.push({ x1: 0, y1: -0.25, x2: q, y2: -0.25, c: C.dark, dash: 1 });
+                                sc.segs.push({ x1: q, y1: 0.25, x2: q, y2: -0.25, c: C.red, w: 3 });
+                                sc.pts.push(P(q, -0.25, { c: C.red, hollow: 1, tex: r`D`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.2 ---------- */
+            {
+                id: '3.2', name: r`Чи проходить графік функції $y=x^{-5}$ через точку`,
+                cond: r`Чи проходить графік функції $y=x^{-5}$ через точку:`,
+                note: r`$y=x^{-5}=\dfrac{1}{x^{5}}$, $x\neq 0$. Функція непарна.`,
+                items: [
+                    {
+                        label: r`A(0;0)`,
+                        steps: [
+                            { t: r`$y=x^{-5}=\dfrac{1}{x^{5}}$, тому $x\neq 0$`, g: 1 },
+                            { t: r`$x=0\notin D(y)$`, g: 2 }
+                        ],
+                        ans: { t: r`Ні, не проходить`, k: 'no' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2, x1: 2, y0: -3, y1: 3 }, ints(-2, 2), ints(-3, 3), [{ f: pw(-5), dom: [[-2, -0.4], [0.4, 2]], c: C.brand }], r`y=x^{-5}`);
+                            if (s >= 1) sc.segs.push({ x1: 0, y1: -3, x2: 0, y2: 3, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) sc.pts.push(P(0, 0, { c: C.red, hollow: 1, tex: r`A`, pos: 'tr' }));
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`B(-1;-1)`,
+                        steps: [
+                            { t: r`$x=-1$: $y=(-1)^{-5}=\dfrac{1}{(-1)^{5}}=\dfrac{1}{-1}=-1$`, g: 1 },
+                            { t: r`$-1=-1$`, g: 2 }
+                        ],
+                        ans: { t: r`Так, проходить`, k: 'yes' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2, x1: 2, y0: -3, y1: 3 }, ints(-2, 2), ints(-3, 3), [{ f: pw(-5), dom: [[-2, -0.4], [0.4, 2]], c: C.brand }], r`y=x^{-5}`);
+                            if (s >= 1) { sc.segs.push(...dash(-1, -1)); sc.pts.push(P(-1, -1, { c: C.brand })); }
+                            if (s >= 2) sc.pts.push(P(-1, -1, { c: C.green, ring: 1, tex: r`B`, pos: 'bl' }));
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`C\left(\dfrac{1}{2};32\right)`,
+                        steps: [
+                            { t: r`$x=\dfrac{1}{2}$: $y=\left(\dfrac{1}{2}\right)^{-5}=2^{5}=32$`, g: 1 },
+                            { t: r`$32=32$`, g: 2 }
+                        ],
+                        ans: { t: r`Так, проходить`, k: 'yes' },
+                        scene: (s) => {
+                            const sc = base({ x0: -0.3, x1: 1.2, y0: -6, y1: 45 }, [tk(1 / 2, r`\frac{1}{2}`), tk(1)], [tk(32), tk(10)], [{ f: pw(-5), dom: [[0.3, 1.2]], c: C.brand }], r`y=x^{-5}`);
+                            if (s >= 1) { sc.segs.push(...dash(0.5, 32)); sc.pts.push(P(0.5, 32, { c: C.brand })); }
+                            if (s >= 2) sc.pts.push(P(0.5, 32, { c: C.green, ring: 1, tex: r`C`, pos: 'tr' }));
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`D\left(-3;-\dfrac{1}{243}\right)`,
+                        steps: [
+                            { t: r`$x=-3$: $y=(-3)^{-5}=\dfrac{1}{(-3)^{5}}=-\dfrac{1}{243}$`, g: 1 },
+                            { t: r`$-\dfrac{1}{243}=-\dfrac{1}{243}$`, g: 2 }
+                        ],
+                        ans: { t: r`Так, проходить`, k: 'yes' },
+                        scene: (s) => {
+                            const y = -1 / 243;
+                            const sc = base({ x0: -4, x1: 0.8, y0: -0.06, y1: 0.03 }, [tk(-4), tk(-3, undefined, 26), tk(-2), tk(-1)], [tk(-1 / 32, r`-\frac{1}{32}`)], [{ f: pw(-5), dom: [[-4, -1.3], [1.2, 1.5]], c: C.brand }], r`y=x^{-5}`);
+                            if (s >= 1) { sc.segs.push(...dash(-3, y)); sc.pts.push(P(-3, y, { c: C.brand })); }
+                            if (s >= 2) sc.pts.push(P(-3, y, { c: C.green, ring: 1, tex: r`D\left(-3;-\frac{1}{243}\right)`, pos: 'tr' }));
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.3 ---------- */
+            {
+                id: '3.3', name: r`Порівняння значень, $f(x)=x^{-19}$`,
+                cond: r`Дано функцію $f(x)=x^{-19}$. Порівняйте:`,
+                note: r`Показник $-19$ — непарний від'ємний. $f$ спадає на кожному з проміжків $(-\infty;0)$ і $(0;+\infty)$; $f(x)<0$ при $x<0$, $f(x)>0$ при $x>0$.`,
+                items: [
+                    {
+                        label: r`f(1{,}6)\text{ і }f(2)`,
+                        steps: [
+                            { t: r`$1{,}6$ і $2$ належать $(0;+\infty)$, де $f$ спадає`, g: 1 },
+                            { t: r`$1{,}6<2$`, g: 1 },
+                            { t: r`$f(1{,}6)>f(2)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(1{,}6)>f(2)$`, k: 'neutral' },
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -0.5, x1: 3.2, y0: -0.15, y1: 1.3 }, [[0.7, 3.2]],
+                            [{ x: 1.6, xl: r`1{,}6`, lbl: r`f(1{,}6)`, pos: 'tr' }, { x: 2, xl: r`2`, lbl: r`f(2)`, pos: 'tr' }])
+                    },
+                    {
+                        label: r`f(-5{,}6)\text{ і }f(-6{,}5)`,
+                        steps: [
+                            { t: r`$-5{,}6$ і $-6{,}5$ належать $(-\infty;0)$, де $f$ спадає`, g: 1 },
+                            { t: r`$-5{,}6>-6{,}5$`, g: 1 },
+                            { t: r`$f(-5{,}6)<f(-6{,}5)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(-5{,}6)<f(-6{,}5)$`, k: 'neutral' },
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -8, x1: 1.5, y0: -0.32, y1: 0.06 }, [[-8, -0.5]],
+                            [{ x: -5.6, xl: r`-5{,}6`, lbl: r`f(-5{,}6)`, pos: 'tr' }, { x: -6.5, xl: r`-6{,}5`, lbl: r`f(-6{,}5)`, pos: 'bl', dy: 18 }])
+                    },
+                    {
+                        label: r`f(-9{,}6)\text{ і }f(9{,}6)`,
+                        steps: [
+                            { t: r`$f(-9{,}6)<0$, бо $-9{,}6<0$`, g: 1 },
+                            { t: r`$f(9{,}6)>0$, бо $9{,}6>0$`, g: 1 },
+                            { t: r`$f(-9{,}6)<f(9{,}6)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(-9{,}6)<f(9{,}6)$`, k: 'neutral' },
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -13, x1: 13, y0: -0.26, y1: 0.26 }, [[-13, -3.5], [3.5, 13]],
+                            [{ x: -9.6, xl: r`-9{,}6`, lbl: r`f(-9{,}6)`, pos: 'bl' }, { x: 9.6, xl: r`9{,}6`, lbl: r`f(9{,}6)`, pos: 'tr' }])
+                    },
+                    {
+                        label: r`f(0{,}1)\text{ і }f(-10)`,
+                        steps: [
+                            { t: r`$f(0{,}1)>0$, бо $0{,}1>0$`, g: 1 },
+                            { t: r`$f(-10)<0$, бо $-10<0$`, g: 1 },
+                            { t: r`$f(0{,}1)>f(-10)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(0{,}1)>f(-10)$`, k: 'neutral' },
+                        scene: cmpScene(inv1, r`y=x^{-19}`, { x0: -12.5, x1: 3.5, y0: -3, y1: 12 }, [[-12.5, -0.3], [0.09, 3.5]],
+                            [{ x: 0.1, xl: r`0{,}1`, lbl: r`f(0{,}1)`, pos: 'r', tick: false }, { x: -10, xl: r`-10`, lbl: r`f(-10)`, pos: 'tl' }])
+                    }
+                ]
+            },
+            /* ---------- 3.4 ---------- */
+            {
+                id: '3.4', name: r`Порівняння значень, $f(x)=x^{-40}$`,
+                cond: r`Функцію задано формулою $f(x)=x^{-40}$. Порівняйте:`,
+                note: r`Показник $-40$ — парний від'ємний. $f$ — парна: $f(-x)=f(x)$; зростає на $(-\infty;0)$, спадає на $(0;+\infty)$.`,
+                items: [
+                    {
+                        label: r`f(6{,}2)\text{ і }f(5{,}5)`,
+                        steps: [
+                            { t: r`$6{,}2$ і $5{,}5$ належать $(0;+\infty)$, де $f$ спадає`, g: 1 },
+                            { t: r`$6{,}2>5{,}5$`, g: 1 },
+                            { t: r`$f(6{,}2)<f(5{,}5)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(6{,}2)<f(5{,}5)$`, k: 'neutral' },
+                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -0.8, x1: 8, y0: -0.006, y1: 0.06 }, [[0.4, 8]],
+                            [{ x: 5.5, xl: r`5{,}5`, lbl: r`f(5{,}5)`, pos: 'tr' }, { x: 6.2, xl: r`6{,}2`, lbl: r`f(6{,}2)`, pos: 'tr', dy: 18 }])
+                    },
+                    {
+                        label: r`f(-1{,}6)\text{ і }f(-1{,}7)`,
+                        steps: [
+                            { t: r`$-1{,}6$ і $-1{,}7$ належать $(-\infty;0)$, де $f$ зростає`, g: 1 },
+                            { t: r`$-1{,}6>-1{,}7$`, g: 1 },
+                            { t: r`$f(-1{,}6)>f(-1{,}7)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(-1{,}6)>f(-1{,}7)$`, k: 'neutral' },
+                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -2.6, x1: 0.8, y0: -0.05, y1: 0.7 }, [[-2.6, -0.4], [0.4, 0.8]],
+                            [{ x: -1.6, xl: r`-1{,}6`, lbl: r`f(-1{,}6)`, pos: 'br' }, { x: -1.7, xl: r`-1{,}7`, lbl: r`f(-1{,}7)`, pos: 'tl', dy: 26 }])
+                    },
+                    {
+                        label: r`f(24)\text{ і }f(-24)`,
+                        steps: [
+                            { t: r`$f$ — парна функція`, g: 1 },
+                            { t: r`$f(-24)=f(24)$`, g: 2 }
+                        ],
+                        ans: { t: r`$f(24)=f(-24)$`, k: 'neutral' },
+                        scene: cmpScene(inv2, r`y=x^{-40}`, { x0: -32, x1: 32, y0: -0.0008, y1: 0.006 }, [[-32, -8], [8, 32]],
+                            [{ x: -24, xl: r`-24`, lbl: r`f(-24)`, pos: 'tl' }, { x: 24, xl: r`24`, lbl: r`f(24)`, pos: 'tr' }])
+                    },
+                    {
+                        label: r`f(-8)\text{ і }f(6)`,
+                        steps: [
+                            { t: r`$f$ парна: $f(-8)=f(8)$`, g: 1 },
+                            { t: r`$8$ і $6$ належать $(0;+\infty)$, де $f$ спадає; $8>6$`, g: 2 },
+                            { t: r`$f(8)<f(6)$, тому $f(-8)<f(6)$`, g: 3 }
+                        ],
+                        ans: { t: r`$f(-8)<f(6)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const g = inv2;
+                            const sc = base({ x0: -12, x1: 12, y0: -0.005, y1: 0.045 }, [tk(-8), tk(6), tk(8)], [], [{ f: g, dom: [[-12, -4], [4, 12]], c: C.brand }], r`y=x^{-40}`, { caption: 'Схематичний графік' });
+                            if (s >= 1) {
+                                sc.segs.push({ x1: -8, y1: 0, x2: -8, y2: g(8), c: C.dark, dash: 1 });
+                                sc.segs.push({ x1: -8, y1: g(8), x2: 8, y2: g(8), c: C.dark, dash: 1 });
+                                sc.pts.push(P(-8, g(8), { c: C.green, tex: r`f(-8)`, pos: 'tl' }));
+                                sc.pts.push(P(8, g(8), { c: C.gray, tex: r`f(8)`, pos: 'tr' }));
+                            }
+                            if (s >= 2) {
+                                sc.segs.push({ x1: 6, y1: 0, x2: 6, y2: g(6), c: C.dark, dash: 1 });
+                                sc.segs.push({ x1: 8, y1: 0, x2: 8, y2: g(8), c: C.dark, dash: 1 });
+                                sc.segs.push({ x1: 0, y1: g(6), x2: 6, y2: g(6), c: C.dark, dash: 1 });
+                                sc.pts.push(P(6, g(6), { c: C.green, tex: r`f(6)`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.5 ---------- */
+            {
+                id: '3.5', name: r`Область визначення`,
+                cond: r`Знайдіть область визначення функції:`,
+                note: null,
+                items: [
+                    {
+                        label: r`y=\left(x^{-1}\right)^{-1}`,
+                        steps: [
+                            { t: r`$x^{-1}=\dfrac{1}{x}$, тому $x\neq 0$`, g: 1 },
+                            { t: r`$\left(x^{-1}\right)^{-1}=\dfrac{1}{x^{-1}}=x$; умова $x^{-1}\neq 0$ виконується для всіх $x\neq 0$`, g: 2 },
+                            { t: r`$y=x$, $x\neq 0$`, g: 2 }
+                        ],
+                        ans: { t: r`$D(y)=(-\infty;0)\cup(0;+\infty)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -4, x1: 4, y0: -4, y1: 4 }, ints(-4, 4), ints(-4, 4), [], r`y=\left(x^{-1}\right)^{-1}`);
+                            if (s >= 1) sc.segs.push({ x1: 0, y1: -4, x2: 0, y2: 4, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) {
+                                sc.segs.push({ x1: -4, y1: -4, x2: 4, y2: 4, c: C.brand, w: 4 });
+                                sc.pts.push(P(0, 0, { c: C.red, hollow: 1, tex: r`(0;0)`, pos: 'br' }));
+                            }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`y=\left((x-2)^{-2}\right)^{-2}`,
+                        steps: [
+                            { t: r`$(x-2)^{-2}=\dfrac{1}{(x-2)^{2}}$, тому $x\neq 2$`, g: 1 },
+                            { t: r`При $x\neq 2$: $(x-2)^{-2}>0$, тому зовнішній степінь існує`, g: 2 },
+                            { t: r`$y=\left((x-2)^{-2}\right)^{-2}=(x-2)^{4}$, $x\neq 2$`, g: 2 }
+                        ],
+                        ans: { t: r`$D(y)=(-\infty;2)\cup(2;+\infty)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -1, x1: 5, y0: -1.5, y1: 17 }, ints(-1, 5), [tk(5), tk(10), tk(15)], [], r`y=\left((x-2)^{-2}\right)^{-2}`);
+                            if (s >= 1) sc.segs.push({ x1: 2, y1: -1.5, x2: 2, y2: 17, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) {
+                                sc.curves.push({ f: (x) => Math.pow(x - 2, 4), dom: [[-1, 5]], c: C.brand });
+                                sc.pts.push(P(2, 0, { c: C.red, hollow: 1, tex: r`(2;0)`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.6 ---------- */
+            {
+                id: '3.6', name: r`Найбільше і найменше значення, $f(x)=x^{-6}$`,
+                cond: r`Знайдіть найбільше і найменше значення функції $f(x)=x^{-6}$ на проміжку:`,
+                note: r`Показник $-6$ — парний від'ємний. $f$ — парна; спадає на $(0;+\infty)$, зростає на $(-\infty;0)$.`,
+                items: [
+                    {
+                        label: r`\left[\dfrac{1}{2};1\right]`,
+                        steps: [
+                            { t: r`$f$ спадає на $(0;+\infty)$, тому на $\left[\dfrac{1}{2};1\right]$ найбільше значення — на лівому кінці, найменше — на правому`, g: 1 },
+                            { t: r`$\max f=f\left(\dfrac{1}{2}\right)=\left(\dfrac{1}{2}\right)^{-6}=2^{6}=64$`, g: 2 },
+                            { t: r`$\min f=f(1)=1^{-6}=1$`, g: 3 }
+                        ],
+                        ans: { t: r`$\max=64$; $\min=1$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -0.25, x1: 1.6, y0: -6, y1: 80 }, [tk(0.5, r`\frac{1}{2}`), tk(1)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[0.36, 1.6]], c: C.brand }], r`y=x^{-6}`);
+                            if (s >= 1) sc.segs.push({ x1: 0.5, y1: 0, x2: 1, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(0.5, 64)); sc.pts.push(P(0.5, 64, { c: C.green, tex: r`\max`, pos: 'tr' })); }
+                            if (s >= 3) { sc.segs.push(...dash(1, 1)); sc.pts.push(P(1, 1, { c: C.red, tex: r`\min`, pos: 'tr' })); }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`\left[-1;-\dfrac{1}{2}\right]`,
+                        steps: [
+                            { t: r`$f$ зростає на $(-\infty;0)$, тому на $\left[-1;-\dfrac{1}{2}\right]$ найменше значення — на лівому кінці, найбільше — на правому`, g: 1 },
+                            { t: r`$\min f=f(-1)=(-1)^{-6}=1$`, g: 2 },
+                            { t: r`$\max f=f\left(-\dfrac{1}{2}\right)=\left(-\dfrac{1}{2}\right)^{-6}=2^{6}=64$`, g: 3 }
+                        ],
+                        ans: { t: r`$\max=64$; $\min=1$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -1.6, x1: 0.25, y0: -6, y1: 80 }, [tk(-1), tk(-0.5, r`-\frac{1}{2}`)], [tk(1), tk(64)], [{ f: pw(-6), dom: [[-1.6, -0.36]], c: C.brand }], r`y=x^{-6}`);
+                            if (s >= 1) sc.segs.push({ x1: -1, y1: 0, x2: -0.5, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(-1, 1)); sc.pts.push(P(-1, 1, { c: C.red, tex: r`\min`, pos: 'tl' })); }
+                            if (s >= 3) { sc.segs.push(...dash(-0.5, 64)); sc.pts.push(P(-0.5, 64, { c: C.green, tex: r`\max`, pos: 'tl' })); }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`[1;+\infty)`,
+                        steps: [
+                            { t: r`$f$ спадає на $[1;+\infty)$, тому найбільше значення — на лівому кінці`, g: 1 },
+                            { t: r`$\max f=f(1)=1^{-6}=1$`, g: 2 },
+                            { t: r`$f(x)>0$; при зростанні $x$ значення $f(x)$ наближаються до $0$, але не досягають його — найменшого значення немає`, g: 3 }
+                        ],
+                        ans: { t: r`$\max=1$; найменшого значення немає`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -0.6, x1: 6, y0: -0.25, y1: 2.2 }, ints(1, 6), [tk(1)], [{ f: pw(-6), dom: [[0.75, 6]], c: C.brand }], r`y=x^{-6}`);
+                            if (s >= 1) sc.segs.push({ x1: 1, y1: 0, x2: 6, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(1, 1)); sc.pts.push(P(1, 1, { c: C.green, tex: r`\max`, pos: 'tr' })); }
+                            if (s >= 3) sc.pts.push(P(4, 0, { c: C.red, nodot: 1, tex: r`\min\ \text{немає}`, pos: 't' }));
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.7 ---------- */
+            {
+                id: '3.7', name: r`Найбільше і найменше значення, $f(x)=x^{-3}$`,
+                cond: r`Знайдіть найбільше і найменше значення функції $f(x)=x^{-3}$ на проміжку:`,
+                note: r`Показник $-3$ — непарний від'ємний. $f$ спадає на кожному з проміжків $(-\infty;0)$ і $(0;+\infty)$.`,
+                items: [
+                    {
+                        label: r`\left[\dfrac{1}{3};2\right]`,
+                        steps: [
+                            { t: r`$f$ спадає на $(0;+\infty)$, тому на $\left[\dfrac{1}{3};2\right]$ найбільше значення — на лівому кінці, найменше — на правому`, g: 1 },
+                            { t: r`$\max f=f\left(\dfrac{1}{3}\right)=\left(\dfrac{1}{3}\right)^{-3}=3^{3}=27$`, g: 2 },
+                            { t: r`$\min f=f(2)=2^{-3}=\dfrac{1}{8}$`, g: 3 }
+                        ],
+                        ans: { t: r`$\max=27$; $\min=\dfrac{1}{8}$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -0.5, x1: 2.6, y0: -3, y1: 32 }, [tk(1 / 3, r`\frac{1}{3}`), tk(1), tk(2)], [tk(10), tk(20), tk(27)], [{ f: pw(-3), dom: [[0.32, 2.6]], c: C.brand }], r`y=x^{-3}`);
+                            if (s >= 1) sc.segs.push({ x1: 1 / 3, y1: 0, x2: 2, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(1 / 3, 27)); sc.pts.push(P(1 / 3, 27, { c: C.green, tex: r`\max`, pos: 'tr' })); }
+                            if (s >= 3) { sc.segs.push({ x1: 2, y1: 0, x2: 2, y2: 1 / 8, c: C.dark, dash: 1 }); sc.pts.push(P(2, 1 / 8, { c: C.red, tex: r`\min=\dfrac{1}{8}`, pos: 't' })); }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`[-2;-1]`,
+                        steps: [
+                            { t: r`$f$ спадає на $(-\infty;0)$, тому на $[-2;-1]$ найбільше значення — на лівому кінці, найменше — на правому`, g: 1 },
+                            { t: r`$\max f=f(-2)=(-2)^{-3}=\dfrac{1}{(-2)^{3}}=-\dfrac{1}{8}$`, g: 2 },
+                            { t: r`$\min f=f(-1)=(-1)^{-3}=-1$`, g: 3 }
+                        ],
+                        ans: { t: r`$\max=-\dfrac{1}{8}$; $\min=-1$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2.8, x1: 0.8, y0: -1.4, y1: 0.35 }, [tk(-2), tk(-1)], [tk(-1), tk(-0.125, r`-\frac{1}{8}`)], [{ f: pw(-3), dom: [[-2.8, -0.65], [0.45, 0.8]], c: C.brand }], r`y=x^{-3}`);
+                            if (s >= 1) sc.segs.push({ x1: -2, y1: 0, x2: -1, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(-2, -0.125)); sc.pts.push(P(-2, -0.125, { c: C.green, tex: r`\max`, pos: 'bl' })); }
+                            if (s >= 3) { sc.segs.push(...dash(-1, -1)); sc.pts.push(P(-1, -1, { c: C.red, tex: r`\min`, pos: 'tr' })); }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`(-\infty;-3]`,
+                        steps: [
+                            { t: r`$f$ спадає на $(-\infty;0)$, тому на $(-\infty;-3]$ найменше значення — на правому кінці`, g: 1 },
+                            { t: r`$\min f=f(-3)=(-3)^{-3}=-\dfrac{1}{27}$`, g: 2 },
+                            { t: r`$f(x)<0$; при $x\to-\infty$ значення $f(x)$ наближаються до $0$, але не досягають його — найбільшого значення немає`, g: 3 }
+                        ],
+                        ans: { t: r`$\min=-\dfrac{1}{27}$; найбільшого значення немає`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -9, x1: 1.2, y0: -0.1, y1: 0.025 }, [tk(-9), tk(-6), tk(-3)], [tk(-1 / 27, r`-\frac{1}{27}`)], [{ f: pw(-3), dom: [[-9, -1.2]], c: C.brand }], r`y=x^{-3}`);
+                            if (s >= 1) sc.segs.push({ x1: -9, y1: 0, x2: -3, y2: 0, c: C.green, w: 8, op: 0.45 });
+                            if (s >= 2) { sc.segs.push(...dash(-3, -1 / 27)); sc.pts.push(P(-3, -1 / 27, { c: C.red, tex: r`\min`, pos: 'bl' })); }
+                            if (s >= 3) sc.pts.push(P(-7.5, 0, { c: C.green, nodot: 1, tex: r`\max\ \text{немає}`, pos: 'b' }));
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.8 ---------- */
+            {
+                id: '3.8', name: r`Графік функції з нульовим показником`,
+                cond: r`Побудуйте графік функції:`,
+                note: r`$a^{0}=1$ при $a\neq 0$. Вираз $0^{0}$ не має змісту.`,
+                items: [
+                    {
+                        label: r`y=(x-2)^{0}`,
+                        steps: [
+                            { t: r`$(x-2)^{0}$ існує при $x-2\neq 0$, тобто $x\neq 2$`, g: 1 },
+                            { t: r`При $x\neq 2$: $(x-2)^{0}=1$`, g: 2 },
+                            { t: r`$y=1$, $x\neq 2$`, g: 2 }
+                        ],
+                        ans: { t: r`Пряма $y=1$ з виколотою точкою $(2;1)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2, x1: 6.5, y0: -1.5, y1: 3 }, ints(-2, 6), ints(-1, 2), [], r`y=(x-2)^{0}`);
+                            if (s >= 1) sc.segs.push({ x1: 2, y1: -1.5, x2: 2, y2: 3, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) {
+                                sc.segs.push({ x1: -2, y1: 1, x2: 6.5, y2: 1, c: C.brand, w: 4 });
+                                sc.pts.push(P(2, 1, { c: C.red, hollow: 1, tex: r`(2;1)`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`y=\left(x^{2}-4x+3\right)^{0}`,
+                        steps: [
+                            { t: r`Вираз існує при $x^{2}-4x+3\neq 0$`, g: 1 },
+                            { t: r`$x^{2}-4x+3=(x-1)(x-3)$, тому $x\neq 1$ і $x\neq 3$`, g: 1 },
+                            { t: r`При $x\neq 1$, $x\neq 3$: $y=1$`, g: 2 }
+                        ],
+                        ans: { t: r`Пряма $y=1$ з виколотими точками $(1;1)$ і $(3;1)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2, x1: 6.5, y0: -1.5, y1: 3 }, ints(-2, 6), ints(-1, 2), [], r`y=\left(x^{2}-4x+3\right)^{0}`);
+                            if (s >= 1) {
+                                sc.segs.push({ x1: 1, y1: -1.5, x2: 1, y2: 3, c: C.red, dash: 1, w: 2.5 });
+                                sc.segs.push({ x1: 3, y1: -1.5, x2: 3, y2: 3, c: C.red, dash: 1, w: 2.5 });
+                            }
+                            if (s >= 2) {
+                                sc.segs.push({ x1: -2, y1: 1, x2: 6.5, y2: 1, c: C.brand, w: 4 });
+                                sc.pts.push(P(1, 1, { c: C.red, hollow: 1, tex: r`(1;1)`, pos: 'tl' }));
+                                sc.pts.push(P(3, 1, { c: C.red, hollow: 1, tex: r`(3;1)`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    }
+                ]
+            },
+            /* ---------- 3.9 ---------- */
+            {
+                id: '3.9', name: r`Графік рівняння`,
+                cond: r`Побудуйте графік рівняння:`,
+                note: r`Вираз $a^{0}$ існує тільки при $a\neq 0$ і тоді дорівнює $1$.`,
+                items: [
+                    {
+                        label: r`(y+2)^{0}=x-2`,
+                        steps: [
+                            { t: r`Ліва частина існує при $y+2\neq 0$, тобто $y\neq -2$`, g: 1 },
+                            { t: r`При $y\neq -2$: $(y+2)^{0}=1$`, g: 1 },
+                            { t: r`$1=x-2$, тобто $x=3$`, g: 2 }
+                        ],
+                        ans: { t: r`Пряма $x=3$ з виколотою точкою $(3;-2)$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -2, x1: 6.5, y0: -5, y1: 3.5 }, ints(-2, 6), ints(-4, 3), [], r`(y+2)^{0}=x-2`);
+                            if (s >= 1) sc.segs.push({ x1: -2, y1: -2, x2: 6.5, y2: -2, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) {
+                                sc.segs.push({ x1: 3, y1: -5, x2: 3, y2: 3.5, c: C.brand, w: 4 });
+                                sc.pts.push(P(3, -2, { c: C.red, hollow: 1, tex: r`(3;-2)`, pos: 'tr' }));
+                            }
+                            return sc;
+                        }
+                    },
+                    {
+                        label: r`(y-2)^{0}=(x+1)^{0}`,
+                        steps: [
+                            { t: r`Ліва частина існує при $y-2\neq 0$, тобто $y\neq 2$`, g: 1 },
+                            { t: r`Права частина існує при $x+1\neq 0$, тобто $x\neq -1$`, g: 2 },
+                            { t: r`При $y\neq 2$ і $x\neq -1$: $1=1$ — рівність виконується`, g: 3 }
+                        ],
+                        ans: { t: r`Уся координатна площина, крім прямих $y=2$ і $x=-1$`, k: 'neutral' },
+                        scene: (s) => {
+                            const sc = base({ x0: -4.5, x1: 4.5, y0: -3.5, y1: 5.5 }, ints(-4, 4), ints(-3, 5), [], r`(y-2)^{0}=(x+1)^{0}`);
+                            if (s >= 3) {
+                                const f = '#E9D5FF';
+                                sc.rects.push({ x1: -4.5, y1: 2, x2: -1, y2: 5.5, fill: f }, { x1: -1, y1: 2, x2: 4.5, y2: 5.5, fill: f },
+                                    { x1: -4.5, y1: -3.5, x2: -1, y2: 2, fill: f }, { x1: -1, y1: -3.5, x2: 4.5, y2: 2, fill: f });
+                            }
+                            if (s >= 1) sc.segs.push({ x1: -4.5, y1: 2, x2: 4.5, y2: 2, c: C.red, dash: 1, w: 2.5 });
+                            if (s >= 2) sc.segs.push({ x1: -1, y1: -3.5, x2: -1, y2: 5.5, c: C.red, dash: 1, w: 2.5 });
+                            return sc;
+                        }
+                    }
+                ]
+            }
+        ];
+
+        /* ============ Підпис над точкою: зсуви ============ */
+        const POS = {
+            tr: [10, -15, 'r'], tl: [-10, -15, 'l'], br: [10, 17, 'r'], bl: [-10, 17, 'l'],
+            t: [0, -19, 'c'], b: [0, 21, 'c'], l: [-12, 0, 'l'], r: [12, 0, 'r']
+        };
+
+        const Lbl = ({ x, y, tex, c, anchor = 'c', size }) => {
+            const w = 260, h = 64;
+            const left = anchor === 'c' ? x - w / 2 : anchor === 'l' ? x - w : x;
+            const jc = anchor === 'c' ? 'center' : anchor === 'l' ? 'flex-end' : 'flex-start';
+            return (
+                <foreignObject x={left} y={y - h / 2} width={w} height={h} style={{ overflow: 'visible', pointerEvents: 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: jc, alignItems: 'center', height: '100%', color: c, fontSize: size, fontWeight: 700, whiteSpace: 'nowrap', textShadow: '0 0 3px #fff, 0 0 3px #fff, 0 0 4px #fff' }}>
+                        <Latex math={tex} />
+                    </div>
+                </foreignObject>
+            );
+        };
+
+        /* ============ Графік ============ */
+        const Chart = ({ sc, dim, k }) => {
+            const W = dim.w, H = dim.h;
+            const big = W > 1024;
+            const fs = big ? 21 : 15;
+            const pl = big ? 48 : 36, pr = 26, pt = 26, pb = big ? 42 : 34;
+            const v = sc.view;
+            const X = (x) => pl + (x - v.x0) / (v.x1 - v.x0) * (W - pl - pr);
+            const Y = (y) => H - pb - (y - v.y0) / (v.y1 - v.y0) * (H - pt - pb);
+            const ax = Math.min(Math.max(0, v.x0), v.x1);
+            const ay = Math.min(Math.max(0, v.y0), v.y1);
+            const rng = v.y1 - v.y0;
+
+            const pathFor = (cu) => {
+                let d = '';
+                cu.dom.forEach(([a, b]) => {
+                    let pen = false;
+                    const N = 700;
+                    for (let i = 0; i <= N; i++) {
+                        const x = a + (b - a) * i / N;
+                        const y = cu.f(x);
+                        if (!isFinite(y) || Math.abs(y) > 200 * rng + 1e3) { pen = false; continue; }
+                        d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(y).toFixed(1) + ' ';
+                        pen = true;
+                    }
+                });
+                return d;
+            };
+
+            return (
+                <svg className="absolute top-0 left-0 w-full h-full z-20" key={k}>
+                    <defs>
+                        <clipPath id="plotClip"><rect x={pl} y={pt - 10} width={W - pl - pr + 10} height={H - pt - pb + 14} /></clipPath>
+                    </defs>
+
+                    {/* залиття */}
+                    <g clipPath="url(#plotClip)">
+                        {sc.rects.map((q, i) => (
+                            <rect key={'r' + i} x={X(Math.min(q.x1, q.x2))} y={Y(Math.max(q.y1, q.y2))} width={Math.abs(X(q.x2) - X(q.x1))} height={Math.abs(Y(q.y2) - Y(q.y1))} fill={q.fill} className="animate-fade-in-point" />
+                        ))}
+                    </g>
+
+                    {/* сітка */}
+                    <g>
+                        {sc.xt.map((t, i) => <line key={'gx' + i} x1={X(t.v)} y1={pt} x2={X(t.v)} y2={H - pb} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />)}
+                        {sc.yt.map((t, i) => <line key={'gy' + i} x1={pl} y1={Y(t.v)} x2={W - pr} y2={Y(t.v)} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />)}
+                    </g>
+
+                    {/* осі */}
+                    <g>
+                        <line x1={pl} y1={Y(ay)} x2={W - pr + 6} y2={Y(ay)} stroke={C.dark} strokeWidth="2" />
+                        <line x1={X(ax)} y1={H - pb} x2={X(ax)} y2={pt - 12} stroke={C.dark} strokeWidth="2" />
+                        <polygon points={`${W - pr + 14},${Y(ay)} ${W - pr + 4},${Y(ay) - 4} ${W - pr + 4},${Y(ay) + 4}`} fill={C.dark} />
+                        <polygon points={`${X(ax)},${pt - 20} ${X(ax) - 4},${pt - 10} ${X(ax) + 4},${pt - 10}`} fill={C.dark} />
+                        {sc.xt.map((t, i) => <line key={'tx' + i} x1={X(t.v)} y1={Y(ay) - 4} x2={X(t.v)} y2={Y(ay) + 4} stroke={C.dark} strokeWidth="1.5" />)}
+                        {sc.yt.map((t, i) => <line key={'ty' + i} x1={X(ax) - 4} y1={Y(t.v)} x2={X(ax) + 4} y2={Y(t.v)} stroke={C.dark} strokeWidth="1.5" />)}
+                    </g>
+
+                    {/* графіки */}
+                    <g clipPath="url(#plotClip)">
+                        {sc.curves.map((cu, i) => (
+                            <path key={'c' + i} d={pathFor(cu)} fill="none" stroke={cu.c} strokeWidth={big ? 4.5 : 3.5} strokeLinecap="round" className="animate-draw" />
+                        ))}
+                        {sc.segs.map((s, i) => (
+                            <line key={'s' + i} x1={X(s.x1)} y1={Y(s.y1)} x2={X(s.x2)} y2={Y(s.y2)} stroke={s.c} strokeWidth={s.w || 1.6} strokeDasharray={s.dash ? '6 5' : null} strokeLinecap={s.w > 5 ? 'round' : 'butt'} opacity={s.op || 1} className="animate-fade-in-point" />
+                        ))}
+                    </g>
+
+                    <g>
+                        <Lbl x={W - pr - 4} y={Y(ay) - 15} tex="x" c={C.dark} anchor="l" size={fs + 2} />
+                        <Lbl x={X(ax) + 14} y={pt - 2} tex="y" c={C.dark} anchor="r" size={fs + 2} />
+                        <Lbl x={X(ax) - 9} y={Y(ay) + 14} tex="0" c={C.dark} anchor="l" size={fs - 3} />
+                        {sc.xt.map((t, i) => <Lbl key={'lx' + i} x={X(t.v)} y={Y(ay) + 17 + t.dy} tex={t.l} c={C.dark} size={fs - 2} />)}
+                        {sc.yt.map((t, i) => <Lbl key={'ly' + i} x={X(ax) - 9} y={Y(t.v)} tex={t.l} c={C.dark} anchor="l" size={fs - 2} />)}
+                    </g>
+
+                    {/* точки */}
+                    {sc.pts.map((p, i) => {
+                        const cx = X(p.x), cy = Y(p.y);
+                        const R = big ? 7 : 5.5;
+                        return (
+                            <g key={'p' + i} className="animate-fade-in-point">
+                                {p.nodot ? null : p.ring
+                                    ? <circle cx={cx} cy={cy} r={R + 5} fill="none" stroke={p.c} strokeWidth="3" />
+                                    : p.hollow
+                                        ? <circle cx={cx} cy={cy} r={R + 1.5} fill="#fff" stroke={p.c} strokeWidth="3" />
+                                        : <circle cx={cx} cy={cy} r={R} fill={p.c} stroke="#fff" strokeWidth="1.5" />}
+                                {p.tex && (() => {
+                                    const o = POS[p.pos || 'tr'];
+                                    return <Lbl x={cx + o[0]} y={cy + o[1]} tex={p.tex} c={p.c} anchor={o[2]} size={fs + 1} />;
+                                })()}
+                            </g>
+                        );
+                    })}
+                </svg>
+            );
+        };
+
+        /* ============ Застосунок ============ */
+        const NAVB = "px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer flex items-center gap-1.5 lg:gap-3";
+
+        const App = () => {
+            const [started, setStarted] = useState(false);
+            const [ex, setEx] = useState(null);
+            const [it, setIt] = useState(0);
+            const [shown, setShown] = useState(1);
+            const [done, setDone] = useState({});
+            const boxRef = useRef(null);
+            const [dim, setDim] = useState({ w: 800, h: 600 });
+
+            useEffect(() => {
+                const el = boxRef.current;
+                if (!el) return;
+                const ob = new ResizeObserver(es => { for (const e of es) setDim({ w: e.contentRect.width, h: e.contentRect.height }); });
+                ob.observe(el);
+                setDim({ w: el.clientWidth, h: el.clientHeight });
+                return () => ob.disconnect();
+            }, [started, ex]);
+
+            const open = (i) => { setEx(i); setIt(0); setShown(1); };
+            const E = ex !== null ? EX[ex] : null;
+            const I = E ? E.items[it] : null;
+
+            const pick = (i) => { setIt(i); setShown(1); };
+            const reveal = () => {
+                const n = shown + 1;
+                setShown(n);
+                if (n >= I.steps.length) setDone(d => ({ ...d, [ex + '-' + it]: true }));
+            };
+            useEffect(() => {
+                if (I && I.steps.length <= 1) setDone(d => ({ ...d, [ex + '-' + it]: true }));
+            }, [ex, it]);
+
+            const stage = I ? Math.max(0, ...I.steps.slice(0, shown).map(s => s.g)) : 0;
+            const sc = I ? I.scene(stage) : null;
+            const finished = I && shown >= I.steps.length;
+
+            const ansCls = { yes: 'bg-green-50 border-green-300 text-green-800', no: 'bg-red-50 border-red-300 text-red-800', neutral: 'bg-white border-purple-300 text-brand' };
+
+            const renderMenu = () => (
+                <div className="p-4 md:p-6 lg:p-8 xl:p-12 animate-fade-in flex-grow max-w-4xl lg:max-w-6xl 2xl:max-w-7xl mx-auto w-full overflow-y-auto no-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 lg:gap-6">
+                        {EX.map((e, i) => (
+                            <div key={e.id} onClick={() => open(i)}
+                                className="p-3 md:p-4 lg:p-5 rounded-xl border border-slate-200/60 hover:border-purple-400 hover:bg-purple-50/60 hover:shadow-md transition-all duration-200 cursor-pointer flex items-center gap-3 lg:gap-5 group bg-panelRight">
+                                <div className="min-w-[2.75rem] h-11 md:min-w-[3.25rem] md:h-[3.25rem] lg:min-w-[4rem] lg:h-16 px-2 rounded-full bg-brandLight text-brand font-extrabold text-sm md:text-base lg:text-xl flex items-center justify-center shrink-0">{e.id}</div>
+                                <h3 className="font-bold text-slate-800 text-sm sm:text-base md:text-base lg:text-xl xl:text-2xl text-left group-hover:text-brand transition-colors"><Rich s={e.name} /></h3>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="flex flex-col w-full h-[100dvh] overflow-hidden font-sans text-graphite bg-white">
+                    <div className="flex flex-col md:flex-row w-full flex-1 relative overflow-hidden">
+                        {!started ? (
+                            <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-panelLeft p-4 text-center">
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-slate-800 mb-3 lg:mb-5 animate-fade-in">
+                                    <span className="text-brand">Степенева функція</span><br />з цілим показником
+                                </h1>
+                                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-600 mb-6 lg:mb-10 xl:mb-14 animate-fade-in">Вправи 3.1–3.9</p>
+                                <button onClick={() => { setStarted(true); setEx(null); }}
+                                    className="px-5 py-2.5 md:px-6 md:py-3 lg:px-8 lg:py-4 xl:px-10 xl:py-5 bg-white border border-[#e9d5ff] text-[#581c87] rounded-full shadow-[0_2px_8px_rgba(88,28,135,0.05)] hover:shadow-[0_4px_12px_rgba(88,28,135,0.08)] hover:border-purple-300 transition-all duration-300 active:scale-95 text-[12px] sm:text-sm md:text-base lg:text-lg xl:text-xl uppercase tracking-widest cursor-pointer animate-pop flex items-center justify-between gap-3 lg:gap-5 group">
+                                    <span className="pl-1.5 font-extrabold tracking-widest">ПОЧАТИ</span>
+                                    <span className="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 rounded-full bg-brandLight flex items-center justify-center text-[#581c87] shadow-inner shrink-0">
+                                        <i className="fa-solid fa-play text-[10px] md:text-xs lg:text-sm xl:text-base translate-x-[1px]"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {/* ЛІВА ПАНЕЛЬ */}
+                                <div className={`w-full ${ex === null ? 'h-full md:w-full' : 'h-[55%] md:h-full md:w-[40%]'} bg-panelLeft relative z-10 flex flex-col order-2 md:order-1 border-r border-slate-200 overflow-hidden`}>
+                                    <div className="w-full h-full p-3 md:p-4 lg:p-6 xl:p-8 pb-16 md:pb-20 lg:pb-24 flex flex-col overflow-y-auto no-scrollbar relative">
+                                        {ex === null && renderMenu()}
+
+                                        {E && (
+                                            <div className="space-y-2.5 md:space-y-4 lg:space-y-5 animate-fade-in" key={ex}>
+                                                <div className="flex items-start gap-3 bg-white rounded-lg p-3 lg:p-4 border border-purple-100 shadow-xs">
+                                                    <span className="min-w-[2.6rem] px-2 h-9 lg:h-12 rounded-full bg-brand text-white font-extrabold flex items-center justify-center text-sm lg:text-xl shrink-0">{E.id}</span>
+                                                    <p className={`font-bold text-slate-800 leading-snug self-center ${TXT}`}><Rich s={E.cond} /></p>
+                                                </div>
+
+                                                {E.note && (
+                                                    <div className={`bg-white/70 rounded-lg p-2.5 lg:p-4 border border-purple-100 font-medium text-slate-700 ${TXT}`}><Rich s={E.note} /></div>
+                                                )}
+
+                                                <div className="flex flex-wrap gap-2 lg:gap-3">
+                                                    {E.items.map((m, i) => (
+                                                        <button key={i} onClick={() => pick(i)}
+                                                            className={`px-3 py-1.5 lg:px-4 lg:py-2.5 min-h-[2.4rem] rounded-full border font-bold transition-all active:scale-95 cursor-pointer ${TXT}
+                                                            ${i === it ? 'bg-brand text-white border-brand shadow-md' : 'bg-white text-slate-700 border-purple-200 hover:bg-brandLight'}`}>
+                                                            {done[ex + '-' + i] && i !== it && <i className="fa-solid fa-check text-green-600 mr-1.5"></i>}
+                                                            {(i + 1) + ') '}<Rich s={'$' + m.label + '$'} />
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <div className="space-y-2 lg:space-y-3" key={ex + '-' + it}>
+                                                    {I.steps.slice(0, shown).map((s, i) => (
+                                                        <div key={i} className={`flex items-start gap-2.5 lg:gap-3 bg-white rounded-lg p-2.5 lg:p-4 border border-slate-200 animate-fade-in font-medium text-slate-800 ${TXT}`}>
+                                                            <span className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-brandLight text-brand font-extrabold text-xs lg:text-base flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                                                            <span className="leading-relaxed"><Rich s={s.t} /></span>
+                                                        </div>
+                                                    ))}
+
+                                                    {!finished && (
+                                                        <div className="flex justify-center pt-1">
+                                                            <button onClick={reveal} aria-label="Далі"
+                                                                className="w-11 h-11 lg:w-14 lg:h-14 rounded-full bg-brand text-white shadow-md flex items-center justify-center animate-bounce cursor-pointer active:scale-95">
+                                                                <i className="fa-solid fa-arrow-down lg:text-xl"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {finished && (
+                                                        <div className={`rounded-lg p-3 lg:p-5 border-2 font-bold text-center animate-pop ${ansCls[I.ans.k]} ${TXT}`}>
+                                                            <span className="uppercase tracking-wide text-[0.7em] opacity-70 mr-2">Відповідь</span><Rich s={I.ans.t} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Навігація */}
+                                    {ex !== null && (
+                                        <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 lg:bottom-6 lg:right-6 z-30 flex gap-2 lg:gap-4 items-center">
+                                            <button onClick={() => setEx(null)} className={`${NAVB} border border-purple-200 bg-[#f4ebff] text-purple-700 hover:bg-purple-100/80`}>
+                                                <i className="fa-solid fa-list-ul"></i> Зміст
+                                            </button>
+                                            <button onClick={() => (ex > 0 ? open(ex - 1) : setEx(null))} className={`${NAVB} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50`}>← Назад</button>
+                                            {ex < EX.length - 1
+                                                ? <button onClick={() => open(ex + 1)} className={`${NAVB} border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff]`}>Далі ➔</button>
+                                                : <button onClick={() => { setStarted(false); setEx(null); }} className={`${NAVB} border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff]`}>На початок</button>}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ПРАВА ПАНЕЛЬ */}
+                                {ex !== null && (
+                                    <div ref={boxRef} className="w-full h-[45%] md:h-full md:w-[60%] bg-panelRight shadow-inner relative z-0 overflow-hidden order-1 md:order-2">
+                                        <Chart sc={sc} dim={dim} k={ex + '-' + it} />
+                                        <button onClick={() => setShown(1)} title="Спочатку"
+                                            className="absolute top-2 left-2 z-30 w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-white border border-purple-200 text-brand shadow-sm flex items-center justify-center cursor-pointer active:scale-95">
+                                            <i className="fa-solid fa-rotate-right"></i>
+                                        </button>
+                                        <div className="absolute top-2 right-3 z-30 font-bold text-[#8E44AD] text-[16px] lg:text-[24px]"><Latex math={sc.fn} /></div>
+                                        {sc.caption && <div className="absolute bottom-1 left-3 z-30 text-[11px] lg:text-[14px] text-slate-500 font-medium">{sc.caption}</div>}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    <div className="w-full shrink-0 z-[2000] select-none text-center py-1.5 bg-slate-50 border-t border-slate-200 text-[10px] tracking-wider text-gray-500">
+                        Автор розробки <span className="font-bold">Ковтун Тетяна</span>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) ===================== -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
+</html>
