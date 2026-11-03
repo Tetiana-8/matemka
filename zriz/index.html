@@ -456,8 +456,8 @@ function showSetup(){
   var h='<div class="screen"><div class="card" style="overflow:auto">';
   if(FIREBASE_CONFIG) h+='<button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
   h+='<h1>Зріз знань</h1><div class="sub">Дізнайся свій рівень і які теми варто повторити</div>';
-  h+='<div class="row2"><div><label>Прізвище</label><input type="text" id="sn" placeholder="Іваненко" value="'+esc(st.surname)+'"></div>'+
-     '<div><label>Ім\'я</label><input type="text" id="fn" placeholder="Марія" value="'+esc(st.first)+'"></div></div>';
+  h+='<div class="row2"><div><label for="sn">Прізвище</label><input type="text" id="sn" autocomplete="off" value="'+esc(st.surname)+'"></div>'+
+     '<div><label for="fn">Ім\'я</label><input type="text" id="fn" autocomplete="off" value="'+esc(st.first)+'"></div></div>';
   h+='<label>Предмет</label><div class="seg" id="sSubj">';
   ["M","A","G"].forEach(function(s){h+='<button data-s="'+s+'" class="'+(st.subj===s?'on':'')+'">'+SUBJ[s]+'</button>';});
   h+='</div>';
@@ -473,6 +473,7 @@ function showSetup(){
   $("go").onclick=startQuiz;
   if($("keyBtn"))$("keyBtn").onclick=teacherPanel;
   renderDyn();
+  try{$("sn").focus();}catch(e){}
 }
 function renderDyn(){
   var d=$("dyn");if(!st.subj){d.innerHTML="";return;}
@@ -520,7 +521,7 @@ function startQuiz(){
   if(!st.grade){e.textContent="Обери завершений клас.";return;}
   var c=computeStudied();
   var init=c.init.length?c.init:START[st.subj];
-  run={queue:init.slice(),tested:{},studied:c.studied,initial:init.slice(),cur:null,answers:[],answered:0,done:false,origInit:init.slice(),hist:[]};
+  run={queue:init.slice(),tested:{},studied:c.studied,initial:init.slice(),cur:null,answers:[],answered:0,done:false,origInit:init.slice(),hist:[],t0:Date.now(),t1:0,leaves:0,awaySec:0,awayAt:null};
   nextBlock();
 }
 function nextBlock(){
@@ -592,6 +593,14 @@ document.addEventListener("keydown",function(e){
   else if(e.key==="-")typeKey("−");
   else if(e.key==="Backspace"){typeKey("⌫");e.preventDefault();}
 });
+/* доброчесність: виходи з вікна під час тесту */
+function goAway(){if(!run||run.done||!run.cur||run.awayAt)return;run.leaves++;run.awayAt=Date.now();}
+function comeBack(){if(run&&run.awayAt){run.awaySec+=Math.round((Date.now()-run.awayAt)/1000);run.awayAt=null;}}
+document.addEventListener("visibilitychange",function(){if(document.hidden)goAway();else comeBack();});
+window.addEventListener("blur",goAway);
+window.addEventListener("focus",comeBack);
+function grade12(ok,all){if(!all)return 1;return Math.max(1,Math.round(ok*12/all));}
+function mmss(sec){var m=Math.floor(sec/60),s=sec%60;return m+" хв "+(s<10?"0":"")+s+" с";}
 function parseNum(s){return Number(String(s).replace(/\s/g,"").replace("−","-").replace(",","."));}
 function showNum(a){return String(a).replace(".",",").replace("-","−");}
 function submit(skip){
@@ -628,6 +637,9 @@ function computeResult(){
   var yel=ids.filter(function(i){return status(T[i])==="y";});
   var all=0,ok=0,tOk=0,tAll=0,pOk=0,pAll=0;
   run.answers.forEach(function(a){all++;if(a.ok)ok++;if(a.t==="т"){tAll++;if(a.ok)tOk++;}else{pAll++;if(a.ok)pOk++;}});
+  var iOk=0,iAll=0;
+  run.answers.forEach(function(a){if(run.origInit.indexOf(a.b)>=0){iAll++;if(a.ok)iOk++;}});
+  var grade=grade12(iOk,iAll);
   var ratio=ids.length?red.length/ids.length:0;
   var lvl,cls;
   if(!red.length&&yel.length<=1){lvl="Високий рівень";cls="g";}
@@ -637,12 +649,13 @@ function computeResult(){
   var plan=red.concat(yel);var memo={};
   plan.sort(function(a,b){var da=depth(a,memo),db=depth(b,memo);return da!==db?da-db:B[a].g-B[b].g;});
   var minGrade=red.length?Math.min.apply(null,red.map(function(i){return B[i].g;})):0;
-  return {T:T,ids:ids,assumed:Object.keys(assumedSet),red:red,yel:yel,plan:plan,all:all,ok:ok,tAll:tAll,tOk:tOk,pAll:pAll,pOk:pOk,lvl:lvl,cls:cls,minGrade:minGrade};
+  return {grade:grade,T:T,ids:ids,assumed:Object.keys(assumedSet),red:red,yel:yel,plan:plan,all:all,ok:ok,tAll:tAll,tOk:tOk,pAll:pAll,pOk:pOk,lvl:lvl,cls:cls,minGrade:minGrade};
 }
 function pct(a,b){return b?Math.round(a*100/b)+"%":"—";}
 function showResult(){
-  run.done=true;run.cur=null;
+  comeBack();run.done=true;run.cur=null;run.t1=Date.now();
   var r=computeResult();run.res=r;
+  var dur=Math.max(1,Math.round((run.t1-run.t0)/1000));run.dur=dur;
   var h='<div class="screen"><div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column"><div class="scroll" id="sc">';
   h+='<div class="res-head"><h1>Результат</h1><div class="sub">'+esc(st.name)+' · '+SUBJ[st.subj]+', завершено: '+(st.grade===4?"початкову школу":st.grade+" клас")+
      (st.stop>=0&&nextGradeSteps()[st.stop]?'<br>остання тема наступного класу: '+esc(nextGradeSteps()[st.stop][0]):'')+'</div>';
@@ -650,8 +663,11 @@ function showResult(){
   if(r.red.length&&r.minGrade){
     h+='<div class="note" style="font-size:13px;color:#5b5476">'+(r.minGrade>5?'Надійна основа — до '+(r.minGrade-1)+' класу включно. Прогалини починаються з '+r.minGrade+' класу.':'Є прогалини в основі — починаючи з '+r.minGrade+' класу.')+'</div>';
   }
-  h+='<div class="stats"><div class="stat"><b>'+r.ok+' з '+r.all+'</b><span>правильних відповідей</span></div>'+
-     '<div class="stat"><b>'+pct(r.tOk,r.tAll)+'</b><span>теорія</span></div><div class="stat"><b>'+pct(r.pOk,r.pAll)+'</b><span>практика</span></div></div></div>';
+  h+='<div class="stats"><div class="stat"><b>'+r.grade+' / 12</b><span>оцінка</span></div><div class="stat"><b>'+r.ok+' з '+r.all+'</b><span>правильних відповідей</span></div>'+
+     '<div class="stat"><b>'+pct(r.tOk,r.tAll)+'</b><span>теорія</span></div><div class="stat"><b>'+pct(r.pOk,r.pAll)+'</b><span>практика</span></div></div>';
+  h+='<div class="note" style="font-size:13px;color:#5b5476">Час виконання: '+mmss(dur)+'. '+
+     (run.leaves?'Під час тесту ти виходив(ла) з вікна '+run.leaves+' '+(run.leaves===1?'раз':'разів')+' (разом '+mmss(run.awaySec)+'). Учитель бачить цю інформацію, тож не впевнений, що відповіді були самостійними.':'Ти виконував(ла) тест, не виходячи з вікна. Це доброчесно.')+
+     '</div><div class="note">Оцінка виставлена за темами твого класу; теми, які додатково перевірялись, на неї не впливають.</div></div>';
 
   if(r.plan.length){
     h+='<h2>Що надолужити (у такому порядку)</h2>';
@@ -699,6 +715,7 @@ function textSummary(){
   var r=run.res,L=[];
   L.push("Зріз знань — "+st.name);
   L.push(SUBJ[st.subj]+", завершено: "+(st.grade===4?"початкову школу":st.grade+" клас"));
+  L.push("Оцінка: "+r.grade+" з 12. Час: "+mmss(run.dur)+". Виходів з вікна: "+run.leaves);
   L.push("Рівень: "+r.lvl+". Правильно: "+r.ok+" з "+r.all+" (теорія "+pct(r.tOk,r.tAll)+", практика "+pct(r.pOk,r.pAll)+")");
   if(r.plan.length){L.push("Треба надолужити:");r.plan.forEach(function(id,i){L.push((i+1)+". "+B[id].n+" ("+B[id].g+" кл.) — "+(status(r.T[id])==="r"?"прогалина":"закріпити"));});}
   else L.push("Усі перевірені теми засвоєно.");
@@ -728,7 +745,8 @@ function saveResult(r){
   if(!FIREBASE_CONFIG)return;
   fbReady().then(function(db){
     return fbCol(db).doc(sessionId).set({
-      name:st.name,date:new Date().toISOString(),subject:SUBJ[st.subj],grade:st.grade,
+      name:st.name,surname:st.surname,first:st.first,date:new Date(run.t1).toISOString(),start:new Date(run.t0).toISOString(),end:new Date(run.t1).toISOString(),
+      durationSec:run.dur,mark:r.grade,leaves:run.leaves,awaySec:run.awaySec,subject:SUBJ[st.subj],grade:st.grade,
       stop:(st.stop>=0&&nextGradeSteps()[st.stop])?nextGradeSteps()[st.stop][0]:"",
       level:r.lvl,correct:r.ok,total:r.all,theory:pct(r.tOk,r.tAll),practice:pct(r.pOk,r.pAll),
       gaps:r.plan.map(function(id){return B[id].n+" ("+B[id].g+" кл.)";}).join("; ")
@@ -745,8 +763,9 @@ function teacherPanel(){
     fbReady().then(function(db){return fbCol(db).get();}).then(function(snap){
       var rows=[];snap.forEach(function(d){rows.push(d.data());});
       rows.sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
-      var h='<table><tr><th>Учень</th><th>Дата</th><th>Предмет, клас</th><th>Рівень</th><th>Правильно</th><th>Теорія / практика</th><th>Що надолужити</th></tr>';
-      rows.forEach(function(x){h+='<tr><td>'+esc(x.name)+'</td><td>'+esc(String(x.date).slice(0,10))+'</td><td>'+esc(x.subject)+', '+esc(x.grade)+' кл.</td><td>'+esc(x.level)+'</td><td>'+esc(x.correct)+' з '+esc(x.total)+'</td><td>'+esc(x.theory)+' / '+esc(x.practice)+'</td><td>'+esc(x.gaps||"—")+'</td></tr>';});
+      function tm(iso){if(!iso)return "—";var d=new Date(iso);return d.toLocaleDateString("uk-UA")+" "+d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+      var h='<table><tr><th>Учень</th><th>Початок</th><th>Кінець</th><th>Тривалість</th><th>Оцінка</th><th>Виходів з вікна</th><th>Предмет, клас</th><th>Рівень</th><th>Правильно</th><th>Теорія / практика</th><th>Що надолужити</th></tr>';
+      rows.forEach(function(x){h+='<tr><td>'+esc(x.name)+'</td><td>'+esc(tm(x.start||x.date))+'</td><td>'+esc(tm(x.end||x.date))+'</td><td>'+(x.durationSec!=null?esc(mmss(x.durationSec)):"—")+'</td><td>'+(x.mark!=null?esc(x.mark)+' / 12':"—")+'</td><td>'+(x.leaves!=null?esc(x.leaves)+(x.leaves?' ('+esc(mmss(x.awaySec||0))+')':''):"—")+'</td><td>'+esc(x.subject)+', '+esc(x.grade)+' кл.</td><td>'+esc(x.level)+'</td><td>'+esc(x.correct)+' з '+esc(x.total)+'</td><td>'+esc(x.theory)+' / '+esc(x.practice)+'</td><td>'+esc(x.gaps||"—")+'</td></tr>';});
       h+='</table>';if(!rows.length)h="Результатів поки немає.";$("tb").innerHTML=h;
     }).catch(function(){$("tb").textContent="Не вдалося завантажити результати.";});
   }
