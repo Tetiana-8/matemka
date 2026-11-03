@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок «Множення многочлена на многочлен»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#173F5F;--muted:#5d7b93;
+  --acc:#2A6592;--accD:#1F4E73;--acc2:#3887AF;--accL:#DCE9F2;--soft:#EAF2F7;--soft2:#F5F9FC;--line:#A8CADD;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --o1:#b45309;--o2:#7c3aed;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px);height:100%}
+body{margin:0;height:100dvh;overflow:hidden;font-family:Nunito,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#EAF2F7 0%,#DCE9F2 55%,#c7dbea 100%) fixed;-webkit-font-smoothing:antialiased;line-height:1.35}
+button{font:inherit;color:inherit;touch-action:manipulation}
+i{font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-style:italic;font-weight:600}
+sup{font-size:.62em;line-height:0;position:relative;top:-.12em;margin-right:.06em}
+.dot{margin:0 .14em;color:var(--muted)}
+.cf{color:var(--o1)} .lt{color:var(--o2)}
+.nw{white-space:nowrap}
+
+#app{height:100%;display:flex;flex-direction:column;padding:.6rem .8rem 0;gap:.5rem}
+#stagewrap{flex:1;min-height:0;display:flex}
+.stage{display:none;flex:1;min-width:0;position:relative}
+.stage.on{display:flex}
+.card{flex:1;min-width:0;min-height:0;display:flex;overflow:auto;background:#fff;border:1.5px solid var(--line);border-radius:1.1rem;box-shadow:0 .25rem 1rem rgba(31,78,115,.12)}
+.inner{margin:auto;width:100%;max-width:66rem;padding:1rem 1.4rem}
+h2.st{margin:0 0 .6rem;font-size:1.5rem;color:var(--acc);font-weight:900;display:flex;align-items:center;gap:.6rem}
+
+.btn{border:2px solid var(--acc);background:var(--acc);color:#fff;border-radius:999px;padding:.45em 1.1em;font-weight:800;font-size:1rem;cursor:pointer;min-height:2.5rem;transition:background .15s,transform .1s}
+.btn:hover{background:var(--accD);border-color:var(--accD)}
+.btn:active{transform:scale(.96)}
+.btn.light{background:var(--accL);color:var(--accD);border-color:var(--line)}
+.btn.light:hover{background:#cfe0ec}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* старт */
+.stage.start .card{background:linear-gradient(135deg,#DCE9F2 0%,#EAF2F7 55%,#F5F9FC 100%);flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.4rem}
+.stage.start .kicker{font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--acc2);font-size:1.1rem}
+.stage.start h1{margin:.4rem 0 1.4rem;font-size:3.2rem;line-height:1.12;color:var(--accD);font-weight:900;padding:0 1rem}
+.stage.start h1 small{display:block;font-size:1.3rem;color:var(--muted);font-weight:700;margin-bottom:.4rem}
+.go{border:2px solid var(--line);background:#fff;color:var(--accD);font-weight:900;font-size:1.3rem;border-radius:999px;padding:.5em .6em .5em 1.4em;cursor:pointer;display:inline-flex;align-items:center;gap:.9rem;box-shadow:0 .2rem .6rem rgba(31,78,115,.15)}
+.go span{width:2.4rem;height:2.4rem;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center}
+.go:hover span{background:var(--accD)}
+.dia{position:absolute;top:.7rem;right:.8rem;z-index:6;width:2.4rem;height:2.4rem;border:1.5px solid var(--line);border-radius:.7rem;background:#fff;color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.dia svg{width:1.6rem;height:1.6rem}
+.dia:hover{background:var(--accL)}
+
+/* навігація */
+.nav{flex:none;display:flex;justify-content:center;align-items:center;gap:.9rem}
+.nav[hidden]{display:none}
+.nav .btn{min-width:7.5rem}
+#candle{position:relative;flex:none;width:.6rem;height:2.4rem;border:1.5px solid var(--line);border-radius:9px;background:#fff;padding:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer}
+#candle .wax{width:100%;height:100%;background:var(--acc2);border-radius:9px;transition:height 1s linear}
+#ctip{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);background:var(--accD);color:#fff;font-size:.9rem;font-weight:700;padding:.4em .8em;border-radius:.6rem;white-space:nowrap;display:none;z-index:20}
+#candle:hover #ctip{display:block}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+
+/* вкладки */
+.tabbar{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.8rem}
+.tab{border:2.5px solid var(--line);background:var(--soft2);color:var(--accD);font-weight:900;border-radius:999px;padding:.4em 1.2em;cursor:pointer;font-size:1.15rem}
+.tab:not(.seen):not(.on){animation:glow 1.6s infinite;border-color:var(--acc2)}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(56,135,175,.55)}100%{box-shadow:0 0 0 .6rem rgba(56,135,175,0)}}
+.tabnext{margin-top:.4rem}
+.tab:hover{background:var(--accL)}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+
+/* означення й пояснення */
+.def{border-left:.35rem solid var(--acc);background:var(--accL);border-radius:.2rem .8rem .8rem .2rem;padding:.7rem 1rem;margin:.55rem 0;font-size:1.2rem}
+.def .dl{display:inline-block;font-weight:900;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;margin-right:.5rem}
+.def b{color:var(--accD)}
+.def.big{font-size:1.9rem;line-height:1.45;padding:1rem 1.3rem}
+.def b.x1,.def .cf b{color:var(--o1)} .def .lt b{color:var(--o2)}
+.note.big{font-size:1.5rem}
+.step.wide{text-align:center}
+.step.wide .sn{display:flex;margin:0 0 .2rem}
+.ex{font-size:1.5rem;font-weight:700;text-align:center;padding:.45rem .6rem;margin:.4rem 0;background:var(--soft2);border:1.5px dashed var(--line);border-radius:.8rem}
+.note{font-size:1.1rem;color:var(--ink);margin:.4rem 0}
+.note b{color:var(--accD)}
+
+.stepper{margin:.5rem 0}
+.steps{display:flex;flex-direction:column;gap:.4rem}
+.step{padding:.5rem .9rem;border:1.5px solid var(--line);border-radius:.8rem;background:#fff;font-size:1.3rem;animation:pop .35s ease}
+.step .sn{display:inline-flex;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;font-size:.9rem;align-items:center;justify-content:center;margin-right:.6rem;vertical-align:middle}
+.down{display:block;margin:.5rem auto 0;width:2.7rem;height:2.7rem;border-radius:50%;border:none;background:var(--acc2);color:#fff;font-size:1.5rem;font-weight:900;cursor:pointer;animation:bob 1.1s infinite;box-shadow:0 .2rem .5rem rgba(31,78,115,.3)}
+.down:hover{background:var(--acc)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(.25rem)}}
+@keyframes pop{from{opacity:0;transform:translateY(.4rem)}to{opacity:1;transform:none}}
+
+/* завдання */
+.ask{font-weight:800;color:var(--accD);font-size:1.15rem;margin:.2rem 0}
+.expr{font-size:1.9rem;font-weight:700;text-align:center;padding:.5rem .8rem;margin:.5rem 0;background:var(--soft2);border:1.5px solid var(--line);border-radius:.8rem;overflow-x:auto;white-space:nowrap}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin:.5rem 0}
+@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:.6rem;border:2px solid var(--line);background:#fff;border-radius:.9rem;padding:.55rem .8rem;cursor:pointer;font-size:1.45rem;text-align:left;font-weight:700;min-height:3.4rem;overflow:hidden;white-space:nowrap}
+.opt .lt-l{flex:none;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--accL);color:var(--accD);font-size:.95rem;font-weight:900;display:flex;align-items:center;justify-content:center}
+.opt .ot{flex:1;text-align:center;overflow-x:auto}
+.opt:hover:not(:disabled){background:var(--soft);border-color:var(--acc2)}
+.opt.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.opt.bad{background:var(--badbg);border-color:var(--bad);color:var(--badtx);opacity:.8}
+.opts.done .opt:not(.ok){opacity:.5}
+.msg{min-height:1.6rem;font-weight:800;font-size:1.1rem;margin:.3rem 0}
+.msg.ok{color:var(--oktx)}
+.msg.bad{color:var(--badtx)}
+.hint{display:block;margin-top:.2rem;padding:.35rem .7rem;background:var(--warnbg);border:1.5px solid var(--warnln);color:var(--warntx);border-radius:.6rem;font-weight:700;font-size:1rem}
+.bar{display:flex;gap:.6rem;justify-content:center;margin-top:.5rem;flex-wrap:wrap}
+.inrow{display:flex;gap:.6rem;justify-content:center;align-items:center;margin:.5rem 0}
+input.ans{font:inherit;font-size:1.4rem;font-weight:700;width:11rem;padding:.35em .6em;border:2px solid var(--line);border-radius:.8rem;text-align:center;color:var(--ink);background:#fff}
+input.ans:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 .2rem var(--accL)}
+input.ans.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+input.ans.bad{background:var(--badbg);border-color:var(--bad)}
+
+/* так / ні */
+.ynl{display:flex;flex-direction:column;gap:.45rem;margin:.4rem 0}
+.ynr{display:grid;grid-template-columns:2rem 1fr auto;gap:.2rem .8rem;align-items:center;border:2px solid var(--line);border-radius:.9rem;padding:.4rem .8rem;background:#fff}
+.ynr .num{width:1.9rem;height:1.9rem;border-radius:50%;background:var(--accL);color:var(--accD);font-weight:900;font-size:.95rem;display:flex;align-items:center;justify-content:center}
+.ynr .yt{font-size:1.4rem;font-weight:700;line-height:1.3;white-space:normal;overflow:visible}
+.ynb{display:flex;gap:.4rem}
+.yb{border:2px solid var(--line);background:var(--soft2);color:var(--accD);font-weight:900;border-radius:.7rem;padding:.25em 1em;cursor:pointer;font-size:1.05rem;min-width:4rem}
+.yb:hover:not(:disabled){background:var(--accL)}
+.yb.sel{background:var(--acc);border-color:var(--acc);color:#fff}
+.ynr.ok{border-color:var(--ok);background:var(--okbg)}
+.ynr.bad{border-color:var(--bad);background:var(--badbg)}
+.ynr .why{grid-column:2/-1;display:none;font-size:1.05rem;color:var(--oktx);font-weight:700}
+.ynr.show .why{display:block}
+
+/* додаткове (+) */
+.plus{position:absolute;top:.7rem;right:.8rem;z-index:6;width:2.3rem;height:2.3rem;border-radius:50%;border:2px solid var(--warnln);background:var(--warnbg);color:var(--warntx);font-size:1.4rem;font-weight:900;cursor:pointer;line-height:1}
+.plus:hover{background:#ffeccb}
+.extra{margin-top:.8rem;border:2px solid var(--warnln);background:var(--warnbg);border-radius:1rem;padding:.6rem .9rem}
+.extra .exl{font-weight:900;color:var(--warntx);text-transform:uppercase;letter-spacing:.08em;font-size:.8rem}
+
+/* схема множення зі стрілками */
+.ab{text-align:center}
+.abw{position:relative;display:inline-block;padding:2.3em .4em 2.3em;max-width:100%}
+.abw svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.exrow{display:flex;align-items:baseline;justify-content:center;white-space:nowrap;font-size:2.3rem;font-weight:700;gap:.1em}
+.fac{display:inline-flex;align-items:baseline}
+.pr{font-weight:500;color:var(--muted);margin:0 .06em}
+.sg{margin:0 .22em}
+.tm{font-weight:800;padding:0 .04em}
+.arcp{stroke-dasharray:1;stroke-dashoffset:1;animation:drawl .6s ease-out forwards}
+.arcp.st{animation:none;stroke-dashoffset:0}
+.arch{opacity:0;animation:headin .2s .5s forwards}
+.arch.st{animation:none;opacity:1}
+@keyframes drawl{to{stroke-dashoffset:0}}
+@keyframes headin{to{opacity:1}}
+.rows{font-size:1.9rem;font-weight:700;text-align:left;display:inline-block;max-width:100%;overflow-x:auto;white-space:nowrap}
+.rows .rw{margin:.25em 0;min-height:1.4em}
+.rows .rw.fin{border-radius:.6rem;padding:.1em .4em;background:var(--accL);box-shadow:0 0 0 2px var(--line)}
+.rows .eq{color:var(--muted);margin-right:.35em}
+.abhint{min-height:1.8rem;font-size:1.15rem;font-weight:800;color:var(--accD);margin:.3rem 0}
+
+/* підсумок */
+.sum .step{font-size:1.4rem;padding:.7rem 1.1rem}
+.sum .step b{color:var(--accD)}
+.fin-q{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:.8rem;padding:.5rem .9rem;margin:.4rem 0;font-size:1.2rem;background:var(--soft2)}
+.fin-q .end{color:var(--accD);font-weight:800}
+.fin-q .btn{min-height:2rem;padding:.15em .8em;font-size:.95rem}
+
+/* світлофор */
+.tl{display:grid;grid-template-columns:1fr auto;gap:1.2rem;align-items:center}
+@media (max-width:760px){.tl{grid-template-columns:1fr}}
+.votes{display:flex;flex-direction:column;gap:.6rem}
+.vote{display:flex;align-items:center;gap:.8rem;border:2px solid var(--line);border-radius:1rem;padding:.5rem .9rem;background:#fff;font-size:1.15rem;font-weight:800}
+.vote .dotc{width:2.6rem;height:2.6rem;border-radius:50%;border:none;cursor:pointer;box-shadow:0 .15rem .4rem rgba(0,0,0,.25);flex:none}
+.vote .dotc:active{transform:scale(.92)}
+.vote .cnt{margin-left:auto;font-size:1.7rem;min-width:2.2rem;text-align:right;color:var(--accD)}
+.lamp{width:6.5rem;background:#3a4a58;border-radius:1.4rem;padding:.7rem;display:flex;flex-direction:column;gap:.6rem;align-items:center;margin:0 auto}
+.lamp i{width:4.4rem;height:4.4rem;border-radius:50%;background:#56697a;opacity:.45;display:block;transition:all .3s}
+.lamp i.on{opacity:1;box-shadow:0 0 1.4rem currentColor}
+.tlmsg{font-size:1.25rem;font-weight:800;color:var(--accD);margin-top:.5rem;min-height:3rem}
+
+/* модальні та конфеті */
+.ov{position:fixed;inset:0;z-index:2147483000;background:rgba(23,63,95,.45);display:none;align-items:center;justify-content:center;padding:1rem}
+.ov.on{display:flex}
+.mod{background:#fff;border-radius:1.2rem;max-width:44rem;width:100%;max-height:92%;overflow:auto;padding:1.2rem 1.5rem;border:2px solid var(--line);box-shadow:0 1rem 3rem rgba(0,0,0,.3)}
+.mod h3{margin:0 0 .6rem;color:var(--acc);font-size:1.4rem}
+.mod h4{margin:.8rem 0 .3rem;color:var(--accD);font-size:1.05rem}
+.mod p,.mod li{font-size:1.05rem}
+.mod .x{float:right;border:none;background:var(--accL);color:var(--accD);border-radius:50%;width:2.1rem;height:2.1rem;font-size:1.1rem;cursor:pointer;font-weight:900}
+.plan{display:flex;flex-direction:column;gap:.35rem}
+.plan button{display:flex;justify-content:space-between;gap:1rem;border:1.5px solid var(--line);background:var(--soft2);border-radius:.7rem;padding:.4rem .8rem;cursor:pointer;font-size:1rem;font-weight:700;color:var(--accD);text-align:left}
+.plan button:hover{background:var(--accL)}
+.plan .tm2{font-weight:900;color:var(--acc);white-space:nowrap}
+.conf{position:fixed;width:.7rem;height:1rem;z-index:2147483100;pointer-events:none;animation:fly 1.3s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.finbox{text-align:center}
+.finbox .big{font-size:3rem;font-weight:900;color:var(--acc);margin:.2rem 0}
+
+/* кольори запитань (фон не змінюється) */
+.task,.sv{--tc:var(--acc);--tl:var(--soft2);--tb:var(--line);border-left:.45rem solid var(--tc);padding:.2rem .3rem .2rem .9rem;border-radius:.4rem}
+.task .ask,.sv .ask{color:var(--tc)}
+.task .expr,.sv .expr{border-color:var(--tb);background:var(--tl)}
+.task .opt:not(.ok):not(.bad),.sv .opt:not(.ok):not(.bad){border-color:var(--tb)}
+.task .opt .lt-l{background:var(--tl);color:var(--tc);box-shadow:0 0 0 1.5px var(--tb)}
+.task .opt:hover:not(:disabled):not(.ok):not(.bad){background:var(--tl);border-color:var(--tc)}
+.task .btn:not(.light),.sv .btn:not(.light){background:var(--tc);border-color:var(--tc)}
+.task input.ans:not(.ok):not(.bad),.sv input.ans:not(.ok):not(.bad){border-color:var(--tb)}
+.task input.ans:focus,.sv input.ans:focus{border-color:var(--tc);box-shadow:0 0 0 .2rem var(--tl)}
+.ynr{border-color:var(--tb,var(--line));border-left:.45rem solid var(--tc,var(--line))}
+.ynr .num{background:var(--tl,var(--accL));color:var(--tc,var(--accD))}
+.ynr .yb.sel{background:var(--tc,var(--acc));border-color:var(--tc,var(--acc))}
+.ynr .yb{border-color:var(--tb,var(--line))}
+
+/* маркер подібних членів */
+.mkd.on{background:linear-gradient(transparent 14%,var(--c) 14%,var(--c) 92%,transparent 92%);padding:0 .06em}
+
+/* розв’язання по кроках */
+.task .stepper{margin:.4rem 0}
+.task .step{font-size:1.2rem;padding:.45rem .8rem}
+.task .step .sn{background:var(--tc)}
+.slab{font-weight:800;color:var(--tc)}
+.sexp{display:inline-block;vertical-align:middle;max-width:calc(100% - 3rem);font-size:1.7rem;font-weight:700;white-space:nowrap;overflow-x:auto;color:var(--ink)}
+.sexp .res{display:inline-block;padding:.05em .5em;border-radius:.6rem;background:var(--okbg);border:2px solid var(--ok);color:var(--oktx)}
+.sexp .chk{display:block;font-size:.8em;color:var(--muted);margin-top:.15em}
+.svbtns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin:.2rem 0}
+.sum .gochk{margin:.7rem auto 0;display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stagewrap"></div>
+  <div id="nav" class="nav" hidden>
+    <button class="btn light" id="bBack">← Назад</button>
+    <button class="dia" id="bDia" title="Методична картка" style="position:static"></button>
+    <div id="candle" title=""><div class="wax"></div><div id="ctip"></div></div>
+    <button class="btn" id="bNext">Далі →</button>
+  </div>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+<div class="ov" id="ovMeta"><div class="mod" id="metaBox"></div></div>
+<div class="ov" id="ovFin"><div class="mod finbox" id="finBox"></div></div>
+
+<script>
+/* ===================== ЗАГАЛЬНІ ДОПОМІЖНІ ===================== */
+const MINUS = '−';
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[rnd(0, a.length - 1)];
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+const sample = (a, n) => shuffle(a).slice(0, n);
+const sgn = () => Math.random() < .5 ? -1 : 1;
+function plural(n, a, b, c) { const m = n % 100, k = n % 10; if (m > 10 && m < 20) return c; if (k === 1) return a; if (k >= 2 && k <= 4) return b; return c; }
+function retry(f) { for (let i = 0; i < 400; i++) { const r = f(); if (r) return r; } throw new Error('генератор не впорався: ' + f.name); }
+const $ = (s, r) => (r || document).querySelector(s);
+function el(t, c, h) { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+
+/* ===================== МНОГОЧЛЕНИ ===================== */
+/* многочлен — масив коефіцієнтів: P[k] — коефіцієнт при степені k */
+const VARS = ['x', 'y', 'a', 'b', 'c', 'm', 'n', 't', 'k', 'p'];
+const varHTML = (v, e) => '<i>' + v + '</i>' + (e > 1 ? '<sup>' + e + '</sup>' : '');
+function trim(P) { P = P.slice(); while (P.length > 1 && P[P.length - 1] === 0) P.pop(); return P; }
+function pAdd(A, B) { const n = Math.max(A.length, B.length), R = []; for (let i = 0; i < n; i++) R.push((A[i] || 0) + (B[i] || 0)); return trim(R); }
+function pNeg(A) { return A.map(c => -c); }
+function pSub(A, B) { return pAdd(A, pNeg(B)); }
+function pMul(A, B) { const R = new Array(A.length + B.length - 1).fill(0); A.forEach((a, i) => B.forEach((b, j) => R[i + j] += a * b)); return trim(R); }
+const pKey = P => trim(P).join(',');
+const pEval = (P, x) => P.reduce((s, c, i) => s + c * Math.pow(x, i), 0);
+function termHTML(c, e, v) { const a = Math.abs(c); if (e === 0) return String(a); return (a === 1 ? '' : String(a)) + varHTML(v, e); }
+function polyHTML(P, v) {
+  P = trim(P); let out = '', first = true;
+  for (let e = P.length - 1; e >= 0; e--) {
+    const c = P[e]; if (!c) continue;
+    if (first) { out += (c < 0 ? MINUS : '') + termHTML(c, e, v); first = false; }
+    else out += ' ' + (c < 0 ? MINUS : '+') + ' ' + termHTML(c, e, v);
+  }
+  return first ? '0' : out;
+}
+const par = (P, v) => '(' + polyHTML(P, v) + ')';
+/* запис за списком [коефіцієнт, степінь] у заданому порядку (без зведення) */
+function termsHTML(list, v) {
+  return list.map((t, i) => (i === 0 ? (t[0] < 0 ? MINUS : '') : ' ' + (t[0] < 0 ? MINUS : '+') + ' ') + termHTML(t[0], t[1], v)).join('');
+}
+function parseI(s) {
+  s = String(s).trim().replace(/\s+/g, '').replace(/[−–—]/g, '-');
+  return /^-?\d+$/.test(s) ? parseInt(s, 10) : null;
+}
+
+/* ---------- варіанти відповіді: 4, один правильний ---------- */
+function perturbP(P) {
+  const n = P.slice(), i = rnd(0, n.length - 1), m = rnd(1, 3);
+  if (m === 1) n[i] = -n[i]; else if (m === 2) n[i] += pick([-2, -1, 1, 2, 3]); else n[i] *= 2;
+  return n[i] === P[i] ? null : n;
+}
+function polyOpts(correct, cands) {
+  const C = trim(correct), seen = new Set([pKey(C)]), wr = [];
+  const add = P => { if (!P) return; P = trim(P); if (P.every(c => c === 0)) return; const k = pKey(P); if (seen.has(k)) return; seen.add(k); wr.push(P); };
+  shuffle(cands || []).forEach(P => { if (wr.length < 3) add(P); });
+  let g = 0; while (wr.length < 3 && g++ < 500) add(perturbP(C));
+  if (wr.length < 3) return null;
+  return shuffle([{ P: C, ok: true }].concat(wr.map(P => ({ P, ok: false }))));
+}
+const LET = ['А', 'Б', 'В', 'Г'];
+function mcPoly(o) {
+  const op = polyOpts(o.correct, o.cands); if (!op) return null;
+  const xs = [-3, -2, -1, 1, 2, 3, 5];
+  const right = P => xs.every(x => pEval(P, x) === o.evalFn(x));
+  let cnt = 0; for (const x of op) { if (right(x.P)) cnt++; if (right(x.P) !== x.ok) return null; }
+  if (cnt !== 1) return null;
+  return { kind: 'mc', q: o.q, expr: o.expr, hint: o.hint, evalFn: o.evalFn, steps: o.steps,
+    options: op.map(x => ({ html: polyHTML(x.P, o.v), ok: x.ok, P: x.P })) };
+}
+
+/* ===================== ГЕНЕРАТОРИ ===================== */
+/* ---- 1. актуалізація ---- */
+let _warmPrev = '';
+function genWarm() {
+  const type = pick(['mono', 'like', 'neg'].filter(t => t !== _warmPrev)); _warmPrev = type;
+  const v = pick(VARS);
+  if (type === 'mono') {
+    const k = pick([2, 3, 4, 5, -2, -3]), a = rnd(1, 3), b = sgn() * rnd(1, 6);
+    const A = [0, k], B = [b, a], C = pMul(A, B);
+    return mcPoly({ q: 'Виконайте множення', v, expr: polyHTML(A, v) + par(B, v), correct: C,
+      cands: [[0, b, k * a], [0, -k * b, k * a], [0, k * b, a]],
+      hint: 'Одночлен множимо на кожний член многочлена й додаємо добутки.',
+      evalFn: x => k * x * (a * x + b) });
+  }
+  if (type === 'like') {
+    const a = rnd(2, 7), b = rnd(2, 9); let c = rnd(2, 9); if (c === b) c++;
+    const d = sgn() * rnd(1, 9);
+    const list = [[a, 2], [b, 1], [-c, 1], [d, 0]];
+    const C = [d, b - c, a];
+    return mcPoly({ q: 'Зведіть подібні члени', v, expr: termsHTML(list, v), correct: C,
+      cands: [[d, b + c, a], [-d, b - c, a], [d, c - b, a]],
+      hint: 'Подібні члени мають однакову буквену частину: додаємо їхні коефіцієнти.',
+      evalFn: x => a * x * x + b * x - c * x + d });
+  }
+  const m = rnd(2, 9), p = rnd(1, 4), q = sgn() * rnd(1, 8);
+  const C = [m - q, -p];
+  return mcPoly({ q: 'Розкрийте дужки й спростіть вираз', v, expr: m + ' ' + MINUS + ' ' + par([q, p], v), correct: C,
+    cands: [[m + q, -p], [m - q, p], [m + q, p]],
+    hint: 'Перед дужками стоїть мінус: знак кожного члена в дужках змінюється на протилежний.',
+    evalFn: x => m - (p * x + q) });
+}
+
+/* ---- 2. множення двочлена на двочлен ---- */
+function genMul2() {
+  const v = pick(VARS), p = pick([1, 1, 2, 3, 4]), r = pick([1, 1, 2, 3]);
+  const q = sgn() * rnd(1, 9), s = sgn() * rnd(1, 9);
+  const A = [q, p], B = [s, r], C = pMul(A, B);
+  if (C[1] === 0) return null;
+  return mcPoly({ q: 'Виконайте множення', v, expr: par(A, v) + par(B, v), correct: C,
+    cands: [[q * s, 0, p * r], [-q * s, C[1], p * r], [q * s, p * s - q * r, p * r], [0, C[1], p * r]],
+    hint: 'Кожний член першої дужки множимо на кожний член другої (чотири добутки), потім зводимо подібні члени.',
+    evalFn: x => (p * x + q) * (r * x + s) });
+}
+function genMul3() {
+  const v = pick(VARS), p = pick([1, 1, 2, 3]), r = rnd(1, 3);
+  const q = sgn() * rnd(1, 6), s = sgn() * rnd(1, 6), t = sgn() * rnd(1, 6);
+  const A = [q, p], B = [t, s, r], C = pMul(A, B);
+  const cands = [];
+  for (let i = 0; i < C.length; i++) { const w = C.slice(); w[i] = -w[i]; cands.push(w); }
+  cands.push([C[0], p * t, C[2], C[3]], [C[0], C[1], p * s, C[3]]);
+  return mcPoly({ q: 'Подайте добуток у вигляді многочлена', v, expr: par(A, v) + par(B, v), correct: C, cands,
+    hint: 'Кожний з 2 членів першої дужки множимо на кожний з 3 членів другої: усього 6 добутків.',
+    evalFn: x => (p * x + q) * (r * x * x + s * x + t) });
+}
+function genMul3f() {
+  const v = pick(VARS); const a = sgn() * rnd(1, 7), b = sgn() * rnd(1, 7), c = sgn() * rnd(1, 7);
+  if (a === b || b === c || a === c) return null;
+  const A = [a, 1], B = [b, 1], Cc = [c, 1], C = pMul(pMul(A, B), Cc);
+  const cands = [];
+  for (let i = 0; i < C.length - 1; i++) { const w = C.slice(); w[i] = -w[i]; cands.push(w); }
+  return mcPoly({ q: 'Подайте добуток трьох двочленів у вигляді многочлена', v, expr: par(A, v) + par(B, v) + par(Cc, v), correct: C, cands,
+    hint: 'Спочатку перемножте перші дві дужки й зведіть подібні члени, потім результат помножте на третю.',
+    evalFn: x => (x + a) * (x + b) * (x + c) });
+}
+
+/* ---- 3. спрощення виразів ---- */
+function genSimplify(level) {
+  level = level || 1;
+  const v = pick(VARS), lm = level > 1 ? [1, 2, 3, 4] : [1, 1, 2], cm = level > 1 ? 9 : 6;
+  const p = pick(lm), r = pick(lm), u = pick(lm), l = pick(lm);
+  const q = sgn() * rnd(1, cm), s = sgn() * rnd(1, cm), k = sgn() * rnd(1, cm), m = sgn() * rnd(1, cm);
+  const minus = Math.random() < .75;
+  const A = pMul([q, p], [s, r]), B = pMul([k, u], [m, l]);
+  const R = minus ? pSub(A, B) : pAdd(A, B);
+  if (R.length < 2) return null;
+  const cands = [];
+  if (minus) { cands.push(pAdd(A, B)); for (let i = 0; i < B.length; i++) { const w = R.slice(); while (w.length < B.length) w.push(0); w[i] += 2 * B[i]; cands.push(w); } }
+  else { cands.push(pSub(A, B)); for (let i = 0; i < B.length; i++) { const w = R.slice(); while (w.length < B.length) w.push(0); w[i] -= 2 * B[i]; cands.push(w); } }
+  const expr = par([q, p], v) + par([s, r], v) + ' ' + (minus ? MINUS : '+') + ' ' + par([k, u], v) + par([m, l], v);
+  const LL = descTerms(A).concat(descTerms(minus ? pNeg(B) : B)), mk = grpMarks(LL), RR = descTerms(R);
+  const steps = [stp('', par(A, v) + ' ' + (minus ? MINUS : '+') + ' ' + par(B, v)), stp('', mTerms(LL, v, LL.map(mk))),
+    stp('', '<span class="res">' + mTerms(RR, v, RR.map(mk)) + '</span>')];
+  return mcPoly({ q: 'Спростіть вираз', v, expr, correct: R, cands, steps,
+    hint: minus ? 'Спочатку виконайте кожне множення. Перед другим добутком мінус: розкриваючи дужки, змініть знаки всіх його членів.'
+                : 'Виконайте кожне множення, а потім зведіть подібні члени.',
+    evalFn: x => { const a1 = (p * x + q) * (r * x + s), b1 = (u * x + k) * (l * x + m); return minus ? a1 - b1 : a1 + b1; } });
+}
+function genValue() {
+  const v = pick(VARS), q = sgn() * rnd(1, 8), s = sgn() * rnd(1, 8), k = sgn() * rnd(1, 8), m = sgn() * rnd(1, 8);
+  const slope = q + s - k - m; if (slope === 0) return null;
+  const c0 = q * s - k * m, val = sgn() * rnd(1, 6);
+  const ans = slope * val + c0;
+  const P1 = pMul([q, 1], [s, 1]), P2 = pMul([k, 1], [m, 1]), LL = descTerms(P1).concat(descTerms(pNeg(P2))), mk = grpMarks(LL), RR = descTerms([c0, slope]);
+  const steps = [stp('', par(P1, v) + ' ' + MINUS + ' ' + par(P2, v)), stp('', mTerms(LL, v, LL.map(mk))), stp('', mTerms(RR, v, RR.map(mk))),
+    stp('', num(slope) + '·' + (val < 0 ? '(' + num(val) + ')' : val) + (c0 ? (c0 < 0 ? ' ' + MINUS + ' ' : ' + ') + Math.abs(c0) : '') + ' = ' + num(ans)),
+    stp('', '<span class="res">' + num(ans) + '</span>')];
+  return { kind: 'input', q: 'Спростіть вираз і знайдіть його значення', answer: ans, steps,
+    expr: par([q, 1], v) + par([s, 1], v) + ' ' + MINUS + ' ' + par([k, 1], v) + par([m, 1], v) + ' <span class="nw" style="font-size:.7em;color:var(--muted)">при <i>' + v + '</i> = ' + (val < 0 ? MINUS : '') + Math.abs(val) + '</span>',
+    hint: 'Спочатку спростіть вираз: квадрати змінної скоротяться. Потім підставте значення змінної.',
+    evalFn: x => (x + q) * (x + s) - (x + k) * (x + m), at: val };
+}
+
+/* ---- 4. рівняння ---- */
+function genEq(level) {
+  level = level || 1;
+  const v = pick(VARS), lm = level > 1 ? [1, 2, 3] : [1];
+  const p = pick(lm), r = pick(lm), cm = level > 1 ? 9 : 7;
+  const a = sgn() * rnd(1, cm), b = sgn() * rnd(1, cm), c = sgn() * rnd(1, cm), d = sgn() * rnd(1, cm);
+  const slope = p * b + a * r - p * d - c * r; if (slope === 0) return null;
+  const w = a * b - c * d, X = sgn() * rnd(1, 7), k = slope * X + w;
+  const P1 = pMul([a, p], [b, r]), P2 = pMul([c, p], [d, r]);
+  const L1 = descTerms(P1), L2 = descTerms(pNeg(P2)), LL = L1.concat(L2);
+  const red = [[slope, 1]]; if (w) red.push([w, 0]);
+  const steps = [
+    stp('Виконуємо множення: кожний член на кожний', par(P1, v) + ' ' + MINUS + ' ' + par(P2, v) + ' = ' + num(k)),
+    stp('Розкриваємо дужки: знаки в других дужках змінюються', mTerms(LL, v, LL.map(grpMarks(LL))) + ' = ' + num(k)),
+    stp('Зводимо подібні члени: ' + varHTML(v, 2) + ' скоротились', mTerms(red, v, red.map(grpMarks(LL))) + ' = ' + num(k))
+  ];
+  if (w) steps.push(stp('Переносимо ' + num(w) + ' у праву частину, змінюючи знак', mTerms([[slope, 1]], v) + ' = ' + num(k) + (w > 0 ? ' ' + MINUS + ' ' : ' + ') + Math.abs(w) + ' = ' + num(k - w)));
+  if (slope !== 1) steps.push(stp('Ділимо обидві частини на ' + num(slope), '<i>' + v + '</i> = ' + num(k - w) + ' : ' + (slope < 0 ? '(' + num(slope) + ')' : slope) + ' = ' + num(X)));
+  steps.push(stp('Відповідь', '<span class="res"><i>' + v + '</i> = ' + num(X) + '</span>'));
+  return { kind: 'input', q: 'Розв’яжіть рівняння', answer: X, steps,
+    expr: par([a, p], v) + par([b, r], v) + ' ' + MINUS + ' ' + par([c, p], v) + par([d, r], v) + ' = ' + (k < 0 ? MINUS : '') + Math.abs(k),
+    hint: 'Розкрийте дужки й зведіть подібні члени: доданки з <i>' + v + '</i><sup>2</sup> скоротяться. Далі розв’яжіть лінійне рівняння.',
+    check: x => (p * x + a) * (r * x + b) - (p * x + c) * (r * x + d) === k };
+}
+
+/* ---- 5. поглиблений рівень ---- */
+function genConsec() {
+  const x = rnd(3, 19), D = 4 * x + 6, X = '<i>x</i>', sq = X + '<sup>2</sup>';
+  const steps = [
+    stp('Нехай менше число дорівнює ' + X + '. Тоді числа:', X + ', ' + X + ' + 1, ' + X + ' + 2, ' + X + ' + 3'),
+    stp('Складаємо рівняння: добуток третього й четвертого на ' + D + ' більший за добуток першого й другого', '(' + X + ' + 2)(' + X + ' + 3) ' + MINUS + ' ' + X + '(' + X + ' + 1) = ' + D),
+    stp('Виконуємо множення', '(' + sq + ' + 5' + X + ' + 6) ' + MINUS + ' (' + sq + ' + ' + X + ') = ' + D),
+    stp('Розкриваємо дужки: знаки в других дужках змінюються', mkd(sq, 0) + ' + ' + mkd('5' + X, 1) + ' + 6 ' + MINUS + ' ' + mkd(sq, 0) + ' ' + MINUS + ' ' + mkd(X, 1) + ' = ' + D),
+    stp('Зводимо подібні члени: ' + sq + ' скоротились', mkd('4' + X, 1) + ' + 6 = ' + D),
+    stp('Переносимо 6 у праву частину, змінюючи знак', '4' + X + ' = ' + D + ' ' + MINUS + ' 6 = ' + (D - 6)),
+    stp('Ділимо обидві частини на 4', X + ' = ' + (D - 6) + ' : 4 = ' + x),
+    stp('Відповідь', '<span class="res">' + x + ', ' + (x + 1) + ', ' + (x + 2) + ', ' + (x + 3) + '</span>')
+  ];
+  return { kind: 'input', steps, q: 'Знайдіть чотири послідовних натуральних числа, якщо добуток третього й четвертого з них на <b>' + D + '</b> більший за добуток першого та другого. Уведіть найменше з цих чисел',
+    answer: x, expr: null,
+    hint: 'Нехай менше число дорівнює <i>x</i>, тоді числа: <i>x</i>, <i>x</i> + 1, <i>x</i> + 2, <i>x</i> + 3. Складіть рівняння (<i>x</i> + 2)(<i>x</i> + 3) ' + MINUS + ' <i>x</i>(<i>x</i> + 1) = ' + D + '.',
+    check: n => (n + 2) * (n + 3) - n * (n + 1) === D };
+}
+function genMissing() {
+  const v = pick(VARS); let a = sgn() * rnd(1, 8), b = sgn() * rnd(1, 8); if (a === b || a + b === 0) return null;
+  const A = [a, 1], Bc = [b, 1], C = pMul(A, Bc);
+  const star = '<span style="color:var(--acc);font-weight:900">∗</span>';
+  return mcPoly({ q: 'Яким двочленом треба замінити зірочку, щоб рівність була правильною', v,
+    expr: par(A, v) + star + ' = ' + polyHTML(C, v), correct: Bc,
+    cands: [[-b, 1], [a, 1], [a + b, 1], [-a, 1], [a * b, 1]],
+    hint: 'Виконайте множення (<i>' + v + '</i> + ' + a + ')(<i>' + v + '</i> + <i>?</i>) для кожного варіанта й порівняйте з правою частиною.',
+    evalFn: x => x + b });
+}
+
+/* ---- 6. знайдіть помилку ---- */
+function genErrors() {
+  function mulItem(ok) {
+    const v = pick(VARS), p = pick([1, 1, 2, 3]), r = pick([1, 1, 2]);
+    const q = sgn() * rnd(1, 9), s = sgn() * rnd(1, 9), C = pMul([q, p], [s, r]);
+    if (C[1] === 0) return null;
+    const wr = pick([[q * s, 0, p * r], [-q * s, C[1], p * r], [q * s, p * s - q * r, p * r], [0, C[1], p * r], [q * s, C[1], p * r + 1]]);
+    if (pKey(wr) === pKey(C)) return null;
+    return { html: par([q, p], v) + par([s, r], v) + '<br>= ' + polyHTML(ok ? C : wr, v), ok, fix: 'правильно: ' + polyHTML(C, v) };
+  }
+  function mul3Item(ok) {
+    const v = pick(VARS), p = pick([1, 1, 2]), r = pick([1, 1, 2]), q = sgn() * rnd(1, 6), t = sgn() * rnd(1, 6), w = sgn() * rnd(1, 6);
+    const C = pMul([q, p], [t, w, r]), wr = perturbP(C); if (!wr || pKey(wr) === pKey(C)) return null;
+    return { html: par([q, p], v) + par([t, w, r], v) + '<br>= ' + polyHTML(ok ? C : wr, v), ok, fix: 'правильно: ' + polyHTML(C, v) };
+  }
+  for (let t = 0; t < 400; t++) {
+    const flags = shuffle([true, true, false, false]);
+    const items = flags.map(f => mulItem(f)), m3 = mul3Item(Math.random() < .5);
+    if (items.some(x => !x) || !m3) continue;
+    const all = items.slice(0, 2).concat([m3], items.slice(2));
+    const bad = all.filter(x => !x.ok).length;
+    if (bad < 2 || bad > 3) continue;
+    return all.map(x => ({ html: x.html, ans: x.ok, why: x.ok ? 'правильно' : 'помилка, ' + x.fix }));
+  }
+  throw new Error('errors');
+}
+
+/* ===================== ІНТЕРФЕЙС ===================== */
+let SCORE = 0;
+const GEM = '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="18,14 46,14 58,28 6,28" fill="#3887AF"/><polygon points="18,14 32,14 32,28 18,28" fill="#A8CADD"/><polygon points="25,14 32,14 32,28" fill="#EAF2F7"/><polygon points="32,14 46,14 32,28" fill="#2A6592"/><polygon points="6,28 18,14 18,28" fill="#DCE9F2"/><polygon points="58,28 46,14 46,28" fill="#1F4E73"/><polygon points="6,28 58,28 32,58" fill="#2A6592"/><polygon points="6,28 32,28 32,58" fill="#3887AF"/><polygon points="58,28 32,28 32,58" fill="#1F4E73"/><polygon points="20,28 32,28 32,58" fill="#A8CADD" opacity="0.6"/><path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#fde68a"/><path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#fde68a" opacity="0.9"/></svg>';
+
+/* тривалість етапів, хв (разом 45) */
+const DUR = [0, 4, 10, 6, 6, 5, 4, 5, 3, 2];
+const NAMES = ['Старт', 'Актуалізація', 'Правило і схема множення', 'Множення многочленів', 'Спрощення виразів', 'Рівняння', 'Знайдіть помилку', 'Поглиблений рівень', 'Підсумок уроку', 'Рефлексія «Світлофор»'];
+const LAST = NAMES.length - 1;
+
+function burstAt(node) {
+  const r = node ? node.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const cols = ['#2A6592', '#3887AF', '#A8CADD', '#1e9e62', '#f3b63f', '#7c3aed', '#b45309'];
+  for (let i = 0; i < 34; i++) {
+    const p = el('div', 'conf'); const a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 150;
+    p.style.cssText = 'left:' + x + 'px;top:' + y + 'px;background:' + cols[i % cols.length] + ';--dx:' + Math.cos(a) * d + 'px;--dy:' + (Math.sin(a) * d + 80) + 'px;--r:' + (Math.random() * 720 - 360) + 'deg';
+    document.body.appendChild(p); setTimeout(() => p.remove(), 1400);
+  }
+}
+const defBox = (label, html) => el('div', 'def', '<span class="dl">' + label + '</span>' + html);
+const cf = h => '<span class="cf">' + h + '</span>', lt = h => '<span class="lt">' + h + '</span>';
+
+
+/* ---------- кольори запитань і маркери ---------- */
+const MK = ['rgba(255,214,60,.5)', 'rgba(104,200,128,.42)', 'rgba(240,120,176,.34)', 'rgba(130,130,238,.32)'];
+const mkd = (h, i, cur) => '<span class="mkd on' + (cur ? ' cur' : '') + '" style="--c:' + MK[i % MK.length] + '">' + h + '</span>';
+const QP = [{ c: '#2f7d4f', l: '#e6f3ec', b: '#a9d3b9' }, { c: '#2A6592', l: '#EAF2F7', b: '#A8CADD' }, { c: '#66811d', l: '#f0f5df', b: '#c3d38f' }, { c: '#4b5fb0', l: '#e8ebf8', b: '#b3bde3' }];
+let QI = 0;
+function qColor(node, i) {
+  const p = QP[(i == null ? QI++ : i) % QP.length];
+  node.style.setProperty('--tc', p.c); node.style.setProperty('--tl', p.l); node.style.setProperty('--tb', p.b);
+}
+const num = c => (c < 0 ? MINUS : '') + Math.abs(c);
+const stp = (lab, exp) => '<div class="sexp">' + exp + '</div>';
+/* члени [коефіцієнт, степінь] з маркерами (marks[i] — номер кольору або -1) */
+function mTerms(list, v, marks) {
+  return list.map((t, i) => {
+    const neg = t[0] < 0, sgn_ = i === 0 ? (neg ? MINUS : '') : ' ' + (neg ? MINUS : '+') + ' ', h = termHTML(t[0], t[1], v);
+    return sgn_ + (marks && marks[i] >= 0 ? mkd(h, marks[i]) : h);
+  }).join('');
+}
+/* кольорові групи подібних членів: групі з ≥2 членами одного степеня — свій колір */
+function grpMarks(L) {
+  const cnt = {}; L.forEach(t => { cnt[t[1]] = (cnt[t[1]] || 0) + 1; });
+  const ds = Object.keys(cnt).map(Number).filter(d => cnt[d] > 1).sort((a, b) => b - a), ix = {}; ds.forEach((d, i) => { ix[d] = i; });
+  return t => (t[1] in ix ? ix[t[1]] : -1);
+}
+const descTerms = P => { const o = []; for (let e = P.length - 1; e >= 0; e--) if (P[e]) o.push([P[e], e]); return o; };
+
+function stepper(steps, cls, onDone) {
+  const root = el('div', 'stepper ' + (cls || '')), list = el('div', 'steps'), btn = el('button', 'down', '↓');
+  btn.title = 'Наступний крок'; let n = 0;
+  const next = () => {
+    if (n >= steps.length) return;
+    if (n < steps.length) {
+      const s = steps[n], box = el('div', 'step', '<span class="sn">' + (n + 1) + '</span>');
+      if (typeof s === 'function') { box.classList.add('wide'); box.appendChild(s()); } else box.insertAdjacentHTML('beforeend', s);
+      list.appendChild(box); n++; if (n > 1) setTimeout(() => (n < steps.length ? btn : box).scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
+    }
+    if (n >= steps.length) { btn.style.display = 'none'; if (onDone) setTimeout(onDone, 0); }
+  };
+  btn.onclick = next; next(); root.append(list, btn); return root;
+}
+function tabs(defs) {
+  const wrap = el('div', 'tabs'), bar = el('div', 'tabbar'), body = el('div', 'tabbody'), panes = [], btns = [];
+  wrap.append(bar, body);
+  const show = i => {
+    if (!panes[i]) {
+      panes[i] = el('div', 'pane'); panes[i].appendChild(defs[i].make());
+      if (i < defs.length - 1) { const nb = el('button', 'btn tabnext', 'Далі: ' + defs[i + 1].label + ' →'), bb = el('div', 'bar'); nb.onclick = () => { show(i + 1); wrap.scrollIntoView({ block: 'nearest' }); }; bb.appendChild(nb); panes[i].appendChild(bb); }
+      body.appendChild(panes[i]);
+    }
+    panes.forEach((p, j) => { if (p) p.style.display = j === i ? '' : 'none'; });
+    btns.forEach((b, j) => b.classList.toggle('on', j === i));
+    btns[i].classList.add('seen');
+  };
+  defs.forEach((d, i) => { const b = el('button', 'tab', d.label); b.onclick = () => show(i); bar.appendChild(b); btns.push(b); });
+  show(0); return wrap;
+}
+
+/* ---------- завдання з варіантами або полем введення ---------- */
+function taskWidget(gen, opts) {
+  opts = opts || {};
+  const root = el('div', 'task'); let spec, wrong, done;
+  function build() {
+    spec = retry(gen); wrong = false; done = false; root.innerHTML = ''; qColor(root);
+    if (spec.q) root.appendChild(el('div', 'ask', spec.q));
+    if (spec.expr) root.appendChild(el('div', 'expr', spec.expr));
+    const msg = el('div', 'msg');
+    if (spec.kind === 'mc') {
+      const grid = el('div', 'opts');
+      spec.options.forEach((o, i) => {
+        const b = el('button', 'opt', '<span class="lt-l">' + LET[i] + '</span><span class="ot">' + o.html + '</span>');
+        b.onclick = () => {
+          if (done || b.disabled) return;
+          if (o.ok) {
+            done = true; b.classList.add('ok'); grid.classList.add('done'); msg.className = 'msg ok'; msg.textContent = 'Правильно!';
+            if (!wrong) SCORE++; burstAt(b);
+          } else {
+            wrong = true; b.classList.add('bad'); b.disabled = true; msg.className = 'msg bad';
+            msg.innerHTML = 'Неправильно. Спробуйте інший варіант.' + (spec.hint ? '<span class="hint">' + spec.hint + '</span>' : '');
+          }
+        };
+        grid.appendChild(b);
+      });
+      root.appendChild(grid);
+    } else {
+      const row = el('div', 'inrow'), inp = el('input', 'ans'), ok = el('button', 'btn', 'Перевірити');
+      inp.type = 'text'; inp.autocomplete = 'off'; inp.placeholder = 'відповідь'; inp.setAttribute('aria-label', 'відповідь'); inp.inputMode = 'text';
+      const check = () => {
+        if (done) return; const v = parseI(inp.value);
+        if (v !== null && v === spec.answer) {
+          done = true; inp.classList.remove('bad'); inp.classList.add('ok'); inp.disabled = true; msg.className = 'msg ok'; msg.textContent = 'Правильно!';
+          if (!wrong) SCORE++; burstAt(ok);
+        } else {
+          wrong = true; inp.classList.add('bad'); msg.className = 'msg bad';
+          msg.innerHTML = (v !== null ? 'Неправильно.' : 'Введіть ціле число (наприклад, −3 або 5).') + (spec.hint ? '<span class="hint">' + spec.hint + '</span>' : '');
+        }
+      };
+      ok.onclick = check; inp.onkeydown = e => { if (e.key === 'Enter') check(); }; inp.oninput = () => inp.classList.remove('bad');
+      row.append(inp, ok); root.appendChild(row);
+    }
+    root.appendChild(msg);
+    const box = el('div', 'svs'); root.appendChild(box);
+    const bar = el('div', 'bar'), nb = el('button', 'btn light', opts.newLabel || 'Нова задача ↻');
+    if (spec.steps) {
+      const sb = el('button', 'btn light', 'Показати кроки');
+      sb.onclick = () => { box.appendChild(stepper(spec.steps, '')); sb.style.display = 'none'; };
+      bar.appendChild(sb);
+    }
+    nb.onclick = () => build(); bar.appendChild(nb); root.appendChild(bar);
+  }
+  build(); return root;
+}
+
+/* ---------- «Так / Ні» ---------- */
+function ynWidget(gen, o) {
+  o = o || {}; const root = el('div', 'yn'); let items, first, sel, locked;
+  function build() {
+    items = gen(); first = true; locked = false; sel = []; root.innerHTML = '';
+    if (o.q) root.appendChild(el('div', 'ask', o.q));
+    const list = el('div', 'ynl'), rows = [];
+    items.forEach((it, i) => {
+      const r = el('div', 'ynr', '<span class="num">' + (i + 1) + '</span><div class="yt">' + it.html + '</div>'); qColor(r, i);
+      const bt = el('div', 'ynb'), by = el('button', 'yb', 'Так'), bn = el('button', 'yb', 'Ні');
+      const set = v => { if (locked) return; sel[i] = v; by.classList.toggle('sel', v === true); bn.classList.toggle('sel', v === false); r.classList.remove('ok', 'bad'); };
+      by.onclick = () => set(true); bn.onclick = () => set(false);
+      bt.append(by, bn); r.appendChild(bt); r.appendChild(el('div', 'why', (it.ans ? 'Так' : 'Ні') + ': ' + it.why));
+      list.appendChild(r); rows.push(r);
+    });
+    root.appendChild(list);
+    const msg = el('div', 'msg'); root.appendChild(msg);
+    const bar = el('div', 'bar'), chk = el('button', 'btn', 'Перевірити відповіді'), nb = el('button', 'btn light', 'Нові завдання ↻');
+    chk.onclick = () => {
+      if (locked) return;
+      if (items.some((_, i) => sel[i] === undefined)) { msg.className = 'msg bad'; msg.textContent = 'Оберіть «Так» або «Ні» у кожному рядку.'; return; }
+      let all = true;
+      rows.forEach((r, i) => { const good = sel[i] === items[i].ans; r.classList.remove('ok', 'bad'); r.classList.add(good ? 'ok' : 'bad'); if (!good) all = false; });
+      if (all) { locked = true; rows.forEach(r => r.classList.add('show')); msg.className = 'msg ok'; msg.textContent = 'Правильно!'; if (first) SCORE++; burstAt(chk); }
+      else { first = false; msg.className = 'msg bad'; msg.textContent = 'Є помилки: виправте відповіді в червоних рядках і перевірте ще раз.'; }
+    };
+    nb.onclick = build; bar.append(chk, nb); root.appendChild(bar);
+  }
+  build(); return root;
+}
+
+/* ---------- додаткове завдання «+» ---------- */
+function addPlus(stage, host, make) {
+  const plus = el('button', 'plus', '+'); plus.title = 'Додаткове завдання';
+  const ex = el('div', 'extra'); ex.style.display = 'none'; ex.appendChild(el('div', 'exl', 'Додаткове завдання'));
+  let built = false;
+  plus.onclick = () => {
+    if (!built) { ex.appendChild(make()); built = true; }
+    ex.style.display = ex.style.display === 'none' ? '' : 'none';
+    if (ex.style.display === '') ex.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
+  host.appendChild(ex); stage.appendChild(plus);
+}
+
+/* ---------- схема «кожний член на кожний» зі стрілками ---------- */
+const AC = ['#b45309', '#7c3aed', '#be185d', '#1F4E73', '#c2410c', '#6b21a8'];
+function arcBoard(ex, o) {
+  o = o || {};
+  const v = ex.v, A = ex.A, B = ex.B, pairs = [];
+  A.forEach((a, i) => B.forEach((b, j) => pairs.push([i, j])));
+  const n = pairs.length, grp = {}, sumD = {};
+  const pr0 = k => { const a = A[pairs[k][0]], b = B[pairs[k][1]]; return [a[0] * b[0], a[1] + b[1]]; };
+  pairs.forEach((_, k) => { const p = pr0(k); (grp[p[1]] = grp[p[1]] || []).push(k); sumD[p[1]] = (sumD[p[1]] || 0) + p[0]; });
+  const degs = Object.keys(grp).map(Number).sort((a, b) => b - a), multi = degs.filter(d => grp[d].length > 1), G = multi.length, last = n + 1;
+  const gidx = {}; multi.forEach((d, i) => { gidx[d] = i; });
+  let r = o.full ? last : 0, geo = null;
+  const root = el('div', 'ab'), wrap = el('div', 'abw'), NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg'), row = el('div', 'exrow'), aEl = [], bEl = [];
+  function factor(T, store) {
+    const w = el('span', 'fac'); w.appendChild(el('span', 'pr', '('));
+    T.forEach((t, i) => {
+      const neg = t[0] < 0, s = i === 0 ? (neg ? MINUS : '') : (neg ? MINUS : '+');
+      if (s) w.appendChild(el('span', i === 0 ? '' : 'sg', s));
+      const b = el('span', 'tm', termHTML(t[0], t[1], v)); store.push(b); w.appendChild(b);
+    });
+    w.appendChild(el('span', 'pr', ')')); return w;
+  }
+  row.append(factor(A, aEl), factor(B, bEl)); wrap.append(svg, row);
+  const hint = el('div', 'abhint'), rows = el('div', 'rows'), bar = el('div', 'bar');
+  const bReset = el('button', 'btn light', '↺ Спочатку'), bStep = el('button', 'btn', 'Крок ▶'), bAll = el('button', 'btn light', 'Показати все');
+  bar.append(bReset, bStep, bAll);
+  root.append(wrap, hint, el('div'), rows, bar);
+  const termStr = (t, neg) => { const s = termHTML(t[0], t[1], v); return neg ? '(' + MINUS + s + ')' : s; };
+  const prod = k => { const a = A[pairs[k][0]], b = B[pairs[k][1]]; return [a[0] * b[0], a[1] + b[1]]; };
+  function renderRows() {
+    let h = '';
+    if (r > 0) {
+      const m = [], t = [];
+      for (let k = 0; k < Math.min(r, n); k++) {
+        const a = A[pairs[k][0]], b = B[pairs[k][1]], p = prod(k), mi = p[1] in gidx ? gidx[p[1]] : -1;
+        m.push('<span style="color:' + AC[k] + '">' + termStr(a, a[0] < 0) + '·' + termStr(b, b[0] < 0) + '</span>');
+        const tm = termHTML(p[0], p[1], v);
+        t.push('<span style="color:' + AC[k] + '">' + (k === 0 ? (p[0] < 0 ? MINUS : '') : ' ' + (p[0] < 0 ? MINUS : '+') + ' ') + (mi >= 0 ? mkd(tm, mi) : tm) + '</span>');
+      }
+      h += '<div class="rw"><span class="eq">=</span>' + m.join(' + ') + '</div>';
+      h += '<div class="rw"><span class="eq">=</span>' + t.join('') + '</div>';
+    }
+    if (r > n) {
+      let out = '', first = true;
+      degs.forEach(d => {
+        const c = sumD[d]; if (!c) return;
+        const tm = termHTML(c, d, v);
+        out += (first ? (c < 0 ? MINUS : '') : ' ' + (c < 0 ? MINUS : '+') + ' ') + (d in gidx ? mkd(tm, gidx[d]) : tm); first = false;
+      });
+      h += '<div class="rw fin"><span class="eq">=</span>' + (first ? '0' : out) + '</div>';
+    }
+    rows.innerHTML = h;
+    hint.textContent = r === 0 ? 'Кожний член першої дужки множимо на кожний член другої' : r < n ? 'Добуток ' + r + ' з ' + n : '';
+    bStep.disabled = r >= last; bAll.disabled = r >= last; bReset.disabled = r === 0;
+  }
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    if (!geo) return;
+    svg.setAttribute('width', geo.W); svg.setAttribute('height', geo.H);
+    const defs = document.createElementNS(NS, 'defs');
+    AC.forEach((c, i) => {
+      const mk = document.createElementNS(NS, 'marker');
+      mk.setAttribute('id', 'mk' + geo.uid + i); mk.setAttribute('markerUnits', 'userSpaceOnUse'); mk.setAttribute('markerWidth', 14); mk.setAttribute('markerHeight', 14);
+      mk.setAttribute('refX', 7); mk.setAttribute('refY', 7); mk.setAttribute('orient', 'auto');
+      const pa = document.createElementNS(NS, 'path'); pa.setAttribute('d', 'M1,1 L13,7 L1,13 z'); pa.setAttribute('fill', c); pa.setAttribute('class', 'arch' + (mk._st ? ' st' : ''));
+      mk.appendChild(pa); defs.appendChild(mk);
+    });
+    svg.appendChild(defs);
+    for (let k = 0; k < Math.min(r, n); k++) {
+      const g = geo.p[k], top = pairs[k][0] % 2 === 0, j = pairs[k][1];
+      const sx = g.ax + (j - (B.length - 1) / 2) * 8, y0 = top ? g.at - 3 : g.ab + 3, y1 = top ? g.bt - 7 : g.bb + 7, dx = Math.abs(g.bx - sx);
+      const h = Math.max(14, Math.min(geo.pad * 0.85, 16 + dx * 0.28)), d = top ? -1 : 1;
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', 'M ' + sx + ' ' + y0 + ' C ' + sx + ' ' + (y0 + d * h * 1.3) + ', ' + g.bx + ' ' + (y1 + d * h * 1.3) + ', ' + g.bx + ' ' + y1);
+      path.setAttribute('pathLength', 1); path.setAttribute('fill', 'none'); path.setAttribute('stroke', AC[k]); path.setAttribute('stroke-width', 3); path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('marker-end', 'url(#mk' + geo.uid + k + ')');
+      path.setAttribute('class', 'arcp' + (k < r - 1 ? ' st' : ''));
+      svg.appendChild(path);
+    }
+    svg.querySelectorAll('.arch').forEach((e, i) => { if (i < r - 1) e.setAttribute('class', 'arch st'); });
+  }
+  const uid = Math.random().toString(36).slice(2, 7);
+  function measure() {
+    const wr = wrap.getBoundingClientRect(); if (!wr.width) return;
+    const rect = (e) => e.getBoundingClientRect();
+    geo = { uid, W: wr.width, H: wr.height, pad: parseFloat(getComputedStyle(wrap).paddingTop) || 60,
+      p: pairs.map(([i, j]) => { const a = rect(aEl[i]), b = rect(bEl[j]);
+        return { ax: a.left + a.width / 2 - wr.left, at: a.top - wr.top, ab: a.bottom - wr.top, bx: b.left + b.width / 2 - wr.left, bt: b.top - wr.top, bb: b.bottom - wr.top }; }) };
+    draw();
+  }
+  const upd = () => { renderRows(); draw(); };
+  bStep.onclick = () => { if (r < last) { r++; upd(); } };
+  bAll.onclick = () => { r = last; upd(); };
+  bReset.onclick = () => { r = 0; upd(); };
+  renderRows();
+  [60, 300, 700].forEach(t => setTimeout(measure, t));
+  if (window.ResizeObserver) new ResizeObserver(measure).observe(wrap);
+  window.addEventListener('resize', measure);
+  return root;
+}
+
+/* ===================== ЕТАПИ ===================== */
+function mkStage(title, body) {
+  const st = el('div', 'stage'), card = el('div', 'card'), inner = el('div', 'inner');
+  if (title) inner.appendChild(el('h2', 'st', title));
+  inner.appendChild(body); card.appendChild(inner); st.appendChild(card);
+  return { st, inner };
+}
+function stStart() {
+  const st = el('div', 'stage start on'), card = el('div', 'card');
+  card.innerHTML = '<div class="kicker">Алгебра · 7 клас</div><h1><small>Тема:</small>Множення многочлена на многочлен</h1>';
+  const go = el('button', 'go', '<b>Почати</b><span>▶</span>'); go.onclick = () => goTo(1); card.appendChild(go);
+  const dia = el('button', 'dia', GEM); dia.title = 'Методична картка'; dia.onclick = openMeta;
+  st.append(card, dia); return st;
+}
+
+/* 1. Актуалізація */
+function stWarm() {
+  return mkStage('', taskWidget(genWarm, { newLabel: 'Нове запитання ↻' }));
+}
+
+/* 2. Множення зі стрілками й правило */
+function stRule() {
+  const rule = () => {
+    const d = el('div');
+    d.appendChild(el('div', 'def big', '<span class="dl">Правило</span>Щоб помножити многочлен на многочлен, можна ' + cf('<b>кожний член одного</b>') + ' многочлена помножити на ' + lt('<b>кожний член другого</b>') + ' й отримані добутки <b>додати</b>.'));
+    d.appendChild(el('div', 'note big', 'Добуток многочленів завжди є <b>многочленом</b>. Після множення <b>зводимо подібні члени</b>.'));
+    return d;
+  };
+  const b = tabs([
+    { label: 'Двочлен на двочлен', make: () => arcBoard({ v: 'x', A: [[2, 1], [-3, 0]], B: [[1, 1], [4, 0]] }) },
+    { label: 'Двочлен на тричлен', make: () => arcBoard({ v: 'x', A: [[1, 1], [-1, 0]], B: [[1, 2], [3, 1], [-2, 0]] }) },
+    { label: 'Правило', make: rule }
+  ]);
+  return mkStage('Множення многочлена на многочлен', b);
+}
+
+/* 4. Множення */
+function stMul() {
+  const b = tabs([
+    { label: 'Двочлен на двочлен', make: () => taskWidget(genMul2) },
+    { label: 'Двочлен на тричлен', make: () => taskWidget(genMul3) }
+  ]);
+  const s = mkStage('Виконайте множення', b);
+  addPlus(s.st, s.inner, () => taskWidget(genMul3f));
+  return s;
+}
+
+/* 5. Спрощення */
+function stSimp() {
+  const b = tabs([
+    { label: 'Спростіть вираз', make: () => taskWidget(() => genSimplify(1)) },
+    { label: 'Знайдіть значення виразу', make: () => taskWidget(genValue) }
+  ]);
+  const s = mkStage('Спрощення виразів', b);
+  addPlus(s.st, s.inner, () => taskWidget(() => genSimplify(2)));
+  return s;
+}
+
+/* 6. Рівняння */
+function stEq() {
+  const s = mkStage('Розв’яжіть рівняння', taskWidget(() => genEq(1), { newLabel: 'Нове рівняння ↻' }));
+  addPlus(s.st, s.inner, () => taskWidget(() => genEq(2), { newLabel: 'Нове рівняння ↻' }));
+  return s;
+}
+
+/* 7. Знайдіть помилку */
+function stErr() { return mkStage('Знайдіть помилку', ynWidget(genErrors, { q: 'Чи правильно записано? Знайдіть помилки' })); }
+
+/* 8. Поглиблений рівень */
+function stDeep() {
+  const b = tabs([
+    { label: 'Задача', make: () => taskWidget(genConsec, { newLabel: 'Нова задача ↻' }) },
+    { label: 'Відновіть множник', make: () => taskWidget(genMissing) }
+  ]);
+  return mkStage('', b);
+}
+
+/* 9. Підсумок */
+function stSum() {
+  const d = el('div', 'sum'), fin = el('div');
+  const f = a => '<i>' + a + '</i>';
+  d.appendChild(stepper([
+    'Щоб помножити многочлен на многочлен, множимо ' + cf('<b>кожний член одного</b>') + ' на ' + lt('<b>кожний член другого</b>') + ' й <b>додаємо</b> добутки.',
+    () => arcBoard({ v: 'x', A: [[1, 1], [-2, 0]], B: [[1, 1], [5, 0]] }, { full: true }),
+    '<b>Результат</b> завжди многочлен. Після множення <b>зводимо подібні члени</b>.',
+    'Двочлен на двочлен: <b>4</b> добутки; двочлен на тричлен: <b>6</b> добутків.'
+  ], 'sum', () => {
+    const go = el('button', 'btn gochk', 'Перевірити себе ▶'); d.appendChild(go);
+    go.onclick = () => { d.querySelector('.stepper').style.display = 'none'; go.remove(); d.appendChild(fin); };
+  }));
+  fin.appendChild(el('h2', 'st', 'Перевірте себе: закінчіть речення'));
+  const back = el('button', 'btn light gochk', '↩ Показати підсумок'); back.onclick = () => { const sp = d.querySelector('.stepper'); sp.style.display = sp.style.display === 'none' ? '' : 'none'; back.textContent = sp.style.display === 'none' ? '↩ Показати підсумок' : 'Сховати підсумок'; };
+  [['Щоб помножити многочлен на многочлен, можна кожний член одного многочлена помножити…', 'на кожний член другого й отримані добутки додати.'],
+   ['При множенні многочлена на многочлен завжди отримуємо…', 'многочлен.'],
+   ['Після множення потрібно…', 'звести подібні члени.']].forEach(p => {
+    const q = el('div', 'fin-q', '<span>' + p[0] + '</span>'), end = el('span', 'end', p[1]); end.style.display = 'none';
+    const b = el('button', 'btn light', 'Показати'); b.onclick = () => { end.style.display = ''; b.style.display = 'none'; };
+    q.append(b, end); fin.appendChild(q);
+  });
+  fin.appendChild(back);
+  return mkStage('Підсумок уроку', d);
+}
+
+/* 10. Світлофор */
+function stTL() {
+  const d = el('div', 'tl'); const cnt = { g: 0, y: 0, r: 0 };
+  const left = el('div'), votes = el('div', 'votes');
+  const cols = { g: ['#1e9e62', 'Усе зрозуміло'], y: ['#f3b63f', 'Є запитання'], r: ['#e0464e', 'Не зрозуміло'] };
+  const lamp = el('div', 'lamp', '<i style="background:#e0464e;color:#e0464e"></i><i style="background:#f3b63f;color:#f3b63f"></i><i style="background:#1e9e62;color:#1e9e62"></i>');
+  const lamps = lamp.querySelectorAll('i'), msg = el('div', 'tlmsg'), nums = {};
+  ['g', 'y', 'r'].forEach(k => {
+    const row = el('div', 'vote'), b = el('button', 'dotc'), n = el('span', 'cnt', '0'); b.style.background = cols[k][0]; b.setAttribute('aria-label', cols[k][1]);
+    b.onclick = () => { cnt[k]++; n.textContent = cnt[k]; };
+    row.append(b, el('span', '', cols[k][1]), n); votes.appendChild(row); nums[k] = n;
+  });
+  const bar = el('div', 'bar'), ok = el('button', 'btn', 'ОК'), rs = el('button', 'btn light', 'Скинути');
+  ok.onclick = () => {
+    const tot = cnt.g + cnt.y + cnt.r; lamps.forEach(l => l.classList.remove('on'));
+    if (!tot) { msg.textContent = 'Спочатку проголосуйте'; return; }
+    const mx = Math.max(cnt.g, cnt.y, cnt.r); const k = cnt.r === mx ? 'r' : cnt.y === mx ? 'y' : 'g';
+    lamps[k === 'r' ? 0 : k === 'y' ? 1 : 2].classList.add('on');
+    msg.textContent = { g: 'Тема зрозуміла: можна рухатися далі.', y: 'Є запитання: повернемося до складних місць.', r: 'Потрібне додаткове пояснення теми.' }[k];
+  };
+  rs.onclick = () => { cnt.g = cnt.y = cnt.r = 0; Object.values(nums).forEach(n => n.textContent = '0'); lamps.forEach(l => l.classList.remove('on')); msg.textContent = ''; };
+  bar.append(ok, rs); left.append(el('div', 'ask', 'Як ви засвоїли тему?'), votes, bar);
+  const right = el('div'); right.append(lamp, msg); d.append(left, right);
+  const end = el('div', 'bar'); end.style.marginTop = '1rem';
+  const back = el('button', 'btn light', '← Назад'), fin = el('button', 'btn', 'Завершити урок'), again = el('button', 'btn light', '↻ Почати спочатку');
+  back.onclick = () => goTo(LAST - 1); fin.onclick = finish; again.onclick = restart;
+  end.append(back, fin, again);
+  const wrap = el('div'); wrap.append(d, end);
+  return mkStage('Рефлексія «Світлофор»', wrap);
+}
+
+/* ===================== методична картка ===================== */
+function fmtMin(m) { return String(m).replace('.', ',') + ' хв'; }
+function openMeta() {
+  const box = $('#metaBox');
+  box.innerHTML = '<button class="x" id="metaX">✕</button><h3>Методична картка · Множення многочлена на многочлен</h3>' +
+    '<h4>Мета уроку</h4><p>Сформувати вміння множити многочлен на многочлен: множити кожний член одного многочлена на кожний член другого, додавати добутки й зводити подібні члени; застосовувати це правило до спрощення виразів і розв’язування рівнянь.</p>' +
+    '<h4>Ключові компетентності</h4><ul><li>математична: виконувати тотожні перетворення, обґрунтовувати кроки;</li><li>уміння вчитися впродовж життя: самоперевірка, аналіз власних помилок;</li><li>цифрова: робота з інтерактивними завданнями.</li></ul>' +
+    '<h4>Перебіг уроку (' + fmtMin(DUR.reduce((a, b) => a + b, 0)) + ')</h4>';
+  const plan = el('div', 'plan');
+  for (let i = 1; i <= LAST; i++) { const b = el('button', '', '<span>' + NAMES[i] + '</span><span class="tm2">' + fmtMin(DUR[i]) + '</span>'); b.onclick = () => { $('#ovMeta').classList.remove('on'); goTo(i); }; plan.appendChild(b); }
+  box.appendChild(plan); $('#ovMeta').classList.add('on');
+  $('#metaX').onclick = () => $('#ovMeta').classList.remove('on');
+}
+$('#ovMeta').addEventListener('click', e => { if (e.target.id === 'ovMeta') $('#ovMeta').classList.remove('on'); });
+
+/* ===================== завершення ===================== */
+function finish() {
+  const box = $('#finBox');
+  box.innerHTML = '<h3>Урок завершено!</h3><div class="big">' + SCORE + '</div><p>' + plural(SCORE, 'бал', 'бали', 'балів') + ' за правильні відповіді з першої спроби</p><div class="bar"><button class="btn" id="finX">Закрити</button></div>';
+  $('#ovFin').classList.add('on'); $('#finX').onclick = () => $('#ovFin').classList.remove('on');
+  burstAt(box); setTimeout(() => burstAt(box), 350); setTimeout(() => burstAt(box), 700);
+}
+$('#ovFin').addEventListener('click', e => { if (e.target.id === 'ovFin') $('#ovFin').classList.remove('on'); });
+
+/* ===================== навігація і таймер ===================== */
+let stages = [], cur = 0, t0 = Date.now();
+function buildAll() {
+  const wrap = $('#stagewrap'); wrap.innerHTML = ''; stages = []; _warmPrev = '';
+  const parts = [stStart(), stWarm(), stRule(), stMul(), stSimp(), stEq(), stErr(), stDeep(), stSum(), stTL()];
+  parts.forEach(p => { const st = p.st || p; st.classList.remove('on'); wrap.appendChild(st); stages.push(st); });
+}
+function goTo(i) {
+  cur = Math.max(0, Math.min(LAST, i));
+  stages.forEach((s, j) => s.classList.toggle('on', j === cur));
+  $('#nav').hidden = !(cur > 0 && cur < LAST);
+  const card = stages[cur].querySelector('.card'); if (card) card.scrollTop = 0;
+  t0 = Date.now(); tick();
+}
+function restart() { SCORE = 0; buildAll(); goTo(0); }
+const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function tick() {
+  const total = DUR[cur] * 60; if (!total) return;
+  const left = Math.max(0, total - (Date.now() - t0) / 1000);
+  let rest = left; for (let i = cur + 1; i <= LAST; i++) rest += DUR[i] * 60;
+  $('#candle .wax').style.height = (left / total * 100) + '%';
+  $('#ctip').textContent = 'Етап: ' + mmss(left) + ' з ' + mmss(total) + ' · Урок: ' + mmss(rest) + ' з ' + mmss(DUR.reduce((a, b) => a + b, 0) * 60);
+}
+$('#bBack').onclick = () => goTo(cur - 1);
+$('#bNext').onclick = () => goTo(cur + 1);
+$('#bDia').innerHTML = GEM; $('#bDia').onclick = openMeta;
+$('#candle').onclick = () => { t0 = Date.now(); tick(); };
+setInterval(tick, 1000);
+buildAll(); goTo(0);
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
