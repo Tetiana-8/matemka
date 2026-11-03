@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Керування доступом</title>
+<style>
+body{margin:0;background:#eef1f6;font:500 15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d2433}
+main{max-width:720px;margin:0 auto;padding:20px}
+.card{background:#fff;border:1px solid #d9e0ee;border-radius:14px;padding:18px;margin-bottom:16px}
+h1{font-size:22px;margin:0 0 14px}h2{font-size:17px;margin:0 0 10px}
+input{font:inherit;padding:9px 11px;border:1px solid #d9e0ee;border-radius:10px;min-width:0}
+button{font:inherit;font-weight:600;border-radius:10px;padding:9px 14px;border:1px solid #d9e0ee;background:#fff;cursor:pointer}
+button.p{background:linear-gradient(135deg,#3558e6,#7b5cf0);color:#fff;border:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1 1 200px}
+table{width:100%;border-collapse:collapse}td{padding:8px 4px;border-top:1px solid #e3e8f2}td.d{text-align:right;width:1%}
+#m{min-height:1.4em;font-size:14px}.err{color:#b42318}.ok{color:#1a7f4b}.mute{color:#5b667a;font-size:14px}
+</style></head><body><main>
+<h1>Моя дошка: керування доступом</h1>
+<div class="card" id="login"><button class="p" id="g">Увійти як авторка (Google)</button></div>
+<div id="app" hidden>
+<div class="card"><h2>Дати доступ</h2><div class="row"><input id="em" type="email" placeholder="імейл людини"><input id="nt" placeholder="примітка (ім'я, оплата…)"><button class="p" id="add">Додати</button></div>
+<p class="mute">Можна вставити кілька імейлів через кому або з нового рядка.</p></div>
+<div class="card"><h2>Хто має доступ (<span id="cnt">0</span>)</h2><table id="tb"></table></div>
+<div class="card"><h2>Оновити дошку</h2><p class="mute">Оберіть файл board_to_upload.html (або новішу версію дошки). Він збережеться в Firebase; люди з доступом отримають нову версію при наступному відкритті.</p>
+<div class="row"><input type="file" id="bf" accept=".html"><button class="p" id="up">Завантажити дошку</button></div></div>
+<p id="m"></p></div></main>
+<script type="module">
+import {firebaseConfig,ADMIN_EMAIL} from './firebase-config.js';
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getFirestore,doc,setDoc,deleteDoc,getDocs,collection,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=s=>document.getElementById(s),say=(t,ok)=>{$('m').textContent=t||'';$('m').className=ok?'ok':'err'};
+$('g').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>say('Не вдалося увійти: '+e.code));
+onAuthStateChanged(auth,u=>{
+  const ok=u&&(u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  $('login').hidden=!!ok;$('app').hidden=!ok;
+  if(u&&!ok)alert('Цей акаунт не має прав керування.');
+  if(ok)load();
+});
+async function load(){
+  const s=await getDocs(collection(db,'allowed_emails')),rows=[];
+  s.forEach(d=>rows.push(d.data()));rows.sort((a,b)=>a.email.localeCompare(b.email));
+  $('cnt').textContent=rows.length;
+  $('tb').innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr'),a=document.createElement('td'),n=document.createElement('td'),d=document.createElement('td'),b=document.createElement('button');
+    a.textContent=r.email;n.textContent=r.note||'';n.className='mute';d.className='d';b.textContent='Забрати';
+    b.onclick=async()=>{if(!confirm('Забрати доступ у '+r.email+'?'))return;await deleteDoc(doc(db,'allowed_emails',r.email));load()};
+    d.append(b);tr.append(a,n,d);$('tb').append(tr);
+  });
+}
+$('add').onclick=async()=>{
+  const list=$('em').value.split(/[\s,;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean),bad=list.filter(x=>!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+  if(!list.length)return say('Введіть імейл');
+  if(bad.length)return say('Схоже, це не імейл: '+bad.join(', '));
+  try{for(const e of list)await setDoc(doc(db,'allowed_emails',e),{email:e,note:$('nt').value.trim(),added:serverTimestamp()});
+    $('em').value='';$('nt').value='';say('Додано: '+list.length,true);load()}catch(e){say('Помилка: '+e.code)}
+};
+$('up').onclick=async()=>{
+  const f=$('bf').files[0];if(!f)return say('Оберіть файл дошки');
+  try{
+    const t=await f.text();if(!t.includes('Моя дошка'))return say('Це не схоже на файл дошки');
+    const S=150000,n=Math.ceil(t.length/S);
+    for(let i=0;i<n;i++)await setDoc(doc(db,'app','board_'+i),{t:t.slice(i*S,(i+1)*S)});
+    await setDoc(doc(db,'app','board_meta'),{n,updated:serverTimestamp()});
+    say('Дошку завантажено ('+n+' частин).',true);
+  }catch(e){say('Помилка: '+e.code)}
+};
+</script></body></html>
