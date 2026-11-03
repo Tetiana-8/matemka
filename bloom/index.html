@@ -1519,6 +1519,8 @@ var FB_APP = "default-app-id";
 var FB_COL = "results_bloom_control";
 var FBV = "10.12.2";
 var TEACHER_PASSWORD = "8019";
+var MON = (typeof APP_MON!=="undefined"&&APP_MON===true);
+if(MON)FB_COL = "results_bloom_monitoring";
 
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -1609,7 +1611,7 @@ var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EX
 
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
-  if(!c){showCons();return;}
+  if(!c){if(MON)showConsM();else showCons();return;}
   try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length||!CFG.n||CFG.n.length!==6)throw 0;}
   catch(e){$("app").innerHTML='<div class="screen"><div class="card center">Посилання пошкоджене. Попросіть учителя надіслати його ще раз.</div></div>';return;}
   CFG.o=CFG.o||{};showStart();
@@ -1618,11 +1620,11 @@ function showStart(){
   var tot=effCounts(CFG).reduce(function(a,b){return a+b;},0);
   var h='<div class="screen"><div class="card fill">';
   if(FIREBASE_CONFIG||true)h+='<button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
-  h+='<h1>'+esc(CFG.t)+'</h1><div class="sub">'+esc(SUBJ[CFG.s])+', '+CFG.g+' клас · '+tot+' завдань · '+CFG.m+' хв</div>';
+  h+='<h1>'+esc(CFG.t)+'</h1><div class="sub">'+esc(SUBJ[CFG.s])+', '+CFG.g+' клас · '+tot+' завдань · '+CFG.m+' хв</div>'+(MON?'<div class="note center" style="margin:0 0 6px">Це зріз знань: оцінки за нього не виставляють.</div>':'');
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не зберігається</div>';
   h+='<div class="scroll"><div class="row2"><div><label>Прізвище</label><input type="text" id="sn" autocomplete="off" value="'+esc(ST.sn)+'"></div><div><label>Ім\'я</label><input type="text" id="fn" autocomplete="off" value="'+esc(ST.fn)+'"></div></div>';
   h+='<div class="err" id="err"></div><div class="center" style="margin-top:6px"><button class="btn" id="go">Почати</button></div>';
-  h+='<div class="note">Завдання без підказок: відповідай самостійно. Можна повертатися до попередніх завдань. Якщо не знаєш — натисни «Не знаю». Не виходь з вікна під час роботи: учитель бачить, скільки разів ти виходив(ла).</div></div></div></div>';
+  h+='<div class="note">'+(MON?'Відповідай самостійно, як умієш. Можна повертатися до попередніх завдань. Якщо не знаєш — натисни «Не знаю».':'Завдання без підказок: відповідай самостійно. Можна повертатися до попередніх завдань. Якщо не знаєш — натисни «Не знаю». Не виходь з вікна під час роботи: учитель бачить, скільки разів ти виходив(ла).')+'</div></div></div></div>';
   $("app").innerHTML=h;$("sn").focus();
   $("keyBtn").onclick=teacherPanel;
   $("sn").oninput=function(){ST.sn=this.value;};$("fn").oninput=function(){ST.fn=this.value;};
@@ -1631,7 +1633,7 @@ function showStart(){
 function startTest(){
   ST.sn=ST.sn.trim();ST.fn=ST.fn.trim();
   if(!ST.sn||!ST.fn){$("err").textContent="Введи прізвище та ім'я.";return;}
-  T=buildTest(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
+  T=(MON?buildMon:buildTest)(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
   ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false};});
   IX=0;DONE=false;EXITS=0;AWAY=0;away=false;T0=Date.now();END=T0+CFG.m*60000;
   document.addEventListener("visibilitychange",onVis);window.addEventListener("blur",onLeave);window.addEventListener("focus",onBack);
@@ -1694,6 +1696,7 @@ function finish(auto){
   showResult(res);saveResult(res);
 }
 function showResult(r){
+  if(MON){showResultM(r);return;}
   var S=r.S,o=CFG.o,h='<div class="screen"><div class="card fill"><div class="scroll"><div class="center"><h1>Роботу здано</h1><div class="sub">'+esc(ST.sn+" "+ST.fn)+' · '+esc(CFG.t)+'</div>';
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не збережено</div>';
   if(o.grade)h+='<span class="badge">Орієнтовна оцінка: '+(S.pending?"≈ ":"")+r.g+' з 12</span>'+(S.pending?'<div class="note">Частину відповідей ще перевірить учитель, тому оцінка може змінитися.</div>':"");
@@ -1734,7 +1737,7 @@ function pack(res){
   var S=res.S;
   return {surname:ST.sn,first:ST.fn,name:ST.sn+" "+ST.fn,code:CFG.id,title:CFG.t,subject:SUBJ[CFG.s],grade:CFG.g,
     id:SID,test:CFG.t,ts:res.end,date:new Date(res.end).toISOString(),leaves:res.exits,durationSec:Math.round(res.dur),start:new Date(res.start).toISOString(),end:new Date(res.end).toISOString(),durSec:Math.round(res.dur),exits:res.exits,awaySec:res.away,
-    score:S.score,grade12:res.g,pending:S.pending,lv:S.lv,tasks:res.recs};
+    score:S.score,grade12:res.g,pending:S.pending,lv:S.lv,tasks:res.recs,pt:CFG.pt||0,yr:CFG.yr||"",mon:MON?1:0};
 }
 function saveResult(res){
   if(PREV||!FIREBASE_CONFIG)return;
@@ -1742,6 +1745,7 @@ function saveResult(res){
 }
 
 function teacherPanel(){
+  if(MON){teacherPanelM();return;}
   var p=prompt("Пароль вчителя:");if(p!==TEACHER_PASSWORD)return;
   var m=document.createElement("div");m.className="modal";
   m.innerHTML='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">Результати учнів</b><span><select id="wk" style="width:auto;display:inline-block"></select> <button class="btn sm soft" id="csv">CSV</button> <button class="btn sm soft" id="clr">Очистити</button> <button class="btn sm" id="cls">Закрити</button></span></div><div id="tb">Завантаження…</div></div>';
