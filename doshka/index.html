@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Моя дошка</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(160deg,#e8ecf4,#efeaf7 60%,#e6eff6);font:500 16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d2433}
+.card{width:min(420px,92vw);background:#fff;border:1px solid #d9e0ee;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(30,45,100,.14);text-align:center}
+h1{margin:0 0 6px;font-size:24px}p{margin:8px 0;color:#5b667a}
+button{font:inherit;font-weight:600;border-radius:12px;padding:11px 16px;border:1px solid #d9e0ee;background:#fff;cursor:pointer;width:100%;margin-top:10px}
+button.p{background:linear-gradient(135deg,#3558e6,#7b5cf0);color:#fff;border:0}
+input{font:inherit;width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d9e0ee;border-radius:10px;margin-top:10px}
+#msg{color:#b42318;min-height:1.4em;font-size:14px}.ok{color:#1a7f4b!important}
+</style></head><body>
+<div class="card" id="c"><h1>Моя дошка</h1><p id="t">Завантаження…</p><div id="f" hidden>
+<button class="p" id="g">Увійти через Google</button>
+<p>або отримати посилання для входу на пошту</p>
+<input id="e" type="email" placeholder="ваш імейл" autocomplete="email">
+<button id="l">Надіслати посилання</button></div><p id="msg"></p><button id="o" hidden>Вийти</button></div>
+<script type="module">
+import {firebaseConfig} from './firebase-config.js';
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,sendSignInLinkToEmail,isSignInWithEmailLink,signInWithEmailLink,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getFirestore,doc,getDoc} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=s=>document.getElementById(s),msg=(t,ok)=>{$('msg').textContent=t||'';$('msg').className=ok?'ok':''};
+$('g').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>msg('Не вдалося увійти: '+e.code));
+$('l').onclick=async()=>{
+  const em=$('e').value.trim().toLowerCase();if(!em)return msg('Введіть імейл');
+  try{await sendSignInLinkToEmail(auth,em,{url:location.origin+location.pathname,handleCodeInApp:true});localStorage.setItem('mdEmail',em);msg('Посилання надіслано. Відкрийте його у цьому ж браузері.',true)}
+  catch(e){msg('Не вдалося надіслати: '+e.code)}
+};
+$('o').onclick=()=>signOut(auth).then(()=>location.reload());
+async function boot(user){
+  $('t').textContent='Перевіряю доступ…';msg('');
+  const em=(user.email||'').toLowerCase();
+  try{
+    const a=await getDoc(doc(db,'allowed_emails',em));
+    if(!a.exists())throw {code:'denied'};
+    const m=await getDoc(doc(db,'app','board_meta'));
+    const n=m.data().n,parts=await Promise.all(Array.from({length:n},(_,i)=>getDoc(doc(db,'app','board_'+i))));
+    const html=parts.map(p=>p.data().t).join('');
+    document.open();document.write(html);document.close();
+  }catch(e){
+    $('t').textContent='Для імейла '+em+' доступу немає.';
+    $('f').hidden=true;$('o').hidden=false;
+    msg('Якщо ви вже оплатили, напишіть авторці цей імейл, і вона відкриє доступ.');
+  }
+}
+(async()=>{
+  if(isSignInWithEmailLink(auth,location.href)){
+    let em=localStorage.getItem('mdEmail')||prompt('Підтвердіть ваш імейл');
+    try{await signInWithEmailLink(auth,em,location.href);localStorage.removeItem('mdEmail');history.replaceState(null,'',location.pathname)}catch(e){msg('Посилання недійсне або застаріло.')}
+  }
+  onAuthStateChanged(auth,u=>{if(u)boot(u);else{$('t').textContent='Увійдіть, щоб відкрити дошку.';$('f').hidden=false}});
+})();
+</script></body></html>
