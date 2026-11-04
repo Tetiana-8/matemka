@@ -1715,6 +1715,12 @@ function showResult(r){
   $("app").innerHTML=h;
 }
 
+/* ===== Рівні сформованості (розділ 3.3 ТЗ): 90 / 74 / 60 % ===== */
+var FLN=["Початковий","Середній","Достатній","Високий"];
+var FLC=["#f6d3d8","#fdeab9","#d9eedc","#bfe3c8"];
+function fl(p){return p==null?-1:p>=90?3:p>=74?2:p>=60?1:0;}
+function flS(p){var f=fl(p);return f<0?"":' style="background:'+FLC[f]+'" title="'+FLN[f]+'"';}
+
 /* ================= Firebase і панель вчителя ================= */
 var CFG_FB=null;
 function fbReady(){
@@ -1766,8 +1772,8 @@ function teacherPanel(){
   function render(){
     var rows=view(),h='<table><tr><th>Учень</th><th>Робота</th><th>Здано</th><th>Бал /100</th><th>12 б</th><th>ECTS</th><th>Рівень</th>'+LV.map(function(L){return '<th>'+L+'</th>';}).join("")+'<th>Час</th><th>Виходи</th><th></th></tr>';
     rows.forEach(function(x,i){var S=summarize(x.tasks),g=grade12(S.score);
-      h+='<tr class="cl" data-i="'+i+'"><td>'+esc(x.name)+'</td><td>'+esc(x.title)+'</td><td>'+esc(String(x.end).slice(0,16).replace("T"," "))+'</td><td><b>'+S.score+'</b>'+(S.pending?" ⏳":"")+'</td><td>'+g+'</td><td>'+ectsOf(S.score)+'</td><td>'+esc(compLevel(S.score))+'</td>'+LV.map(function(L){return '<td>'+pct(S.lv[L].e,S.lv[L].m)+'%</td>';}).join("")+'<td>'+dur(x.durSec)+'</td><td>'+x.exits+(x.awaySec?" ("+x.awaySec+" с)":"")+'</td><td>'+(S.pending?'<span class="chip">перевірити</span>':"")+'</td></tr>';});
-    h+='</table>';if(!rows.length)h="Результатів поки немає.";
+      h+='<tr class="cl" data-i="'+i+'"><td>'+esc(x.name)+'</td><td>'+esc(x.title)+'</td><td>'+esc(String(x.end).slice(0,16).replace("T"," "))+'</td><td><b>'+S.score+'</b>'+(S.pending?" ⏳":"")+'</td><td>'+g+'</td><td>'+ectsOf(S.score)+'</td><td>'+esc(compLevel(S.score))+'</td>'+LV.map(function(L){var q=S.lv[L].m?pct(S.lv[L].e,S.lv[L].m):null;return '<td'+flS(q)+'>'+(q==null?'—':q+'%')+'</td>';}).join("")+'<td>'+dur(x.durSec)+'</td><td>'+x.exits+(x.awaySec?" ("+x.awaySec+" с)":"")+'</td><td>'+(S.pending?'<span class="chip">перевірити</span>':"")+'</td></tr>';});
+    h+='</table><div class="note">Колір відсотка за рівнем Блума — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';if(!rows.length)h="Результатів поки немає.";
     $("tb").innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll("tr.cl"),function(tr){tr.onclick=function(){detail(rows[+tr.dataset.i]);};});
   }
@@ -1777,6 +1783,7 @@ function teacherPanel(){
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+esc(x.title)+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+='<div class="note">Бал: <b>'+S.score+' з 100</b> · 12-бальна: '+grade12(S.score)+' · ECTS '+ectsOf(S.score)+' · рівень компетентності: '+esc(compLevel(S.score))+' · за шкалою TGI відповідає рівню: '+bloomByScore(S.score)+'</div>';
     h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv);
+    h+='<div class="note">Рівень сформованості за кожним рівнем Блума (пороги 90 / 74 / 60 %): '+LV.map(function(L){var q=S.lv[L].m?pct(S.lv[L].e,S.lv[L].m):null;return '<span class="chip"'+flS(q)+'>'+LVN[L]+': '+(q==null?'—':FLN[fl(q)].toLowerCase())+'</span>';}).join(' ')+'</div>';
     h+='<h2>Блоки</h2><div class="note">'+BLK.map(function(b){return BLKN[b[0]]+': <b>'+S.bl[b[0]].e+' з '+S.bl[b[0]].m+'</b>';}).join(" · ")+'</div><h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.ok?"✓ "+r.aut+" б":"✗ 0 б");
