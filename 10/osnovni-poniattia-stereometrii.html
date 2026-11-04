@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Основні поняття стереометрії. Аксіоми стереометрії</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<style>
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --ink:#1e293b; --muted:#64748b; --line:#e9d5ff;
+  --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#2563eb; --orange:#ea580c; --violet:#7e22ce;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffffff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{height:100dvh;width:100%}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;font-size:14px;background:#fff}
+@media(min-width:768px){.app{font-size:15px}}
+@media(min-width:1024px){.app{font-size:17px}}
+@media(min-width:1280px){.app{font-size:20px}}
+@media(min-width:1536px){.app{font-size:22px}}
+.main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.left{order:2;height:55%;min-height:0;background:var(--panelLeft);position:relative;border-top:1px solid var(--line)}
+.right{order:1;height:45%;min-height:0;background:var(--panelRight);position:relative;overflow:hidden}
+@media(min-width:768px){
+  .main{flex-direction:row}
+  .left{order:1;height:auto;width:40%;border-top:0;border-right:1px solid var(--line)}
+  .right{order:2;height:auto;width:60%}
+}
+.left::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4.6em;background:linear-gradient(to top,var(--panelLeft) 60%,rgba(242,230,255,0));pointer-events:none;z-index:20}
+.lscroll{position:absolute;inset:0;overflow-y:auto;padding:.8em max(16px,env(safe-area-inset-left,0px)) 5em;scrollbar-width:thin}
+.nav{position:absolute;right:.7em;bottom:.6em;display:flex;gap:.5em;z-index:30;flex-wrap:wrap;justify-content:flex-end}
+.btn{min-height:44px;padding:0 1.05em;border-radius:999px;border:1px solid #d8b4fe;background:var(--brandLight);
+  color:var(--brand);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  box-shadow:0 2px 6px rgba(107,33,168,.12);transition:transform .15s,background .15s}
+.btn:hover{background:#ebdcff}.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+.btn.sm{min-height:40px;font-size:.92em;padding:0 .9em;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:.4em;margin:.55em 0}
+.tab{min-height:42px;padding:.2em .85em;border-radius:999px;border:1px solid #d8b4fe;background:#fff;color:var(--brand);
+  font:inherit;font-weight:700;cursor:pointer;line-height:1.15;text-align:center}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.tab.sq{min-width:44px}
+.tab.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+.tab.done.on{background:#16a34a;color:#fff}
+.box{background:#fff;border:2px solid var(--line);border-radius:.8em;padding:.75em .9em;margin:.5em 0}
+.box h4{margin:0 0 .25em;font-size:1em;color:var(--brand)}
+.box p{margin:0;font-weight:700;line-height:1.35}
+.note{background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em .8em;margin:.5em 0;line-height:1.4}
+.note b{font-weight:700}
+.lead{margin:.2em 0 .1em;line-height:1.4;font-weight:600}
+.key{background:#fef9c3;border:1px solid #fde047;border-radius:.7em;padding:.6em .8em;margin:.6em 0;line-height:1.4;font-weight:600}
+.key h5{margin:0 0 .15em;font-size:.82em;letter-spacing:.04em;text-transform:uppercase;color:#a16207}
+.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:600;white-space:nowrap}
+.cg{color:var(--green);font-weight:700}.cr{color:var(--red);font-weight:700}.cv{color:var(--violet);font-weight:700}
+.cb{color:var(--blue);font-weight:700}.co{color:var(--orange);font-weight:700}.ca{color:var(--amber);font-weight:700}
+.sliderRow{display:flex;align-items:center;gap:.7em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.35em .8em;margin:.45em 0}
+.sliderRow label{font-weight:700;min-width:5.2em;font-size:.95em;line-height:1.15}
+.sliderRow input[type=range]{flex:1;accent-color:var(--brand);height:30px;min-width:0}
+.sliderRow output{min-width:3.2em;text-align:right;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:.5em 0}
+.step{display:flex;gap:.5em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.55em .75em;line-height:1.4;animation:fadeUp .4s ease both}
+.step .sn{font-weight:800;color:var(--brand)}
+.step.last{border-color:#86efac;background:#f0fdf4}
+.down{align-self:center;width:46px;height:46px;border-radius:50%;border:1px solid #d8b4fe;background:var(--brandLight);color:var(--brand);
+  font-size:1.3em;cursor:pointer;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
+.fade{animation:fadeUp .45s ease both}
+.tools{position:absolute;left:.6em;top:.6em;display:flex;gap:.4em;z-index:5}
+.tool{width:44px;height:44px;border-radius:50%;border:1px solid #d8b4fe;background:#fff;color:var(--brand);cursor:pointer;display:grid;place-items:center;padding:0}
+.tool.on{background:var(--brand);color:#fff}
+.hint{position:absolute;right:.6em;top:.7em;display:flex;align-items:center;gap:.4em;background:rgba(255,255,255,.9);border:1px solid var(--line);
+  border-radius:999px;padding:.3em .75em;font-size:.82em;font-weight:700;color:var(--brand);pointer-events:none;z-index:5}
+.legend{position:absolute;left:.6em;bottom:.6em;display:flex;flex-wrap:wrap;gap:.2em .85em;background:rgba(255,255,255,.9);
+  padding:.35em .65em;border-radius:.6em;font-size:.82em;font-weight:700;max-width:calc(100% - 1.2em);z-index:5;border:1px solid var(--line)}
+.legend span{white-space:nowrap}
+.dot{display:inline-block;width:1em;height:.32em;border-radius:3px;margin-right:.35em;vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0}
+.chip{min-height:42px;padding:.15em .8em;border-radius:.7em;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;cursor:pointer;color:var(--ink);line-height:1.15}
+.chip.on{border-color:var(--brand);background:var(--brandLight);color:var(--brand)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em}
+.cnt{display:flex;gap:.5em;margin:.5em 0}
+.cnt div{flex:1;background:#fff;border:1px solid var(--line);border-radius:.7em;text-align:center;padding:.35em .2em;font-size:.88em;font-weight:600;line-height:1.2}
+.cnt b{display:block;font-size:1.5em;color:var(--brand);font-variant-numeric:tabular-nums}
+.opt{display:flex;gap:.6em;align-items:flex-start;width:100%;text-align:left;min-height:46px;padding:.45em .75em;margin:.3em 0;border-radius:.7em;border:2px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.3}
+.opt b{color:var(--brand);min-width:1.1em}
+.opt.sel{border-color:var(--brand);background:var(--brandLight)}
+.opt.ok{border-color:#16a34a;background:#dcfce7}.opt.bad{border-color:#dc2626;background:#fee2e2;opacity:.85}
+.fb{border-radius:.7em;padding:.5em .8em;margin:.5em 0;font-weight:700;line-height:1.35}
+.fb.ok{background:#dcfce7;border:1px solid #86efac;color:#166534}.fb.bad{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1em;text-align:center}
+.start{background:var(--panelLeft)}
+.start h1{margin:.2em 0 .6em;font-size:2em;line-height:1.1;color:#1e1b4b;font-weight:800;animation:fadeUp .6s ease both}
+.start h1 span{color:var(--brand)}
+@media(min-width:768px){.start h1{font-size:2.6em}}
+.go{display:flex;align-items:center;gap:.9em;background:#fff;border:1px solid #e9d5ff;border-radius:999px;padding:.55em .6em .55em 1.4em;color:#581c87;font:inherit;font-weight:800;
+  letter-spacing:.14em;cursor:pointer;box-shadow:0 2px 10px rgba(88,28,135,.1);animation:pop .5s ease both}
+.go i{width:2.2em;height:2.2em;border-radius:50%;background:#f3e8ff;display:grid;place-items:center;font-style:normal;font-size:.8em}
+.menu{position:absolute;inset:0;overflow-y:auto;padding:1em max(16px,env(safe-area-inset-left,0px)) 5em;background:var(--panelLeft)}
+.menu h2{margin:.1em 0 .7em;font-size:1.25em;color:var(--brand)}
+.mgrid{display:grid;grid-template-columns:1fr;gap:.7em;max-width:70em;margin:0 auto}
+@media(min-width:768px){.mgrid{grid-template-columns:1fr 1fr}}
+.mcard{display:flex;align-items:center;gap:.9em;background:var(--panelRight);border:1px solid #e2e8f0;border-radius:.9em;padding:.8em 1em;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s;min-height:56px}
+.mcard:hover{border-color:#c084fc;background:#faf5ff;box-shadow:0 3px 12px rgba(107,33,168,.1)}
+.mcard .n{width:2.5em;height:2.5em;border-radius:50%;background:#ede9fe;color:#5b21b6;font-weight:800;display:grid;place-items:center;flex:none}
+.mcard b{display:block;line-height:1.2}.mcard small{color:var(--muted);font-weight:600}
+.sign{flex:none;text-align:center;padding:.35em .5em;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:.78em;color:#64748b;letter-spacing:.02em}
+.sign b{color:#1e293b}
+svg text{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useContext, createContext } = React;
+
+/* ---------- векторна алгебра ---------- */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.sqrt(dot(a,a));
+const nrm=a=>{const l=len(a)||1;return mul(a,1/l);};
+const lerp=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const mid=(a,b)=>lerp(a,b,.5);
+const cen=arr=>mul(arr.reduce(add,[0,0,0]),1/arr.length);
+const rad=d=>d*Math.PI/180;
+const L=id=>String(id).replace(/1$/,'₁');
+const rectPlane=(Cn,e1,e2,hw,hh)=>[
+  add(Cn,add(mul(e1,hw),mul(e2,hh))),add(Cn,add(mul(e1,-hw),mul(e2,hh))),
+  add(Cn,add(mul(e1,-hw),mul(e2,-hh))),add(Cn,add(mul(e1,hw),mul(e2,-hh)))];
+const planeThrough=(P1,P2,P3,hw,hh)=>{
+  const e1=nrm(sub(P2,P1));const n=cross(sub(P2,P1),sub(P3,P1));const e2=nrm(cross(n,e1));
+  return rectPlane(cen([P1,P2,P3]),e1,e2,hw,hh);};
+const linePlane=(P0,d,Q,n)=>add(P0,mul(d,dot(sub(Q,P0),n)/dot(d,n)));
+const perp=(v,e)=>sub(v,mul(e,dot(v,e)));
+
+/* ---------- кольори ---------- */
+const C={edge:'#334155',ink:'#0f172a',par:'#16a34a',int:'#7e22ce',skew:'#dc2626',inn:'#2563eb',
+  al:'#2563eb',be:'#ea580c',ga:'#7e22ce',gold:'#d97706',proj:'#ea580c',teal:'#0d9488',halo:'#FAF5FF'};
+
+/* ---------- прості будівельники фігур ---------- */
+const boxP=(hx,hy,hz,sx=0,sy=0)=>({
+  A:[-hx,-hy,-hz],B:[hx,-hy,-hz],C:[hx,hy,-hz],D:[-hx,hy,-hz],
+  A1:[-hx+sx,-hy+sy,hz],B1:[hx+sx,-hy+sy,hz],C1:[hx+sx,hy+sy,hz],D1:[-hx+sx,hy+sy,hz]});
+const BOXF=[['A','B','C','D'],['A1','B1','C1','D1'],['A','B','B1','A1'],['B','C','C1','B1'],['C','D','D1','C1'],['D','A','A1','D1']];
+const plane=(p,color,op=.14,sw=1.6)=>({t:'poly',p,fill:color,op,stroke:color,sw});
+const vp=(ids,c)=>ids.map(id=>({t:'pt',id,c:c||C.ink}));
+
+/* ---------- 3D-сцена (SVG, обертання мишею/пальцем) ---------- */
+function Scene3D({scene,yaw0=0.7,pitch0=0.42,auto0=false,bare=false,legend=null}){
+  const wrap=useRef(null);
+  const [sz,setSz]=useState({w:600,h:500});
+  const [cam,setCam]=useState({yaw:yaw0,pitch:pitch0});
+  const [auto,setAuto]=useState(auto0);
+  const drag=useRef(null),moved=useRef(false);
+
+  useEffect(()=>{
+    const el=wrap.current;
+    const upd=()=>setSz({w:el.clientWidth||600,h:el.clientHeight||500});
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();
+    return()=>ro.disconnect();
+  },[]);
+  useEffect(()=>{
+    if(!auto)return;let raf,last=performance.now();
+    const tick=t=>{const dt=t-last;last=t;
+      if(!drag.current)setCam(c=>({...c,yaw:c.yaw+dt*0.0005}));
+      raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  },[auto]);
+
+  const onDown=e=>{drag.current={x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,id:e.pointerId};moved.current=false;};
+  const onMove=e=>{
+    const d=drag.current;if(!d)return;
+    if(!moved.current){
+      if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;
+      moved.current=true;
+      try{e.currentTarget.setPointerCapture(d.id);}catch(_){}
+    }
+    const dx=e.clientX-d.px,dy=e.clientY-d.py;d.px=e.clientX;d.py=e.clientY;
+    setCam(c=>({yaw:c.yaw+dx*0.0085,pitch:Math.max(-1.25,Math.min(1.45,c.pitch+dy*0.0085))}));
+  };
+  const onUp=()=>{drag.current=null;setTimeout(()=>{moved.current=false;},0);};
+
+  const {w,h}=sz;
+  const R=scene.R||2.8,ctr=scene.ctr||[0,0,0],P=scene.P||{};
+  const D=R*5.5,S=Math.min(w,h)/(2*R)*0.97;
+  const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const tfv=v=>{const x1=v[0]*cy-v[1]*sy,y1=v[0]*sy+v[1]*cy;return[x1,y1*sp+v[2]*cp,y1*cp-v[2]*sp];};
+  const tf=p=>tfv(sub(p,ctr));
+  const pj=p=>{const q=tf(p),k=D/(D+q[2]);return{x:w/2+q[0]*k*S,y:h/2-q[1]*k*S,d:q[2]};};
+  const get=p=>typeof p==='string'?P[p]:p;
+  const fs=Math.max(15,Math.min(26,w/32)),big=w>900?1.25:1;
+
+  const polys=[],hid=[],vis=[],dots=[],lbls=[],hits=[];let kk=0;
+  const pushSeg=(a,b,o,hidden)=>{
+    const A=pj(get(a)),B=pj(get(b));const col=o.c||C.edge,sw=(o.w||2.2)*big;
+    const el=<line key={'s'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={col} strokeWidth={sw}
+      strokeLinecap="round" strokeDasharray={(hidden||o.dash)?`${sw*2.6} ${sw*2.2}`:undefined} opacity={hidden?.7:(o.op||1)}/>;
+    (hidden||o.dash?hid:vis).push(el);
+    if(o.arrow){
+      const ang=Math.atan2(B.y-A.y,B.x-A.x),s=fs*0.6;
+      vis.push(<polygon key={'a'+(kk++)} fill={col} points={`${B.x},${B.y} ${B.x-s*Math.cos(ang-.4)},${B.y-s*Math.sin(ang-.4)} ${B.x-s*Math.cos(ang+.4)},${B.y-s*Math.sin(ang+.4)}`}/>);
+    }
+  };
+  const pushPoly=(pts3,o)=>{
+    const q=pts3.map(p=>pj(get(p)));const dm=q.reduce((s,a)=>s+a.d,0)/q.length;
+    polys.push({dm,el:<polygon key={'p'+(kk++)} points={q.map(a=>a.x+','+a.y).join(' ')} fill={o.fill||'none'} fillOpacity={o.op==null?.15:o.op}
+      stroke={o.stroke||'none'} strokeWidth={(o.sw||1.5)*big} strokeDasharray={o.dash?'6 5':undefined} strokeLinejoin="round"/>});
+  };
+
+  scene.prims.forEach(pr=>{
+    if(!pr)return;
+    if(pr.t==='poly')pushPoly(pr.p,pr);
+    else if(pr.t==='seg')pushSeg(pr.a,pr.b,pr,false);
+    else if(pr.t==='solid'){
+      const verts=[...new Set(pr.faces.flat())];const c0=cen(verts.map(get));
+      const em=new Map();
+      pr.faces.forEach((f,i)=>{
+        const p3=f.map(get);const n0=cross(sub(p3[1],p3[0]),sub(p3[2],p3[0]));
+        const n=dot(n0,sub(cen(p3),c0))<0?mul(n0,-1):n0;const front=tfv(n)[2]<0;
+        const fl=pr.fills&&pr.fills[i];
+        if(fl)pushPoly(f,{fill:fl[0],op:fl[1]});
+        else if(pr.tint)pushPoly(f,{fill:'#7c3aed',op:front?.06:.025});
+        f.forEach((v,j)=>{const u=f[(j+1)%f.length];const key=[v,u].sort().join('|');
+          const e=em.get(key)||{a:v,b:u,vis:false};e.vis=e.vis||front;em.set(key,e);});
+      });
+      em.forEach(e=>{
+        const st=(pr.estyle&&pr.estyle(e.a,e.b))||{};
+        pushSeg(e.a,e.b,{c:st.c||pr.c||C.edge,w:st.w||pr.w||2.4},!e.vis);
+      });
+    }
+    else if(pr.t==='pt'){
+      const p=pr.p||P[pr.id];const q=pj(p);const col=pr.c||C.ink;
+      dots.push(<circle key={'d'+(kk++)} cx={q.x} cy={q.y} r={(pr.r||fs*.27)*(big>1?1.1:1)} fill={col} stroke="#fff" strokeWidth="1.5"/>);
+      const label=pr.label===false?null:(pr.label||L(pr.id||''));
+      if(label){
+        let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+        if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+        const off=fs*(pr.off||1.0);
+        lbls.push(<text key={'l'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+          fontFamily='"Times New Roman",Georgia,serif' fontStyle="italic" fontWeight="700" fontSize={fs*(pr.size||1)} fill={pr.lc||col}
+          stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{label}</text>);
+      }
+    }
+    else if(pr.t==='txt'){
+      const q=pj(get(pr.p));let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+      if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+      const off=fs*(pr.off==null?.8:pr.off);
+      lbls.push(<text key={'t'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+        fontFamily={pr.upright?'-apple-system,Segoe UI,Roboto,sans-serif':'"Times New Roman",Georgia,serif'} fontStyle={pr.upright?'normal':'italic'}
+        fontWeight="700" fontSize={fs*(pr.size||1.1)} fill={pr.c||C.ink} stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{pr.s}</text>);
+    }
+  });
+  polys.sort((a,b)=>b.dm-a.dm);
+
+  return(
+    <div ref={wrap} style={{position:'absolute',inset:0}}>
+      <svg width={w} height={h} style={{position:'absolute',inset:0,touchAction:'none',cursor:drag.current?'grabbing':'grab',display:'block'}}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={()=>{if(!moved.current)drag.current=null;}}>
+        <g>{polys.map(p=>p.el)}</g><g>{hid}</g><g>{vis}</g><g>{dots}</g><g>{lbls}</g><g>{hits}</g>
+      </svg>
+      {!bare&&<div className="tools">
+        <button className="tool" aria-label="Скинути вигляд" title="Скинути вигляд" onClick={()=>setCam({yaw:yaw0,pitch:pitch0})}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button className={'tool'+(auto?' on':'')} aria-label="Автообертання" title="Автообертання" onClick={()=>setAuto(a=>!a)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M17 16l3.5.5.5-3.5"/></svg>
+        </button>
+      </div>}
+      {!bare&&<div className="hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10a2 2 0 0 1 4 0v3"/><path d="M9 11a2 2 0 0 0-4 0v3a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-2"/></svg>
+        Тягни — обертай
+      </div>}
+      {legend&&<div className="legend">{legend.map((l,i)=><span key={i}><i className="dot" style={{background:l[0]}}/>{l[1]}</span>)}</div>}
+    </div>
+  );
+}
+
+/* ---------- елементи інтерфейсу ---------- */
+const NavCtx=createContext(null);
+const M=({children})=><i className="m">{children}</i>;
+const Box=({title,children})=><div className="box"><h4>{title}</h4><p>{children}</p></div>;
+const Note=({children})=><div className="note">{children}</div>;
+const Key=({children})=><div className="key"><h5>Важливий висновок</h5>{children}</div>;
+const Tabs=({items,val,set})=><div className="tabs">{items.map(([k,t])=><button key={k} className={'tab'+(val===k?' on':'')} onClick={()=>set(k)}>{t}</button>)}</div>;
+const Slider=({label,min,max,step=1,val,set,unit='°'})=>(
+  <div className="sliderRow"><label>{label}</label>
+    <input type="range" min={min} max={max} step={step} value={val} onChange={e=>set(parseFloat(e.target.value))}/>
+    <output>{val}{unit}</output></div>);
+function Steps({items,k,setK,label='Показати розв’язання'}){
+  return(<div className="steps">
+    {items.slice(0,k).map((t,i)=><div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}
+    {k===0&&<button className="btn" style={{alignSelf:'flex-start'}} onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&k<items.length&&<button className="down" aria-label="Далі" onClick={()=>setK(k+1)}>↓</button>}
+    {k>0&&<button className="btn ghost sm" style={{alignSelf:'flex-start'}} onClick={()=>setK(0)}>↻ Спочатку</button>}
+  </div>);
+}
+function Frame({left,scene,legend,yaw0,pitch0,camKey}){
+  const nav=useContext(NavCtx);
+  return(<>
+    <div className="left"><div className="lscroll">{left}</div>{nav}</div>
+    <div className="right"><Scene3D key={camKey} scene={scene} legend={legend} yaw0={yaw0} pitch0={pitch0}/></div>
+  </>);
+}
+const txtPl=(poly,i,s,c)=>({t:'txt',p:lerp(poly[i],cen(poly),.2),s,c,size:1.4,lo:[0,0]});
+const para=(p0,e1,e2)=>[p0,add(p0,e1),add(add(p0,e1),e2),add(p0,e2)];
+const rightAng=(pt,u,v,s)=>{const a=add(pt,mul(u,s)),b=add(a,mul(v,s)),c=add(pt,mul(v,s));
+  return[{t:'seg',a,b,c:C.ink,w:1.6},{t:'seg',a:b,b:c,c:C.ink,w:1.6}];};
+const colA='#16a34a',colB='#db2777',colM='#ea580c',colP='#7e22ce',colX='#dc2626',grey='#64748b';
+const Cl=({c,children})=><span style={{color:c,fontWeight:800}}>{children}</span>;
+const FLOOR=-1.9;
+
+/* =====================================================================
+   Пункт 1. Основні поняття стереометрії
+   ===================================================================== */
+function Item1(){
+  const [tab,setTab]=useState('base');const [obj,setObj]=useState('pl');const [rel,setRel]=useState(null);
+  const P={},pr=[];let R=3.1,ctr=[0,0,0.3];
+  const pl=rectPlane([0,0,0],[1,0,0],[0,1,0],2.6,1.9);
+  if(tab==='base'){
+    if(obj==='pt'){P.A=[0.2,0.1,0.4];pr.push({t:'pt',id:'A',c:colA,r:10,size:1.3});}
+    if(obj==='ln'){const d=nrm([1,0.3,0.25]);const a=mul(d,-2.8),b=mul(d,2.8);
+      pr.push({t:'seg',a,b,c:colM,w:4},{t:'txt',p:b,s:'m',c:colM,size:1.5,lo:[1,0]});}
+    if(obj==='pl'){
+      const al=para([-2.4,-1.5,-0.8],[3.4,0,0],[1.5,2.9,0]);
+      const be=para([-2.2,-1.0,1.0],[3.0,0.3,0.3],[1.2,2.2,0.4]);
+      pr.push(plane(al,C.al,.2),txtPl(al,0,'α',C.al),plane(be,C.be,.2),txtPl(be,0,'β',C.be));
+      R=3.7;
+    }
+  }
+  if(tab==='rel'){
+    P.A=[-1.2,-0.6,0];P.B=[1.1,0.5,1.5];P.K=[0.7,-0.8,0];
+    const dd=nrm([0.3,0.45,1]);const a1=[-2.3,1.1,0],a2=[2.3,0.5,0];
+    const top=add(P.K,mul(dd,2.3));
+    const hiA=rel==='Ain',hiB=rel==='Bout',hiM=rel==='aIn',hiP=rel==='bInt',g='#475569';
+    pr.push(plane(pl,rel?C.al:'#94a3b8',rel?.18:.12),txtPl(pl,3,'α',rel?C.al:grey),
+      {t:'seg',a:a1,b:a2,c:hiM?colM:g,w:hiM?6:3.2},{t:'txt',p:a2,s:'m',c:hiM?colM:g,size:1.4,lo:[1,0]},
+      {t:'seg',a:sub(P.K,mul(dd,1.6)),b:top,c:hiP?colP:g,w:hiP?6:3.2},{t:'txt',p:top,s:'p',c:hiP?colP:g,size:1.4,lo:[1,0]},
+      {t:'pt',id:'A',c:hiA?colA:g,r:hiA?10:undefined},{t:'pt',id:'B',c:hiB?colB:g,r:hiB?10:undefined});
+    if(hiP)pr.push({t:'pt',id:'K',c:colX,r:9});
+  }
+  const relT={
+    Ain:<>Точка <M><Cl c={colA}>A</Cl></M> лежить у площині <M><Cl c={C.al}>α</Cl></M>: <M><Cl c={colA}>A</Cl> ∈ <Cl c={C.al}>α</Cl></M>.</>,
+    Bout:<>Точка <M><Cl c={colB}>B</Cl></M> не лежить у площині <M><Cl c={C.al}>α</Cl></M>: <M><Cl c={colB}>B</Cl> ∉ <Cl c={C.al}>α</Cl></M>.</>,
+    aIn:<>Усі точки прямої <M><Cl c={colM}>m</Cl></M> лежать у площині <M><Cl c={C.al}>α</Cl></M>: <M><Cl c={colM}>m</Cl> ⊂ <Cl c={C.al}>α</Cl></M>.</>,
+    bInt:<>Пряма <M><Cl c={colP}>p</Cl></M> має з площиною <M><Cl c={C.al}>α</Cl></M> одну спільну точку <M><Cl c={colX}>K</Cl></M>: <M><Cl c={colP}>p</Cl> ∩ <Cl c={C.al}>α</Cl> = <Cl c={colX}>K</Cl></M>.</>};
+  const chipsRel=[
+    ['Ain',<><Cl c={colA}>A</Cl> ∈ <Cl c={C.al}>α</Cl></>],
+    ['Bout',<><Cl c={colB}>B</Cl> ∉ <Cl c={C.al}>α</Cl></>],
+    ['aIn',<><Cl c={colM}>m</Cl> ⊂ <Cl c={C.al}>α</Cl></>],
+    ['bInt',<><Cl c={colP}>p</Cl> ∩ <Cl c={C.al}>α</Cl> = <Cl c={colX}>K</Cl></>]];
+  const objT={
+    pt:<><b>Точка.</b> Позначають великими латинськими літерами: <M>A</M>, <M>B</M>, <M>C</M>.</>,
+    ln:<><b>Пряма.</b> Необмежена в обидва боки. Позначають малими літерами <M>m</M>, <M>n</M>, <M>p</M> або двома точками: <M>AB</M>.</>,
+    pl:<><b>Площина.</b> Рівна й необмежена в усіх напрямах. Зображають паралелограмом, позначають грецькими літерами <M><Cl c={C.al}>α</Cl></M>, <M><Cl c={C.be}>β</Cl></M>, <M>γ</M>.</>};
+  const left=(<>
+    <p className="lead"><span className="cb">Стереометрія</span> — розділ геометрії, у якому вивчають фігури в просторі.</p>
+    <Tabs val={tab} set={setTab} items={[['base','Основні поняття'],['rel','Позначення']]}/>
+    {tab==='base'&&<div className="fade">
+      <Box title="Основні поняття">Точка, пряма та площина — основні поняття стереометрії. Їх не означують, а описують за допомогою аксіом.</Box>
+      <div className="chips">
+        <button className={'chip'+(obj==='pt'?' on':'')} onClick={()=>setObj('pt')}>Точка</button>
+        <button className={'chip'+(obj==='ln'?' on':'')} onClick={()=>setObj('ln')}>Пряма</button>
+        <button className={'chip'+(obj==='pl'?' on':'')} onClick={()=>setObj('pl')}>Площина</button>
+      </div>
+      <Note>{objT[obj]}</Note>
+    </div>}
+    {tab==='rel'&&<div className="fade">
+      <p className="lead">Обери запис — відповідний елемент підсвітиться.</p>
+      <div className="chips">
+        {chipsRel.map(([k,t])=><button key={k} className={'chip'+(rel===k?' on':'')} onClick={()=>setRel(k)}><M>{t}</M></button>)}
+      </div>
+      {rel&&<Note>{relT[rel]}</Note>}
+      <Key>Символи <M>∈</M> і <M>∉</M> — для точок, символи <M>⊂</M> і <M>⊄</M> — для прямих і площин.</Key>
+    </div>}
+  </>);
+  return <Frame left={left} scene={{P,prims:pr,R,ctr}} camKey={tab+obj} yaw0={0.55} pitch0={0.45}/>;
+}
+
+/* =====================================================================
+   Пункти 2–3. Аксіоми А1–А4
+   ===================================================================== */
+function sceneAx(tab,mode,theta){
+  const P={},pr=[];let R=3.1,ctr=[0,0,0];
+  if(tab==='A1'){
+    const pl=rectPlane([0,0,0],[1,0,0],[0,1,0],3.0,2.1);
+    const q=(x,y)=>[x,y,0];
+    Object.assign(P,{A:q(-2.3,-0.9),B:q(-1.5,1.0),C:q(-0.2,-0.9),H:q(-1.5,-0.9)});
+    pr.push(plane(pl,C.al,.14),txtPl(pl,1,'α',C.al),
+      {t:'poly',p:['A','B','C'],fill:'#f59e0b',op:.22,stroke:C.edge,sw:2.4},
+      {t:'seg',a:'B',b:'H',c:C.be,w:4},...rightAng(P.H,[1,0,0],[0,1,0],.22),
+      ...vp(['A','B','C']),{t:'pt',id:'H',c:C.be},
+      {t:'seg',a:q(.5,1.3),b:q(2.5,.74),c:C.par,w:4},{t:'seg',a:q(.5,.4),b:q(2.5,-.16),c:C.par,w:4},
+      {t:'txt',p:q(2.5,.74),s:'m',c:C.par,size:1.3,lo:[1,0]},{t:'txt',p:q(2.5,-.16),s:'n',c:C.par,size:1.3,lo:[1,0]},
+      {t:'seg',a:q(.4,-1.2),b:q(2.4,-1.2),c:C.ga,w:4},{t:'seg',a:q(1.2,-1.8),b:q(1.2,-.55),c:C.ga,w:4},
+      ...rightAng(q(1.2,-1.2),[1,0,0],[0,1,0],.22),
+      {t:'txt',p:q(2.4,-1.2),s:'c',c:C.ga,size:1.3,lo:[1,0]},{t:'txt',p:q(1.2,-1.8),s:'d',c:C.ga,size:1.3,lo:[0,1]});
+    R=3.5;
+  }
+  if(tab==='A2'){
+    const fl=rectPlane([0,0,FLOOR],[1,0,0],[0,1,0],2.8,2.3);
+    pr.push(plane(fl,'#64748b',.1,1));
+    if(mode===0){
+      Object.assign(P,{A:[-1.4,-0.9,0],B:[1.4,-0.7,0.25],C:[0.1,1.4,0.1]});
+      const seat=planeThrough(P.A,P.B,P.C,2.3,1.9);
+      ['A','B','C'].forEach(k=>pr.push({t:'seg',a:k,b:[P[k][0],P[k][1],FLOOR],c:'#92400e',w:5}));
+      pr.push(plane(seat,C.al,.2),txtPl(seat,3,'α',C.al),...vp(['A','B','C'],C.skew));
+    }else{
+      const d=nrm([1,0.35,0.2]);
+      Object.assign(P,{A:mul(d,-1.4),B:mul(d,0.2),C:mul(d,1.5)});
+      const p=nrm(cross(d,[0,0,1])),q=cross(d,p);
+      [0,60,120].forEach((deg,i)=>{
+        const e2=add(mul(p,Math.cos(rad(deg))),mul(q,Math.sin(rad(deg))));
+        pr.push(plane(rectPlane([0,0,0],d,e2,2.6,1.5),['#2563eb','#ea580c','#16a34a'][i],.16));
+      });
+      ['A','B','C'].forEach(k=>pr.push({t:'seg',a:k,b:[P[k][0],P[k][1],FLOOR],c:'#92400e',w:5}));
+      pr.push({t:'seg',a:mul(d,-2.7),b:mul(d,2.7),c:C.ink,w:3},...vp(['A','B','C'],C.skew));
+    }
+    ctr=[0,0,-0.8];R=3.5;
+  }
+  if(tab==='A3'){
+    const pl=rectPlane([0,0,0],[1,0,0],[0,1,0],2.6,1.9);
+    pr.push(plane(pl,C.al,.15),txtPl(pl,3,'α',C.al));
+    if(mode===0){
+      Object.assign(P,{A:[-1.3,-0.5,0],B:[0.9,0.7,0]});
+      const ab=sub(P.B,P.A);
+      pr.push({t:'seg',a:sub(P.A,mul(ab,.55)),b:add(P.B,mul(ab,.6)),c:C.par,w:4},...vp(['A','B'],C.skew));
+    }else{
+      const K0=[-0.8,-1.0,1.5],Lp=[1.0,1.0,-1.3],d=sub(Lp,K0);
+      const Mm=linePlane(K0,d,[0,0,0],[0,0,1]);const K=add(K0,mul(d,.2));P.K=K;P.M=Mm;
+      const top=sub(K0,mul(d,.2)),bot=add(Lp,mul(d,.12));
+      pr.push({t:'seg',a:Mm,b:top,c:C.ink,w:3.4,arrow:true},{t:'seg',a:Mm,b:bot,c:C.ink,w:3.4,arrow:true},
+        {t:'pt',id:'K',c:C.ink},{t:'pt',id:'M',c:C.skew,r:7});
+    }
+  }
+  if(tab==='A4'){
+    const th=rad(theta),e=[0,Math.cos(th),Math.sin(th)];
+    const a=rectPlane([0,0,0],[1,0,0],[0,1,0],2.5,1.8),b=rectPlane([0,0,0],[1,0,0],e,2.5,1.8);
+    P.M=[0.9,0,0];
+    pr.push(plane(a,C.al,.15),plane(b,C.be,.17),{t:'seg',a:[-2.5,0,0],b:[2.5,0,0],c:C.skew,w:4.4},
+      {t:'pt',id:'M',c:C.ink,r:7},txtPl(a,3,'α',C.al),txtPl(b,0,'β',C.be),{t:'txt',p:[-2.5,0,0],s:'c',c:C.skew,size:1.35,lo:[-1,.3]});
+  }
+  return{P,prims:pr,R,ctr};
+}
+function Item2(){
+  const [tab,setTab]=useState('A1');const [mode,setMode]=useState(0);
+  const sc=sceneAx(tab,mode,60);
+  const left=(<>
+    <p className="lead" style={{color:'#6B21A8',fontSize:'1.15em'}}>Аксіоми</p>
+    <Tabs val={tab} set={t=>{setTab(t);setMode(0);}} items={[['A1','Аксіома А1'],['A2','Аксіома А2']]}/>
+    {tab==='A1'&&<div className="fade">
+      <Box title="Аксіома А1">У будь-якій площині простору виконуються всі аксіоми планіметрії.</Box>
+      <Note>У стереометрії можна користуватися всіма відомими нам властивостями плоских фігур з планіметрії.</Note>
+    </div>}
+    {tab==='A2'&&<div className="fade">
+      <Box title="Аксіома А2">Через будь-які три точки простору, що не лежать на одній прямій, проходить площина, і до того ж тільки одна.</Box>
+      {mode===0?<>
+        <Note>Площина <M>ABC</M> <b>єдина</b>.</Note>
+        <button className="btn" onClick={()=>setMode(1)}>А якщо точки лежать на одній прямій?</button>
+      </>:<>
+        <Note>Через пряму проходить <b>безліч</b> площин. Аксіома А2 тут не діє.</Note>
+        <button className="btn ghost" onClick={()=>setMode(0)}>← Повернутися до аксіоми</button>
+      </>}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} camKey={tab+mode} yaw0={0.55} pitch0={0.35}/>;
+}
+function Item3(){
+  const [tab,setTab]=useState('A3');const [mode,setMode]=useState(0);const [theta,setTheta]=useState(60);
+  const sc=sceneAx(tab,mode,theta);
+  const left=(<>
+    <Tabs val={tab} set={t=>{setTab(t);setMode(0);}} items={[['A3','Аксіома А3'],['A4','Аксіома А4']]}/>
+    {tab==='A3'&&<div className="fade">
+      <Box title="Аксіома А3">Якщо дві точки прямої належать площині, то й уся пряма належить цій площині.</Box>
+      <div className="chips"><button className={'chip'+(mode===0?' on':'')} onClick={()=>setMode(0)}>Дві точки прямої в площині</button>
+        <button className={'chip'+(mode===1?' on':'')} onClick={()=>setMode(1)}>Пряма поза площиною</button></div>
+      {mode===0?<Note><M>A ∈ α</M>, <M>B ∈ α</M> ⇒ <span className="cg"><M>AB ⊂ α</M></span>.</Note>:<Note>Якщо пряма не лежить у площині, вона має з нею <b>не більше однієї</b> спільної точки.</Note>}
+    </div>}
+    {tab==='A4'&&<div className="fade">
+      <Box title="Аксіома А4">Якщо дві площини мають спільну точку, то вони перетинаються по прямій.</Box>
+      <Slider label="Нахил площини β" min={20} max={160} step={5} val={theta} set={setTheta}/>
+      <Note><M>M ∈ α</M>, <M>M ∈ β</M> ⇒ <M>α ∩ β = c</M>, причому <M>M ∈ <span className="cr">c</span></M>.</Note>
+      <Key>Дві різні площини не можуть мати рівно одну спільну точку — їхній перетин є прямою.</Key>
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} camKey={tab+mode} yaw0={0.55} pitch0={0.45}/>;
+}
+
+/* =====================================================================
+   Пункт 4. Наслідки з аксіом. Способи задання площини
+   ===================================================================== */
+function Item4(){
+  const [tab,setTab]=useState('t1');const [shown,setShown]=useState(false);const [phi,setPhi]=useState(0);const [way,setWay]=useState(0);
+  const P={},pr=[];let sc;
+  const goTab=t=>{setTab(t);setShown(false);setPhi(0);};
+  const ok=shown&&Math.abs(phi)<=2;const f=rad(ok?0:phi);
+  if(tab==='t1'){
+    const L1=[-2.3,-0.7,0.1],L2=[2.3,0.5,-0.1],Kp=[0.2,0.9,1.1];P.K=Kp;
+    const e1=nrm(sub(L2,L1));const foot=add(L1,mul(e1,dot(sub(Kp,L1),e1)));
+    const e2=nrm(sub(Kp,foot)),n=cross(e1,e2);
+    const e2r=add(mul(e2,Math.cos(f)),mul(n,Math.sin(f)));
+    pr.push({t:'seg',a:L1,b:L2,c:ok?C.par:C.ink,w:ok?5:3.4},{t:'txt',p:L2,s:'a',c:ok?C.par:C.ink,size:1.4,lo:[1,0]},{t:'pt',id:'K',c:ok?C.par:C.skew,r:7});
+    if(shown){const pl=rectPlane(add(foot,mul(e2r,.35)),e1,e2r,2.6,1.7);pr.push(plane(pl,C.al,.18),txtPl(pl,3,'α',C.al));}
+    sc={P,prims:pr,R:3.1,ctr:[0,0.2,0.4]};
+  }
+  if(tab==='t2'){
+    const O=[0.1,0.1,0.2],da=nrm([1,0.25,0.15]),db=nrm([-0.3,1,0.2]);P.O=O;
+    const n=nrm(cross(da,db)),e2=nrm(cross(n,da));
+    const e2r=add(mul(e2,Math.cos(f)),mul(n,Math.sin(f)));
+    const ca=ok?C.par:C.ink,wa=ok?5:3.4;
+    pr.push({t:'seg',a:sub(O,mul(da,2.3)),b:add(O,mul(da,2.3)),c:ca,w:wa},{t:'seg',a:sub(O,mul(db,1.8)),b:add(O,mul(db,1.8)),c:ca,w:wa},
+      {t:'txt',p:add(O,mul(da,2.3)),s:'a',c:ca,size:1.4,lo:[1,0]},{t:'txt',p:add(O,mul(db,1.8)),s:'b',c:ca,size:1.4,lo:[1,0]},{t:'pt',id:'O',c:C.ink,r:7});
+    if(shown){const pl=rectPlane(O,da,e2r,2.6,2.0);pr.push(plane(pl,C.al,.18),txtPl(pl,3,'α',C.al));}
+    sc={P,prims:pr,R:3.1,ctr:[0,0,0.2]};
+  }
+  if(tab==='ways'){
+    if(way===0){
+      Object.assign(P,{A:[-1.3,-0.8,-0.2],B:[1.2,-0.9,0.4],C:[0.3,1.3,0.9]});
+      const pl=planeThrough(P.A,P.B,P.C,2.4,2.0);
+      pr.push(plane(pl,C.al,.16),{t:'poly',p:['A','B','C'],fill:'#f59e0b',op:.25,stroke:C.edge,sw:2},...vp(['A','B','C'],C.skew),txtPl(pl,3,'α',C.al));
+    }
+    if(way===1){
+      const P1=[-2,-0.8,0.2],P2=[2,0.6,-0.2],K=[0.2,0.9,1.0];P.K=K;
+      const e1=nrm(sub(P2,P1)),e2=nrm(perp(sub(K,P1),e1));
+      const pl=rectPlane(cen([P1,P2,K]),e1,e2,2.5,1.9);
+      pr.push(plane(pl,C.al,.16),{t:'seg',a:P1,b:P2,c:C.ink,w:3.6},{t:'pt',id:'K',c:C.skew,r:7},
+        {t:'txt',p:P2,s:'a',c:C.ink,size:1.35,lo:[1,0]},txtPl(pl,3,'α',C.al));
+    }
+    if(way===2){
+      const O=[0.1,0.1,0.2],da=nrm([1,0.25,0.15]),db=nrm([-0.3,1,0.2]);P.O=O;
+      const n=nrm(cross(da,db));const e2=nrm(cross(n,da));const pl=rectPlane(O,da,e2,2.6,2.0);
+      pr.push(plane(pl,C.al,.16),{t:'seg',a:sub(O,mul(da,2.3)),b:add(O,mul(da,2.3)),c:C.ink,w:3.6},
+        {t:'seg',a:sub(O,mul(db,1.8)),b:add(O,mul(db,1.8)),c:C.ink,w:3.6},{t:'pt',id:'O',c:C.skew,r:7},
+        {t:'txt',p:add(O,mul(da,2.3)),s:'a',c:C.ink,size:1.35,lo:[1,0]},{t:'txt',p:add(O,mul(db,1.8)),s:'b',c:C.ink,size:1.35,lo:[1,0]},txtPl(pl,3,'α',C.al));
+    }
+    sc={P,prims:pr,R:3.1};
+  }
+  const wayT=[
+    ['трьома точками, що не лежать на одній прямій','аксіома А2'],
+    ['прямою і точкою, яка їй не належить','теорема 27.1'],
+    ['двома прямими, що перетинаються','теорема 27.2']];
+  const ctl=(txtOk,txtNo)=>shown?<>
+    <Slider label="Поверни площину" min={-80} max={80} step={1} val={phi} set={setPhi}/>
+    {ok?<div className="fb ok">{txtOk}</div>:<Note>{txtNo}</Note>}
+    <button className="btn ghost sm" onClick={()=>{setShown(false);setPhi(40);}}>Сховати площину</button>
+  </>:<button className="btn" onClick={()=>{setShown(true);setPhi(40);}}>Показати площину</button>;
+  const left=(<>
+    <Tabs val={tab} set={goTab} items={[['t1','Теорема 27.1'],['t2','Теорема 27.2'],['ways','Підсумок']]}/>
+    {tab==='t1'&&<div className="fade">
+      <Box title="Теорема 27.1">Через пряму і точку, яка їй не належить, проходить площина, і до того ж тільки одна.</Box>
+      {ctl(<>Точка <M>K</M> лежить у площині <M>α</M>. Така площина <b>єдина</b>.</>,
+           <>Точка <M>K</M> не належить площині <M>α</M>. Знайди положення, у якому вона належить площині.</>)}
+    </div>}
+    {tab==='t2'&&<div className="fade">
+      <Box title="Теорема 27.2">Через дві прямі, які перетинаються, проходить площина, і до того ж тільки одна.</Box>
+      {ctl(<>Пряма <M>b</M> лежить у площині <M>α</M>. Така площина <b>єдина</b>.</>,
+           <>Пряма <M>b</M> не лежить у площині <M>α</M>. Знайди положення, у якому вона лежить у площині.</>)}
+    </div>}
+    {tab==='ways'&&<div className="fade">
+      <p className="lead">З аксіоми А2 і теорем 27.1 і 27.2 випливає, що площина однозначно визначається:</p>
+      {wayT.map((w,i)=><button key={i} className={'opt'+(way===i?' sel':'')} onClick={()=>setWay(i)}><b>{i+1}.</b><span>{w[0]} <small style={{color:'#64748b'}}>({w[1]})</small></span></button>)}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} camKey={tab+way} yaw0={0.55} pitch0={0.42}/>;
+}
+
+/* =====================================================================
+   Пункт 5. Задачі
+   ===================================================================== */
+function Item5(){
+  const BX=boxP(1,1,1);
+  const T=[
+    {lbl:'1',q:<>Скільки площин можна провести через три точки, що лежать на одній прямій?</>,opts:['Жодної','Одну','Дві','Безліч','Три'],ok:3,
+      ex:<>Аксіома А2 діє лише для точок, що не лежать на одній прямій. Через пряму проходить безліч площин.</>},
+    {lbl:'2',q:<>Точки <M>A</M>, <M>B</M>, <M>C</M>, <M>D</M> не лежать в одній площині. Чи можуть три з них лежати на одній прямій?</>,opts:['Так, можуть','Ні, не можуть','Так, якщо четверта точка далеко','Залежить від відстаней між точками'],ok:1,
+      ex:<>Якщо <M>A, B, C</M> лежать на прямій, то через цю пряму та точку <M>D</M> проходить площина (теорема 27.1). Тоді всі чотири точки лежать в одній площині — суперечність.</>},
+    {lbl:'3',q:<>Різні площини <M>α</M> і <M>β</M> мають спільну точку <M>M</M>. Яке твердження правильне?</>,opts:[<><M>α ∥ β</M></>,<>Площини збігаються</>,<>Площини перетинаються по прямій, що проходить через <M>M</M></>,<>Площини мають єдину спільну точку <M>M</M></>,<>Жодне з тверджень</>],ok:2,
+      ex:<>За аксіомою А4 площини перетинаються по прямій. Точка <M>M</M> належить обом площинам, тому лежить на цій прямій.</>},
+    {lbl:'4',q:<>Скільки площин проходить через дві прямі, що перетинаються?</>,opts:['Жодної','Одна','Дві','Безліч','Залежить від кута між прямими'],ok:1,
+      ex:<>За теоремою 27.2 така площина існує й єдина.</>},
+    {lbl:'5',q:<>Площини <M>ABB₁</M> і <M>ADD₁</M> куба <M>ABCDA₁B₁C₁D₁</M> мають спільну точку <M>A</M>. По якій прямій вони перетинаються?</>,opts:['AB','AD','AA₁','BB₁','DD₁'],ok:2,
+      ex:<>За аксіомою А4 площини перетинаються по прямій, що проходить через <M>A</M>. Точка <M>A₁</M> також належить обом площинам, тому лінія перетину — <M>AA₁</M>.</>},
+    {lbl:'27.7',q:<><b>27.7.</b> Дано точки <M>A</M>, <M>B</M> і <M>C</M> такі, що <M>AB = 5</M> см, <M>BC = 6</M> см, <M>AC = 7</M> см. Скільки площин можна провести через точки <M>A</M>, <M>B</M> і <M>C</M>?</>,
+      opts:['Жодної','Одну','Дві','Безліч'],ok:1,
+      ex:<>Жодна зі сторін не дорівнює сумі двох інших (<M>5 + 6 ≠ 7</M>), тому точки не лежать на одній прямій. За аксіомою А2 через них проходить єдина площина.</>},
+    {lbl:'27.9',q:<><b>27.9.</b> Прямі <M>AB</M> і <M>AC</M> перетинають площину <M>α</M> в точках <M>B</M> і <M>C</M>, точки <M>D</M> і <M>E</M> належать цій площині. Яка точка є точкою перетину прямої <M>DE</M> з площиною <M>ABC</M>?</>,
+      opts:[<>Точка <M>A</M></>,<>Точка перетину прямих <M>DE</M> і <M>AB</M></>,<>Точка перетину прямих <M>DE</M> і <M>BC</M></>,<>Точка перетину прямих <M>DE</M> і <M>AC</M></>,<>Такої точки не існує</>],ok:2,
+      ex:<>Прямі <M>DE</M> і <M>BC</M> лежать в одній площині <M>α</M> і не паралельні, тому перетинаються в точці <M>X</M>. Точка <M>X</M> лежить на прямій <M>BC</M>, а отже, і в площині <M>ABC</M>.</>},
+    {lbl:'27.10',q:<><b>27.10.</b> Пряма <M>BA</M> перетинає площину <M>α</M> в точці <M>A</M>, пряма <M>BC</M> — у точці <M>C</M>. На відрізку <M>AB</M> позначили точку <M>D</M>, на відрізку <M>BC</M> — точку <M>E</M>. Яка точка є точкою перетину прямої <M>DE</M> з площиною <M>α</M>?</>,
+      opts:[<>Точка перетину прямих <M>DE</M> і <M>AC</M></>,<>Точка перетину прямих <M>DE</M> і <M>AB</M></>,<>Точка <M>D</M></>,<>Точка <M>E</M></>,<>Такої точки не існує</>],ok:0,
+      ex:<>Площина <M>ABC</M> перетинає площину <M>α</M> по прямій <M>AC</M>. Пряма <M>DE</M> лежить у площині <M>ABC</M>, тому її спільна точка з <M>α</M> лежить на прямій <M>AC</M>.</>},
+    {lbl:'27.11',q:<><b>27.11.</b> Пряма <M>m</M> — лінія перетину площин <M>α</M> і <M>β</M>. Точки <M>A</M> і <M>B</M> належать площині <M>α</M>, а точка <M>C</M> — площині <M>β</M>. Яка пряма є лінією перетину площини <M>ABC</M> із площиною <M>β</M>?</>,
+      opts:[<>Пряма <M>AB</M></>,<>Пряма <M>CM</M>, де <M>M</M> — точка перетину прямих <M>AB</M> і <M>m</M></>,<>Пряма <M>AC</M></>,<>Пряма <M>BC</M></>,<>Пряма <M>m</M></>],ok:1,
+      ex:<>З площиною <M>α</M> площина <M>ABC</M> перетинається по прямій <M>AB</M>. Ця пряма перетинає <M>m</M> у точці <M>M</M>, яка належить і <M>ABC</M>, і <M>β</M>. Точка <M>C</M> теж спільна для <M>ABC</M> і <M>β</M>, тому лінія перетину — <M>CM</M>.</>},
+    {lbl:'27.12 (1)',q:<><b>27.12 (1).</b> Квадрати <M>ABCD</M> і <M>ABC₁D₁</M> не лежать в одній площині. На відрізку <M>AD</M> позначили точку <M>E</M>. Яка точка є точкою перетину прямої <M>CE</M> з площиною <M>ABC₁</M>?</>,
+      opts:[<>Точка перетину прямих <M>CE</M> і <M>AB</M></>,<>Точка перетину прямих <M>CE</M> і <M>BC₁</M></>,<>Точка перетину прямих <M>CE</M> і <M>AD₁</M></>,<>Точка <M>E</M></>,<>Такої точки не існує</>],ok:0,
+      ex:<>Пряма <M>CE</M> лежить у площині <M>ABC</M>. Площини <M>ABC</M> і <M>ABC₁</M> перетинаються по прямій <M>AB</M>, тому шукана точка — точка перетину прямих <M>CE</M> і <M>AB</M>.</>},
+    {lbl:'27.12 (2)',q:<><b>27.12 (2).</b> Квадрати <M>ABCD</M> і <M>ABC₁D₁</M> не лежать в одній площині. На відрізку <M>BC₁</M> позначили точку <M>F</M>. Яка точка є точкою перетину прямої <M>FD₁</M> із площиною <M>ABC</M>?</>,
+      opts:[<>Точка перетину прямих <M>FD₁</M> і <M>AB</M></>,<>Точка перетину прямих <M>FD₁</M> і <M>BC</M></>,<>Точка перетину прямих <M>FD₁</M> і <M>CD</M></>,<>Точка <M>F</M></>,<>Такої точки не існує</>],ok:0,
+      ex:<>Пряма <M>FD₁</M> лежить у площині <M>ABC₁</M>. Площини <M>ABC₁</M> і <M>ABC</M> перетинаються по прямій <M>AB</M>, тому шукана точка — точка перетину прямих <M>FD₁</M> і <M>AB</M>.</>},
+    {lbl:'27.14',q:<><b>27.14.</b> Точка <M>M</M> — спільна точка двох площин <M>ABC</M> і <M>BCD</M>. Знайдіть відрізок <M>BC</M>, якщо <M>BM = 4</M> см, <M>MC = 7</M> см.</>,
+      opts:['11 см','3 см','3 см або 11 см','4 см','7 см'],ok:2,
+      ex:<>Площини <M>ABC</M> і <M>BCD</M> перетинаються по прямій <M>BC</M>, тому <M>M</M> лежить на цій прямій. Якщо <M>M</M> між <M>B</M> і <M>C</M>, то <M>BC = 4 + 7 = 11</M> см. Якщо <M>B</M> між <M>M</M> і <M>C</M>, то <M>BC = 7 − 4 = 3</M> см.</>},
+    {lbl:'27.15',q:<><b>27.15.</b> Точка <M>K</M> — спільна точка двох площин <M>MNF</M> і <M>MNE</M>. Знайдіть відрізок <M>MN</M>, якщо <M>MK = KN = 5</M> см.</>,
+      opts:['5 см','10 см','15 см','5 см або 10 см','Знайти неможливо'],ok:1,
+      ex:<>Площини <M>MNF</M> і <M>MNE</M> перетинаються по прямій <M>MN</M>, тому <M>K</M> лежить на ній. Із рівності <M>MK = KN</M> випливає, що <M>K</M> — середина відрізка <M>MN</M>, тому <M>MN = 5 + 5 = 10</M> см.</>}];
+  const [ti,setTi]=useState(0);const [cs,setCs]=useState(0);
+  const [done,setDone]=useState(()=>T.map(()=>false));const [wrong,setWrong]=useState(()=>T.map(()=>[]));
+  const dn=done[ti];
+  const goTo=i=>{setTi(i);setCs(0);};
+
+  let sc,legend=null;
+  if(ti===0){
+    const d=nrm([1,0.35,0.2]);const P={A:mul(d,-1.4),B:mul(d,0.2),C:mul(d,1.5)};
+    const p=nrm(cross(d,[0,0,1])),q=cross(d,p);const pr=[];
+    [0,60,120].forEach((deg,i)=>{const e2=add(mul(p,Math.cos(rad(deg))),mul(q,Math.sin(rad(deg))));
+      pr.push(plane(rectPlane([0,0,0],d,e2,2.6,1.5),['#2563eb','#ea580c','#16a34a'][i],.16));});
+    pr.push({t:'seg',a:mul(d,-2.7),b:mul(d,2.7),c:C.ink,w:3},...vp(['A','B','C'],C.skew));
+    sc={P,prims:pr,R:3.1};
+  }
+  if(ti===1){
+    const P1=[-2,-0.8,0.2],P2=[2,0.6,-0.2];
+    const P={A:lerp(P1,P2,.2),B:lerp(P1,P2,.5),C:lerp(P1,P2,.8),D:[0.2,0.9,1.0]};
+    const e1=nrm(sub(P2,P1)),e2=nrm(perp(sub(P.D,P1),e1));
+    const pl=rectPlane(cen([P1,P2,P.D]),e1,e2,2.5,1.9);
+    sc={P,R:3.1,prims:[plane(pl,C.al,dn?.2:.1),{t:'seg',a:P1,b:P2,c:C.ink,w:3.4},...vp(['A','B','C'],C.skew),{t:'pt',id:'D',c:C.ink,r:7}]};
+  }
+  if(ti===2){
+    const e=[0,Math.cos(rad(60)),Math.sin(rad(60))];
+    const a=rectPlane([0,0,0],[1,0,0],[0,1,0],2.5,1.8),b=rectPlane([0,0,0],[1,0,0],e,2.5,1.8);
+    sc={P:{M:[0.9,0,0]},R:3.1,prims:[plane(a,C.al,.15),plane(b,C.be,.17),{t:'pt',id:'M',c:C.ink,r:7},txtPl(a,3,'α',C.al),txtPl(b,0,'β',C.be),
+      ...(dn?[{t:'seg',a:[-2.5,0,0],b:[2.5,0,0],c:C.skew,w:4.6}]:[])]};
+  }
+  if(ti===3){
+    const O=[0.1,0.1,0.2],da=nrm([1,0.25,0.15]),db=nrm([-0.3,1,0.2]);
+    const n=nrm(cross(da,db)),e2=nrm(cross(n,da));
+    sc={P:{O},R:3.1,prims:[plane(rectPlane(O,da,e2,2.6,2.0),C.al,.16),{t:'seg',a:sub(O,mul(da,2.3)),b:add(O,mul(da,2.3)),c:C.ink,w:3.6},
+      {t:'seg',a:sub(O,mul(db,1.8)),b:add(O,mul(db,1.8)),c:C.ink,w:3.6},{t:'pt',id:'O',c:C.skew,r:7},
+      {t:'txt',p:add(O,mul(da,2.3)),s:'a',c:C.ink,size:1.35,lo:[1,0]},{t:'txt',p:add(O,mul(db,1.8)),s:'b',c:C.ink,size:1.35,lo:[1,0]}]};
+  }
+  if(ti===4){
+    sc={P:BX,R:2.7,prims:[{t:'solid',faces:BOXF,w:2.2,fills:{2:[C.al,.26],5:[C.be,.26]},
+      estyle:(a,b)=>dn&&((a==='A'&&b==='A1')||(a==='A1'&&b==='A'))?{c:C.skew,w:6}:null},...vp(Object.keys(BX))]};
+    legend=[[C.al,'площина ABB₁'],[C.be,'площина ADD₁']];
+  }
+  if(ti===5){
+    const P={A:[-1.4,-0.6,0],B:[-0.314,1.08,0],C:[1.4,-0.6,0]};
+    const pr=[{t:'poly',p:['A','B','C'],fill:'#f59e0b',op:.22,stroke:C.edge,sw:2.4},
+      {t:'txt',p:mid(P.A,P.B),s:'5 см',c:C.ink,size:1,upright:true},{t:'txt',p:mid(P.B,P.C),s:'6 см',c:C.ink,size:1,upright:true},
+      {t:'txt',p:mid(P.A,P.C),s:'7 см',c:C.ink,size:1,upright:true,lo:[0,1]},...vp(['A','B','C'],C.skew)];
+    if(dn){const pl=planeThrough(P.A,P.B,P.C,2.6,2.0);pr.unshift(plane(pl,C.al,.16),txtPl(pl,3,'α',C.al));}
+    sc={P,prims:pr,R:3.1};
+  }
+  /* рисунки 27.9–27.12 як у підручнику: спочатку умова, після правильної відповіді домальовується розв'язок */
+  const Y={f:'#fde047',s:'#a16207',g:'#86d19a',gs:'#166534',v:'#a99bdc',vs:'#5b4aa8',ln:'#111827',ans:'#dc2626',ed:'#4b5563'};
+  const pp=(p,fill,st,op=.9)=>({t:'poly',p,fill,op,stroke:st,sw:2});
+  const inter2=(B,C,D,E)=>{const b=sub(C,B),d=sub(E,D),w=sub(D,B);const den=b[0]*d[1]-b[1]*d[0];
+    const s=(w[0]*d[1]-w[1]*d[0])/den;return add(B,mul(b,s));};
+  const ln=(a,b)=>({t:'seg',a,b,c:Y.ln,w:2.6});
+  const rd=(a,b,w=3.6)=>({t:'seg',a,b,c:Y.ans,w,dash:true});
+  if(ti===6){
+    const al=para([-3,-1.4,0],[6,0,0],[1.6,2.8,0]);
+    const Pq={A:[1.4,0.9,1.5],B:[-1.1,0.76,0],C:[2.0,1.06,0],D:[1.9,-0.3,0],E:[2.8,0.42,0]};
+    Pq.X=inter2(Pq.B,Pq.C,Pq.D,Pq.E);
+    const pr=[pp(al,Y.f,Y.s),txtPl(al,0,'α',Y.s),ln('A','B'),ln('A','C'),...vp(['A','B','C','D','E'],Y.ln)];
+    if(dn)pr.push(ln('B','C'),ln('D','E'),rd('C','X'),rd('E','X'),{t:'pt',id:'X',c:Y.ans,r:9});
+    sc={P:Pq,R:3.6,ctr:[0.6,0.2,0.8],prims:pr};
+  }
+  else if(ti===7){
+    const al=para([-3,-1.0,0],[6.5,0,0],[1.4,2.0,0]);
+    const A=[-1.2,0.1,0],Cc=[0.8,-0.3,0],B=[0.8,-0.3,2.2];
+    const D=lerp(A,B,.62),E=lerp(Cc,B,.35);
+    const X=linePlane(D,sub(E,D),[0,0,0],[0,0,1]);
+    const Pq={A,B,C:Cc,D,E,X};
+    const pr=[pp(al,Y.f,Y.s),txtPl(al,0,'α',Y.s),ln('A','B'),ln('B','C'),...vp(['A','B','C','D','E'],Y.ln)];
+    if(dn)pr.push(ln('A','C'),ln('D','E'),rd('C','X'),rd('E','X'),{t:'pt',id:'X',c:Y.ans,r:9});
+    sc={P:Pq,R:3.6,ctr:[0.6,-0.2,0.9],prims:pr};
+  }
+  else if(ti===8){
+    const a=para([-2.8,-1.8,0],[5.6,0,0],[0.6,1.8,0]),b=para([-2.2,0,0],[5.6,0,0],[0.6,0.5,1.7]);
+    const Pq={A:[-1.8,-1.5,0],B:[0,-0.5,0],C:[-1.28,0.3,1.02],M:[0.9,0,0]};
+    const pr=[pp(b,Y.v,Y.vs,.95),pp(a,Y.f,Y.s),
+      {t:'seg',a:[-2.2,0,0],b:[3.4,0,0],c:Y.ln,w:3.2},{t:'txt',p:[3.4,0,0],s:'m',c:Y.ln,size:1.35,lo:[1,0]},
+      txtPl(a,1,'α',Y.s),txtPl(b,2,'β',Y.vs),...vp(['A','B','C'],Y.ln)];
+    if(dn)pr.push({t:'seg',a:'A',b:'M',c:Y.ans,w:3.6},{t:'seg',a:'C',b:'M',c:Y.ans,w:3.6},{t:'pt',id:'M',c:Y.ans,r:9});
+    sc={P:Pq,R:3.5,ctr:[0.5,0,0.7],prims:pr};
+  }
+  else if(ti===9||ti===10){
+    const th=rad(72),e=[Math.cos(th),0,Math.sin(th)];
+    const Pq={A:[-1,-1,0],B:[-1,1,0],C:[1,1,0],D:[1,-1,0]};
+    Pq.C1=add(Pq.B,mul(e,2));Pq.D1=add(Pq.A,mul(e,2));
+    Pq.E=lerp(Pq.A,Pq.D,.4);Pq.F=lerp(Pq.B,Pq.C1,.55);
+    const X=inter2(Pq.C,Pq.E,Pq.A,Pq.B);
+    const Yp=linePlane(Pq.F,sub(Pq.D1,Pq.F),[0,0,0],[0,0,1]);
+    const pr=[pp(['A','B','C','D'],Y.g,Y.ed,.9),pp(['A','B','C1','D1'],Y.f,Y.ed,.85),
+      {t:'seg',a:'B',b:'C',c:Y.ln,w:2.2,dash:true},...vp(['A','B','C','D','C1','D1','E','F'],Y.ln)];
+    if(dn){
+      if(ti===9)pr.push(ln('C','E'),rd('E',X),rd('A',X),{t:'pt',id:'X',p:X,c:Y.ans,r:9});
+      else pr.push(ln('F','D1'),rd('F',Yp),rd('B',Yp),{t:'pt',id:'Y',p:Yp,c:Y.ans,r:9});
+    }
+    sc={P:Pq,R:3.3,ctr:[ti===9?-0.3:-0.9,ti===9?-0.5:1.0,0.9],prims:pr};
+    if(dn)legend=[[Y.g,'площина ABC'],[Y.f,'площина ABC₁']];
+  }
+  if(ti===11||ti===12){
+    const e=[0,.5,.866];
+    const a=rectPlane([0,0,0],[1,0,0],[0,1,0],2.5,1.7),b=rectPlane([0,0,0],[1,0,0],e,2.5,1.7);
+    const pr=[plane(a,C.al,.15),plane(b,C.be,.17),{t:'seg',a:[-2.5,0,0],b:[2.5,0,0],c:C.ink,w:3.2}];
+    let Pq;
+    if(ti===11){
+      const two=dn&&cs===1;
+      Pq=two?{B:[-0.5,0,0],C:[0.25,0,0],M:[-1.5,0,0]}:{B:[-1.4,0,0],C:[1.35,0,0],M:[-0.4,0,0]};
+      Pq.A=[0.2,-1.3,0];Pq.D=add([0.3,0,0],mul(e,1.3));
+      pr.push(...vp(['A','B','C','D']));
+      if(dn){
+        if(!two)pr.push({t:'seg',a:'B',b:'M',c:C.par,w:5},{t:'seg',a:'M',b:'C',c:C.be,w:5},
+          {t:'txt',p:mid(Pq.B,Pq.M),s:'4 см',c:C.par,size:1,upright:true,lo:[0,1]},{t:'txt',p:mid(Pq.M,Pq.C),s:'7 см',c:C.be,size:1,upright:true,lo:[0,1]});
+        else pr.push({t:'seg',a:'M',b:'B',c:C.par,w:5},{t:'seg',a:'B',b:'C',c:C.be,w:5},
+          {t:'txt',p:mid(Pq.M,Pq.B),s:'4 см',c:C.par,size:1,upright:true,lo:[0,1]},{t:'txt',p:mid(Pq.B,Pq.C),s:'3 см',c:C.be,size:1,upright:true,lo:[0,1]});
+        pr.push({t:'pt',id:'M',c:C.skew,r:8});
+      }
+      legend=[[C.al,'площина ABC'],[C.be,'площина BCD']];
+    }else{
+      Pq={M:[-1.5,0,0],K:[0,0,0],N:[1.5,0,0],F:[0.4,-1.3,0],E:add([-0.2,0,0],mul(e,1.3))};
+      pr.push(...vp(['M','N','F','E']),{t:'pt',id:'K',c:C.skew,r:8});
+      if(dn)pr.push({t:'seg',a:'M',b:'K',c:C.par,w:5},{t:'seg',a:'K',b:'N',c:C.par,w:5},
+        {t:'txt',p:mid(Pq.M,Pq.K),s:'5 см',c:C.par,size:1,upright:true,lo:[0,1]},{t:'txt',p:mid(Pq.K,Pq.N),s:'5 см',c:C.par,size:1,upright:true,lo:[0,1]});
+      legend=[[C.al,'площина MNF'],[C.be,'площина MNE']];
+    }
+    sc={P:Pq,R:3.1,ctr:[0,0,0.4],prims:pr};
+  }
+
+  if(!dn&&(ti<=5||ti===11||ti===12)){sc={P:{},R:3,prims:[]};legend=null;}
+  const tabs=<div className="tabs">{T.map((t,i)=><button key={i} className={'tab sq'+(ti===i?' on':'')+(done[i]?' done':'')} onClick={()=>goTo(i)}>{done[i]?'✓ ':''}{t.lbl}</button>)}</div>;
+  const choose=i=>{
+    if(done[ti]||wrong[ti].includes(i))return;
+    if(i===T[ti].ok){const d=[...done];d[ti]=true;setDone(d);}
+    else{const w=wrong.map(x=>[...x]);w[ti].push(i);setWrong(w);}
+  };
+  const left=(<>
+    {tabs}
+    <div className="fade" key={ti}>
+      <Note>{T[ti].q}</Note>
+      {T[ti].opts.map((o,i)=>{
+        const isOk=done[ti]&&i===T[ti].ok,isBad=wrong[ti].includes(i);
+        return <button key={i} className={'opt'+(isOk?' ok':isBad?' bad':'')} disabled={isBad} onClick={()=>choose(i)}><b>{'АБВГД'[i]}</b><span>{o}</span></button>;})}
+      {done[ti]&&<div className="fb ok">Правильно! <span style={{fontWeight:600}}>{T[ti].ex}</span></div>}
+      {done[ti]&&ti===11&&<div className="chips">
+        <button className={'chip'+(cs===0?' on':'')} onClick={()=>setCs(0)}>Випадок 1: <M>M</M> між <M>B</M> і <M>C</M></button>
+        <button className={'chip'+(cs===1?' on':'')} onClick={()=>setCs(1)}>Випадок 2: <M>B</M> між <M>M</M> і <M>C</M></button>
+      </div>}
+      {!done[ti]&&wrong[ti].length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {done[ti]&&ti<T.length-1&&<button className="btn" onClick={()=>goTo(ti+1)}>Наступне завдання →</button>}
+      {done.every(Boolean)&&ti===T.length-1&&<div className="fb ok">Усі завдання виконано правильно!</div>}
+    </div>
+  </>);
+  const cam=ti>=9&&ti<=10?[0.35,0.5]:(ti>=6&&ti<=8?[0,0.5]:[0.6,0.4]);
+  return <Frame left={left} scene={sc} legend={legend} camKey={ti} yaw0={cam[0]} pitch0={cam[1]}/>;
+}
+
+/* =====================================================================
+   Оболонка уроку
+   ===================================================================== */
+const ITEMS=[
+  {t:'Основні поняття стереометрії',p:'п. 27 · 5 хв',Cmp:Item1},
+  {t:'Аксіоми А1 та А2',p:'п. 27 · 6 хв',Cmp:Item2},
+  {t:'Аксіоми А3 та А4',p:'п. 27 · 6 хв',Cmp:Item3},
+  {t:'Способи задання площини',p:'п. 27 · 7 хв',Cmp:Item4},
+  {t:'Задачі',p:'§ 4 · 12 хв',Cmp:Item5}];
+
+function startScene(){
+  const pl=rectPlane([0,0,0],[1,0,0],[0,1,0],1.9,1.6);
+  return{P:{A:[-1.2,-0.8,0],B:[1.2,-0.6,0],C:[0.1,1.0,0]},R:2.7,prims:[plane(pl,C.al,.2),
+    {t:'poly',p:['A','B','C'],fill:'#f59e0b',op:.28,stroke:'#6B21A8',sw:2.6},
+    {t:'seg',a:[0.2,0.1,-1.4],b:[0.2,0.1,1.6],c:C.par,w:4},
+    ...vp(['A','B','C'],C.skew)]};
+}
+function App(){
+  const [scr,setScr]=useState('start');
+  const isItem=typeof scr==='number';
+  const nav=isItem&&(<div className="nav">
+    <button className="btn" onClick={()=>setScr('menu')}>☰ Зміст</button>
+    {scr>0&&<button className="btn ghost" onClick={()=>setScr(scr-1)}>← Назад</button>}
+    {scr<ITEMS.length-1?<button className="btn" onClick={()=>setScr(scr+1)}>Далі →</button>:<button className="btn" onClick={()=>setScr('start')}>На початок</button>}
+  </div>);
+  const Cur=isItem?ITEMS[scr].Cmp:null;
+  return(
+    <div className="app">
+      <div className="main">
+        {scr==='start'&&<div className="center start">
+          <div style={{width:'min(78vw,330px)',height:'min(34vh,260px)',position:'relative',marginBottom:'.4em'}}><Scene3D scene={startScene()} bare auto0 yaw0={0.5} pitch0={0.4}/></div>
+          <h1><span>Основні поняття</span><br/>та аксіоми стереометрії</h1>
+          <button className="go" onClick={()=>setScr('menu')}>ПОЧАТИ<i>▶</i></button>
+        </div>}
+        {scr==='menu'&&<div className="menu"><div style={{maxWidth:'70em',margin:'0 auto'}}><h2>§ 4. п. 27. Основні поняття стереометрії. Аксіоми стереометрії</h2>
+          <div className="mgrid">{ITEMS.map((it,i)=><button key={i} className="mcard" onClick={()=>setScr(i)}><span className="n">{i+1}</span><span><b>{it.t}</b><small>{it.p}</small></span></button>)}</div></div></div>}
+        {isItem&&<NavCtx.Provider value={nav}><Cur key={scr}/></NavCtx.Provider>}
+      </div>
+      <div className="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
