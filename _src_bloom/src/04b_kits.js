@@ -306,14 +306,30 @@ KITS["G10"]={
   ]
 };
 
+/* Підсумкові (травневі) варіанти: fin.t — заміни завдань за номером (1-based), решта беруться з вхідного комплекту дослівно (якорі 2 і 5). */
+KITS["M5"].fin={t:{
+  1:{l:"Зн",c:2,k:"checks",pts:4,q:"Познач правильні твердження.",
+     items:[["1/2 = 0,5",1],["1/4 = 0,4",0],["50 % від 80 дорівнює 40",1],["3/5 < 2/5",0],["0,7 > 0,07",1],["1 % від числа — це його сота частина",1],["1/3 + 1/3 = 2/6",0]]},
+  3:{l:"Зс",c:2,k:"nums",pts:4,q:"Виконай обчислення (десяткові дроби пиши через кому).",
+     parts:[["2,5 + 3,75 =",6.25],["20 % від 150 =",30],["3/4 від 24 =",18],["0,5 · 0,8 =",0.4]]},
+  4:{l:"Ан",c:1,k:"rub",pts:4,stim:'<table class="kt"><tr><th>Пункт прокату</th><th>Умови</th></tr><tr><td>А</td><td>100 грн за весь день, скільки б годин не їздив</td></tr><tr><td>Б</td><td>30 грн за кожну годину</td></tr><tr><td>В</td><td>20 грн за першу годину і 25 грн за кожну наступну</td></tr></table>',
+     q:"Оля катається на велосипеді 3 години. (а) Скільки вона заплатить у кожному пункті? (б) З якої кількості годин пункт Б стає дорожчим за пункт А? Покажи, як ти це з'ясував.",
+     open:"Запиши розв'язання (перевіряє вчитель).",
+     rub:"Ключ: (а) А — 100, Б — 3 · 30 = 90, В — 20 + 2 · 25 = 70 грн; (б) 3 год → 90 грн, 4 год → 120 грн, отже з 4 год. 4 — усі три ціни + поріг 4 год із перевіркою сусідніх значень (таблиця або підбір). 3 — усі ціни + поріг без перевірки або з відповіддю «після 3 год». 2 — усі ціни або ціна В + поріг. 1 — одна-дві ціни (ціна В = 20 без доплати — типова помилка неуважного читання даних). 0 — не по суті."},
+  6:{l:"Ст",c:1,k:"rub",pts:4,stim:'<table class="kt"><tr><th>Пункт прокату</th><th>Умови</th></tr><tr><td>А</td><td>100 грн за весь день, скільки б годин не їздив</td></tr><tr><td>Б</td><td>30 грн за кожну годину</td></tr><tr><td>В</td><td>20 грн за першу годину і 25 грн за кожну наступну</td></tr></table>',
+     q:"Придумай пункт прокату Г, де для Олі (3 год) дешевше, ніж у пункті А, а для Дмитра (1 год) дорожче, ніж у пункті Б. Опиши умови й перевір обчисленням, що обидві умови виконані.",
+     open:"Опиши пункт Г і запиши перевірку (перевіряє вчитель).",
+     rub:"Приклад вірної відповіді: 50 грн за першу годину і 10 грн за кожну наступну (Оля: 50 + 20 = 70 < 100; Дмитро: 50 > 30). Вірних варіантів багато. 4 — умови описано за тією ж формою, що в таблиці + обидві умови виконані + перевірка обчисленням для обох людей. 3 — обидві умови виконані, перевірка лише для одного. 2 — виконана одна умова. 1 — пункт описано, але жодна умова не виконана, або неповний опис (лише ціна). 0 — немає спроби."}
+}};
+
 function kitId(s,g){return "kit"+s+g;}
 function kitOf(s,g){return KITS[s+g]||null;}
 function buildKit(cfg){
-  var K=KITS[cfg.kit],out=[];
-  K.tasks.forEach(function(d){
+  var K=KITS[cfg.kit],out=[],fin=(cfg.pt===1&&K.fin)?K.fin.t:null;
+  K.tasks.forEach(function(d0,i){var d=(fin&&fin[i+1])||d0;
     var t={l:d.l,t:"Комплект: "+K.g+" клас",k:d.k,q:d.q,pts:d.pts,c:d.c,aut:d.pts,opn:0,open:"",rub:"",right:""};
     if(d.an)t.an=1;
-    if(d.stim)t.stim=K.stim;
+    if(d.stim)t.stim=(typeof d.stim==='string')?d.stim:K.stim;
     if(d.fig)t.fig=d.fig;
     if(d.k==="checks")t.items=d.items;
     if(d.k==="nums"||d.k==="mcs")t.parts=d.parts;
@@ -336,10 +352,10 @@ function showKitCons(){
   h+='</div><label>Клас</label><div class="seg" id="sGr">';
   GR[MK.s].forEach(function(g){h+='<button data-g="'+g+'" class="'+(MK.g===g?"on":"")+'">'+g+'</button>';});
   h+='</div><div class="row2"><div><label>Навчальний рік</label><input type="text" id="yr" value="'+esc(MK.yr)+'"></div><div><label>Час, хвилин</label><input type="number" id="mn" min="15" max="60" value="'+MK.m+'"></div></div>';
-  h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div></div></div>';
+  h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div>'+(K&&K.fin?'<label>Коли підсумковий зріз</label><input type="text" id="pb" value="'+esc(MK.pb)+'">':'')+'</div></div>';
   if(K){
     h+='<div class="note" style="margin:10px 0"><b>'+esc(K.title)+'</b><br>'+esc(K.scope)+'<br>6 завдань, 24 бали. Завдання однакові для всіх учнів (як у комплекті). Завдання 1 і 3 перевіряються автоматично, завдання 2, 4, 5 і 6 ви оцінюєте за рубрикою 0–4 у панелі 🔑. Якірні завдання: 2 і 5.</div>';
-    h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на вхідний зріз</button></div><div id="lk"></div>';
+    h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на вхідний зріз</button></div>'+(K.fin?'<div class="note" style="margin:10px 0">Підсумковий зріз (травень): завдання 2 і 5 та їхні умови — дослівно з вхідного (якорі), завдання 1 і 3 — на матеріал другого семестру, 4 і 6 — на паралельну ситуацію. Ці завдання складено за зразком із документа, їх варто переглянути.</div><div class="center"><button class="btn" id="mkf">Створити посилання на підсумковий зріз</button></div>':'')+'<div id="lk"></div>';
   }else h+='<div class="note" style="margin:10px 0">Комплекту для цього класу й предмета ще немає в інструменті. Поки що доступні: '+Object.keys(KITS).map(function(k){return esc(KITS[k].title);}).join("; ")+'. Решту додамо, а поки скористайтеся генератором.</div>';
   h+='<div class="note">Підсумковий зріз і комплекти інших класів додаються окремо. Учні не отримують оцінок за зріз.</div></div></div></div>';
   $("app").innerHTML=h;
@@ -348,6 +364,12 @@ function showKitCons(){
   $("sGr").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.g=+b.dataset.g;showKitCons();};
   $("yr").oninput=function(){MK.yr=this.value;};$("pa").oninput=function(){MK.pa=this.value;};
   $("mn").oninput=function(){MK.m=Math.max(15,Math.min(60,+this.value||40));};
+  if(K&&K.fin){$("pb").oninput=function(){MK.pb=this.value;};$("mkf").onclick=function(){
+    var base=location.href.split("#")[0].split("?")[0],id=kitId(MK.s,MK.g);
+    var u=base+"?c="+b64enc({v:3,md:1,t:"Комплект адміністрації: "+SUBJ[MK.s]+", "+MK.g+" клас ("+PTN[1]+")",s:MK.s,g:MK.g,tp:[id],kit:MK.s+MK.g,m:MK.m,id:id,yr:MK.yr.trim()||defYear(),pt:1,per:(MK.pb||"").trim(),o:{}});
+    $("lk").innerHTML='<div class="linkbox"><b>Підсумковий зріз (комплект адміністрації)</b><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" id="cp">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';
+    $("cp").onclick=function(){var inp=document.querySelector(".linkbox input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);this.textContent="Скопійовано";};
+  };}
   if(K)$("mk").onclick=function(){
     var base=location.href.split("#")[0].split("?")[0],id=kitId(MK.s,MK.g);
     var u=base+"?c="+b64enc({v:3,md:1,t:"Комплект адміністрації: "+SUBJ[MK.s]+", "+MK.g+" клас ("+PTN[0]+")",s:MK.s,g:MK.g,tp:[id],kit:MK.s+MK.g,m:MK.m,id:id,yr:MK.yr.trim()||defYear(),pt:0,per:MK.pa.trim(),o:{}});
