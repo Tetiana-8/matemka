@@ -2219,6 +2219,17 @@ KITS["A11"].fin={t:(function(){
      rub:"Умови: реальна ситуація, відмінна від огорожі й коробки; функція записана правильно; область визначення за змістом; похідна й критична точка знайдені правильно; доведено, що це максимум або мінімум. 4 — усі умови. 3 — одна вада. 2 — задача про коробку чи огорожу зі зміненими числами або без перевірки типу екстремуму й області. 1 — лише функція. 0 — немає."}
   };})()};
 
+/* Виправлення подачі умов: в M6 спільний стимул мав дві не пов'язані ситуації (пакунки й магазини) — тепер кожне завдання показує лише свою умову;
+   у завданнях «створення» (Ст), де учень складає власну задачу, стимул не показується, щоб не відволікати й не лякати довгим текстом. */
+(function(){
+  var m=KITS["M6"],f=m.fin.t;
+  m.tasks[3].stim="Клас готує однакові подарункові пакунки для першокласників. Є 48 печив і 36 мандаринок; усе треба розкласти порівну, нічого не має залишитися.";
+  m.tasks[4].stim="На прикраси для зали клас має 200 грн. Магазин «Свято» дає знижку [[1|4]] на всі товари, доставка безкоштовна. Магазин «Веселка» дає знижку [[3|10]], але доставка коштує 20 грн. Ціни до знижки однакові.";
+  f[4].stim="Для свята учні готують однакові набори солодощів і фруктів. Є 60 цукерок і 45 яблук; усе треба розкласти порівну, нічого не має залишитися.";
+  ["M6","A7","A8","A10","A11"].forEach(function(k){delete KITS[k].tasks[5].stim;delete KITS[k].fin.t[6].stim;});
+  ["G7","G8"].forEach(function(k){delete KITS[k].fin.t[6].stim;});
+})();
+
 function kitId(s,g){return "kit"+s+g;}
 function kitOf(s,g){return KITS[s+g]||null;}
 function buildKit(cfg){
@@ -2591,7 +2602,7 @@ function showQ(){
   var t=T[IX],A=ANS[IX],last=IX===T.length-1;
   var h='<div class="screen"><div class="card fill"><div class="top"><div>Завдання '+(IX+1)+' з '+T.length+'</div><div class="tm" id="tm">'+dur((END-Date.now())/1000)+'</div></div>';
   h+='<div class="dots" id="dots">'+T.map(function(_,i){var a=ANS[i];return '<span data-i="'+i+'" class="'+(answered(i)?"a ":"")+(i===IX?"c":"")+'"></span>';}).join("")+'</div>';
-  h+='<div class="qbox">'+(t.stim?'<div class="stim">'+t.stim+'</div>':'')+(t.fig?'<div class="stim">'+t.fig+'</div>':'')+'<div class="q">'+fmt(t.q)+'</div>';
+  h+='<div class="qbox">'+(t.stim?'<div class="stim">'+fmt(t.stim)+'</div>':'')+(t.fig?'<div class="stim">'+t.fig+'</div>':'')+'<div class="q">'+fmt(t.q)+'</div>';
   if(t.k==="mc"){h+='<div class="opts" id="opts">'+t.o.map(function(o,i){return '<button class="opt'+(A.sel===i?" on":"")+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join("")+'</div>';}
   else if(t.k==="checks"){h+='<div class="opts" id="chk" style="grid-template-columns:1fr">'+t.items.map(function(it,j){return '<button class="opt'+(A.ms[j]?' on':'')+'" data-j="'+j+'">'+(A.ms[j]?'✓ ':'')+fmt(it[0])+'</button>';}).join('')+'</div>';}
   else if(t.k==="nums"){h+='<div id="nms">'+t.parts.map(function(p,j){return '<div class="nrow"><span>'+fmt(p[0])+'</span><input type="text" inputmode="decimal" autocomplete="off" data-j="'+j+'" value="'+esc(A.ps[j]||'')+'"></div>';}).join('')+'</div>';}
