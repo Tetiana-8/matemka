@@ -43,7 +43,7 @@ function buildTest(cfg,name){
   return out;}
 
 /* ===== Підрахунок ===== */
-function gotOf(r){if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
+function gotOf(r){if(r.mix){var g0=r.part||0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g0+=Math.max(0,Math.min(r.opn,r.ograde));return g0;}if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
 function isPending(r){if(r.rb)return r.ograde==null&&!!((r.otext&&r.otext.trim())||r.given);return !!(r.opn&&r.otext&&r.otext.trim()&&r.ograde==null);}
 function summarize(recs){
   var lv={},bl={},tp={},score=0,max=0,pending=false;

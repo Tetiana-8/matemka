@@ -132,7 +132,7 @@ function teacherPanelM(){
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
-      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
+      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
         h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Орієнтир для перевірки (однаковий в усіх зрізах):</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':"— (порожньо)")+'<br>';
         if(r.rb){
