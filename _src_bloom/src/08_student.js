@@ -80,7 +80,8 @@ document.addEventListener("keydown",function(e){
   if(/^[0-9]$/.test(e.key))typeKey(e.key);else if(e.key===","||e.key===".")typeKey(",");else if(e.key==="-")typeKey("−");
   else if(e.key==="Backspace"){typeKey("⌫");e.preventDefault();}else if(e.key==="Enter")go(1);
 });
-function nrm(s,k){s=String(s).toLowerCase().replace(/\s+/g,"").replace(/[−–—]/g,"-").replace(/[×*х]/g,"·").replace(/²/g,"^2").replace(/³/g,"^3");
+function nrm(s,k){s=String(s).toLowerCase().replace(/\s+/g,"").replace(/[−–—]/g,"-").replace(/[×*х]/g,"·").replace(/\./g,",").replace(/;/g,",");
+  var sup={"⁰":0,"¹":1,"²":2,"³":3,"⁴":4,"⁵":5,"⁶":6,"⁷":7,"⁸":8,"⁹":9};s=s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g,function(c){return "^"+sup[c];});
   if(k==="fac"){var f=[];s.split("·").forEach(function(x){var m=/^(\d+)\^(\d+)$/.exec(x);if(m){for(var i=0;i<+m[2];i++)f.push(+m[1]);}else if(/^\d+$/.test(x))f.push(+x);else f.push(NaN);});return f.sort(function(a,b){return a-b;}).join("·");}
   return s.replace(/·/g,"");}
 function numOk(p,s){if(s==null||!String(s).trim())return false;var k=p[2];if(!k)return /\d/.test(s)&&Math.abs(parseNum(s)-p[1])<0.0005;var n=nrm(s,k);return [].concat(p[1]).some(function(a){return nrm(a,k)===n;});}
