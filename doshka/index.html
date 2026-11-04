@@ -2,19 +2,35 @@
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Моя дошка</title>
 <style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(160deg,#e8ecf4,#efeaf7 60%,#e6eff6);font:500 16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d2433}
-.card{width:min(420px,92vw);background:#fff;border:1px solid #d9e0ee;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(30,45,100,.14);text-align:center}
-h1{margin:0 0 6px;font-size:24px}p{margin:8px 0;color:#5b667a}
-button{font:inherit;font-weight:600;border-radius:12px;padding:11px 16px;border:1px solid #d9e0ee;background:#fff;cursor:pointer;width:100%;margin-top:10px}
-button.p{background:linear-gradient(135deg,#3558e6,#7b5cf0);color:#fff;border:0}
-input{font:inherit;width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d9e0ee;border-radius:10px;margin-top:10px}
-#msg{color:#b42318;min-height:1.4em;font-size:14px}.ok{color:#1a7f4b!important}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 15% 10%,#dfe6ff 0,transparent 60%),radial-gradient(900px 500px at 90% 90%,#eadcff 0,transparent 60%),#f1f3fa;font:500 16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d2433}
+.card{width:min(340px,90vw);background:rgba(255,255,255,.9);border:1px solid #e1e6f3;border-radius:22px;padding:30px 24px 22px;box-shadow:0 18px 50px rgba(50,60,140,.16);text-align:center}
+.logo{width:56px;height:56px;margin:0 auto 12px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#3558e6,#7b5cf0);box-shadow:0 8px 20px rgba(80,90,220,.35)}
+.logo svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+h1{margin:0 0 18px;font-size:22px;letter-spacing:.01em}
+p{margin:8px 0;color:#5b667a;font-size:14px}
+button{font:inherit;font-weight:600;border-radius:12px;padding:11px 16px;border:1px solid #d9e0ee;background:#fff;color:#1d2433;cursor:pointer;width:100%;margin-top:10px;transition:transform .1s,box-shadow .15s}
+button:active{transform:scale(.98)}
+button.p{background:linear-gradient(135deg,#3558e6,#7b5cf0);color:#fff;border:0;box-shadow:0 6px 16px rgba(61,91,230,.32)}
+button.p:hover{box-shadow:0 8px 20px rgba(61,91,230,.42)}
+a.more{display:inline-block;margin-top:14px;font-size:13px;color:#6b7690;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+input{font:inherit;width:100%;padding:10px 12px;border:1px solid #d9e0ee;border-radius:10px;margin-top:8px}
+#msg{color:#b42318;min-height:0;font-size:13px}.ok{color:#1a7f4b!important}
+#warn{background:#fff4e5;border:1px solid #f0c27a;color:#7a4a00;border-radius:10px;padding:8px 10px;font-size:13px;margin:0 0 12px}
+#t{margin:0 0 6px}
+[hidden]{display:none!important}
 </style></head><body>
-<div class="card" id="c"><h1>Моя дошка</h1><p id="t">Завантаження…</p><div id="f" hidden>
+<div class="card" id="c">
+<div class="logo"><svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8-12"/></svg></div>
+<h1>Моя дошка</h1>
+<p id="warn" hidden>Відкрийте це посилання в браузері (Chrome чи Safari): у Viber і Telegram вхід через Google не працює.</p>
+<p id="t" hidden></p>
+<div id="f" hidden>
 <button class="p" id="g">Увійти через Google</button>
-<p>або отримати посилання для входу на пошту</p>
-<input id="e" type="email" placeholder="ваш імейл" autocomplete="email">
-<button id="l">Надіслати посилання</button></div><p id="msg"></p><button id="o" hidden>Вийти</button></div>
+<a class="more" id="mo">Увійти через пошту</a>
+<div id="em" hidden><input id="e" type="email" placeholder="ваш імейл" autocomplete="email"><button id="l">Надіслати посилання</button></div>
+</div>
+<p id="msg"></p><button id="o" hidden>Увійти іншим акаунтом</button></div>
 <script type="module">
 import {firebaseConfig} from './firebase-config.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -22,27 +38,38 @@ import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,sendSignIn
 import {getFirestore,doc,getDoc} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=s=>document.getElementById(s),msg=(t,ok)=>{$('msg').textContent=t||'';$('msg').className=ok?'ok':''};
-$('g').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>msg('Не вдалося увійти: '+e.code));
+const say=t=>{$('t').textContent=t;$('t').hidden=!t};
+if(/FBAN|FBAV|Instagram|Viber|Telegram|Line\/|MicroMessenger|; wv\)/i.test(navigator.userAgent))$('warn').hidden=false;
+const ERR={'auth/popup-blocked':'Браузер заблокував вікно входу. Дозвольте спливаючі вікна й спробуйте ще раз.','auth/popup-closed-by-user':'Вікно входу закрито. Спробуйте ще раз.','auth/cancelled-popup-request':'Спробуйте ще раз.','auth/network-request-failed':'Немає зв’язку з інтернетом.','auth/unauthorized-domain':'Цей сайт не дозволено для входу. Напишіть авторці.','auth/operation-not-supported-in-this-environment':'Відкрийте посилання в Chrome або Safari.','auth/web-storage-unsupported':'Браузер блокує cookie. Увімкніть їх або відкрийте в іншому браузері.'};
+$('g').onclick=()=>{const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});signInWithPopup(auth,pr).catch(e=>msg(ERR[e.code]||('Не вдалося увійти: '+e.code)))};
+$('mo').onclick=()=>{$('em').hidden=false;$('mo').hidden=true;$('e').focus()};
 $('l').onclick=async()=>{
   const em=$('e').value.trim().toLowerCase();if(!em)return msg('Введіть імейл');
-  try{await sendSignInLinkToEmail(auth,em,{url:location.origin+location.pathname,handleCodeInApp:true});localStorage.setItem('mdEmail',em);msg('Посилання надіслано. Відкрийте його у цьому ж браузері.',true)}
-  catch(e){msg('Не вдалося надіслати: '+e.code)}
+  try{await sendSignInLinkToEmail(auth,em,{url:location.origin+location.pathname,handleCodeInApp:true});localStorage.setItem('mdEmail',em);msg('Посилання надіслано. Відкрийте його в цьому ж браузері.',true)}
+  catch(e){msg(ERR[e.code]||('Не вдалося надіслати: '+e.code))}
 };
 $('o').onclick=()=>signOut(auth).then(()=>location.reload());
 async function boot(user){
-  $('t').textContent='Перевіряю доступ…';msg('');
-  const em=(user.email||'').toLowerCase();
+  say('Перевіряю доступ…');msg('');
+  const em=(user.email||'').trim().toLowerCase();
+  let allowed;
+  try{allowed=(await getDoc(doc(db,'allowed_emails',em))).exists()}
+  catch(e){
+    say('Не вдалося перевірити доступ.');$('f').hidden=true;$('o').hidden=false;
+    msg((ERR[e.code]||'Помилка зв’язку ('+(e.code||'невідомо')+').')+' Оновіть сторінку.');return;
+  }
+  if(!allowed){
+    say('Для '+em+' доступу немає.');$('f').hidden=true;$('o').hidden=false;
+    msg('Спробуйте інший акаунт або напишіть авторці цей імейл.');return;
+  }
   try{
-    const a=await getDoc(doc(db,'allowed_emails',em));
-    if(!a.exists())throw {code:'denied'};
     const m=await getDoc(doc(db,'app','board_meta'));
     const n=m.data().n,parts=await Promise.all(Array.from({length:n},(_,i)=>getDoc(doc(db,'app','board_'+i))));
     const html=parts.map(p=>p.data().t).join('');
     document.open();document.write(html);document.close();
   }catch(e){
-    $('t').textContent='Для імейла '+em+' доступу немає.';
-    $('f').hidden=true;$('o').hidden=false;
-    msg('Якщо ви вже оплатили, напишіть авторці цей імейл, і вона відкриє доступ.');
+    say('Дошка не завантажилась.');$('f').hidden=true;$('o').hidden=false;
+    msg('Оновіть сторінку ('+(e.code||'помилка')+').');
   }
 }
 (async()=>{
@@ -50,6 +77,6 @@ async function boot(user){
     let em=localStorage.getItem('mdEmail')||prompt('Підтвердіть ваш імейл');
     try{await signInWithEmailLink(auth,em,location.href);localStorage.removeItem('mdEmail');history.replaceState(null,'',location.pathname)}catch(e){msg('Посилання недійсне або застаріло.')}
   }
-  onAuthStateChanged(auth,u=>{if(u&&u.email)boot(u);else{$('t').textContent='Увійдіть, щоб відкрити дошку.';$('f').hidden=false}});
+  onAuthStateChanged(auth,u=>{if(u&&u.email)boot(u);else{say('');$('f').hidden=false}});
 })();
 </script></body></html>
