@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Паралельність прямої та площини</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<style>
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --ink:#1e293b; --muted:#64748b; --line:#e9d5ff;
+  --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#2563eb; --orange:#ea580c; --violet:#7e22ce;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffffff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{height:100dvh;width:100%}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;font-size:14px;background:#fff}
+@media(min-width:768px){.app{font-size:15px}}
+@media(min-width:1024px){.app{font-size:17px}}
+@media(min-width:1280px){.app{font-size:20px}}
+@media(min-width:1536px){.app{font-size:22px}}
+.main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.left{order:2;height:55%;min-height:0;background:var(--panelLeft);position:relative;border-top:1px solid var(--line)}
+.right{order:1;height:45%;min-height:0;background:var(--panelRight);position:relative;overflow:hidden}
+@media(min-width:768px){
+  .main{flex-direction:row}
+  .left{order:1;height:auto;width:40%;border-top:0;border-right:1px solid var(--line)}
+  .right{order:2;height:auto;width:60%}
+}
+.left::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4.6em;background:linear-gradient(to top,var(--panelLeft) 60%,rgba(242,230,255,0));pointer-events:none;z-index:20}
+.lscroll{position:absolute;inset:0;overflow-y:auto;padding:.8em max(16px,env(safe-area-inset-left,0px)) 5em;scrollbar-width:thin}
+.nav{position:absolute;right:.7em;bottom:.6em;display:flex;gap:.5em;z-index:30;flex-wrap:wrap;justify-content:flex-end}
+.btn{min-height:44px;padding:0 1.05em;border-radius:999px;border:1px solid #d8b4fe;background:var(--brandLight);
+  color:var(--brand);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  box-shadow:0 2px 6px rgba(107,33,168,.12);transition:transform .15s,background .15s}
+.btn:hover{background:#ebdcff}.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+.btn.sm{min-height:40px;font-size:.92em;padding:0 .9em;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:.4em;margin:.55em 0}
+.tab{min-height:42px;padding:.2em .85em;border-radius:999px;border:1px solid #d8b4fe;background:#fff;color:var(--brand);
+  font:inherit;font-weight:700;cursor:pointer;line-height:1.15;text-align:center}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.tab.sq{min-width:44px}
+.tab.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+.tab.done.on{background:#16a34a;color:#fff}
+.box{background:#fff;border:2px solid var(--line);border-radius:.8em;padding:.75em .9em;margin:.5em 0}
+.box h4{margin:0 0 .25em;font-size:1em;color:var(--brand)}
+.box.def{background:#ecfdf5;border-color:#6ee7b7}
+.box.def h4{color:#047857}
+.box p{margin:0;font-weight:700;line-height:1.35}
+.note{background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em .8em;margin:.5em 0;line-height:1.4}
+.note b{font-weight:700}
+.lead{margin:.2em 0 .1em;line-height:1.4;font-weight:600}
+.key{background:#fef9c3;border:1px solid #fde047;border-radius:.7em;padding:.6em .8em;margin:.6em 0;line-height:1.4;font-weight:600}
+.key h5{margin:0 0 .15em;font-size:.82em;letter-spacing:.04em;text-transform:uppercase;color:#a16207}
+.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:600;white-space:nowrap}
+.cg{color:var(--green);font-weight:700}.cr{color:var(--red);font-weight:700}.cv{color:var(--violet);font-weight:700}
+.cb{color:var(--blue);font-weight:700}.co{color:var(--orange);font-weight:700}.ca{color:var(--amber);font-weight:700}
+.sliderRow{display:flex;align-items:center;gap:.7em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.35em .8em;margin:.45em 0}
+.sliderRow label{font-weight:700;min-width:5.2em;font-size:.95em;line-height:1.15}
+.sliderRow input[type=range]{flex:1;accent-color:var(--brand);height:30px;min-width:0}
+.sliderRow output{min-width:3.2em;text-align:right;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:.5em 0}
+.step{display:flex;gap:.5em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.55em .75em;line-height:1.4;animation:fadeUp .4s ease both}
+.step .sn{font-weight:800;color:var(--brand)}
+.step.last{border-color:#86efac;background:#f0fdf4}
+.down{align-self:center;width:46px;height:46px;border-radius:50%;border:1px solid #d8b4fe;background:var(--brandLight);color:var(--brand);
+  font-size:1.3em;cursor:pointer;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
+.fade{animation:fadeUp .45s ease both}
+.tools{position:absolute;left:.6em;top:.6em;display:flex;gap:.4em;z-index:5}
+.tool{width:44px;height:44px;border-radius:50%;border:1px solid #d8b4fe;background:#fff;color:var(--brand);cursor:pointer;display:grid;place-items:center;padding:0}
+.tool.on{background:var(--brand);color:#fff}
+.hint{position:absolute;right:.6em;top:.7em;display:flex;align-items:center;gap:.4em;background:rgba(255,255,255,.9);border:1px solid var(--line);
+  border-radius:999px;padding:.3em .75em;font-size:.82em;font-weight:700;color:var(--brand);pointer-events:none;z-index:5}
+.legend{position:absolute;left:.6em;bottom:.6em;display:flex;flex-wrap:wrap;gap:.2em .85em;background:rgba(255,255,255,.9);
+  padding:.35em .65em;border-radius:.6em;font-size:.82em;font-weight:700;max-width:calc(100% - 1.2em);z-index:5;border:1px solid var(--line)}
+.legend span{white-space:nowrap}
+.dot{display:inline-block;width:1em;height:.32em;border-radius:3px;margin-right:.35em;vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0}
+.chip{min-height:42px;padding:.15em .8em;border-radius:.7em;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;cursor:pointer;color:var(--ink);line-height:1.15}
+.chip.on{border-color:var(--brand);background:var(--brandLight);color:var(--brand)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em}
+.cnt{display:flex;gap:.5em;margin:.5em 0}
+.cnt div{flex:1;background:#fff;border:1px solid var(--line);border-radius:.7em;text-align:center;padding:.35em .2em;font-size:.88em;font-weight:600;line-height:1.2}
+.cnt b{display:block;font-size:1.5em;color:var(--brand);font-variant-numeric:tabular-nums}
+.opt{display:flex;gap:.6em;align-items:flex-start;width:100%;text-align:left;min-height:46px;padding:.45em .75em;margin:.3em 0;border-radius:.7em;border:2px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.3}
+.opt b{color:var(--brand);min-width:1.1em}
+.opt.sel{border-color:var(--brand);background:var(--brandLight)}
+.opt.ok{border-color:#16a34a;background:#dcfce7}.opt.bad{border-color:#dc2626;background:#fee2e2;opacity:.85}
+.fb{border-radius:.7em;padding:.5em .8em;margin:.5em 0;font-weight:700;line-height:1.35}
+.fb.ok{background:#dcfce7;border:1px solid #86efac;color:#166534}.fb.bad{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.seg3{display:flex;gap:.25em}
+.seg3 button{min-height:40px;flex:1;border-radius:.55em;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:.82em;font-weight:700;color:var(--ink);cursor:pointer;padding:0 .2em;line-height:1.1}
+.seg3 button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.seg3 button.ok{background:#16a34a;color:#fff;border-color:#16a34a}.seg3 button.bad{background:#dc2626;color:#fff;border-color:#dc2626}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1em;text-align:center}
+.start{background:var(--panelLeft)}
+.start h1{margin:.2em 0 .6em;font-size:2em;line-height:1.1;color:#1e1b4b;font-weight:800;animation:fadeUp .6s ease both}
+.start h1 span{color:var(--brand)}
+@media(min-width:768px){.start h1{font-size:2.6em}}
+.go{display:flex;align-items:center;gap:.9em;background:#fff;border:1px solid #e9d5ff;border-radius:999px;padding:.55em .6em .55em 1.4em;color:#581c87;font:inherit;font-weight:800;
+  letter-spacing:.14em;cursor:pointer;box-shadow:0 2px 10px rgba(88,28,135,.1);animation:pop .5s ease both}
+.go i{width:2.2em;height:2.2em;border-radius:50%;background:#f3e8ff;display:grid;place-items:center;font-style:normal;font-size:.8em}
+.menu{position:absolute;inset:0;overflow-y:auto;padding:1em max(16px,env(safe-area-inset-left,0px)) 5em;background:var(--panelLeft)}
+.menu h2{margin:.1em 0 .7em;font-size:1.25em;color:var(--brand)}
+.mgrid{display:grid;grid-template-columns:1fr;gap:.7em;max-width:70em;margin:0 auto}
+@media(min-width:768px){.mgrid{grid-template-columns:1fr 1fr}}
+.mcard{display:flex;align-items:center;gap:.9em;background:var(--panelRight);border:1px solid #e2e8f0;border-radius:.9em;padding:.8em 1em;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s;min-height:56px}
+.mcard:hover{border-color:#c084fc;background:#faf5ff;box-shadow:0 3px 12px rgba(107,33,168,.1)}
+.mcard .n{width:2.5em;height:2.5em;border-radius:50%;background:#ede9fe;color:#5b21b6;font-weight:800;display:grid;place-items:center;flex:none}
+.mcard b{display:block;line-height:1.2}.mcard small{color:var(--muted);font-weight:600}
+.infoPage{position:absolute;inset:0;background:var(--panelLeft);display:flex;align-items:center;justify-content:center;padding:1em 16px 5em}
+.infoBox{max-width:34em;width:100%;font-size:1.1em}
+.curq{background:#fffbeb;border:2px solid #fcd34d;border-radius:.8em;padding:.6em .8em;margin:.6em 0}
+.curq .lead{margin:.2em 0 .3em}
+.badge{display:inline-block;background:var(--brand);color:#fff;font-weight:800;font-size:.85em;border-radius:999px;padding:.15em .8em}
+details.done{background:#f0fdf4;border:1px solid #86efac;border-radius:.7em;padding:.4em .75em;margin:.3em 0;line-height:1.4;font-weight:600}
+details.done summary{cursor:pointer;list-style:none}
+details.done summary::-webkit-details-marker{display:none}
+details.done .why{margin-top:.4em;padding-top:.4em;border-top:1px dashed #86efac;font-weight:500}
+.sign{flex:none;text-align:center;padding:.35em .5em;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:.78em;color:#64748b;letter-spacing:.02em}
+.sign b{color:#1e293b}
+svg text{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useContext, createContext } = React;
+
+/* ---------- векторна алгебра ---------- */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.sqrt(dot(a,a));
+const lerp=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const mid=(a,b)=>lerp(a,b,.5);
+const cen=arr=>mul(arr.reduce(add,[0,0,0]),1/arr.length);
+const nrm=a=>{const l=len(a)||1;return mul(a,1/l);};
+const rad=d=>d*Math.PI/180;
+const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',');
+const L=id=>String(id).replace(/1$/,'₁');
+const rectPlane=(Cn,e1,e2,hw,hh)=>[
+  add(Cn,add(mul(e1,hw),mul(e2,hh))),add(Cn,add(mul(e1,-hw),mul(e2,hh))),
+  add(Cn,add(mul(e1,-hw),mul(e2,-hh))),add(Cn,add(mul(e1,hw),mul(e2,-hh)))];
+const planeThrough=(P1,P2,P3,hw,hh)=>{
+  const e1=nrm(sub(P2,P1));const n=cross(sub(P2,P1),sub(P3,P1));const e2=nrm(cross(n,e1));
+  return rectPlane(cen([P1,P2,P3]),e1,e2,hw,hh);};
+
+/* взаємне розміщення прямої та площини */
+function relLinePlane(a1,a2,Q1,Q2,Q3){
+  const n=cross(sub(Q2,Q1),sub(Q3,Q1)),d=sub(a2,a1);
+  if(Math.abs(dot(d,n))>1e-9) return 'int';
+  return Math.abs(dot(sub(a1,Q1),n))<1e-9?'in':'par';
+}
+
+/* ---------- кольори ---------- */
+const C={edge:'#334155',ink:'#0f172a',par:'#16a34a',int:'#7e22ce',skew:'#dc2626',inn:'#2563eb',
+  al:'#2563eb',be:'#ea580c',ga:'#7e22ce',gold:'#d97706',proj:'#ea580c',teal:'#0d9488',halo:'#FAF5FF'};
+
+/* ---------- будівельники фігур ---------- */
+const boxP=(hx,hy,hz)=>({
+  A:[-hx,-hy,-hz],B:[hx,-hy,-hz],C:[hx,hy,-hz],D:[-hx,hy,-hz],
+  A1:[-hx,-hy,hz],B1:[hx,-hy,hz],C1:[hx,hy,hz],D1:[-hx,hy,hz]});
+const BOXF=[['A','B','C','D'],['A1','B1','C1','D1'],['A','B','B1','A1'],['B','C','C1','B1'],['C','D','D1','C1'],['D','A','A1','D1']];
+const BOXE=[['A','B'],['B','C'],['C','D'],['D','A'],['A1','B1'],['B1','C1'],['C1','D1'],['D1','A1'],['A','A1'],['B','B1'],['C','C1'],['D','D1']];
+const TETF=[['A','B','C'],['D','A','B'],['D','B','C'],['D','C','A']];
+const plane=(p,color,op=.14,sw=1.6)=>({t:'poly',p,fill:color,op,stroke:color,sw});
+const vp=(ids,c)=>ids.map(id=>({t:'pt',id,c:c||C.ink}));
+const CUBE=boxP(1,1,1);
+const FN=['ABCD','A₁B₁C₁D₁','ABB₁A₁','BCC₁B₁','CDD₁C₁','DAA₁D₁'];
+const bigFace=(P,f,k=1.4)=>{const pts=BOXF[f].map(id=>P[id]);const c=cen(pts);return pts.map(p=>add(c,mul(sub(p,c),k)));};
+const relEF=(P,e,f)=>{const q=BOXF[f].slice(0,3).map(id=>P[id]);return relLinePlane(P[e[0]],P[e[1]],q[0],q[1],q[2]);};
+
+/* ---------- 3D-сцена (SVG, обертання мишею/пальцем) ---------- */
+function Scene3D({scene,yaw0=0.7,pitch0=0.42,auto0=false,bare=false,legend=null}){
+  const wrap=useRef(null);
+  const [sz,setSz]=useState({w:600,h:500});
+  const [cam,setCam]=useState({yaw:yaw0,pitch:pitch0});
+  const [auto,setAuto]=useState(auto0);
+  const drag=useRef(null),moved=useRef(false);
+
+  useEffect(()=>{
+    const el=wrap.current;
+    const upd=()=>setSz({w:el.clientWidth||600,h:el.clientHeight||500});
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();
+    return()=>ro.disconnect();
+  },[]);
+  useEffect(()=>{
+    if(!auto)return;let raf,last=performance.now();
+    const tick=t=>{const dt=t-last;last=t;
+      if(!drag.current)setCam(c=>({...c,yaw:c.yaw+dt*0.0005}));
+      raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  },[auto]);
+
+  const onDown=e=>{drag.current={x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,id:e.pointerId};moved.current=false;};
+  const onMove=e=>{
+    const d=drag.current;if(!d)return;
+    if(!moved.current){
+      if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;
+      moved.current=true;
+      try{e.currentTarget.setPointerCapture(d.id);}catch(_){}
+    }
+    const dx=e.clientX-d.px,dy=e.clientY-d.py;d.px=e.clientX;d.py=e.clientY;
+    setCam(c=>({yaw:c.yaw+dx*0.0085,pitch:Math.max(-1.25,Math.min(1.45,c.pitch+dy*0.0085))}));
+  };
+  const onUp=()=>{drag.current=null;setTimeout(()=>{moved.current=false;},0);};
+
+  const {w,h}=sz;
+  const R=scene.R||2.8,ctr=scene.ctr||[0,0,0],P=scene.P||{};
+  const D=R*5.5,S=Math.min(w,h)/(2*R)*0.97;
+  const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const tfv=v=>{const x1=v[0]*cy-v[1]*sy,y1=v[0]*sy+v[1]*cy;return[x1,y1*sp+v[2]*cp,y1*cp-v[2]*sp];};
+  const tf=p=>tfv(sub(p,ctr));
+  const pj=p=>{const q=tf(p),k=D/(D+q[2]);return{x:w/2+q[0]*k*S,y:h/2-q[1]*k*S,d:q[2]};};
+  const get=p=>typeof p==='string'?P[p]:p;
+  const fs=Math.max(15,Math.min(26,w/32)),big=w>900?1.25:1;
+
+  const polys=[],hid=[],vis=[],dots=[],lbls=[];let kk=0;
+  const pushSeg=(a,b,o,hidden)=>{
+    const A=pj(get(a)),B=pj(get(b));const col=o.c||C.edge,sw=(o.w||2.2)*big;
+    const el=<line key={'s'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={col} strokeWidth={sw}
+      strokeLinecap="round" strokeDasharray={(hidden||o.dash)?`${sw*2.6} ${sw*2.2}`:undefined} opacity={hidden?.7:(o.op||1)}/>;
+    (hidden||o.dash?hid:vis).push(el);
+  };
+  const pushPoly=(pts3,o)=>{
+    const q=pts3.map(p=>pj(get(p)));const dm=q.reduce((s,a)=>s+a.d,0)/q.length;
+    polys.push({dm,el:<polygon key={'p'+(kk++)} points={q.map(a=>a.x+','+a.y).join(' ')} fill={o.fill||'none'} fillOpacity={o.op==null?.15:o.op}
+      stroke={o.stroke||'none'} strokeWidth={(o.sw||1.5)*big} strokeDasharray={o.dash?'6 5':undefined} strokeLinejoin="round"/>});
+  };
+
+  scene.prims.forEach(pr=>{
+    if(!pr)return;
+    if(pr.t==='poly')pushPoly(pr.p,pr);
+    else if(pr.t==='seg')pushSeg(pr.a,pr.b,pr,false);
+    else if(pr.t==='solid'){
+      const verts=[...new Set(pr.faces.flat())];const c0=cen(verts.map(get));
+      const em=new Map();
+      pr.faces.forEach((f,i)=>{
+        const p3=f.map(get);const n0=cross(sub(p3[1],p3[0]),sub(p3[2],p3[0]));
+        const n=dot(n0,sub(cen(p3),c0))<0?mul(n0,-1):n0;const front=tfv(n)[2]<0;
+        const fl=pr.fills&&pr.fills[i];
+        if(fl)pushPoly(f,{fill:fl[0],op:fl[1]});
+        else if(pr.tint)pushPoly(f,{fill:'#7c3aed',op:front?.06:.025});
+        f.forEach((v,j)=>{const u=f[(j+1)%f.length];const key=[v,u].sort().join('|');
+          const e=em.get(key)||{a:v,b:u,vis:false};e.vis=e.vis||front;em.set(key,e);});
+      });
+      em.forEach(e=>{
+        const st=(pr.estyle&&pr.estyle(e.a,e.b))||{};
+        pushSeg(e.a,e.b,{c:st.c||pr.c||C.edge,w:st.w||pr.w||2.4},!e.vis);
+      });
+    }
+    else if(pr.t==='pt'){
+      const p=pr.p||P[pr.id];const q=pj(p);const col=pr.c||C.ink;
+      dots.push(<circle key={'d'+(kk++)} cx={q.x} cy={q.y} r={(pr.r||fs*.27)*(big>1?1.1:1)} fill={col} stroke="#fff" strokeWidth="1.5"/>);
+      const label=pr.label===false?null:(pr.label||L(pr.id||''));
+      if(label){
+        let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+        if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+        const off=fs*(pr.off||1.0);
+        lbls.push(<text key={'l'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+          fontFamily='"Times New Roman",Georgia,serif' fontStyle="italic" fontWeight="700" fontSize={fs*(pr.size||1)} fill={pr.lc||col}
+          stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{label}</text>);
+      }
+    }
+    else if(pr.t==='txt'){
+      const q=pj(get(pr.p));let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+      if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+      const off=fs*(pr.off==null?.8:pr.off);
+      lbls.push(<text key={'t'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+        fontFamily={pr.upright?'-apple-system,Segoe UI,Roboto,sans-serif':'"Times New Roman",Georgia,serif'} fontStyle={pr.upright?'normal':'italic'}
+        fontWeight="700" fontSize={fs*(pr.size||1.1)} fill={pr.c||C.ink} stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{pr.s}</text>);
+    }
+  });
+  polys.sort((a,b)=>b.dm-a.dm);
+
+  return(
+    <div ref={wrap} style={{position:'absolute',inset:0}}>
+      <svg width={w} height={h} style={{position:'absolute',inset:0,touchAction:'none',cursor:drag.current?'grabbing':'grab',display:'block'}}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={()=>{if(!moved.current)drag.current=null;}}>
+        <g>{polys.map(p=>p.el)}</g><g>{hid}</g><g>{vis}</g><g>{dots}</g><g>{lbls}</g>
+      </svg>
+      {!bare&&<div className="tools">
+        <button className="tool" aria-label="Скинути вигляд" title="Скинути вигляд" onClick={()=>setCam({yaw:yaw0,pitch:pitch0})}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button className={'tool'+(auto?' on':'')} aria-label="Автообертання" title="Автообертання" onClick={()=>setAuto(a=>!a)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M17 16l3.5.5.5-3.5"/></svg>
+        </button>
+      </div>}
+      {!bare&&<div className="hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10a2 2 0 0 1 4 0v3"/><path d="M9 11a2 2 0 0 0-4 0v3a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-2"/></svg>
+        Тягни — обертай
+      </div>}
+      {legend&&<div className="legend">{legend.map((l,i)=><span key={i}><i className="dot" style={{background:l[0]}}/>{l[1]}</span>)}</div>}
+    </div>
+  );
+}
+
+/* ---------- елементи інтерфейсу ---------- */
+const NavCtx=createContext(null);
+const M=({children})=><i className="m">{children}</i>;
+const Box=({title,children,cls})=><div className={'box'+(cls?' '+cls:'')}><h4>{title}</h4><p>{children}</p></div>;
+const Note=({children})=><div className="note">{children}</div>;
+const Key=({children})=><div className="key">{children}</div>;
+const Tabs=({items,val,set})=><div className="tabs">{items.map(([k,t])=><button key={k} className={'tab'+(val===k?' on':'')} onClick={()=>set(k)}>{t}</button>)}</div>;
+const Slider=({label,min,max,step=1,val,set,unit='°'})=>(
+  <div className="sliderRow"><label>{label}</label>
+    <input type="range" min={min} max={max} step={step} value={val} onChange={e=>set(parseFloat(e.target.value))}/>
+    <output>{val}{unit}</output></div>);
+function Steps({items,k,setK,label='Показати розв’язання'}){
+  return(<div className="steps">
+    {items.slice(0,k).map((t,i)=><div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}
+    {k===0&&<button className="btn" style={{alignSelf:'flex-start'}} onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&k<items.length&&<button className="down" aria-label="Далі" onClick={()=>setK(k+1)}>↓</button>}
+    {k>0&&<button className="btn ghost sm" style={{alignSelf:'flex-start'}} onClick={()=>setK(0)}>↻ Спочатку</button>}
+  </div>);
+}
+function Frame({left,scene,legend,yaw0,pitch0,camKey}){
+  const nav=useContext(NavCtx);
+  return(<>
+    <div className="left"><div className="lscroll">{left}</div>{nav}</div>
+    <div className="right"><Scene3D key={camKey} scene={scene} legend={legend} yaw0={yaw0} pitch0={pitch0}/></div>
+  </>);
+}
+const txtPl=(poly,i,s,c,lo)=>({t:'txt',p:poly[i],s,c,size:1.35,lo});
+
+/* ---------- спільні сцени (використовуються в кількох пунктах) ---------- */
+/* пряма a над площиною α, пряма b ⊂ α, a ∥ b */
+function scSign(h,k,tab){
+  const al=rectPlane([0,0,0],[1,0,0],[0,1,0],2.6,1.9);
+  const a1=[-2.3,-0.7,h],a2=[2.3,-0.7,h],b1=[-2.3,0.5,0],b2=[2.3,0.5,0];
+  const P={X:[0.8,0.5,0]};
+  const pr=[plane(al,C.al,.16),txtPl(al,3,'α',C.al)];
+  const proof=tab==='proof';
+  if(proof&&k>=1)pr.push(plane([a1,a2,b2,b1],C.be,.2),{t:'txt',p:a1,s:'β',c:C.be,size:1.4,lo:[-1,0]});
+  pr.push({t:'seg',a:b1,b:b2,c:C.gold,w:(proof&&k>=2)?6.5:4.4},{t:'seg',a:a1,b:a2,c:C.par,w:(proof&&k>=3)?6.5:4.4},
+    {t:'txt',p:a2,s:'a',c:C.par,size:1.4,lo:[1,0]},{t:'txt',p:b2,s:'b',c:C.gold,size:1.4,lo:[1,0]});
+  if(proof&&k>=2)pr.push({t:'pt',id:'X',c:C.skew,r:7});
+  return{P,prims:pr,R:3.2,ctr:[0,0,0.5]};
+}
+/* побудова прямої m ∥ a через точку M ∈ α */
+function scCon(k){
+  const al=rectPlane([0,0.3,0],[1,0,0],[0,1,0],2.6,2.0);
+  const a1=[-2.4,-1.0,1.4],a2=[2.4,-1.0,1.4],M0=[0.3,0.9,0],m1=[-2.4,0.9,0],m2=[2.4,0.9,0];
+  const pr=[plane(al,C.al,.16),txtPl(al,3,'α',C.al),{t:'seg',a:a1,b:a2,c:C.ink,w:4},{t:'txt',p:a2,s:'a',c:C.ink,size:1.4,lo:[1,0]},{t:'pt',id:'M',c:C.skew,r:7}];
+  if(k>=1)pr.push(plane([a1,a2,m2,m1],C.be,.2),{t:'txt',p:a1,s:'β',c:C.be,size:1.4,lo:[-1,0]});
+  if(k>=2)pr.push({t:'seg',a:m1,b:m2,c:C.par,w:5.4},{t:'txt',p:m2,s:'m',c:C.par,size:1.4,lo:[1,0]});
+  return{P:{M:M0},prims:pr,R:3.2,ctr:[0,0,0.6]};
+}
+/* тетраедр DABC із середньою лінією MN */
+const TP={D:[0.2,0.1,1.8],A:[-1.5,-1.1,-0.9],B:[1.4,-0.9,-0.9],C:[0.2,1.5,-0.9]};
+function scTet(t,hl){
+  const P={...TP,M:lerp(TP.D,TP.A,t),N:lerp(TP.D,TP.B,t)};
+  const base=planeThrough(TP.A,TP.B,TP.C,2.5,2.2);
+  const pr=[plane(base,C.al,.16),{t:'solid',faces:TETF,tint:true,w:2.2},
+    {t:'seg',a:'A',b:'B',c:C.par,w:hl?5:3.2},{t:'seg',a:'M',b:'N',c:C.par,w:5.6},
+    ...vp(['A','B','C','D']),{t:'pt',id:'M',c:C.skew},{t:'pt',id:'N',c:C.skew}];
+  return{P,prims:pr,R:3.0,ctr:[0,0,0.2]};
+}
+
+/* =====================================================================
+   Пункт 1. Взаємне розміщення прямої та площини
+   ===================================================================== */
+function Item1(){
+  const [tab,setTab]=useState('cases');const [cs,setCs]=useState('par');const [fc,setFc]=useState(0);
+  const relCol={in:C.inn,par:C.par,int:C.int};
+  let sc,legend=null;
+  if(tab==='cases'){
+    const bp=bigFace(CUBE,0,1.35);
+    const E={in:{a:'A',b:'B',c:C.inn},int:{a:'A',b:'A1',c:C.int},par:{a:'A1',b:'B1',c:C.par}}[cs];
+    sc={P:CUBE,R:2.8,prims:[plane(bp,C.al,.2),txtPl(bp,3,'α',C.al),{t:'solid',faces:BOXF,tint:true,w:2.2},
+      {t:'seg',a:E.a,b:E.b,c:E.c,w:6.5},...vp(Object.keys(CUBE))]};
+    if(cs==='int')sc.prims.push({t:'pt',id:'A',c:C.int,r:8});
+  }else{
+    const bp=bigFace(CUBE,fc,1.35);
+    sc={P:CUBE,R:2.8,prims:[plane(bp,C.al,.2),{t:'solid',faces:BOXF,tint:true,w:3,
+      estyle:(a,b)=>{const i=BOXE.findIndex(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a));return{c:relCol[relEF(CUBE,BOXE[i],fc)],w:4.4};}},
+      ...vp(Object.keys(CUBE))]};
+    legend=[[C.inn,'лежить у площині'],[C.par,'паралельна'],[C.int,'перетинає']];
+  }
+  const cnt={in:0,par:0,int:0};
+  if(tab==='explore')BOXE.forEach(e=>cnt[relEF(CUBE,e,fc)]++);
+  const cases={
+    par:{n:'Пряма паралельна площині',t:<>Спільних точок немає: <span className="cg"><M>A₁B₁ ∥ α</M></span>.</>},
+    int:{n:'Пряма перетинає площину',t:<>Спільна точка одна — <M>A</M>.</>},
+    in:{n:'Пряма лежить у площині',t:<>Усі точки прямої <M>AB</M> належать площині <M>α</M>: <M>AB ⊂ α</M>.</>}};
+  const left=(<>
+    <p className="lead" style={{fontSize:'1.15em',color:'var(--brand)',marginBottom:'.3em'}}>Взаємне розміщення прямої та площини</p>
+    {['par','int','in'].map((key,i)=><button key={key} className={'opt'+(tab==='cases'&&cs===key?' sel':'')} onClick={()=>{setCs(key);setTab('cases');}}><b>{i+1}.</b><span>{cases[key].n}</span></button>)}
+    <Tabs val={tab} set={setTab} items={[['cases','Означення'],['explore','Дослідження']]}/>
+    {tab==='cases'&&<div className="fade">
+      <Note>{cases[cs].t}</Note>
+      <Box title="Означення" cls="def">Пряму та площину називають паралельними, якщо вони не мають спільних точок.</Box>
+      <Key>Якщо дві точки прямої належать площині, то вся пряма лежить у ній (аксіома А3). Тому інших випадків немає: спільних точок <b>0</b>, <b>1</b> або <b>безліч</b>.</Key>
+    </div>}
+    {tab==='explore'&&<div className="fade">
+      <p className="lead">Обери площину — грань куба. Кожне ребро підсвітиться за видом розміщення відносно неї.</p>
+      <div className="grid3" style={{margin:'.5em 0'}}>{FN.map((n,i)=><button key={i} className={'chip'+(fc===i?' on':'')} style={{fontSize:'.85em'}} onClick={()=>setFc(i)}>{n}</button>)}</div>
+      <div className="cnt">
+        <div><b className="cb">{cnt.in}</b>лежать</div><div><b className="cg">{cnt.par}</b>паралельні</div><div><b className="cv">{cnt.int}</b>перетинають</div>
+      </div>
+      <Note>Для будь-якої грані: 4 ребра лежать у ній, 4 їй паралельні, 4 її перетинають.</Note>
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} camKey={tab} yaw0={0.65} pitch0={0.42}/>;
+}
+
+/* =====================================================================
+   Пункт 2. Ознака паралельності прямої та площини
+   ===================================================================== */
+function Item2(){
+  const [h,setH]=useState(1.2);
+  const sc=scSign(h,0,'sign');
+  const legend=[[C.par,'пряма a'],[C.gold,'пряма b ⊂ α']];
+  const left=(<div className="fade" style={{marginTop:'.55em'}}>
+      <Box title="Теорема 30.1 (ознака паралельності прямої та площини)">Якщо пряма, яка <span className="cr">не належить</span> даній площині, <span className="cg">паралельна якій-небудь прямій</span>, що лежить у цій площині, то дана пряма <span className="cv">паралельна самій площині</span>.</Box>
+      <Note><M>a ∥ b</M>, <M>b ⊂ α</M>, <M>a ⊄ α</M> ⇒ <span className="cg"><M>a ∥ α</M></span>.</Note>
+      <Slider label="Досліджуй" min={0} max={2} step={0.2} val={h} set={v=>setH(Math.round(v*10)/10)} unit=""/>
+      {h===0?<div className="fb bad">Пряма <M>a</M> лежить у площині <M>α</M>. Умова <M>a ⊄ α</M> порушена, ознака не застосовується.</div>
+        :<div className="fb ok">Пряма <M>a</M> не лежить в <M>α</M> та паралельна <M>b</M> ⇒ <M>a ∥ α</M>.</div>}
+    </div>);
+  return <Frame left={left} scene={sc} legend={legend} camKey="sign" yaw0={0.6} pitch0={0.35}/>;
+}
+
+/* =====================================================================
+   Пункт 3. Властивості паралельної прямої та площини
+   ===================================================================== */
+function Item3(){
+  const [tab,setTab]=useState('t2');const [th,setTh]=useState(70);
+  let sc,legend=null;
+  if(tab==='t2'){
+    const hgt=1.2,tt=rad(th),e=[0,Math.cos(tt),Math.sin(tt)];
+    const a0=[0,0,hgt],al=rectPlane([0,0,0],[1,0,0],[0,1,0],2.6,2.4);
+    const be=rectPlane(a0,[1,0,0],e,2.6,hgt/Math.sin(tt)+0.5);
+    const y0=-hgt*Math.cos(tt)/Math.sin(tt);
+    const a1=[-2.5,0,hgt],a2=[2.5,0,hgt],b1=[-2.5,y0,0],b2=[2.5,y0,0];
+    sc={P:{},R:3.3,ctr:[0,0,0.5],prims:[plane(al,C.al,.15),plane(be,C.be,.18),{t:'seg',a:a1,b:a2,c:C.par,w:4.6},{t:'seg',a:b1,b:b2,c:C.skew,w:4.6},
+      txtPl(al,3,'α',C.al),txtPl(be,0,'β',C.be),{t:'txt',p:a2,s:'a',c:C.par,size:1.4,lo:[1,0]},{t:'txt',p:b2,s:'b',c:C.skew,size:1.4,lo:[1,0]}]};
+    legend=[[C.par,'a ∥ α'],[C.skew,'b = α ∩ β']];
+  }
+  if(tab==='t3'){
+    const h=1.2*Math.tan(rad(50));
+    const a1=[-2.3,-1.2,0],a2=[2.3,-1.2,0],b1=[-2.3,1.2,0],b2=[2.3,1.2,0],c1=[-2.3,0,h],c2=[2.3,0,h];
+    sc={P:{},R:3.2,ctr:[0,0,0.5],prims:[plane([a1,a2,c2,c1],C.al,.2),plane([b1,b2,c2,c1],C.be,.2),{t:'seg',a:a1,b:a2,c:C.par,w:4.4},{t:'seg',a:b1,b:b2,c:C.par,w:4.4},{t:'seg',a:c1,b:c2,c:C.skew,w:5},
+      {t:'txt',p:a2,s:'a',c:C.par,size:1.4,lo:[1,.2]},{t:'txt',p:b2,s:'b',c:C.par,size:1.4,lo:[1,.2]},{t:'txt',p:c2,s:'c',c:C.skew,size:1.4,lo:[1,0]},
+      {t:'txt',p:mid(mid(a1,c1),mid(a2,c2)),s:'α',c:C.al,size:1.4,lo:[-1,-.2]},{t:'txt',p:mid(mid(b1,c1),mid(b2,c2)),s:'β',c:C.be,size:1.4,lo:[1,-.2]}]};
+    legend=[[C.par,'a ∥ b'],[C.skew,'c = α ∩ β']];
+  }
+  if(tab==='t4'){
+    const La=[-2.3,-1.4,-0.5],Lb=[-2.3,1.3,-0.3],Lc=[-2.3,0,1.4],dx=[4.6,0,0];
+    const seg=(p,c)=>({t:'seg',a:p,b:add(p,dx),c,w:5});
+    sc={P:{},R:3.1,ctr:[0,0,0.3],prims:[seg(La,C.al),seg(Lb,C.be),seg(Lc,C.par),
+      {t:'txt',p:add(La,dx),s:'a',c:C.al,size:1.4,lo:[1,0]},{t:'txt',p:add(Lb,dx),s:'b',c:C.be,size:1.4,lo:[1,0]},{t:'txt',p:add(Lc,dx),s:'c',c:C.par,size:1.4,lo:[1,0]}]};
+    legend=[[C.al,'пряма a'],[C.be,'пряма b'],[C.par,'пряма c']];
+  }
+  const left=(<>
+    <Tabs val={tab} set={setTab} items={[['t2','Теорема 30.2'],['t3','Теорема 30.3'],['t4','Теорема 30.4']]}/>
+    {tab==='t2'&&<div className="fade">
+      <Box title="Теорема 30.2">Якщо площина проходить через дану пряму, <span className="cg">паралельну другій площині</span>, та перетинає цю площину, то <span className="cb">пряма перетину площин</span> паралельна даній прямій.</Box>
+      <Slider label="Поворот площини β" min={30} max={150} step={10} val={th} set={setTh}/>
+      <Note><M>a ∥ α</M>, <M>a ⊂ β</M>, <M>β ∩ α = b</M> ⇒ <span className="cg"><M>b ∥ a</M></span>. Площина <M>β</M> обертається, а <M>b ∥ a</M> завжди.</Note>
+    </div>}
+    {tab==='t3'&&<div className="fade">
+      <Box title="Теорема 30.3">Якщо через кожну з двох <span className="cg">паралельних прямих</span> проведено площину, причому ці площини перетинаються по прямій, <span className="cr">відмінній від двох даних</span>, то <span className="cb">ця пряма</span> паралельна кожній із двох даних прямих.</Box>
+      <Note><M>a ∥ b</M>, <M>a ⊂ α</M>, <M>b ⊂ β</M>, <M>α ∩ β = c</M> ⇒ <span className="cg"><M>c ∥ a</M>, <M>c ∥ b</M></span>.</Note>
+    </div>}
+    {tab==='t4'&&<div className="fade">
+      <Box title="Теорема 30.4">Якщо дві прямі паралельні <span className="co">третій прямій</span>, то вони <span className="cg">паралельні між собою</span>.</Box>
+      <Note><M>a ∥ c</M>, <M>b ∥ c</M> ⇒ <span className="cg"><M>a ∥ b</M></span>.</Note>
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} camKey={tab} yaw0={0.6} pitch0={0.35}/>;
+}
+
+/* =====================================================================
+   Пункт 4. Застосування: тетраедр і куб
+   ===================================================================== */
+function Item4(){
+  const nav=useContext(NavCtx);
+  return(<div className="infoPage">
+    <div className="infoBox fade">
+      <Key>Щоб довести паралельність прямої та площини, шукай у площині пряму, паралельну даній: середню лінію, протилежну сторону паралелограма, ребро призми.</Key>
+      <Key>Схема доведення: 1) знайди в площині пряму, паралельну даній; 2) переконайся, що дана пряма в цій площині не лежить; 3) застосуй ознаку (теорема 30.1).</Key>
+    </div>
+    {nav}
+  </div>);
+}
+
+/* =====================================================================
+   Пункт 5. Задачі (підсумок)
+   ===================================================================== */
+function Item5(){
+  const BX=boxP(1.5,1.1,1.0);
+  const pairs=[[['A','B'],0,'AB і площина ABC'],[['A1','B1'],0,'A₁B₁ і площина ABC'],[['A','A1'],0,'AA₁ і площина ABC'],
+    [['B','D'],1,'BD і площина A₁B₁C₁'],[['A','B1'],4,'AB₁ і площина DCC₁'],[['A','C1'],0,'AC₁ і площина ABC']];
+  const right1=pairs.map(p=>relEF(BX,p[0],p[1]));
+  const [ti,setTi]=useState(0);const [tbl,setTbl]=useState(Array(6).fill(''));const [row,setRow]=useState(0);
+  const [done,setDone]=useState([false,false,false,false,false]);const [wrong,setWrong]=useState([[],[],[],[],[]]);
+
+  const T=[null,
+    {q:<>Точки <M>M</M> і <M>N</M> — середини ребер <M>DA</M> і <M>DB</M> тетраедра <M>DABC</M>. Яке твердження правильне?</>,
+      opts:['MN ∥ ABC','MN ∥ DC','MN перетинає площину ABC','MN лежить у площині ABC','MN ∥ DAC'],ok:0,
+      ex:<><M>MN</M> — середня лінія трикутника <M>DAB</M>, тому <M>MN ∥ AB</M>. <M>AB ⊂ ABC</M>, а <M>MN</M> у цій площині не лежить, отже <M>MN ∥ ABC</M>.</>},
+    {q:<>Пряма <M>a</M> паралельна площині <M>α</M>. Скільки прямих, паралельних <M>a</M>, можна провести в площині <M>α</M> через точку <M>M ∈ α</M>?</>,
+      opts:['Жодної','Одну','Дві','Безліч','Залежить від положення M'],ok:1,
+      ex:<>Площина <M>β</M> через <M>a</M> і <M>M</M> перетинає <M>α</M> по прямій <M>m ∥ a</M> (теорема 30.2). У площині <M>β</M> через <M>M</M> проходить лише одна пряма, паралельна <M>a</M>.</>},
+    {q:<>Точки <M>M</M> і <M>K</M> — середини сторін <M>AB</M> і <M>BC</M> трикутника <M>ABC</M>. Сторона <M>AC</M> лежить у площині <M>α</M>, точка <M>B</M> їй не належить. <M>MK = 5 см</M>. Знайдіть <M>AC</M>.</>,
+      opts:['2,5 см','5 см','10 см','15 см','Знайти неможливо'],ok:2,
+      ex:<><M>MK</M> — середня лінія, <M>MK ∥ AC</M> і <M>MK = AC/2</M>, тому <M>AC = 10 см</M>. До того ж <M>MK ∥ α</M> за ознакою.</>},
+    {q:<>Відомо, що <M>a ∥ b</M>, <M>b ⊂ α</M> і <M>a ⊄ α</M>. Яке взаємне розміщення прямої <M>a</M> і площини <M>α</M>?</>,
+      opts:['a ⊂ α','a ∥ α','a перетинає α в одній точці','a перетинає α у двох точках','Визначити неможливо'],ok:1,
+      ex:<>Це умова ознаки паралельності прямої та площини: <M>a ∥ α</M>.</>}];
+
+  let sc,legend=null;
+  if(ti===0){
+    const p=pairs[row];const bp=bigFace(BX,p[1],1.35);
+    sc={P:BX,R:2.9,prims:[plane(bp,C.al,.2),{t:'solid',faces:BOXF,tint:true,w:2.2},{t:'seg',a:p[0][0],b:p[0][1],c:C.gold,w:5.8},...vp(Object.keys(BX))]};
+    legend=[[C.gold,'пряма'],[C.al,'площина']];
+  }
+  if(ti===1){sc=scTet(0.5,false);legend=[[C.par,'MN'],[C.al,'площина ABC']];}
+  if(ti===2){sc=scCon(2);legend=[[C.ink,'a ∥ α'],[C.par,'m ∥ a, m ⊂ α']];}
+  if(ti===3){
+    const A=[-1.8,-0.8,0],Cc=[1.8,-0.5,0],B=[0.2,1.0,2.0];
+    const P={A,B,C:Cc,M:mid(A,B),K:mid(Cc,B)};
+    const al=rectPlane([0,0.2,0],[1,0,0],[0,1,0],3.1,2.2);
+    sc={P,R:3.6,ctr:[0,0,0.8],prims:[plane(al,C.al,.16),txtPl(al,3,'α',C.al),
+      {t:'poly',p:['A','B','C'],fill:C.be,op:.15,stroke:C.edge,sw:2.4},
+      {t:'seg',a:'M',b:'K',c:C.par,w:5.4},{t:'seg',a:'A',b:'C',c:C.ink,w:4.2},
+      ...vp(['A','B','C']),{t:'pt',id:'M',c:C.par},{t:'pt',id:'K',c:C.par},
+      {t:'txt',p:mid(P.M,P.K),s:'5 см',c:C.par,upright:true,size:1,lo:[0,-1.3]},
+      {t:'txt',p:mid(A,Cc),s:'?',c:C.skew,upright:true,size:1.3,lo:[0,1.3]}]};
+  }
+  if(ti===4)sc=scSign(1.2,3,'sign');
+
+  const d0=tbl.every((x,i)=>x===right1[i]);
+  const tabs=<div className="tabs">{[0,1,2,3,4].map(i=><button key={i} className={'tab sq'+(ti===i?' on':'')+((i===0?d0:done[i])?' done':'')} onClick={()=>setTi(i)}>{(i===0?d0:done[i])?'✓ ':''}{i+1}</button>)}</div>;
+  const names={in:'Лежить у площині',par:'Паралельна',int:'Перетинає'};
+  const choose=i=>{
+    if(done[ti]||wrong[ti].includes(i))return;
+    if(i===T[ti].ok){const d=[...done];d[ti]=true;setDone(d);}
+    else{const w=wrong.map(x=>[...x]);w[ti].push(i);setWrong(w);}
+  };
+  const left=(<>
+    {tabs}
+    {ti===0&&<div className="fade">
+      <Note>Дано прямокутний паралелепіпед <M>ABCDA₁B₁C₁D₁</M>. Укажіть взаємне розміщення прямої та площини.</Note>
+      <div className="cnt"><div>Пара<b>{row+1} з 6</b>у завданні 1</div><div><b className="cg">{tbl.filter((x,i)=>x===right1[i]).length}</b>правильно</div></div>
+      <p className="lead" style={{textAlign:'center',fontSize:'1.1em'}}><M>{pairs[row][2]}</M></p>
+      <div className="seg3" style={{flexDirection:'column'}}>{['in','par','int'].map(v=>{
+        const ans=tbl[row];const good=ans===v&&v===right1[row];const bad=ans===v&&v!==right1[row];
+        return <button key={v} className={good?'ok':bad?'bad':''} style={{minHeight:46,fontSize:'.95em'}} disabled={ans===right1[row]}
+          onClick={()=>{const t=[...tbl];t[row]=v;setTbl(t);}}>{names[v]}</button>;})}</div>
+      {tbl[row]&&tbl[row]===right1[row]&&<div className="fb ok">Правильно!</div>}
+      {tbl[row]&&tbl[row]!==right1[row]&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {tbl[row]===right1[row]&&row<5&&<button className="btn" onClick={()=>setRow(row+1)}>Наступна пара →</button>}
+      {tbl[row]===right1[row]&&row===5&&<div className="fb ok">Усі пари розібрано!</div>}
+    </div>}
+    {ti>=1&&<div className="fade">
+      <Note>{T[ti].q}</Note>
+      {T[ti].opts.map((o,i)=>{
+        const isOk=done[ti]&&i===T[ti].ok,isBad=wrong[ti].includes(i);
+        return <button key={i} className={'opt'+(isOk?' ok':isBad?' bad':'')} disabled={isBad} onClick={()=>choose(i)}><b>{'АБВГД'[i]}</b><span>{o}</span></button>;})}
+      {done[ti]&&<div className="fb ok">Правильно! <span style={{fontWeight:600}}>{T[ti].ex}</span></div>}
+      {!done[ti]&&wrong[ti].length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {done[ti]&&ti<4&&<button className="btn" onClick={()=>setTi(ti+1)}>Наступне завдання →</button>}
+      {d0&&done.slice(1).every(Boolean)&&ti===4&&<div className="fb ok">Усі завдання виконано правильно!</div>}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} camKey={ti} yaw0={0.6} pitch0={0.4}/>;
+}
+
+/* =====================================================================
+   Пункт 6. Задачі з підручника (п. 30)
+   ===================================================================== */
+const faceStr=a=>a.length===0?'жодній із граней':a.length===1?'лише '+FN[a[0]]:a.slice(0,-1).map(i=>FN[i]).join(', ')+' і '+FN[a[a.length-1]];
+const nm=a=>a.length?a.map(i=>FN[i]).join(', '):'—';
+const edgeStep=(P,e,name,w,sets)=>{
+  const F=[0,1,2,3,4,5],par=F.filter(f=>relEF(P,e,f)==='par'),inn=F.filter(f=>relEF(P,e,f)==='in'),int=F.filter(f=>relEF(P,e,f)==='int');
+  const ok=sets.findIndex(s=>s.length===par.length&&s.every(x=>par.includes(x)));
+  return {ed:e,par,ok,opts:sets.map(faceStr),
+    nm:name,q:<>Площинам яких граней {w[1]} {w[0]} <span className="ca"><M>{name}</M></span>?</>,
+    ex:<>Лежить у гранях: {nm(inn)}. Перетинає грані: {nm(int)}. Паралельна граням: {nm(par)}.</>};
+};
+const edgeTask=(id,intro,P,steps)=>({id,intro,steps,unit:'Пункт',
+  scene:p=>{const n=steps.length,st=steps[Math.min(p,n-1)],fin=p>=n;
+    const fills=fin?Object.fromEntries(st.par.map(f=>[f,[C.par,.3]])):null;
+    const prims=[{t:'solid',faces:BOXF,tint:true,fills,w:2.2},{t:'seg',a:st.ed[0],b:st.ed[1],c:C.gold,w:6.2},...vp(Object.keys(P))];
+    return {P,R:2.9,prims};},
+  legend:p=>p>=steps.length?[[C.gold,'пряма'],[C.par,'грані, яким вона паралельна']]:[[C.gold,'пряма']]});
+const BX2=(()=>{const b=boxP(1.5,1.1,1.0);return {...b,E:mid(b.C,b.C1),F:mid(b.D,b.D1)};})();
+const plAlpha=()=>rectPlane([0,0,0],[1,0,0],[0,1,0],2.6,1.9);
+const lineSeg=(a,b,c,w=4.6)=>({t:'seg',a,b,c,w});
+const lbl=(p,s,c,lo=[1,0])=>({t:'txt',p,s,c,size:1.4,lo});
+
+const TASKS=[
+  edgeTask('30.2',<>Дано куб <M>ABCDA₁B₁C₁D₁</M>. Площинам яких граней куба паралельне ребро: 1) <M>AD</M>; 2) <M>C₁D₁</M>; 3) <M>BB₁</M>?</>,CUBE,[
+    edgeStep(CUBE,['A','D'],'AD',['ребро','паралельне'],[[0,1],[2,4],[1,3],[3,5]]),
+    edgeStep(CUBE,['C1','D1'],'C₁D₁',['ребро','паралельне'],[[1,4],[0,2],[3,5],[2,3]]),
+    edgeStep(CUBE,['B','B1'],'BB₁',['ребро','паралельне'],[[2,3],[0,1],[4,5],[1,5]])]),
+  edgeTask('30.3',<>Дано прямокутний паралелепіпед <M>ABCDA₁B₁C₁D₁</M>, точки <M>E</M> і <M>F</M> — середини ребер <M>CC₁</M> і <M>DD₁</M>. Запишіть грані паралелепіпеда, яким паралельна пряма: 1) <M>AB</M>; 2) <M>CC₁</M>; 3) <M>AC</M>; 4) <M>EF</M>.</>,BX2,[
+    edgeStep(BX2,['A','B'],'AB',['пряма','паралельна'],[[0,1],[2,3],[1,4],[4,5]]),
+    edgeStep(BX2,['C','C1'],'CC₁',['пряма','паралельна'],[[3,4],[0,1],[2,5],[1,4]]),
+    edgeStep(BX2,['A','C'],'AC',['пряма','паралельна'],[[0],[1],[0,1],[],[1,4]]),
+    edgeStep(BX2,['E','F'],'EF',['пряма','паралельна'],[[0,1],[1,2,4],[0,1,2],[0,2,3],[2,4]])]),
+  {id:'30.4',intro:<>Пряма <M>a</M> паралельна площині <M>α</M>. Чи є правильним твердження, що пряма <M>a</M> паралельна будь-якій прямій, що лежить у площині <M>α</M>?</>,
+   steps:[{q:'Яка відповідь правильна?',opts:['Так: пряма a паралельна всім прямим площини α','Ні: у площині α є прямі, паралельні a, і прямі, мимобіжні з a','Ні: у площині α немає жодної прямої, паралельної a','Ні: у площині α є прямі, які перетинають a'],ok:1,
+     ex:<>Пряма <M>a</M> не має спільних точок з <M>α</M>, тож не перетинає жодної її прямої. Але паралельні лише ті прямі, що лежать з <M>a</M> в одній площині, решта — мимобіжні.</>}],
+   scene:p=>{const s=scSign(1.2,0,'sign');if(p>=1)s.prims.push(lineSeg([-2.2,-1.4,0],[2.0,1.5,0],C.skew),lbl([2.0,1.5,0],'c',C.skew));return s;},
+   legend:p=>p>=1?[[C.par,'a ∥ α'],[C.gold,'b ⊂ α, b ∥ a'],[C.skew,'c ⊂ α, мимобіжна з a']]:[[C.par,'a ∥ α'],[C.gold,'b ⊂ α']]},
+  {id:'30.5',intro:<>Дано прямі <M>a</M> і <M>b</M> та площину <M>α</M>. Чи є правильним твердження: 1) якщо <M>a ∥ α</M> і <M>b ∥ α</M>, то <M>a ∥ b</M>; 2) якщо <M>a ∥ b</M> і <M>b ⊂ α</M>, то <M>a ∥ α</M>?</>,
+   steps:[{q:<>Твердження 1): якщо <M>a ∥ α</M> і <M>b ∥ α</M>, то <M>a ∥ b</M>.</>,opts:['Правильне','Неправильне: a і b можуть перетинатися або бути мимобіжними','Неправильне: a і b завжди перетинаються','Неправильне: a і b завжди мимобіжні'],ok:1,
+     ex:<>Дві прямі, паралельні одній площині, можуть бути паралельними, перетинатися або бути мимобіжними.</>},
+    {q:<>Твердження 2): якщо <M>a ∥ b</M> і <M>b ⊂ α</M>, то <M>a ∥ α</M>.</>,opts:['Правильне за ознакою (теорема 30.1)','Неправильне: a може лежати в площині α','Неправильне: a завжди перетинає α','Неправильне: a може лише збігатися з b'],ok:1,
+     ex:<>Ознака вимагає, щоб <M>a ⊄ α</M>. Якщо <M>a ∥ b</M> і обидві прямі лежать в <M>α</M>, то <M>a ∥ α</M> не виконується.</>}],
+   scene:p=>{
+     if(p===0){const al=plAlpha();return {P:{},R:3.2,ctr:[0,0,0.5],prims:[plane(al,C.al,.16),txtPl(al,3,'α',C.al),lineSeg([-2.3,-0.8,1.1],[2.3,-0.8,1.1],C.par),lineSeg([0.9,-2.0,0.4],[0.9,1.8,0.4],C.gold),lbl([2.3,-0.8,1.1],'a',C.par),lbl([0.9,1.8,0.4],'b',C.gold,[0,1])]};}
+     return scSign(p>=2?0:1.2,0,'sign');},
+   legend:p=>p===0?[[C.par,'a ∥ α'],[C.gold,'b ∥ α']]:[[C.par,'пряма a'],[C.gold,'пряма b ⊂ α']]},
+  {id:'30.6',intro:<>Пряма <M>a</M> та площина <M>α</M> паралельні прямій <M>b</M>. Яким може бути взаємне розміщення прямої <M>a</M> та площини <M>α</M>?</>,
+   steps:[{q:'Оберіть повну відповідь.',opts:['Лише a ∥ α','a ∥ α або a ⊂ α','a ∥ α або a перетинає α','Будь-яким із трьох способів'],ok:1,
+     ex:<>Пряма <M>a</M> не може перетинати <M>α</M>: тоді й паралельна їй <M>b</M> перетинала б <M>α</M>. Отже, або <M>a ⊄ α</M> і <M>a ∥ α</M>, або <M>a ⊂ α</M>.</>}],
+   scene:p=>{const al=plAlpha();const pr=[plane(al,C.al,.16),txtPl(al,3,'α',C.al),lineSeg([-2.3,-0.9,1.2],[2.3,-0.9,1.2],C.gold),lineSeg([-2.3,0.8,1.2],[2.3,0.8,1.2],C.par),lbl([2.3,-0.9,1.2],'b',C.gold),lbl([2.3,0.8,1.2],'a',C.par)];
+     if(p>=1)pr.push(lineSeg([-2.3,-0.05,0],[2.3,-0.05,0],C.inn),lbl([2.3,-0.05,0],'a',C.inn,[1,.6]));
+     return {P:{},R:3.2,ctr:[0,0,0.5],prims:pr};},
+   legend:p=>p>=1?[[C.gold,'b'],[C.par,'a ∥ α'],[C.inn,'a ⊂ α']]:[[C.gold,'b ∥ α'],[C.par,'a ∥ b']]},
+  {id:'30.7',intro:<>Прямі <M>a</M> і <M>b</M> перетинаються, а площина <M>α</M> паралельна прямій <M>a</M>. Яким може бути взаємне розміщення прямої <M>b</M> та площини <M>α</M>?</>,
+   steps:[{q:'Оберіть повну відповідь.',opts:['Лише b ∥ α','b ∥ α або b ⊂ α','b ∥ α або b перетинає α','Будь-яким із трьох способів'],ok:2,
+     ex:<>Точка <M>M = a ∩ b</M> не належить <M>α</M> (інакше <M>a</M> мала б з <M>α</M> спільну точку). Тому <M>b ⊄ α</M>, проте <M>b</M> може як перетинати <M>α</M>, так і бути їй паралельною.</>}],
+   scene:p=>{const al=plAlpha();const M0=[0,-0.5,1.2];const pr=[plane(al,C.al,.16),txtPl(al,3,'α',C.al),lineSeg([-2.3,-0.5,1.2],[2.3,-0.5,1.2],C.par),lbl([2.3,-0.5,1.2],'a',C.par),
+       lineSeg([0,-1.5,2.0],[0,1.0,0],C.gold),lbl([0,-1.5,2.0],'b',C.gold,[0,-1]),{t:'pt',id:'M',c:C.skew,r:6},{t:'pt',p:[0,1.0,0],label:false,c:C.skew,r:6}];
+     if(p>=1)pr.push(lineSeg([0,-1.9,1.2],[0,1.7,1.2],C.ca,4),lbl([0,1.7,1.2],'b′',C.ca,[0,-1]));
+     return {P:{M:M0},R:3.2,ctr:[0,0,0.6],prims:pr};},
+   legend:p=>p>=1?[[C.par,'a ∥ α'],[C.gold,'b перетинає α'],[C.ca,'b′ ∥ α']]:[[C.par,'a ∥ α'],[C.gold,'b']]},
+  {id:'30.8',intro:<>Точки <M>M</M> і <M>K</M> — середини сторін <M>AB</M> і <M>BC</M> трикутника <M>ABC</M>. Точка <M>D</M> не належить площині <M>ABC</M>. Доведіть, що <M>MK ∥ ADC</M>.</>,
+   steps:[{q:<>Чому <M>MK ∥ AC</M>?</>,opts:['MK — висота трикутника ABC','MK — медіана трикутника ABC','MK — середня лінія трикутника ABC','MK ∥ AC за умовою задачі'],ok:2,ex:<><M>M</M> і <M>K</M> — середини сторін <M>AB</M> і <M>BC</M>, тому <M>MK</M> — середня лінія і <M>MK ∥ AC</M>. До того ж <M>AC ⊂ ADC</M>.</>},
+    {q:<>Чому пряма <M>MK</M> не лежить у площині <M>ADC</M>?</>,opts:['Бо MK ∥ AC','Якби M ∈ ADC, то AB ⊂ ADC, тому B ∈ ADC, а отже D ∈ ABC — суперечність','Бо MK = AC/2','Бо точка K збігається з C'],ok:1,ex:<>Площини <M>ADC</M> і <M>ABC</M> мали б три спільні точки <M>A</M>, <M>B</M>, <M>C</M> й збігалися б, а <M>D ∉ ABC</M>.</>},
+    {q:'Чим завершується доведення?',opts:['Теорема 30.1 (ознака): MK ∥ AC, AC ⊂ ADC, MK ⊄ ADC ⇒ MK ∥ ADC','Теорема 30.2: пряма перетину площин паралельна MK','Теорема 30.3: через MK і AC проведено дві площини','Теорема 30.4: MK і AC паралельні третій прямій'],ok:0,ex:<>За ознакою паралельності прямої та площини <M>MK ∥ ADC</M>. <i>Доведено.</i></>}],
+   scene:p=>{const P={...TP,M:mid(TP.A,TP.B),K:mid(TP.B,TP.C)};
+     return {P,R:3.0,ctr:[0,0,0.2],prims:[plane(planeThrough(TP.A,TP.B,TP.C,2.5,2.2),C.al,.12),plane(['D','A','C'],C.be,.22),{t:'solid',faces:TETF,tint:true,w:2.2},lineSeg('A','C',C.gold,4.4),lineSeg('M','K',C.par,5.6),...vp(['A','B','C','D']),{t:'pt',id:'M',c:C.skew},{t:'pt',id:'K',c:C.skew}]};},
+   legend:()=>[[C.par,'MK'],[C.gold,'AC'],[C.be,'площина ADC']]},
+  {id:'30.10',intro:<>Відрізки <M>BC</M> і <M>AD</M> — основи трапеції <M>ABCD</M>. Трикутник <M>BMC</M> і трапеція <M>ABCD</M> не лежать в одній площині. Точка <M>E</M> — середина відрізка <M>BM</M>, точка <M>F</M> — середина відрізка <M>CM</M>. Доведіть, що <M>EF ∥ AD</M>.</>,
+   steps:[{q:<>Чому <M>EF ∥ BC</M>?</>,opts:['EF — висота трикутника BMC','EF — медіана трикутника BMC','EF — середня лінія трикутника BMC','EF ∥ AD за умовою'],ok:2,ex:<><M>E</M> і <M>F</M> — середини сторін <M>BM</M> і <M>CM</M>, тому <M>EF</M> — середня лінія і <M>EF ∥ BC</M>.</>},
+    {q:<>Чому <M>BC ∥ AD</M>?</>,opts:['BC і AD — основи трапеції ABCD','BC і AD — бічні сторони трапеції','BC = AD','BC ⊥ AD'],ok:0,ex:<>Основи трапеції паралельні.</>},
+    {q:<>Яка теорема дає <M>EF ∥ AD</M>?</>,opts:['Теорема 30.1 (ознака паралельності прямої та площини)','Теорема 30.4: дві прямі, паралельні третій, паралельні між собою','Теорема 30.2','Теорема 30.3'],ok:1,ex:<><M>EF ∥ BC</M> і <M>AD ∥ BC</M>, тому за теоремою 30.4 <M>EF ∥ AD</M>. <i>Доведено.</i></>}],
+   scene:p=>{const P={A:[-1.7,-1.2,0],D:[1.7,-1.2,0],B:[-0.8,0.8,0],C:[0.8,0.8,0],M:[0,1.7,1.9]};P.E=mid(P.B,P.M);P.F=mid(P.C,P.M);
+     return {P,R:3.0,ctr:[0,0.2,0.6],prims:[plane(['A','B','C','D'],C.al,.16),plane(['B','M','C'],C.be,.2),lineSeg('A','B',C.edge,2.6),lineSeg('C','D',C.edge,2.6),lineSeg('B','M',C.edge,2.6),lineSeg('C','M',C.edge,2.6),lineSeg('B','C',C.edge,3),lineSeg('A','D',C.gold,4.6),lineSeg('E','F',C.par,5.4),...vp(['A','B','C','D','M']),{t:'pt',id:'E',c:C.skew},{t:'pt',id:'F',c:C.skew}]};},
+   legend:()=>[[C.par,'EF'],[C.gold,'AD'],[C.be,'△BMC']]},
+  {id:'30.12',intro:<>Площина <M>α</M>, паралельна стороні <M>AC</M> трикутника <M>ABC</M>, перетинає сторони <M>AB</M> і <M>BC</M> у точках <M>A₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>A₁C₁</M>, якщо <M>AC = 18 см</M> і <M>AA₁ : A₁B = 7 : 5</M>.</>,
+   steps:[{q:<>Яке взаємне розміщення прямих <M>A₁C₁</M> і <M>AC</M>?</>,opts:['Перетинаються','Мимобіжні','Паралельні: A₁C₁ — лінія перетину α і ABC, тож A₁C₁ ∥ AC (теорема 30.2)','Збігаються'],ok:2,ex:<>Площина <M>ABC</M> проходить через <M>AC ∥ α</M> і перетинає <M>α</M> по прямій <M>A₁C₁</M>, тому <M>A₁C₁ ∥ AC</M>.</>},
+    {q:<>Чому дорівнює відношення <M>A₁B : AB</M> (коефіцієнт подібності <M>△A₁BC₁ ∼ △ABC</M>)?</>,opts:['7 : 12','5 : 7','5 : 12','7 : 5'],ok:2,ex:<><M>AB = 7 + 5 = 12</M> частин, <M>A₁B = 5</M> частин, тож <M>A₁B : AB = 5 : 12</M>.</>},
+    {q:<>Знайдіть <M>A₁C₁</M>.</>,opts:['7,5 см','10,5 см','12,9 см','25,2 см'],ok:0,ex:<><M>A₁C₁ = 18 · 5/12 = 7,5</M> см.</>}],
+   scene:p=>{const A=[-1.8,-0.8,0],Cc=[1.8,-0.5,0],B=[0.2,1.0,2.0];const A1=lerp(A,B,7/12),C1=lerp(Cc,B,7/12);const P={A,B,C:Cc,A1,C1};
+     const al=rectPlane(mid(A1,C1),nrm(sub(Cc,A)),[0,1,0],3.0,1.3);
+     return {P,R:3.6,ctr:[0,0.1,0.9],prims:[plane(al,C.al,.18),txtPl(al,3,'α',C.al),{t:'poly',p:['A','B','C'],fill:C.be,op:.14,stroke:C.edge,sw:2.4},lineSeg('A','C',C.ink,4),lineSeg('A1','C1',C.par,5.4),...vp(['A','B','C','A1','C1'])]};},
+   legend:()=>[[C.par,'A₁C₁ ∥ AC'],[C.al,'площина α']]},
+  {id:'30.14',intro:<>Вершини <M>A</M> і <M>C</M> трикутника <M>ABC</M> належать площині <M>α</M>, а вершина <M>B</M> не належить цій площині. На сторонах <M>AB</M> і <M>BC</M> позначено відповідно точки <M>E</M> і <M>F</M> так, що <M>BA : BE = BC : BF</M>. Доведіть, що пряма <M>EF</M> паралельна площині <M>α</M>.</>,
+   steps:[{q:<>Що випливає з <M>BA : BE = BC : BF</M> і спільного кута <M>B</M>?</>,opts:['△BEF = △BAC','△BEF ∼ △BAC, тому EF ∥ AC','EF — середня лінія трикутника ABC','EF ⊥ AC'],ok:1,ex:<>Дві пари сторін пропорційні, кут <M>B</M> спільний, тож <M>△BEF ∼ △BAC</M>. Відповідні кути при <M>E</M> і <M>A</M> рівні, отже <M>EF ∥ AC</M>.</>},
+    {q:<>Чому пряма <M>EF</M> не лежить у площині <M>α</M>?</>,opts:['Бо EF ∥ AC','Якби EF ⊂ α, то E ∈ α; разом з A ∈ α це дало б AB ⊂ α і B ∈ α — суперечність','Бо BE < BA','Бо точка F збігається з C'],ok:1,ex:<>Але за умовою <M>B ∉ α</M>, тому <M>EF ⊄ α</M>.</>},
+    {q:'Яким твердженням завершується доведення?',opts:['Теорема 30.1 (ознака): EF ∥ AC, AC ⊂ α, EF ⊄ α ⇒ EF ∥ α','Теорема 30.2: EF — лінія перетину двох площин','Теорема 30.3: EF і AC лежать у площинах, що перетинаються','Теорема 30.4: EF і AC паралельні третій прямій'],ok:0,ex:<>За ознакою паралельності прямої та площини <M>EF ∥ α</M>. <i>Доведено.</i></>}],
+   scene:p=>{const A=[-1.8,-0.8,0],Cc=[1.8,-0.5,0],B=[0.2,1.0,2.0];const P={A,B,C:Cc,E:lerp(B,A,.4),F:lerp(B,Cc,.4)};const al=rectPlane([0,0.2,0],[1,0,0],[0,1,0],3.1,2.2);
+     return {P,R:3.6,ctr:[0,0,0.8],prims:[plane(al,C.al,.16),txtPl(al,3,'α',C.al),{t:'poly',p:['A','B','C'],fill:C.be,op:.14,stroke:C.edge,sw:2.4},lineSeg('A','C',C.gold,4.4),lineSeg('E','F',C.par,5.4),...vp(['A','B','C']),{t:'pt',id:'E',c:C.skew},{t:'pt',id:'F',c:C.skew}]};},
+   legend:()=>[[C.par,'EF'],[C.gold,'AC ⊂ α']]},
+  {id:'30.16',intro:<>На ребрі <M>CC₁</M> прямокутного паралелепіпеда <M>ABCDA₁B₁C₁D₁</M> позначили точку <M>M</M>. Побудуйте лінію перетину площин: 1) <M>ADM</M> і <M>BB₁C₁</M>; 2) <M>AA₁M</M> і <M>DCC₁</M>.</>,
+   steps:[{q:<>1) Чому <M>AD ∥ BB₁C₁</M>?</>,opts:['AD ∥ BC, а BC ⊂ BB₁C₁ (ознака, теорема 30.1)','AD ⊂ BB₁C₁','AD ⊥ BB₁C₁','AD перетинає площину BB₁C₁'],ok:0,ex:<><M>AD ∥ BC</M> як протилежні сторони прямокутника, <M>BC ⊂ BB₁C₁</M> і <M>AD ⊄ BB₁C₁</M>.</>},
+    {q:<>1) Яка лінія перетину площин <M>ADM</M> і <M>BB₁C₁</M>?</>,opts:['Пряма MB','Пряма MC₁','Пряма AM','Пряма через M, паралельна BC (і AD); вона перетинає BB₁ у точці N'],ok:3,ex:<>Спільна точка площин — <M>M</M>. Оскільки <M>AD ∥ BB₁C₁</M>, за теоремою 30.2 лінія перетину паралельна <M>AD</M>: будуємо <M>MN ∥ BC</M>, <M>N ∈ BB₁</M>.</>},
+    {q:<>2) Чому <M>AA₁ ∥ DCC₁</M>?</>,opts:['AA₁ ⊂ DCC₁','AA₁ ∥ DD₁, а DD₁ ⊂ DCC₁','AA₁ ⊥ CC₁','AA₁ перетинає площину DCC₁'],ok:1,ex:<><M>AA₁ ∥ DD₁</M>, <M>DD₁ ⊂ DCC₁</M> і <M>AA₁ ⊄ DCC₁</M>.</>},
+    {q:<>2) Яка лінія перетину площин <M>AA₁M</M> і <M>DCC₁</M>?</>,opts:['Пряма DD₁','Пряма MD','Пряма CC₁','Пряма AM'],ok:2,ex:<>Лінія перетину проходить через <M>M</M> паралельно <M>AA₁</M>. Така пряма в площині <M>DCC₁</M> — це <M>CC₁</M> (бо <M>M ∈ CC₁</M> і <M>CC₁ ∥ AA₁</M>).</>}],
+   scene:p=>{const P={...BX2};P.M=lerp(P.C,P.C1,.5);P.N=add(P.B,sub(P.M,P.C));
+     const pr=[];
+     if(p<2){pr.push({t:'solid',faces:BOXF,tint:false,fills:{3:[C.al,.26]},w:2.2},plane(['A','D','M'],C.be,.22));}
+     else if(p<4){pr.push({t:'solid',faces:BOXF,tint:false,fills:{4:[C.al,.26]},w:2.2},plane(['A','A1','M'],C.be,.22));}
+     else pr.push({t:'solid',faces:BOXF,tint:false,fills:{4:[C.al,.26]},w:2.2},plane(['A','A1','C1','C'],C.be,.22));
+     if(p>=2)pr.push(lineSeg('M','N',C.gold,4.4));
+     if(p>=4)pr.push(lineSeg('C','C1',C.par,6.2));
+     pr.push(...vp(['A','B','C','D','A1','B1','C1','D1']),{t:'pt',id:'M',c:C.skew});
+     if(p>=2)pr.push({t:'pt',id:'N',c:C.skew});
+     return {P,R:2.9,prims:pr};},
+   legend:p=>p<2?[[C.al,'площина BB₁C₁'],[C.be,'площина ADM']]:p<4?[[C.al,'площина DCC₁'],[C.be,'площина AA₁M']]:[[C.par,'CC₁ — лінія перетину'],[C.gold,'MN (частина 1)']]}
+];
+
+function Item6(){
+  const N=TASKS.length;
+  const [ti,setTi]=useState(0);const [prog,setProg]=useState(Array(N).fill(0));const [wr,setWr]=useState({});
+  const tk=TASKS[ti],n=tk.steps.length,p=prog[ti],fin=p>=n,st=tk.steps[Math.min(p,n-1)];
+  const key=ti+'-'+p,bad=wr[key]||[];
+  const choose=i=>{
+    if(fin||bad.includes(i))return;
+    if(i===st.ok){const q=[...prog];q[ti]=p+1;setProg(q);}
+    else setWr({...wr,[key]:[...bad,i]});
+  };
+  const tabs=<div className="tabs">{TASKS.map((t,i)=>{const d=prog[i]>=t.steps.length;
+    return <button key={i} className={'tab'+(ti===i?' on':'')+(d?' done':'')} onClick={()=>setTi(i)}>{d?'✓ ':''}{t.id}</button>;})}</div>;
+  const left=(<>
+    {tabs}
+    <div className="fade" key={ti}>
+      <Note><b>{tk.id}.</b> {tk.intro}</Note>
+      {p>0&&<div className="steps">{tk.steps.slice(0,p).map((s,j)=><details key={j} className="done">
+        <summary><span className="sn">{j+1})</span> ✓ {s.nm&&<><M>{s.nm}</M>: </>}{s.opts[s.ok]}</summary>
+        <div className="why">{s.ex}</div></details>)}</div>}
+      {!fin&&<div className="curq">
+        {n>1&&<div className="badge">{tk.unit||'Крок'} {p+1} з {n}</div>}
+        <p className="lead">{st.q}</p>
+        {st.opts.map((o,i)=><button key={i} className={'opt'+(bad.includes(i)?' bad':'')} disabled={bad.includes(i)} onClick={()=>choose(i)}><b>{'АБВГД'[i]}</b><span>{o}</span></button>)}
+        {bad.length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      </div>}
+      {fin&&<div className="fb ok">Задачу {tk.id} розв’язано!</div>}
+      {fin&&ti<N-1&&<button className="btn" onClick={()=>setTi(ti+1)}>Наступна задача →</button>}
+      {fin&&ti===N-1&&prog.every((x,i)=>x>=TASKS[i].steps.length)&&<div className="fb ok">Усі задачі виконано!</div>}
+    </div>
+  </>);
+  return <Frame left={left} scene={tk.scene(p)} legend={tk.legend(p)} camKey={ti} yaw0={0.65} pitch0={0.4}/>;
+}
+
+/* =====================================================================
+   Оболонка уроку
+   ===================================================================== */
+const ITEMS=[
+  {t:'Взаємне розміщення прямої та площини',p:'п. 27 · 6 хв',Cmp:Item1},
+  {t:'Ознака паралельності прямої та площини',p:'п. 27 · 7 хв',Cmp:Item2},
+  {t:'Властивості паралельної прямої та площини',p:'п. 27 · 8 хв',Cmp:Item3},
+  {t:'Як застосовувати ознаку',p:'п. 27 · 7 хв',Cmp:Item4},
+  {t:'Задачі',p:'§ 4 · 8 хв',Cmp:Item5},
+  {t:'Задачі з підручника',p:'п. 30 · 15 хв',Cmp:Item6}];
+
+function startScene(){
+  const al=rectPlane([0,0,0],[1,0,0],[0,1,0],2.1,1.6);
+  return{P:{},R:2.7,ctr:[0,0,0.5],prims:[plane(al,C.al,.2),{t:'seg',a:[-2.1,0.5,0],b:[2.1,0.5,0],c:C.gold,w:4},{t:'seg',a:[-2.1,-0.7,1.3],b:[2.1,-0.7,1.3],c:C.par,w:4.4}]};
+}
+function App(){
+  const [scr,setScr]=useState('start');
+  const isItem=typeof scr==='number';
+  const nav=isItem&&(<div className="nav">
+    <button className="btn" onClick={()=>setScr('menu')}>☰ Зміст</button>
+    {scr>0&&<button className="btn ghost" onClick={()=>setScr(scr-1)}>← Назад</button>}
+    {scr<ITEMS.length-1?<button className="btn" onClick={()=>setScr(scr+1)}>Далі →</button>:<button className="btn" onClick={()=>setScr('start')}>На початок</button>}
+  </div>);
+  const Cur=isItem?ITEMS[scr].Cmp:null;
+  return(
+    <div className="app">
+      <div className="main">
+        {scr==='start'&&<div className="center start">
+          <div style={{width:'min(78vw,330px)',height:'min(34vh,260px)',position:'relative',marginBottom:'.4em'}}><Scene3D scene={startScene()} bare auto0 yaw0={0.5} pitch0={0.4}/></div>
+          <h1><span>Паралельність</span><br/>прямої та площини</h1>
+          <button className="go" onClick={()=>setScr('menu')}>ПОЧАТИ<i>▶</i></button>
+        </div>}
+        {scr==='menu'&&<div className="menu"><div style={{maxWidth:'70em',margin:'0 auto'}}><h2>§ 4. Паралельність прямої та площини</h2>
+          <div className="mgrid">{ITEMS.map((it,i)=><button key={i} className="mcard" onClick={()=>setScr(i)}><span className="n">{i+1}</span><span><b>{it.t}</b><small>{it.p}</small></span></button>)}</div></div></div>}
+        {isItem&&<NavCtx.Provider value={nav}><Cur key={scr}/></NavCtx.Provider>}
+      </div>
+      <div className="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
