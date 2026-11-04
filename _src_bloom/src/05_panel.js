@@ -134,12 +134,12 @@ function teacherPanelM(){
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
-        h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Орієнтир для перевірки (однаковий в усіх зрізах):</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':"— (порожньо)")+'<br>';
+        h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Орієнтир для перевірки (однаковий в усіх зрізах):</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':(r.photos&&r.photos.length?"— (текст не писав(ла), є фото)":"— (порожньо)"))+'<br>'+photosHtml(r);
         if(r.rb){
           var U=RUBU[r.l]||RUBU["Оц"];
           h+='<div style="margin-top:6px"><b>Рубрика 0–4 (розділ 5.4 ТЗ):</b></div>';
           for(var k=4;k>=0;k--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:12px"><input type="radio" name="rg'+i+'" value="'+k+'"'+(r.ograde===k?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k+'</b> — '+esc(U[4-k])+'</span></label>';
-        }else if(r.otext&&r.otext.trim())h+='Бали за відкриту частину (0 — немає спроби або хибно, '+r.opn+' — повне пояснення): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">';
+        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))h+='Бали за відкриту частину (0 — немає спроби або хибно, '+r.opn+' — повне пояснення): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">';
       }
       h+='</div>';});
     h+='<div class="center"><button class="btn" id="sv">Зберегти бали</button></div></div>';

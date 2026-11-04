@@ -43,8 +43,8 @@ function buildTest(cfg,name){
   return out;}
 
 /* ===== Підрахунок ===== */
-function gotOf(r){if(r.mix){var g0=r.part||0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g0+=Math.max(0,Math.min(r.opn,r.ograde));return g0;}if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
-function isPending(r){if(r.rb)return r.ograde==null&&!!((r.otext&&r.otext.trim())||r.given);return !!(r.opn&&r.otext&&r.otext.trim()&&r.ograde==null);}
+function gotOf(r){if(r.mix){var g0=r.part||0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g0+=Math.max(0,Math.min(r.opn,r.ograde));return g0;}if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
+function isPending(r){if(r.rb)return r.ograde==null&&!!((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)||r.given);return !!(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde==null);}
 function summarize(recs){
   var lv={},bl={},tp={},score=0,max=0,pending=false;
   LV.forEach(function(L){lv[L]={e:0,m:0};});BLK.forEach(function(b){bl[b[0]]={e:0,m:0};});
@@ -61,3 +61,6 @@ function bloomByScore(s){return s<60?"Знання":s<74?"Розуміння":s<
 function b64enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64dec(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
 
+
+function photosHtml(r){if(!r.photos||!r.photos.length)return '';return '<div class="ptv">'+r.photos.map(function(d){return '<img src="'+d+'" alt="фото учня" class="zph">';}).join('')+'</div>';}
+document.addEventListener("click",function(e){var im=e.target;if(im&&im.classList&&im.classList.contains("zph")){var z=document.createElement("div");z.className="zoom";z.innerHTML='<img src="'+im.src+'">';z.onclick=function(){document.body.removeChild(z);};document.body.appendChild(z);}});

@@ -63,7 +63,7 @@ function teacherPanel(){
     h+='<h2>Блоки</h2><div class="note">'+BLK.map(function(b){return BLKN[b[0]]+': <b>'+S.bl[b[0]].e+' з '+S.bl[b[0]].m+'</b>';}).join(" · ")+'</div><h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.ok?"✓ "+r.aut+" б":"✗ 0 б");
-      if(r.opn)h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Рубрика:</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':"— (порожньо)")+'<br>'+(r.otext&&r.otext.trim()?'Бали за відкриту частину (0–'+r.opn+'): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">':"");
+      if(r.opn)h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Рубрика:</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':"— (порожньо)")+'<br>'+photosHtml(r)+((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)?'Бали за відкриту частину (0–'+r.opn+'): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">':"");
       h+='</div>';});
     h+='<div class="center"><button class="btn" id="sv">Зберегти бали</button></div></div>';
     d.innerHTML=h;document.body.appendChild(d);
