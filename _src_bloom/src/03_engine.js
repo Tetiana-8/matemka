@@ -64,3 +64,7 @@ function b64dec(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="
 
 function photosHtml(r){if(!r.photos||!r.photos.length)return '';return '<div class="ptv">'+r.photos.map(function(d){return '<img src="'+d+'" alt="фото учня" class="zph">';}).join('')+'</div>';}
 document.addEventListener("click",function(e){var im=e.target;if(im&&im.classList&&im.classList.contains("zph")){var z=document.createElement("div");z.className="zoom";z.innerHTML='<img src="'+im.src+'">';z.onclick=function(){document.body.removeChild(z);};document.body.appendChild(z);}});
+
+function phMark(x){return x&&x.tasks&&x.tasks.some(function(r){return r.photos&&r.photos.length;})?' 📷':'';}
+function phTop(x){var o='';(x.tasks||[]).forEach(function(r,i){if(r.photos&&r.photos.length)o+='<div style="margin:6px 0"><b>Завдання '+(i+1)+':</b> '+photosHtml(r)+'</div>';});
+  return o?'<div class="gtask" style="border-color:#8f7bd0"><b>📷 Фото від учня</b> (клік — збільшити; бали за це завдання ставляться нижче, у його картці)'+o+'</div>':'';}

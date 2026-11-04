@@ -1520,6 +1520,10 @@ function b64dec(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="
 
 function photosHtml(r){if(!r.photos||!r.photos.length)return '';return '<div class="ptv">'+r.photos.map(function(d){return '<img src="'+d+'" alt="фото учня" class="zph">';}).join('')+'</div>';}
 document.addEventListener("click",function(e){var im=e.target;if(im&&im.classList&&im.classList.contains("zph")){var z=document.createElement("div");z.className="zoom";z.innerHTML='<img src="'+im.src+'">';z.onclick=function(){document.body.removeChild(z);};document.body.appendChild(z);}});
+
+function phMark(x){return x&&x.tasks&&x.tasks.some(function(r){return r.photos&&r.photos.length;})?' 📷':'';}
+function phTop(x){var o='';(x.tasks||[]).forEach(function(r,i){if(r.photos&&r.photos.length)o+='<div style="margin:6px 0"><b>Завдання '+(i+1)+':</b> '+photosHtml(r)+'</div>';});
+  return o?'<div class="gtask" style="border-color:#8f7bd0"><b>📷 Фото від учня</b> (клік — збільшити; бали за це завдання ставляться нижче, у його картці)'+o+'</div>':'';}
 /* ===== Рівні сформованості (розділ 3.3 ТЗ): 90 / 74 / 60 % ===== */
 var FLN=["Початковий","Середній","Достатній","Високий"];
 var FLC=["#f6d3d8","#fdeab9","#d9eedc","#bfe3c8"];
@@ -2525,7 +2529,7 @@ function teacherPanelM(){
     h+='<h2>Аналітична довідка та рішення</h2>'+brief(cls,st,pc);
     h+='<h2>Учні</h2><div style="overflow-x:auto"><table><tr><th rowspan="2">Учень</th>'+['Вхід, P %','Підсумок, P %','g (приріст)'].map(function(t){return '<th colspan="6" style="text-align:center">'+t+'</th>';}).join("")+'<th rowspan="2">S(TGI) вх → підс.</th><th rowspan="2"></th></tr><tr>'+[0,1,2].map(function(){return LV.map(function(L){return '<th>'+L+'</th>';}).join("");}).join("")+'</tr>';
     st.forEach(function(s,i){var a=pc[i][0],b=pc[i][1],c=pc[i][2],pend=(a&&a.pending)||(b&&b.pending)||(c&&c.pending);
-      h+='<tr><td>'+esc(s.name)+'</td>'+LV.map(function(L){return '<td'+flS(a?a[L]:null)+'>'+(a&&a[L]!=null?a[L]:"—")+'</td>';}).join("")+LV.map(function(L){return '<td'+flS(b?b[L]:null)+'>'+(b&&b[L]!=null?b[L]:"—")+'</td>';}).join("")+LV.map(function(L){var o=a&&b?gx(a[L],b[L]):null,d=a&&b?dlt(a[L],b[L]):null;return '<td class="'+gcls(o)+'" title="Δ = '+dtxt(d)+' в.п.'+(o&&!o.hold?', '+glab(o.g):'')+'">'+gtxt(o)+'</td>';}).join("")+'<td>'+(stgi(a)==null?"—":stgi(a))+' → '+(stgi(b)==null?"—":stgi(b))+'</td><td>'+(s.p[0]?'<button class="btn sm soft" data-w="'+i+'|0">вхід</button> ':"")+(s.p[2]?'<button class="btn sm soft" data-w="'+i+'|2">проміжний</button> ':"")+(s.p[1]?'<button class="btn sm soft" data-w="'+i+'|1">підсумок</button>':"")+(pend?' <span class="chip">перевірити</span>':"")+'</td></tr>';});
+      h+='<tr><td>'+esc(s.name)+'</td>'+LV.map(function(L){return '<td'+flS(a?a[L]:null)+'>'+(a&&a[L]!=null?a[L]:"—")+'</td>';}).join("")+LV.map(function(L){return '<td'+flS(b?b[L]:null)+'>'+(b&&b[L]!=null?b[L]:"—")+'</td>';}).join("")+LV.map(function(L){var o=a&&b?gx(a[L],b[L]):null,d=a&&b?dlt(a[L],b[L]):null;return '<td class="'+gcls(o)+'" title="Δ = '+dtxt(d)+' в.п.'+(o&&!o.hold?', '+glab(o.g):'')+'">'+gtxt(o)+'</td>';}).join("")+'<td>'+(stgi(a)==null?"—":stgi(a))+' → '+(stgi(b)==null?"—":stgi(b))+'</td><td>'+(s.p[0]?'<button class="btn sm soft" data-w="'+i+'|0">вхід'+phMark(s.p[0])+'</button> ':"")+(s.p[2]?'<button class="btn sm soft" data-w="'+i+'|2">проміжний'+phMark(s.p[2])+'</button> ':"")+(s.p[1]?'<button class="btn sm soft" data-w="'+i+'|1">підсумок'+phMark(s.p[1])+'</button>':"")+(pend?' <span class="chip">перевірити</span>':"")+'</td></tr>';});
     h+='</table></div><div class="note">g ≥ 0,5 — високий приріст; 0,3–0,49 — стійкий; 0,1–0,29 — слабкий; &lt; 0,1 — без зрушень або регрес (пороги робочі, після першого повного циклу їх варто уточнити). Для P на вході ≥ 90 % замість g — «утр.» (рівень утримано) або «↓». Підказка Δ — у спливаючому вікні клітинки.</div>';
     $("tb").innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var q=b.dataset.w.split("|");detail(st[+q[0]].p[+q[1]]);};});
@@ -2564,7 +2568,7 @@ function teacherPanelM(){
     var d=document.createElement("div");d.className="modal";
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
-    h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
+    h+=phTop(x);h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
@@ -2975,7 +2979,7 @@ function teacherPanel(){
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+esc(x.title)+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+='<div class="note">Бал: <b>'+S.score+' з 100</b> · 12-бальна: '+grade12(S.score)+' · ECTS '+ectsOf(S.score)+' · рівень компетентності: '+esc(compLevel(S.score))+' · за шкалою TGI відповідає рівню: '+bloomByScore(S.score)+'</div>';
-    h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv);
+    h+=phTop(x);h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv);
     h+='<h2>Блоки</h2><div class="note">'+BLK.map(function(b){return BLKN[b[0]]+': <b>'+S.bl[b[0]].e+' з '+S.bl[b[0]].m+'</b>';}).join(" · ")+'</div><h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.ok?"✓ "+r.aut+" б":"✗ 0 б");

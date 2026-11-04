@@ -59,7 +59,7 @@ function teacherPanel(){
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+esc(x.title)+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+='<div class="note">Бал: <b>'+S.score+' з 100</b> · 12-бальна: '+grade12(S.score)+' · ECTS '+ectsOf(S.score)+' · рівень компетентності: '+esc(compLevel(S.score))+' · за шкалою TGI відповідає рівню: '+bloomByScore(S.score)+'</div>';
-    h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv);
+    h+=phTop(x);h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv);
     h+='<h2>Блоки</h2><div class="note">'+BLK.map(function(b){return BLKN[b[0]]+': <b>'+S.bl[b[0]].e+' з '+S.bl[b[0]].m+'</b>';}).join(" · ")+'</div><h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.ok?"✓ "+r.aut+" б":"✗ 0 б");
