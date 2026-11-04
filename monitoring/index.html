@@ -93,6 +93,7 @@ tr.cl{cursor:pointer}tr.cl:hover{background:#f6f2fd}
 .mis .a{color:#a33b4a}.mis .ok{color:#2f6b45}
 .gtask{border:1.5px solid #ece6f8;border-radius:12px;padding:10px;margin-bottom:8px;font-size:13px;line-height:1.5}
 .gtask input[type=number]{width:70px;display:inline-block;padding:5px 8px}
+table.kt{width:auto;margin:0 0 8px}table.kt th,table.kt td{border:1px solid #d9d0ee;padding:4px 8px}.stim{background:#f6f2fd;border-radius:12px;padding:8px 10px;margin-bottom:8px;overflow-x:auto;font-size:13px}.kfig{width:100%;max-width:420px;color:#4a3f78}.nrow{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}.nrow span{flex:1}.nrow input{width:110px}
 #foot{font-size:10px;letter-spacing:.05em;color:#9ca3af;text-align:center;padding:6px 0 8px}
 #foot b{font-weight:700}
 .banner{background:#fff1c2;color:#8a6a00;border-radius:10px;padding:6px 10px;font-size:12px;text-align:center;margin-bottom:8px}
@@ -1488,7 +1489,7 @@ function buildTest(cfg,name){
   return out;}
 
 /* ===== Підрахунок ===== */
-function gotOf(r){if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
+function gotOf(r){if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&r.otext&&r.otext.trim()&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
 function isPending(r){if(r.rb)return r.ograde==null&&!!((r.otext&&r.otext.trim())||r.given);return !!(r.opn&&r.otext&&r.otext.trim()&&r.ograde==null);}
 function summarize(recs){
   var lv={},bl={},tp={},score=0,max=0,pending=false;
@@ -1520,7 +1521,7 @@ function flS(p){var f=fl(p);return f<0?"":' style="background:'+FLC[f]+'" title=
    - вхідний (К1+К2), проміжний (лише К1, за рішенням) і підсумковий зрізи;
    - учні не отримують оцінок за зріз. */
 
-var MK={s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
+var MK={mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
 function defYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;var a=m>=8?y:y-1;return a+"/"+String(a+1).slice(2);}
 function monId(s,g,tp){return xmur(s+g+tp.slice().sort().join(","))().toString(36).slice(0,5);}
 function monTitle(){return "Моніторинг: "+SUBJ[MK.s]+", "+MK.g+" клас";}
@@ -1537,7 +1538,7 @@ var MSLOT=[
   {L:"Ст",c:1,p:4,rb:1}
 ];
 function monSlots(pt){return MSLOT.filter(function(s){return pt!==2||s.c===1;});}
-function monCount(cfg){return monSlots(cfg.pt|0).length;}
+function monCount(cfg){if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0).length;}
 function monMax(pt){return monSlots(pt).reduce(function(a,s){return a+s.p;},0);}
 
 /* Попередній клас того самого предмета (опорний зміст для К2 вхідного зрізу) */
@@ -1557,12 +1558,16 @@ function monDefaults(){
   MK.m=monTime(MK.g);
 }
 
+function modeSeg(){return '<label>Джерело завдань</label><div class="seg" id="sMode"><button data-md="gen" class="'+(MK.mode==='kit'?'':'on')+'">Генератор (числа різні в учнів)</button><button data-md="kit" class="'+(MK.mode==='kit'?'on':'')+'">Комплекти адміністрації</button></div>';}
+function bindMode(){$("sMode").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.mode=b.dataset.md;MK.init=false;showConsM();};}
 function showConsM(){
+  if(MK.mode==="kit"){showKitCons();return;}
   if(!MK.yr)MK.yr=defYear();
   if(!MK.init){monDefaults();MK.init=true;}
   var cur=topicsOf(MK.s,MK.g),prev=prevTopics(MK.s,MK.g);
   var h='<div class="screen"><div class="card fill"><button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
   h+='<h1>Моніторинг за Блумом</h1><div class="sub">Динаміка шести рівнів мислення за рік: вхідний, проміжний і підсумковий зріз</div><div class="scroll">';
+  h+=modeSeg();
   h+='<label>Предмет</label><div class="seg" id="sSubj">';
   ["M","A","G"].forEach(function(s){h+='<button data-s="'+s+'" class="'+(MK.s===s?"on":"")+'">'+SUBJ[s]+'</button>';});
   h+='</div><label>Клас</label><div class="seg" id="sGr">';
@@ -1586,7 +1591,7 @@ function showConsM(){
   h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; завдання «оцінювання» і «створення» перевіряє вчитель за рубрикою 0–4 у панелі 🔑; два якірні завдання повторюються в усіх зрізах; проміжний зріз у грудні — лише наскрізні завдання К1 для учнів групи підтримки. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
   h+='</div></div></div>';
   $("app").innerHTML=h;
-  $("keyBtn").onclick=teacherPanelM;
+  $("keyBtn").onclick=teacherPanelM;bindMode();
   $("sSubj").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.s=b.dataset.s;if(GR[MK.s].indexOf(MK.g)<0)MK.g=GR[MK.s][0];MK.init=false;showConsM();};
   $("sGr").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.g=+b.dataset.g;MK.init=false;showConsM();};
   $("yr").oninput=function(){MK.yr=this.value;};
@@ -1661,6 +1666,7 @@ function buildMon2(cfg,name){
 
 /* Попередня версія (посилання v:1): по 2 завдання на рівень, однакові теми в обох точках */
 function buildMon(cfg,name){
+  if(cfg.v>=3)return buildKit(cfg);
   if(cfg.v>=2)return buildMon2(cfg,name);
   var spec=mkR("mon|"+cfg.id),chosen=[],key="mon|"+name+"|"+cfg.id+"|"+cfg.pt;
   LV.forEach(function(L,li){
@@ -1682,6 +1688,94 @@ function showResultM(r){
   h+='<div class="mis" style="border:none">Оцінок за цей зріз не виставляють. Твої відповіді допоможуть учителеві зрозуміти, що в тебе виходить найкраще, а над чим варто попрацювати.</div>';
   h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div></div></div></div></div></div>';
   $("app").innerHTML=h;
+}
+/* ============ КОМПЛЕКТИ АДМІНІСТРАЦІЇ (вхідний зріз, листопад) ============
+   Завдання дослівно з комплектів, наданих адміністрацією. Структура: 6 завдань, по одному на рівень Блума, 24 бали.
+   Типи: checks — познач правильні твердження (авто, бали = правильні відповіді мінус кількість зайвих пунктів);
+         nums — кілька числових відповідей (авто, по 1 балу); rub — вільна відповідь, перевіряє вчитель за рубрикою 0–4.
+   c — компонент К1/К2; an — якірне завдання (повторюється дослівно в підсумковому зрізі). */
+var KITS={};
+
+KITS["M5"]={
+  s:"M",g:5,
+  title:"Комплект адміністрації: Математика, 5 клас",
+  scope:"К2: натуральні числа, порівняння, округлення, шкали, порядок дій, задачі на рух, периметр (кінець 4 класу та вересень–жовтень 5 класу). К1: ситуація вибору тарифу мобільного інтернету. Калькулятор не використовується.",
+  stim:'<table class="kt"><tr><th>Тариф</th><th>Абонплата за місяць</th><th>Що входить</th><th>Доплата</th></tr><tr><td>А</td><td>100 грн</td><td>10 ГБ</td><td>—</td></tr><tr><td>Б</td><td>150 грн</td><td>безліміт</td><td>—</td></tr><tr><td>В</td><td>60 грн</td><td>3 ГБ</td><td>15 грн за кожен додатковий ГБ</td></tr></table>',
+  tasks:[
+    {l:"Зн",c:2,k:"checks",pts:4,
+     q:"Познач правильні твердження.",
+     items:[["3 405 > 3 045",1],["0 — найменше натуральне число",0],["1 км = 1000 м",1],["7 586, округлене до сотень, = 7 500",0],["периметр квадрата зі стороною 5 см = 20 см",1],["1 год = 100 хв",0],["52, округлене до десятків, = 50",1]]},
+    {l:"Ро",c:1,an:1,k:"rub",pts:4,
+     fig:'<svg viewBox="0 0 330 70" class="kfig" role="img" aria-label="Координатний промінь із поділками"><line x1="10" y1="40" x2="320" y2="40" stroke="currentColor" stroke-width="2"/><polygon points="320,40 310,35 310,45" fill="currentColor"/>'+(function(){var s="";for(var i=0;i<=10;i++){var x=20+i*28;s+='<line x1="'+x+'" y1="33" x2="'+x+'" y2="47" stroke="currentColor" stroke-width="1.5"/>';}return s;})()+'<text x="20" y="64" text-anchor="middle" font-size="13" fill="currentColor">0</text><text x="300" y="64" text-anchor="middle" font-size="13" fill="currentColor">100</text><circle cx="216" cy="40" r="4.5" fill="#d9534f"/><text x="216" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">A</text></svg>',
+     q:"На координатному промені позначено тільки 0 і 100. Між ними 10 однакових поділок. Точка А стоїть на 7-й поділці. (а) Яке число відповідає точці А? (б) Поясни, як ти визначив ціну поділки. (в) Познач точку B(45) і поясни, чому вона там.",
+     open:"Запиши відповіді на (а), (б) і (в) (перевіряє вчитель).",
+     rub:"Ключ: 70; 100 : 10 = 10; B — посередині між 4-ю і 5-ю поділками. 4 — усі три частини з поясненням. 3 — (а) і (в) правильно, пояснення ціни поділки неповне. 2 — одна точка + пояснення або обидві без пояснення. 1 — лише одна точка. 0 — А = 7 (поділки рахуються як одиниці): позначка «ЦП» (ціна поділки)."},
+    {l:"Зс",c:2,k:"nums",pts:4,
+     q:"Виконай обчислення.",
+     parts:[["2 345 + 5 678 =",8023],["125 · 8 =",1000],["Велосипедист їде зі швидкістю 15 км/год. Яку відстань (км) він проїде за 3 год?",45],["1000 − 375 : 5 · 4 =",700]]},
+    {l:"Ан",c:1,k:"rub",pts:4,stim:1,
+     q:"Оля використовує 7 ГБ на місяць. (а) Скільки вона заплатить за кожним тарифом? (б) З якого обсягу тариф В стає дорожчим за тариф А? Покажи, як ти це з'ясував.",
+     open:"Запиши розв'язання (перевіряє вчитель).",
+     rub:"Ключ: (а) А — 100, Б — 150, В — 60 + 4 · 15 = 120 грн; (б) 5 ГБ → 90 грн, 6 ГБ → 105 грн, отже з 6 ГБ. 4 — усі три ціни + поріг 6 ГБ із перевіркою сусідніх значень (таблиця або підбір). 3 — усі ціни + поріг без перевірки або з відповіддю «після 5 ГБ». 2 — усі ціни або ціна В + поріг. 1 — одна-дві ціни (ціна В = 60 без доплати — типова помилка неуважного читання даних). 0 — не по суті."},
+    {l:"Оц",c:1,an:1,k:"rub",pts:4,stim:1,
+     q:"Дмитро використовує 2 ГБ на місяць і каже: «Тариф В — найвигідніший для всіх, бо в нього найнижча ціна». Чи погоджуєшся? Обґрунтуй обчисленням і поясни, від чого залежить вибір.",
+     open:"Запиши відповідь і обґрунтування (перевіряє вчитель).",
+     rub:"4 — часткова згода: для Дмитра В справді найдешевший (60 грн), але «для всіх» — ні: приклад з обчисленням (для 7 ГБ — 120 > 100) + висновок: вибір залежить від обсягу; «найнижча абонплата» ≠ «найменша сума до сплати». 3 — незгода + контрприклад із обчисленням + висновок, але без визнання, що для Дмитра він правий. 2 — незгода + один аргумент без обчислення. 1 — судження без обґрунтування. 0 — повна згода з Дмитром."},
+    {l:"Ст",c:1,k:"rub",pts:4,stim:1,
+     q:"Придумай тариф Г, який для Олі (7 ГБ) дешевший за А, а для Дмитра (2 ГБ) дорожчий за В. Опиши його та перевір обчисленням, що обидві умови виконані.",
+     open:"Опиши тариф Г і запиши перевірку (перевіряє вчитель).",
+     rub:"Приклад вірної відповіді: 80 грн за 8 ГБ (Оля: 80 < 100; Дмитро: 80 > 60). Вірних варіантів багато. 4 — опис тарифу за тією ж формою, що в таблиці + обидві умови виконані + перевірка обчисленням для обох людей. 3 — обидві умови виконані, перевірка лише для одного. 2 — виконана одна умова. 1 — тариф описано, але жодна умова не виконана або неповний опис (лише ціна). 0 — немає спроби."}
+  ]
+};
+
+function kitId(s,g){return "kit"+s+g;}
+function kitOf(s,g){return KITS[s+g]||null;}
+function buildKit(cfg){
+  var K=KITS[cfg.kit],out=[];
+  K.tasks.forEach(function(d){
+    var t={l:d.l,t:"Комплект: "+K.g+" клас",k:d.k,q:d.q,pts:d.pts,c:d.c,aut:d.pts,opn:0,open:"",rub:"",right:""};
+    if(d.an)t.an=1;
+    if(d.stim)t.stim=K.stim;
+    if(d.fig)t.fig=d.fig;
+    if(d.k==="checks")t.items=d.items;
+    if(d.k==="nums")t.parts=d.parts;
+    if(d.k==="rub"){t.rb=1;t.aut=0;t.opn=d.pts;t.open=d.open;t.rub=d.rub;}
+    out.push(t);
+  });
+  var B=[["А",["Зн","Ро"]],["Б",["Зс","Ан"]],["В",["Оц","Ст"]]];
+  out.forEach(function(t){t.blk=B.filter(function(b){return b[1].indexOf(t.l)>=0;})[0][0];});
+  return out;
+}
+
+function showKitCons(){
+  if(!MK.yr)MK.yr=defYear();
+  var K=kitOf(MK.s,MK.g);
+  var h='<div class="screen"><div class="card fill"><button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
+  h+='<h1>Моніторинг за Блумом</h1><div class="sub">Комплекти завдань, наданих адміністрацією</div><div class="scroll">';
+  h+=modeSeg();
+  h+='<label>Предмет</label><div class="seg" id="sSubj">';
+  ["M","A","G"].forEach(function(s){h+='<button data-s="'+s+'" class="'+(MK.s===s?"on":"")+'">'+SUBJ[s]+'</button>';});
+  h+='</div><label>Клас</label><div class="seg" id="sGr">';
+  GR[MK.s].forEach(function(g){h+='<button data-g="'+g+'" class="'+(MK.g===g?"on":"")+'">'+g+'</button>';});
+  h+='</div><div class="row2"><div><label>Навчальний рік</label><input type="text" id="yr" value="'+esc(MK.yr)+'"></div><div><label>Час, хвилин</label><input type="number" id="mn" min="15" max="60" value="'+MK.m+'"></div></div>';
+  h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div></div></div>';
+  if(K){
+    h+='<div class="note" style="margin:10px 0"><b>'+esc(K.title)+'</b><br>'+esc(K.scope)+'<br>6 завдань, 24 бали. Завдання однакові для всіх учнів (як у комплекті). Завдання 1 і 3 перевіряються автоматично, завдання 2, 4, 5 і 6 ви оцінюєте за рубрикою 0–4 у панелі 🔑. Якірні завдання: 2 і 5.</div>';
+    h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на вхідний зріз</button></div><div id="lk"></div>';
+  }else h+='<div class="note" style="margin:10px 0">Комплекту для цього класу й предмета ще немає в інструменті. Поки що доступні: '+Object.keys(KITS).map(function(k){return esc(KITS[k].title);}).join("; ")+'. Решту додамо, а поки скористайтеся генератором.</div>';
+  h+='<div class="note">Підсумковий зріз і комплекти інших класів додаються окремо. Учні не отримують оцінок за зріз.</div></div></div></div>';
+  $("app").innerHTML=h;
+  $("keyBtn").onclick=teacherPanelM;bindMode();
+  $("sSubj").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.s=b.dataset.s;if(GR[MK.s].indexOf(MK.g)<0)MK.g=GR[MK.s][0];showKitCons();};
+  $("sGr").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.g=+b.dataset.g;showKitCons();};
+  $("yr").oninput=function(){MK.yr=this.value;};$("pa").oninput=function(){MK.pa=this.value;};
+  $("mn").oninput=function(){MK.m=Math.max(15,Math.min(60,+this.value||40));};
+  if(K)$("mk").onclick=function(){
+    var base=location.href.split("#")[0].split("?")[0],id=kitId(MK.s,MK.g);
+    var u=base+"?c="+b64enc({v:3,md:1,t:"Комплект адміністрації: "+SUBJ[MK.s]+", "+MK.g+" клас ("+PTN[0]+")",s:MK.s,g:MK.g,tp:[id],kit:MK.s+MK.g,m:MK.m,id:id,yr:MK.yr.trim()||defYear(),pt:0,per:MK.pa.trim(),o:{}});
+    $("lk").innerHTML='<div class="linkbox"><b>Вхідний зріз (комплект адміністрації)</b><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" id="cp">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';
+    $("cp").onclick=function(){var inp=document.querySelector(".linkbox input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);this.textContent="Скопійовано";};
+  };
 }
 /* ================= Панель вчителя (моніторинг) =================
    Показники за розділом 4 ТЗ: P = бали за рівень ÷ максимум рівня × 100 %;
@@ -1817,7 +1911,7 @@ function teacherPanelM(){
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
-      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?(r.ok?"✓":"✗")+' <span class="note">(автоперевірка не додає балів: оцінку ставите за рубрикою)</span>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б"));
+      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
         h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Орієнтир для перевірки (однаковий в усіх зрізах):</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':"— (порожньо)")+'<br>';
         if(r.rb){
@@ -1960,7 +2054,7 @@ var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EX
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
   if(!c){if(MON)showConsM();else showCons();return;}
-  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
+  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
   catch(e){$("app").innerHTML='<div class="screen"><div class="card center">Посилання пошкоджене. Попросіть учителя надіслати його ще раз.</div></div>';return;}
   CFG.o=CFG.o||{};showStart();
 }
@@ -1982,7 +2076,7 @@ function startTest(){
   ST.sn=ST.sn.trim();ST.fn=ST.fn.trim();
   if(!ST.sn||!ST.fn){$("err").textContent="Введи прізвище та ім'я.";return;}
   T=(MON?buildMon:buildTest)(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
-  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false};});
+  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[]};});
   IX=0;DONE=false;EXITS=0;AWAY=0;away=false;T0=Date.now();END=T0+CFG.m*60000;
   document.addEventListener("visibilitychange",onVis);window.addEventListener("blur",onLeave);window.addEventListener("focus",onBack);
   window.onbeforeunload=function(){return DONE?undefined:"Робота ще не здана";};
@@ -1991,6 +2085,7 @@ function startTest(){
 function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();EXITS++;}
 function onBack(){if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
 function onVis(){if(document.hidden)onLeave();else onBack();}
+function answered(i){var a=ANS[i];return a.sel!=null||!!a.txt||!!a.otext.trim()||(a.ms&&a.ms.some(Boolean))||(a.ps&&a.ps.some(function(x){return x&&String(x).trim();}));}
 function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
   if(el){el.textContent=dur(left);el.className="tm"+(left<=300?" low":"");}
   if(left<=0)finish(true);}
@@ -1998,9 +2093,12 @@ function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
 function showQ(){
   var t=T[IX],A=ANS[IX],last=IX===T.length-1;
   var h='<div class="screen"><div class="card fill"><div class="top"><div>Завдання '+(IX+1)+' з '+T.length+'</div><div class="tm" id="tm">'+dur((END-Date.now())/1000)+'</div></div>';
-  h+='<div class="dots" id="dots">'+T.map(function(_,i){var a=ANS[i];return '<span data-i="'+i+'" class="'+((a.sel!=null||a.txt||a.otext.trim())?"a ":"")+(i===IX?"c":"")+'"></span>';}).join("")+'</div>';
-  h+='<div class="qbox"><div class="q">'+fmt(t.q)+'</div>';
+  h+='<div class="dots" id="dots">'+T.map(function(_,i){var a=ANS[i];return '<span data-i="'+i+'" class="'+(answered(i)?"a ":"")+(i===IX?"c":"")+'"></span>';}).join("")+'</div>';
+  h+='<div class="qbox">'+(t.stim?'<div class="stim">'+t.stim+'</div>':'')+(t.fig?'<div class="stim">'+t.fig+'</div>':'')+'<div class="q">'+fmt(t.q)+'</div>';
   if(t.k==="mc"){h+='<div class="opts" id="opts">'+t.o.map(function(o,i){return '<button class="opt'+(A.sel===i?" on":"")+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join("")+'</div>';}
+  else if(t.k==="checks"){h+='<div class="opts" id="chk" style="grid-template-columns:1fr">'+t.items.map(function(it,j){return '<button class="opt'+(A.ms[j]?' on':'')+'" data-j="'+j+'">'+(A.ms[j]?'✓ ':'')+fmt(it[0])+'</button>';}).join('')+'</div>';}
+  else if(t.k==="nums"){h+='<div id="nms">'+t.parts.map(function(p,j){return '<div class="nrow"><span>'+fmt(p[0])+'</span><input type="text" inputmode="decimal" autocomplete="off" data-j="'+j+'" value="'+esc(A.ps[j]||'')+'"></div>';}).join('')+'</div>';}
+  else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
   if(t.open)h+='<div class="open"><div class="lb">Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)</div><textarea id="ot">'+esc(A.otext)+'</textarea></div>';
@@ -2008,9 +2106,12 @@ function showQ(){
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
   if(t.k==="mc")$("opts").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;A.sel=+b.dataset.p;A.skip=false;Array.prototype.forEach.call(document.querySelectorAll(".opt"),function(x){x.classList.remove("on");});b.classList.add("on");};
+  else if(t.k==="checks")$("chk").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;var j=+b.dataset.j;A.ms[j]=!A.ms[j];A.skip=false;showQ();};
+  else if(t.k==="nums")Array.prototype.forEach.call(document.querySelectorAll("#nms input"),function(inp){inp.oninput=function(){A.ps[+inp.dataset.j]=this.value;A.skip=false;};});
+  else if(t.k==="rub"){}
   else $("pad").onclick=function(e){var b=e.target.closest("button");if(b)typeKey(b.dataset.k);};
   if(t.open)$("ot").oninput=function(){A.otext=this.value;};
-  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.skip=true;go(1);};
+  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.ms=[];A.ps=[];A.skip=true;go(1);};
   if($("bk"))$("bk").onclick=function(){go(-1);};
 }
 function go(d){if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
@@ -2031,14 +2132,20 @@ function parseNum(s){return Number(String(s).replace(/\s/g,"").replace("−","-"
 
 function finish(auto){
   if(DONE)return;
-  var blank=T.filter(function(t,i){var a=ANS[i];return a.sel==null&&!a.txt&&!a.otext.trim();}).length;
+  var blank=T.filter(function(t,i){return !answered(i);}).length;
   if(!auto&&blank>0&&!confirm("Є завдання без відповіді: "+blank+". Здати роботу?"))return;
   DONE=true;clearInterval(TMR);if(away)onBack();
   document.removeEventListener("visibilitychange",onVis);window.removeEventListener("blur",onLeave);window.removeEventListener("focus",onBack);window.onbeforeunload=null;
-  var end=Date.now(),recs=T.map(function(t,i){var a=ANS[i],ok=false,given="";
+  var end=Date.now(),recs=T.map(function(t,i){var a=ANS[i],ok=false,given="",right=t.right,part=null;
     if(t.k==="mc"){if(a.sel!=null){given=t.o[a.sel];ok=a.sel===t.a;}}
+    else if(t.k==="checks"){var c=0;t.items.forEach(function(it,j){if(!!a.ms[j]===!!it[1])c++;});
+      part=a.ms.some(Boolean)?Math.max(0,c-(t.items.length-t.pts)):0;ok=part===t.pts;
+      given=t.items.map(function(it,j){return (a.ms[j]?"✓":"–");}).join(" ");right=t.items.map(function(it){return it[1]?"✓":"–";}).join(" ");}
+    else if(t.k==="nums"){var n=0;part=0;t.parts.forEach(function(p,j){var s=a.ps[j];if(s&&/\d/.test(s)&&Math.abs(parseNum(s)-p[1])<0.0005)part++;});ok=part===t.pts;
+      given=t.parts.map(function(p,j){return a.ps[j]||"—";}).join("; ");right=t.parts.map(function(p){return fm(p[1]);}).join("; ");}
+    else if(t.k==="rub"){given="";}
     else if(/\d/.test(a.txt)){given=a.txt;ok=Math.abs(parseNum(a.txt)-t.a)<0.0005;}
-    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:t.right,ok:ok,otext:a.otext,rub:t.rub,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0};});
+    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,rub:t.rub,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part};});
   var S=summarize(recs),g=grade12(S.score);
   var res={recs:recs,S:S,g:g,start:T0,end:end,dur:(end-T0)/1000,exits:EXITS,away:Math.round(AWAY)};
   showResult(res);saveResult(res);

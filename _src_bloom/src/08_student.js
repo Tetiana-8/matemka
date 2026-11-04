@@ -4,7 +4,7 @@ var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EX
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
   if(!c){if(MON)showConsM();else showCons();return;}
-  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
+  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
   catch(e){$("app").innerHTML='<div class="screen"><div class="card center">Посилання пошкоджене. Попросіть учителя надіслати його ще раз.</div></div>';return;}
   CFG.o=CFG.o||{};showStart();
 }
@@ -26,7 +26,7 @@ function startTest(){
   ST.sn=ST.sn.trim();ST.fn=ST.fn.trim();
   if(!ST.sn||!ST.fn){$("err").textContent="Введи прізвище та ім'я.";return;}
   T=(MON?buildMon:buildTest)(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
-  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false};});
+  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[]};});
   IX=0;DONE=false;EXITS=0;AWAY=0;away=false;T0=Date.now();END=T0+CFG.m*60000;
   document.addEventListener("visibilitychange",onVis);window.addEventListener("blur",onLeave);window.addEventListener("focus",onBack);
   window.onbeforeunload=function(){return DONE?undefined:"Робота ще не здана";};
@@ -35,6 +35,7 @@ function startTest(){
 function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();EXITS++;}
 function onBack(){if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
 function onVis(){if(document.hidden)onLeave();else onBack();}
+function answered(i){var a=ANS[i];return a.sel!=null||!!a.txt||!!a.otext.trim()||(a.ms&&a.ms.some(Boolean))||(a.ps&&a.ps.some(function(x){return x&&String(x).trim();}));}
 function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
   if(el){el.textContent=dur(left);el.className="tm"+(left<=300?" low":"");}
   if(left<=0)finish(true);}
@@ -42,9 +43,12 @@ function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
 function showQ(){
   var t=T[IX],A=ANS[IX],last=IX===T.length-1;
   var h='<div class="screen"><div class="card fill"><div class="top"><div>Завдання '+(IX+1)+' з '+T.length+'</div><div class="tm" id="tm">'+dur((END-Date.now())/1000)+'</div></div>';
-  h+='<div class="dots" id="dots">'+T.map(function(_,i){var a=ANS[i];return '<span data-i="'+i+'" class="'+((a.sel!=null||a.txt||a.otext.trim())?"a ":"")+(i===IX?"c":"")+'"></span>';}).join("")+'</div>';
-  h+='<div class="qbox"><div class="q">'+fmt(t.q)+'</div>';
+  h+='<div class="dots" id="dots">'+T.map(function(_,i){var a=ANS[i];return '<span data-i="'+i+'" class="'+(answered(i)?"a ":"")+(i===IX?"c":"")+'"></span>';}).join("")+'</div>';
+  h+='<div class="qbox">'+(t.stim?'<div class="stim">'+t.stim+'</div>':'')+(t.fig?'<div class="stim">'+t.fig+'</div>':'')+'<div class="q">'+fmt(t.q)+'</div>';
   if(t.k==="mc"){h+='<div class="opts" id="opts">'+t.o.map(function(o,i){return '<button class="opt'+(A.sel===i?" on":"")+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join("")+'</div>';}
+  else if(t.k==="checks"){h+='<div class="opts" id="chk" style="grid-template-columns:1fr">'+t.items.map(function(it,j){return '<button class="opt'+(A.ms[j]?' on':'')+'" data-j="'+j+'">'+(A.ms[j]?'✓ ':'')+fmt(it[0])+'</button>';}).join('')+'</div>';}
+  else if(t.k==="nums"){h+='<div id="nms">'+t.parts.map(function(p,j){return '<div class="nrow"><span>'+fmt(p[0])+'</span><input type="text" inputmode="decimal" autocomplete="off" data-j="'+j+'" value="'+esc(A.ps[j]||'')+'"></div>';}).join('')+'</div>';}
+  else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
   if(t.open)h+='<div class="open"><div class="lb">Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)</div><textarea id="ot">'+esc(A.otext)+'</textarea></div>';
@@ -52,9 +56,12 @@ function showQ(){
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
   if(t.k==="mc")$("opts").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;A.sel=+b.dataset.p;A.skip=false;Array.prototype.forEach.call(document.querySelectorAll(".opt"),function(x){x.classList.remove("on");});b.classList.add("on");};
+  else if(t.k==="checks")$("chk").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;var j=+b.dataset.j;A.ms[j]=!A.ms[j];A.skip=false;showQ();};
+  else if(t.k==="nums")Array.prototype.forEach.call(document.querySelectorAll("#nms input"),function(inp){inp.oninput=function(){A.ps[+inp.dataset.j]=this.value;A.skip=false;};});
+  else if(t.k==="rub"){}
   else $("pad").onclick=function(e){var b=e.target.closest("button");if(b)typeKey(b.dataset.k);};
   if(t.open)$("ot").oninput=function(){A.otext=this.value;};
-  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.skip=true;go(1);};
+  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.ms=[];A.ps=[];A.skip=true;go(1);};
   if($("bk"))$("bk").onclick=function(){go(-1);};
 }
 function go(d){if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
@@ -75,14 +82,20 @@ function parseNum(s){return Number(String(s).replace(/\s/g,"").replace("−","-"
 
 function finish(auto){
   if(DONE)return;
-  var blank=T.filter(function(t,i){var a=ANS[i];return a.sel==null&&!a.txt&&!a.otext.trim();}).length;
+  var blank=T.filter(function(t,i){return !answered(i);}).length;
   if(!auto&&blank>0&&!confirm("Є завдання без відповіді: "+blank+". Здати роботу?"))return;
   DONE=true;clearInterval(TMR);if(away)onBack();
   document.removeEventListener("visibilitychange",onVis);window.removeEventListener("blur",onLeave);window.removeEventListener("focus",onBack);window.onbeforeunload=null;
-  var end=Date.now(),recs=T.map(function(t,i){var a=ANS[i],ok=false,given="";
+  var end=Date.now(),recs=T.map(function(t,i){var a=ANS[i],ok=false,given="",right=t.right,part=null;
     if(t.k==="mc"){if(a.sel!=null){given=t.o[a.sel];ok=a.sel===t.a;}}
+    else if(t.k==="checks"){var c=0;t.items.forEach(function(it,j){if(!!a.ms[j]===!!it[1])c++;});
+      part=a.ms.some(Boolean)?Math.max(0,c-(t.items.length-t.pts)):0;ok=part===t.pts;
+      given=t.items.map(function(it,j){return (a.ms[j]?"✓":"–");}).join(" ");right=t.items.map(function(it){return it[1]?"✓":"–";}).join(" ");}
+    else if(t.k==="nums"){var n=0;part=0;t.parts.forEach(function(p,j){var s=a.ps[j];if(s&&/\d/.test(s)&&Math.abs(parseNum(s)-p[1])<0.0005)part++;});ok=part===t.pts;
+      given=t.parts.map(function(p,j){return a.ps[j]||"—";}).join("; ");right=t.parts.map(function(p){return fm(p[1]);}).join("; ");}
+    else if(t.k==="rub"){given="";}
     else if(/\d/.test(a.txt)){given=a.txt;ok=Math.abs(parseNum(a.txt)-t.a)<0.0005;}
-    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:t.right,ok:ok,otext:a.otext,rub:t.rub,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0};});
+    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,rub:t.rub,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part};});
   var S=summarize(recs),g=grade12(S.score);
   var res={recs:recs,S:S,g:g,start:T0,end:end,dur:(end-T0)/1000,exits:EXITS,away:Math.round(AWAY)};
   showResult(res);saveResult(res);

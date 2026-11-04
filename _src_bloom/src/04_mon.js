@@ -7,7 +7,7 @@
    - вхідний (К1+К2), проміжний (лише К1, за рішенням) і підсумковий зрізи;
    - учні не отримують оцінок за зріз. */
 
-var MK={s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
+var MK={mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
 function defYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;var a=m>=8?y:y-1;return a+"/"+String(a+1).slice(2);}
 function monId(s,g,tp){return xmur(s+g+tp.slice().sort().join(","))().toString(36).slice(0,5);}
 function monTitle(){return "Моніторинг: "+SUBJ[MK.s]+", "+MK.g+" клас";}
@@ -24,7 +24,7 @@ var MSLOT=[
   {L:"Ст",c:1,p:4,rb:1}
 ];
 function monSlots(pt){return MSLOT.filter(function(s){return pt!==2||s.c===1;});}
-function monCount(cfg){return monSlots(cfg.pt|0).length;}
+function monCount(cfg){if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0).length;}
 function monMax(pt){return monSlots(pt).reduce(function(a,s){return a+s.p;},0);}
 
 /* Попередній клас того самого предмета (опорний зміст для К2 вхідного зрізу) */
@@ -44,12 +44,16 @@ function monDefaults(){
   MK.m=monTime(MK.g);
 }
 
+function modeSeg(){return '<label>Джерело завдань</label><div class="seg" id="sMode"><button data-md="gen" class="'+(MK.mode==='kit'?'':'on')+'">Генератор (числа різні в учнів)</button><button data-md="kit" class="'+(MK.mode==='kit'?'on':'')+'">Комплекти адміністрації</button></div>';}
+function bindMode(){$("sMode").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.mode=b.dataset.md;MK.init=false;showConsM();};}
 function showConsM(){
+  if(MK.mode==="kit"){showKitCons();return;}
   if(!MK.yr)MK.yr=defYear();
   if(!MK.init){monDefaults();MK.init=true;}
   var cur=topicsOf(MK.s,MK.g),prev=prevTopics(MK.s,MK.g);
   var h='<div class="screen"><div class="card fill"><button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
   h+='<h1>Моніторинг за Блумом</h1><div class="sub">Динаміка шести рівнів мислення за рік: вхідний, проміжний і підсумковий зріз</div><div class="scroll">';
+  h+=modeSeg();
   h+='<label>Предмет</label><div class="seg" id="sSubj">';
   ["M","A","G"].forEach(function(s){h+='<button data-s="'+s+'" class="'+(MK.s===s?"on":"")+'">'+SUBJ[s]+'</button>';});
   h+='</div><label>Клас</label><div class="seg" id="sGr">';
@@ -73,7 +77,7 @@ function showConsM(){
   h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; завдання «оцінювання» і «створення» перевіряє вчитель за рубрикою 0–4 у панелі 🔑; два якірні завдання повторюються в усіх зрізах; проміжний зріз у грудні — лише наскрізні завдання К1 для учнів групи підтримки. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
   h+='</div></div></div>';
   $("app").innerHTML=h;
-  $("keyBtn").onclick=teacherPanelM;
+  $("keyBtn").onclick=teacherPanelM;bindMode();
   $("sSubj").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.s=b.dataset.s;if(GR[MK.s].indexOf(MK.g)<0)MK.g=GR[MK.s][0];MK.init=false;showConsM();};
   $("sGr").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.g=+b.dataset.g;MK.init=false;showConsM();};
   $("yr").oninput=function(){MK.yr=this.value;};
@@ -148,6 +152,7 @@ function buildMon2(cfg,name){
 
 /* Попередня версія (посилання v:1): по 2 завдання на рівень, однакові теми в обох точках */
 function buildMon(cfg,name){
+  if(cfg.v>=3)return buildKit(cfg);
   if(cfg.v>=2)return buildMon2(cfg,name);
   var spec=mkR("mon|"+cfg.id),chosen=[],key="mon|"+name+"|"+cfg.id+"|"+cfg.pt;
   LV.forEach(function(L,li){
