@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Взаємне розміщення двох прямих у просторі</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<style>
+/* Кольори 10 класу задаються один раз */
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --ink:#1e293b; --muted:#64748b; --line:#e9d5ff;
+  --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#2563eb; --orange:#ea580c; --violet:#7e22ce;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffffff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{height:100dvh;width:100%}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;font-size:14px;background:#fff}
+@media(min-width:768px){.app{font-size:15px}}
+@media(min-width:1024px){.app{font-size:17px}}
+@media(min-width:1280px){.app{font-size:20px}}
+@media(min-width:1536px){.app{font-size:22px}}
+.main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.left{order:2;height:55%;min-height:0;background:var(--panelLeft);position:relative;border-top:1px solid var(--line)}
+.right{order:1;height:45%;min-height:0;background:var(--panelRight);position:relative;overflow:hidden}
+@media(min-width:768px){
+  .main{flex-direction:row}
+  .left{order:1;height:auto;width:40%;border-top:0;border-right:1px solid var(--line)}
+  .right{order:2;height:auto;width:60%}
+}
+.left::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4.6em;background:linear-gradient(to top,var(--panelLeft) 60%,rgba(242,230,255,0));pointer-events:none;z-index:20}
+.lscroll{position:absolute;inset:0;overflow-y:auto;padding:.8em max(16px,env(safe-area-inset-left,0px)) 5em;scrollbar-width:thin}
+.nav{position:absolute;right:.7em;bottom:.6em;display:flex;gap:.5em;z-index:30;flex-wrap:wrap;justify-content:flex-end}
+.btn{min-height:44px;padding:0 1.05em;border-radius:999px;border:1px solid #d8b4fe;background:var(--brandLight);
+  color:var(--brand);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  box-shadow:0 2px 6px rgba(107,33,168,.12);transition:transform .15s,background .15s}
+.btn:hover{background:#ebdcff}.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+.btn.sm{min-height:40px;font-size:.92em;padding:0 .9em;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:.4em;margin:.55em 0}
+.tab{min-height:42px;padding:.2em .85em;border-radius:999px;border:1px solid #d8b4fe;background:#fff;color:var(--brand);
+  font:inherit;font-weight:700;cursor:pointer;line-height:1.15;text-align:center}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.tab.sq{min-width:44px}
+.tab.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+.tab.done.on{background:#16a34a;color:#fff}
+.box{background:#fff;border:2px solid var(--line);border-radius:.8em;padding:.75em .9em;margin:.5em 0}
+.box h4{margin:0 0 .25em;font-size:1em;color:var(--brand)}
+.box p{margin:0;font-weight:700;line-height:1.35}
+.note{background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em .8em;margin:.5em 0;line-height:1.4}
+.note b{font-weight:700}
+.lead{margin:.2em 0 .1em;line-height:1.4;font-weight:600}
+.key{background:#fef9c3;border:1px solid #fde047;border-radius:.7em;padding:.6em .8em;margin:.6em 0;line-height:1.4;font-weight:600}
+.key h5{margin:0 0 .15em;font-size:.82em;letter-spacing:.04em;text-transform:uppercase;color:#a16207}
+.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:600;white-space:nowrap}
+.cg{color:var(--green);font-weight:700}.cr{color:var(--red);font-weight:700}.cv{color:var(--violet);font-weight:700}
+.cb{color:var(--blue);font-weight:700}.co{color:var(--orange);font-weight:700}.ca{color:var(--amber);font-weight:700}
+.sliderRow{display:flex;align-items:center;gap:.7em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.35em .8em;margin:.45em 0}
+.sliderRow label{font-weight:700;min-width:5.2em;font-size:.95em;line-height:1.15}
+.sliderRow input[type=range]{flex:1;accent-color:var(--brand);height:30px;min-width:0}
+.sliderRow output{min-width:3.2em;text-align:right;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:.5em 0}
+.step{display:flex;gap:.5em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.55em .75em;line-height:1.4;animation:fadeUp .4s ease both}
+.step .sn{font-weight:800;color:var(--brand)}
+.step.last{border-color:#86efac;background:#f0fdf4}
+.down{align-self:center;width:46px;height:46px;border-radius:50%;border:1px solid #d8b4fe;background:var(--brandLight);color:var(--brand);
+  font-size:1.3em;cursor:pointer;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
+.fade{animation:fadeUp .45s ease both}
+.tools{position:absolute;left:.6em;top:.6em;display:flex;gap:.4em;z-index:5}
+.tool{width:44px;height:44px;border-radius:50%;border:1px solid #d8b4fe;background:#fff;color:var(--brand);cursor:pointer;display:grid;place-items:center;padding:0}
+.tool.on{background:var(--brand);color:#fff}
+.hint{position:absolute;right:.6em;top:.7em;display:flex;align-items:center;gap:.4em;background:rgba(255,255,255,.9);border:1px solid var(--line);
+  border-radius:999px;padding:.3em .75em;font-size:.82em;font-weight:700;color:var(--brand);pointer-events:none;z-index:5}
+.legend{position:absolute;left:.6em;bottom:.6em;display:flex;flex-wrap:wrap;gap:.2em .85em;background:rgba(255,255,255,.9);
+  padding:.35em .65em;border-radius:.6em;font-size:.82em;font-weight:700;max-width:calc(100% - 1.2em);z-index:5;border:1px solid var(--line)}
+.legend span{white-space:nowrap}
+.dot{display:inline-block;width:1em;height:.32em;border-radius:3px;margin-right:.35em;vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0}
+.chip{min-height:42px;padding:.15em .8em;border-radius:.7em;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;cursor:pointer;color:var(--ink);line-height:1.15}
+.chip.on{border-color:var(--brand);background:var(--brandLight);color:var(--brand)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em}
+.cnt{display:flex;gap:.5em;margin:.5em 0}
+.cnt div{flex:1;background:#fff;border:1px solid var(--line);border-radius:.7em;text-align:center;padding:.35em .2em;font-size:.88em;font-weight:600;line-height:1.2}
+.cnt b{display:block;font-size:1.5em;color:var(--brand);font-variant-numeric:tabular-nums}
+.cnt div.got{border-color:#86efac;background:#f0fdf4}
+.opt{display:flex;gap:.6em;align-items:flex-start;width:100%;text-align:left;min-height:46px;padding:.45em .75em;margin:.3em 0;border-radius:.7em;border:2px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.3}
+.opt b{color:var(--brand);min-width:1.1em}
+.opt.sel{border-color:var(--brand);background:var(--brandLight)}
+.opt.ok{border-color:#16a34a;background:#dcfce7}.opt.bad{border-color:#dc2626;background:#fee2e2;opacity:.85}
+.fb{border-radius:.7em;padding:.5em .8em;margin:.5em 0;font-weight:700;line-height:1.35}
+.fb.ok{background:#dcfce7;border:1px solid #86efac;color:#166534}.fb.bad{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.seg3{display:flex;gap:.25em}
+.seg3 button{min-height:40px;flex:1;border-radius:.55em;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:.82em;font-weight:700;color:var(--ink);cursor:pointer;padding:0 .2em;line-height:1.1}
+.seg3 button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.seg3 button.ok{background:#16a34a;color:#fff;border-color:#16a34a}.seg3 button.bad{background:#dc2626;color:#fff;border-color:#dc2626}
+.status{border-radius:.8em;padding:.6em .8em;margin:.5em 0;font-weight:700;line-height:1.35;border:2px solid;background:#fff;transition:background .2s,border-color .2s}
+.status.par{border-color:#86efac;background:#f0fdf4;color:#166534}
+.status.int{border-color:#d8b4fe;background:#faf5ff;color:#6b21a8}
+.status.skew{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+.status small{display:block;font-weight:600;color:var(--ink);margin-top:.15em}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1em;text-align:center}
+.start{background:var(--panelLeft)}
+.start h1{margin:.2em 0 .6em;font-size:2em;line-height:1.1;color:#1e1b4b;font-weight:800;animation:fadeUp .6s ease both}
+.start h1 span{color:var(--brand)}
+@media(min-width:768px){.start h1{font-size:2.6em}}
+.go{display:flex;align-items:center;gap:.9em;background:#fff;border:1px solid #e9d5ff;border-radius:999px;padding:.55em .6em .55em 1.4em;color:#581c87;font:inherit;font-weight:800;
+  letter-spacing:.14em;cursor:pointer;box-shadow:0 2px 10px rgba(88,28,135,.1);animation:pop .5s ease both}
+.go i{width:2.2em;height:2.2em;border-radius:50%;background:#f3e8ff;display:grid;place-items:center;font-style:normal;font-size:.8em}
+.menu{position:absolute;inset:0;overflow-y:auto;padding:1em max(16px,env(safe-area-inset-left,0px)) 5em;background:var(--panelLeft)}
+.menu h2{margin:.1em 0 .7em;font-size:1.25em;color:var(--brand)}
+.mgrid{display:grid;grid-template-columns:1fr;gap:.7em;max-width:70em;margin:0 auto}
+@media(min-width:768px){.mgrid{grid-template-columns:1fr 1fr}}
+.mcard{display:flex;align-items:center;gap:.9em;background:var(--panelRight);border:1px solid #e2e8f0;border-radius:.9em;padding:.8em 1em;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s;min-height:56px}
+.mcard:hover{border-color:#c084fc;background:#faf5ff;box-shadow:0 3px 12px rgba(107,33,168,.1)}
+.mcard .n{width:2.5em;height:2.5em;border-radius:50%;background:#ede9fe;color:#5b21b6;font-weight:800;display:grid;place-items:center;flex:none}
+.mcard b{display:block;line-height:1.2}.mcard small{color:var(--muted);font-weight:600}
+.clk{font:inherit;font-weight:800;background:none;border:0;border-bottom:2px dashed currentColor;border-radius:.2em;cursor:pointer;padding:0 .08em;line-height:1.35;text-align:left}
+.clk.on{background:#fef9c3;border-bottom-style:solid}
+.sign{flex:none;text-align:center;padding:.35em .5em;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:.78em;color:#64748b;letter-spacing:.02em}
+.sign b{color:#1e293b}
+svg text{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useContext, createContext } = React;
+
+/* ---------- векторна алгебра ---------- */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.sqrt(dot(a,a));
+const nrm=a=>{const l=len(a)||1;return mul(a,1/l);};
+const lerp=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const mid=(a,b)=>lerp(a,b,.5);
+const cen=arr=>mul(arr.reduce(add,[0,0,0]),1/arr.length);
+const rad=d=>d*Math.PI/180;
+const L=id=>String(id).replace(/1$/,'₁');
+const rectPlane=(Cn,e1,e2,hw,hh)=>[
+  add(Cn,add(mul(e1,hw),mul(e2,hh))),add(Cn,add(mul(e1,-hw),mul(e2,hh))),
+  add(Cn,add(mul(e1,-hw),mul(e2,-hh))),add(Cn,add(mul(e1,hw),mul(e2,-hh)))];
+const planeThrough=(P1,P2,P3,hw,hh)=>{
+  const e1=nrm(sub(P2,P1));const n=cross(sub(P2,P1),sub(P3,P1));const e2=nrm(cross(n,e1));
+  return rectPlane(cen([P1,P2,P3]),e1,e2,hw,hh);};
+
+/* взаємне розміщення двох прямих */
+function relLines(a1,a2,b1,b2){
+  const d1=sub(a2,a1),d2=sub(b2,b1),c=cross(d1,d2);
+  if(len(c)<1e-9) return len(cross(d1,sub(b1,a1)))<1e-9?'same':'par';
+  return Math.abs(dot(sub(b1,a1),c))<1e-9?'int':'skew';
+}
+
+/* ---------- кольори ---------- */
+const C={edge:'#334155',ink:'#0f172a',par:'#16a34a',int:'#7e22ce',skew:'#dc2626',inn:'#2563eb',
+  al:'#2563eb',be:'#ea580c',ga:'#7e22ce',gold:'#d97706',proj:'#ea580c',teal:'#0d9488',halo:'#FAF5FF'};
+const relCol={par:C.par,int:C.int,skew:C.skew};
+const relName={par:'Паралельні',int:'Перетинаються',skew:'Мимобіжні'};
+
+/* ---------- прості будівельники фігур ---------- */
+const boxP=(hx,hy,hz,sx=0,sy=0)=>({
+  A:[-hx,-hy,-hz],B:[hx,-hy,-hz],C:[hx,hy,-hz],D:[-hx,hy,-hz],
+  A1:[-hx+sx,-hy+sy,hz],B1:[hx+sx,-hy+sy,hz],C1:[hx+sx,hy+sy,hz],D1:[-hx+sx,hy+sy,hz]});
+const BOXF=[['A','B','C','D'],['A1','B1','C1','D1'],['A','B','B1','A1'],['B','C','C1','B1'],['C','D','D1','C1'],['D','A','A1','D1']];
+const BOXE=[['A','B'],['B','C'],['C','D'],['D','A'],['A1','B1'],['B1','C1'],['C1','D1'],['D1','A1'],['A','A1'],['B','B1'],['C','C1'],['D','D1']];
+const plane=(p,color,op=.14,sw=1.6)=>({t:'poly',p,fill:color,op,stroke:color,sw});
+const vp=(ids,c)=>ids.map(id=>({t:'pt',id,c:c||C.ink}));
+const sameEdge=(e,a,b)=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a);
+
+/* ---------- 3D-сцена (SVG, обертання мишею/пальцем) ---------- */
+function Scene3D({scene,yaw0=0.7,pitch0=0.42,auto0=false,bare=false,legend=null}){
+  const wrap=useRef(null);
+  const [sz,setSz]=useState({w:600,h:500});
+  const [cam,setCam]=useState({yaw:yaw0,pitch:pitch0});
+  const [auto,setAuto]=useState(auto0);
+  const drag=useRef(null),moved=useRef(false);
+
+  useEffect(()=>{
+    const el=wrap.current;
+    const upd=()=>setSz({w:el.clientWidth||600,h:el.clientHeight||500});
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();
+    return()=>ro.disconnect();
+  },[]);
+  useEffect(()=>{
+    if(!auto)return;let raf,last=performance.now();
+    const tick=t=>{const dt=t-last;last=t;
+      if(!drag.current)setCam(c=>({...c,yaw:c.yaw+dt*0.0005}));
+      raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  },[auto]);
+
+  const onDown=e=>{drag.current={x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,id:e.pointerId};moved.current=false;};
+  const onMove=e=>{
+    const d=drag.current;if(!d)return;
+    if(!moved.current){
+      if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;
+      moved.current=true;
+      try{e.currentTarget.setPointerCapture(d.id);}catch(_){}
+    }
+    const dx=e.clientX-d.px,dy=e.clientY-d.py;d.px=e.clientX;d.py=e.clientY;
+    setCam(c=>({yaw:c.yaw+dx*0.0085,pitch:Math.max(-1.25,Math.min(1.45,c.pitch+dy*0.0085))}));
+  };
+  const onUp=()=>{drag.current=null;setTimeout(()=>{moved.current=false;},0);};
+
+  const {w,h}=sz;
+  const R=scene.R||2.8,ctr=scene.ctr||[0,0,0],P=scene.P||{};
+  const D=R*5.5,S=Math.min(w,h)/(2*R)*0.97;
+  const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const tfv=v=>{const x1=v[0]*cy-v[1]*sy,y1=v[0]*sy+v[1]*cy;return[x1,y1*sp+v[2]*cp,y1*cp-v[2]*sp];};
+  const tf=p=>tfv(sub(p,ctr));
+  const pj=p=>{const q=tf(p),k=D/(D+q[2]);return{x:w/2+q[0]*k*S,y:h/2-q[1]*k*S,d:q[2]};};
+  const get=p=>typeof p==='string'?P[p]:p;
+  const fs=Math.max(15,Math.min(26,w/32)),big=w>900?1.25:1;
+
+  const polys=[],hid=[],vis=[],dots=[],lbls=[],hits=[];let kk=0;
+  const pushSeg=(a,b,o,hidden)=>{
+    const A=pj(get(a)),B=pj(get(b));const col=o.c||C.edge,sw=(o.w||2.2)*big;
+    const el=<line key={'s'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={col} strokeWidth={sw}
+      strokeLinecap="round" strokeDasharray={(hidden||o.dash)?`${sw*2.6} ${sw*2.2}`:undefined} opacity={hidden?.7:(o.op||1)}/>;
+    (hidden||o.dash?hid:vis).push(el);
+    if(o.arrow){
+      const ang=Math.atan2(B.y-A.y,B.x-A.x),s=fs*0.6;
+      vis.push(<polygon key={'a'+(kk++)} fill={col} points={`${B.x},${B.y} ${B.x-s*Math.cos(ang-.4)},${B.y-s*Math.sin(ang-.4)} ${B.x-s*Math.cos(ang+.4)},${B.y-s*Math.sin(ang+.4)}`}/>);
+    }
+    if(o.pick){
+      hits.push(<line key={'h'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="rgba(0,0,0,0.001)" strokeWidth={Math.max(18,fs)}
+        strokeLinecap="round" style={{cursor:'pointer'}} onClick={()=>{if(!moved.current)o.pick();}}/>);
+    }
+  };
+  const pushPoly=(pts3,o)=>{
+    const q=pts3.map(p=>pj(get(p)));const dm=q.reduce((s,a)=>s+a.d,0)/q.length-(o.lift||0);
+    polys.push({dm,el:<polygon key={'p'+(kk++)} points={q.map(a=>a.x+','+a.y).join(' ')} fill={o.fill||'none'} fillOpacity={o.op==null?.15:o.op}
+      stroke={o.stroke||'none'} strokeWidth={(o.sw||1.5)*big} strokeDasharray={o.dash?'6 5':undefined} strokeLinejoin="round"/>});
+  };
+
+  scene.prims.forEach(pr=>{
+    if(!pr)return;
+    if(pr.t==='poly')pushPoly(pr.p,pr);
+    else if(pr.t==='seg')pushSeg(pr.a,pr.b,pr,false);
+    else if(pr.t==='solid'){
+      const verts=[...new Set(pr.faces.flat())];const c0=cen(verts.map(get));
+      const em=new Map();
+      pr.faces.forEach((f,i)=>{
+        const p3=f.map(get);const n0=cross(sub(p3[1],p3[0]),sub(p3[2],p3[0]));
+        const n=dot(n0,sub(cen(p3),c0))<0?mul(n0,-1):n0;const front=tfv(n)[2]<0;
+        const fl=pr.fills&&pr.fills[i];
+        if(fl)pushPoly(f,{fill:fl[0],op:fl[1]});
+        else if(pr.tint)pushPoly(f,{fill:'#7c3aed',op:front?.06:.025});
+        f.forEach((v,j)=>{const u=f[(j+1)%f.length];const key=[v,u].sort().join('|');
+          const e=em.get(key)||{a:v,b:u,vis:false};e.vis=e.vis||front;em.set(key,e);});
+      });
+      em.forEach(e=>{
+        const st=(pr.estyle&&pr.estyle(e.a,e.b))||{};
+        pushSeg(e.a,e.b,{c:st.c||pr.c||C.edge,w:st.w||pr.w||2.4,pick:pr.pick?()=>pr.pick(e.a,e.b):null},!e.vis);
+      });
+    }
+    else if(pr.t==='pt'){
+      const p=pr.p||P[pr.id];const q=pj(p);const col=pr.c||C.ink;
+      dots.push(<circle key={'d'+(kk++)} cx={q.x} cy={q.y} r={(pr.r||fs*.27)*(big>1?1.1:1)} fill={col} stroke="#fff" strokeWidth="1.5"/>);
+      const label=pr.label===false?null:(pr.label||L(pr.id||''));
+      if(label){
+        let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+        if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+        const off=fs*(pr.off||1.0);
+        lbls.push(<text key={'l'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+          fontFamily='"Times New Roman",Georgia,serif' fontStyle="italic" fontWeight="700" fontSize={fs*(pr.size||1)} fill={pr.lc||col}
+          stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{label}</text>);
+      }
+    }
+    else if(pr.t==='txt'){
+      const q=pj(get(pr.p));let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+      if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+      const off=fs*(pr.off==null?.8:pr.off);
+      lbls.push(<text key={'t'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+        fontFamily={pr.upright?'-apple-system,Segoe UI,Roboto,sans-serif':'"Times New Roman",Georgia,serif'} fontStyle={pr.upright?'normal':'italic'}
+        fontWeight="700" fontSize={fs*(pr.size||1.1)} fill={pr.c||C.ink} stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{pr.s}</text>);
+    }
+  });
+  polys.sort((a,b)=>b.dm-a.dm);
+
+  return(
+    <div ref={wrap} style={{position:'absolute',inset:0}}>
+      <svg width={w} height={h} style={{position:'absolute',inset:0,touchAction:'none',cursor:drag.current?'grabbing':'grab',display:'block'}}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={()=>{if(!moved.current)drag.current=null;}}>
+        <g>{polys.map(p=>p.el)}</g><g>{hid}</g><g>{vis}</g><g>{dots}</g><g>{lbls}</g><g>{hits}</g>
+      </svg>
+      {!bare&&<div className="tools">
+        <button className="tool" aria-label="Скинути вигляд" title="Скинути вигляд" onClick={()=>setCam({yaw:yaw0,pitch:pitch0})}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button className={'tool'+(auto?' on':'')} aria-label="Автообертання" title="Автообертання" onClick={()=>setAuto(a=>!a)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M17 16l3.5.5.5-3.5"/></svg>
+        </button>
+      </div>}
+      {!bare&&<div className="hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10a2 2 0 0 1 4 0v3"/><path d="M9 11a2 2 0 0 0-4 0v3a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-2"/></svg>
+        Тягни — обертай
+      </div>}
+      {legend&&<div className="legend">{legend.map((l,i)=><span key={i}><i className="dot" style={{background:l[0]}}/>{l[1]}</span>)}</div>}
+    </div>
+  );
+}
+
+/* ---------- елементи інтерфейсу ---------- */
+const NavCtx=createContext(null);
+const M=({children})=><i className="m">{children}</i>;
+const Box=({title,children})=><div className="box"><h4>{title}</h4><p>{children}</p></div>;
+const Note=({children})=><div className="note">{children}</div>;
+const Key=({children})=><div className="key">{children}</div>;
+const Tabs=({items,val,set})=><div className="tabs">{items.map(([k,t])=><button key={k} className={'tab'+(val===k?' on':'')} onClick={()=>set(k)}>{t}</button>)}</div>;
+const Slider=({label,min,max,step=1,val,set,unit='°'})=>(
+  <div className="sliderRow"><label>{label}</label>
+    <input type="range" min={min} max={max} step={step} value={val} onChange={e=>set(parseFloat(e.target.value))}/>
+    <output>{val}{unit}</output></div>);
+function Steps({items,k,setK,label='Показати розв’язання'}){
+  return(<div className="steps">
+    {items.slice(0,k).map((t,i)=><div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}
+    {k===0&&<button className="btn" style={{alignSelf:'flex-start'}} onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&k<items.length&&<button className="down" aria-label="Далі" onClick={()=>setK(k+1)}>↓</button>}
+    {k>0&&<button className="btn ghost sm" style={{alignSelf:'flex-start'}} onClick={()=>setK(0)}>↻ Спочатку</button>}
+  </div>);
+}
+function Frame({left,scene,legend,yaw0,pitch0,camKey}){
+  const nav=useContext(NavCtx);
+  return(<>
+    <div className="left"><div className="lscroll">{left}</div>{nav}</div>
+    <div className="right"><Scene3D key={camKey} scene={scene} legend={legend} yaw0={yaw0} pitch0={pitch0}/></div>
+  </>);
+}
+const txtPl=(poly,i,s,c,lo)=>({t:'txt',p:poly[i],s,c,size:1.35,lo});
+const CUBE=boxP(1,1,1);
+const perp=(v,e)=>sub(v,mul(e,dot(v,e)));
+const linePlane=(P0,d,Q,n)=>add(P0,mul(d,dot(sub(Q,P0),n)/dot(d,n)));
+
+const para=(p0,e1,e2)=>[p0,add(p0,e1),add(add(p0,e1),e2),add(p0,e2)];
+const nmE=e=>L(e[0])+L(e[1]);
+const GR={edge:'#94a3b8',vert:'#475569',face:'#94a3b8',plane:'#94a3b8',txt:'#64748b'};
+const greyFills={0:[GR.face,.08],1:[GR.face,.08],2:[GR.face,.08],3:[GR.face,.08],4:[GR.face,.08],5:[GR.face,.08]};
+const colM='#ea580c',colP='#7e22ce',colX='#dc2626';
+const Clk=({c,on,onClick,children})=><button className={'clk'+(on?' on':'')} style={{color:c}} onClick={onClick}>{children}</button>;
+
+/* =====================================================================
+   Пункт 1. Три випадки взаємного розміщення
+   ===================================================================== */
+function Item1(){
+  const [tab,setTab]=useState('cases');const [ex,setEx]=useState(0);
+  const [sel,setSel]=useState(null);const [stage,setStage]=useState('par');
+  const [found,setFound]=useState({par:[],int:[],skew:[]});const [bad,setBad]=useState(false);
+  const exs=[null,{rel:'int',a:['A','B'],b:['A','A1']},{rel:'par',a:['A','B'],b:['D','C']},{rel:'skew',a:['A','A1'],b:['D','C']}];
+  const total={par:3,int:4,skew:4};
+  const stCol={par:C.gold,int:C.int,skew:C.skew};
+  const stName={par:'паралельні',int:'перетинаються',skew:'мимобіжні'};
+  const relOf=(i,j)=>relLines(CUBE[BOXE[i][0]],CUBE[BOXE[i][1]],CUBE[BOXE[j][0]],CUBE[BOXE[j][1]]);
+  const pick=(a,b)=>{
+    const i=BOXE.findIndex(e=>sameEdge(e,a,b));if(i<0)return;
+    if(sel===null){setSel(i);setBad(false);return;}
+    if(i===sel)return;
+    if(relOf(sel,i)===stage){setBad(false);setFound(f=>f[stage].includes(i)?f:{...f,[stage]:[...f[stage],i]});}
+    else setBad(true);
+  };
+  const reset=()=>{setSel(null);setFound({par:[],int:[],skew:[]});setBad(false);setStage('par');};
+  let sc,legend=null;
+  if(tab==='cases'){
+    const e=exs[ex];const pr=[];
+    pr.push({t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>e&&(sameEdge(e.a,a,b)||sameEdge(e.b,a,b))?{c:relCol[e.rel],w:5.4}:null});
+    if(e&&e.rel==='par')pr.push({t:'poly',p:BOXF[0],fill:C.al,op:.22});
+    if(e&&e.rel==='int')pr.push({t:'poly',p:BOXF[2],fill:C.al,op:.22});
+    pr.push(...vp(Object.keys(CUBE)));
+    sc={P:CUBE,prims:pr,R:2.7};
+  }else{
+    sc={P:CUBE,R:2.7,prims:[{t:'solid',faces:BOXF,fills:greyFills,c:GR.edge,w:2.8,pick,
+      estyle:(a,b)=>{const i=BOXE.findIndex(e=>sameEdge(e,a,b));
+        if(i===sel)return{c:C.gold,w:6.4};
+        if(sel!==null&&found[stage].includes(i))return{c:stCol[stage],w:6};
+        return null;}},...vp(Object.keys(CUBE),GR.vert)]};
+    if(sel!==null)legend=stage==='par'?[[C.gold,'обране ребро і паралельні до нього']]:[[C.gold,'обране ребро'],[stCol[stage],stName[stage]]];
+  }
+  const done=sel!==null&&found[stage].length===total[stage];
+  const nextSt={par:'int',int:'skew'};
+  const left=(<>
+    <Tabs val={tab} set={t=>{setTab(t);}} items={[['cases','Три випадки'],['explore','Дослідження на кубі']]}/>
+    {tab==='cases'&&<div className="fade">
+      <p className="lead">Дві прямі в просторі можуть розміщуватися <b>трьома способами</b>.</p>
+      <div className="note" style={{fontWeight:600}}>
+        <span className="cv">Перетинаються</span> — мають тільки одну спільну точку.<br/>
+        <span className="cg">Паралельні</span> — лежать в одній площині та не перетинаються.<br/>
+        <span className="cr">Мимобіжні</span> — не лежать в одній площині.
+      </div>
+      <div className="chips">
+        <button className={'chip'+(ex===1?' on':'')} onClick={()=>setEx(1)}><span className="cv">AB і AA₁</span></button>
+        <button className={'chip'+(ex===2?' on':'')} onClick={()=>setEx(2)}><span className="cg">AB і DC</span></button>
+        <button className={'chip'+(ex===3?' on':'')} onClick={()=>setEx(3)}><span className="cr">AA₁ і DC</span></button>
+      </div>
+      {ex===0&&<Note>Обери пару прямих на кубі <M>ABCDA₁B₁C₁D₁</M>.</Note>}
+      {ex===1&&<Note>Спільна точка одна — <M>A</M>. Прямі перетинаються, через них проходить площина <M>ABB₁</M>.</Note>}
+      {ex===2&&<Note>Прямі лежать в одній площині <M>ABC</M> і не мають спільних точок: <span className="cg"><M>AB ∥ DC</M></span>.</Note>}
+      {ex===3&&<Note>Спільних точок немає, і жодна площина не містить обох прямих. Прямі <span className="cr">мимобіжні</span>.</Note>}
+      <Key>У планіметрії є лише два випадки. У стереометрії з’являється третій — <b>мимобіжні прямі</b>: вони не перетинаються й не паралельні.</Key>
+    </div>}
+    {tab==='explore'&&<div className="fade">
+      {sel===null?<p className="lead">Клікни будь-яке ребро куба — воно засвітиться.</p>:<>
+        <p className="lead">Обране ребро <span className="ca"><M>{nmE(BOXE[sel])}</M></span>. Клікай ребра, які <span style={{color:stCol[stage],fontWeight:800}}>{stName[stage]}</span> з ним.</p>
+        <div className="chips">
+          {['par','int','skew'].map(s=><button key={s} className={'chip'+(stage===s?' on':'')} onClick={()=>{setStage(s);setBad(false);}}>
+            <span style={{color:stCol[s]}}>{stName[s][0].toUpperCase()+stName[s].slice(1)}</span></button>)}
+        </div>
+        <div className="cnt">
+          {['par','int','skew'].map(s=><div key={s} className={found[s].length===total[s]?'got':''}><b style={{color:stCol[s]}}>{found[s].length}/{total[s]}</b>{stName[s]}</div>)}
+        </div>
+        {bad&&<div className="fb bad">Це ребро не підходить. Спробуй інше.</div>}
+        {done&&<div className="fb ok">Знайдено всі: {total[stage]}.</div>}
+        {done&&nextSt[stage]&&<button className="btn" onClick={()=>{setStage(nextSt[stage]);setBad(false);}}>Далі: {stName[nextSt[stage]]} →</button>}
+        <div><button className="btn ghost sm" style={{marginTop:'.5em'}} onClick={reset}>↻ Обрати інше ребро</button></div>
+      </>}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} camKey={tab} yaw0={0.65} pitch0={0.42}/>;
+}
+
+/* =====================================================================
+   Пункт 2. Паралельні прямі
+   ===================================================================== */
+function Item2(){
+  const [tab,setTab]=useState('def');const [k,setK]=useState(0);
+  const [shown,setShown]=useState(false);const [phi,setPhi]=useState(40);
+  let sc,legend=null;
+  const goTab=t=>{setTab(t);setK(0);setShown(false);setPhi(40);};
+  if(tab==='def'){
+    const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2}];
+    if(k>=1)pr.push({t:'poly',p:BOXF[0],fill:C.al,op:.24});
+    if(k>=2)pr.push({t:'seg',a:'A',b:'B',c:C.par,w:5.6},{t:'seg',a:'D',b:'C',c:C.par,w:5.6});
+    pr.push(...vp(Object.keys(CUBE)));
+    sc={P:CUBE,prims:pr,R:2.8};
+    legend=k>=2?[[C.par,'AB ∥ DC'],[C.al,'площина ABC']]:(k>=1?[[C.al,'площина ABC']]:null);
+  }else{
+    const ok=shown&&Math.abs(phi)<=2;const f=rad(ok?0:phi);
+    const e1=[1,0,0],v=[0,1.4,0.5],e2=nrm(v),nn=cross(e1,e2);
+    const e2r=add(mul(e2,Math.cos(f)),mul(nn,Math.sin(f)));
+    const cl=ok?C.par:GR.txt,w=ok?5.4:3.6;
+    const m1=[-2.6,0,0],m2=[2.6,0,0],n1=add(m1,v),n2=add(m2,v);
+    const pr=[{t:'seg',a:m1,b:m2,c:cl,w},{t:'seg',a:n1,b:n2,c:cl,w},
+      {t:'txt',p:m2,s:'m',c:cl,size:1.4,lo:[1,0]},{t:'txt',p:n2,s:'n',c:cl,size:1.4,lo:[1,0]}];
+    if(shown){const pl=rectPlane(mul(e2r,.8),e1,e2r,2.7,1.4);pr.push(plane(pl,C.al,.18),txtPl(pl,3,'α',C.al));}
+    sc={P:{},prims:pr,R:3.2,ctr:[0,0.5,0.4]};
+  }
+  const left=(<>
+    <Tabs val={tab} set={goTab} items={[['def','Означення'],['thm','Теорема 29.1']]}/>
+    {tab==='def'&&<div className="fade">
+      <Box title="Означення">Дві прямі в просторі називають паралельними, якщо вони <span className="cb">лежать в одній площині</span> та <span className="cg">не перетинаються</span>.</Box>
+      <Steps k={k} setK={setK} label="Приклад на кубі" items={[
+        <>Прямі <M>AB</M> і <M>DC</M> <span className="cb">лежать в одній площині</span> <M>ABC</M>.</>,
+        <>У площині <M>ABC</M> вони є протилежними сторонами квадрата й <span className="cg">не мають спільних точок</span>.</>,
+        <>Отже, <span className="cg"><M>AB ∥ DC</M></span>.</>]}/>
+    </div>}
+    {tab==='thm'&&<div className="fade">
+      <Box title="Теорема 29.1">Через дві <span className="cg">паралельні прямі</span> проходить <span className="cb">площина</span>, і до того ж <span className="co">тільки одна</span>.</Box>
+      {!shown?<button className="btn" onClick={()=>{setShown(true);setPhi(40);}}>Показати площину</button>:<>
+        <Slider label="Поверни площину" min={-80} max={80} step={1} val={phi} set={setPhi}/>
+        {shown&&Math.abs(phi)<=2?<div className="fb ok">Площина <M>α</M> містить обидві прямі. Така площина <b>єдина</b>.</div>
+          :<Note>Площина <M>α</M> проходить через <M>m</M>. Знайди положення, у якому вона містить і <M>n</M>.</Note>}
+        <button className="btn ghost sm" onClick={()=>{setShown(false);setPhi(40);}}>Сховати площину</button>
+      </>}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} camKey={tab} legend={legend} yaw0={tab==='thm'?0.7:0.65} pitch0={tab==='thm'?0.35:0.42}/>;
+}
+
+/* =====================================================================
+   Пункт 3. Мимобіжні прямі
+   ===================================================================== */
+const TET={D:[0.2,0.1,1.8],A:[-1.5,-1.1,-0.9],B:[1.4,-0.9,-0.9],C:[0.2,1.5,-0.9]};
+const TETF=[['A','B','C'],['D','A','B'],['D','B','C'],['D','C','A']];
+const EXF={
+  cube:{P:CUBE,faces:BOXF,R:2.8,plane:['A','B','C','D'],pn:'ABC',a:['D','C'],b:['A','A1'],M:'A',
+    t:{in:<>Пряма <M>DC</M> лежить у площині <M>ABC</M>.</>,cross:<>Пряма <M>AA₁</M> перетинає площину <M>ABC</M> у точці <M>A</M>.</>,
+       notOn:<>Точка <M>A</M> не належить прямій <M>DC</M>.</>,skew:<>За ознакою прямі <M>DC</M> і <M>AA₁</M> — мимобіжні.</>}},
+  tet:{P:TET,faces:TETF,R:3.0,plane:['A','B','C'],pn:'ABC',a:['A','B'],b:['D','C'],M:'C',ctr:[0,0,0.2],
+    t:{in:<>Пряма <M>AB</M> лежить у площині <M>ABC</M>.</>,cross:<>Пряма <M>DC</M> перетинає площину <M>ABC</M> у точці <M>C</M>.</>,
+       notOn:<>Точка <M>C</M> не належить прямій <M>AB</M>.</>,skew:<>За ознакою прямі <M>AB</M> і <M>DC</M> — мимобіжні.</>}}};
+function exScene(fg,hl){
+  const F=EXF[fg];const show=n=>hl&&({in:['in'],cross:['cross'],notOn:['notOn'],skew:['skew']}[hl]||[]).includes(n);
+  const pr=[{t:'solid',faces:F.faces,c:GR.edge,w:2.8,fills:fg==='cube'?greyFills:{0:[GR.face,.08],1:[GR.face,.08],2:[GR.face,.08],3:[GR.face,.08]},
+    estyle:(a,b)=>{
+      if(sameEdge(F.a,a,b)&&hl&&hl!=='cross')return hl==='skew'?{c:C.skew,w:6}:{c:colM,w:6};
+      if(sameEdge(F.b,a,b)&&(hl==='cross'||hl==='skew'))return hl==='skew'?{c:C.skew,w:6}:{c:colP,w:6};
+      return null;}}];
+  if(hl)pr.push({t:'poly',p:F.plane,fill:C.al,op:hl==='skew'?.12:.26});
+  if(hl==='cross'||hl==='notOn'||hl==='skew')pr.push({t:'pt',id:F.M,c:colX,r:8});
+  pr.push(...vp(Object.keys(F.P),GR.vert));
+  return{P:F.P,prims:pr,R:F.R,ctr:F.ctr};
+}
+function Item3(){
+  const [tab,setTab]=useState('def');const [hl,setHl]=useState(null);const [fg,setFg]=useState('cube');
+  const [d,setD]=useState(0);const [third,setThird]=useState('D');
+  let sc,legend=null,yaw=0.6,pit=0.35;
+  if(tab==='def'){
+    const e=d===1?{a:['A','B'],b:['D','C'],c:C.par}:d===2?{a:['A','A1'],b:['D','C'],c:C.skew}:null;
+    const pr=[{t:'solid',faces:BOXF,c:GR.edge,w:2.8,fills:greyFills,estyle:(a,b)=>e&&(sameEdge(e.a,a,b)||sameEdge(e.b,a,b))?{c:e.c,w:5.6}:null}];
+    if(d===1)pr.push({t:'poly',p:BOXF[0],fill:C.al,op:.22});
+    pr.push(...vp(Object.keys(CUBE),GR.vert));
+    sc={P:CUBE,prims:pr,R:2.8};yaw=0.65;pit=0.42;
+  }
+  if(tab==='thm'){
+    /* рис. 29.6: площина α, пряма a у ній, пряма b перетинає α в точці M */
+    const al=para([-2.8,-1.5,0],[5.2,0,0],[1.4,3.0,0]);
+    const A1=[-1.5,0.1,0],A2=[2.9,0.1,0],M=[0.6,-0.7,0],dd=[0.35,0.25,1];
+    const b1=sub(M,mul(dd,1.15)),b2=add(M,mul(dd,1.7));
+    const hP=hl==='in'||hl==='cross'||hl==='notOn';
+    const ca=hl==='in'||hl==='notOn'?colM:hl==='skew'?C.skew:GR.txt;
+    const cb=hl==='cross'?colP:hl==='skew'?C.skew:GR.txt;
+    sc={P:{M},R:3.3,ctr:[0.3,0.1,0.4],prims:[plane(al,hP?C.al:GR.plane,hP?.2:.12),txtPl(al,0,'α',hP?C.al:GR.txt),
+      {t:'seg',a:A1,b:A2,c:ca,w:hl&&ca!==GR.txt?5.6:3.4},{t:'txt',p:A2,s:'a',c:ca,size:1.4,lo:[1,0]},
+      {t:'seg',a:b1,b:b2,c:cb,w:hl&&cb!==GR.txt?5.6:3.4},{t:'txt',p:b2,s:'b',c:cb,size:1.4,lo:[1,0]},
+      {t:'pt',id:'M',c:hl==='cross'||hl==='notOn'||hl==='skew'?colX:GR.vert,r:hl==='cross'||hl==='notOn'||hl==='skew'?9:6}]};
+    yaw=0.2;pit=0.5;
+  }
+  if(tab==='ex'){sc=exScene(fg,hl);yaw=0.6;pit=0.35;if(fg==='cube'){yaw=0.65;pit=0.42;}}
+  if(tab==='plane'){
+    const pl=planeThrough(TET.A,TET.B,TET[third],2.7,2.3);
+    sc={P:TET,R:3.0,ctr:[0,0,0.2],prims:[{t:'solid',faces:TETF,w:2.2},plane(pl,C.be,.2),{t:'seg',a:'A',b:'B',c:C.al,w:5.4},{t:'seg',a:'D',b:'C',c:C.skew,w:5.4},{t:'pt',id:third,c:C.ink,r:7},...vp(['A','B','C','D'])]};
+    legend=[[C.al,'AB'],[C.skew,'DC'],[C.be,'площина через AB']];
+  }
+  const goTab=t=>{setTab(t);setHl(null);setD(0);};
+  const hint=<p className="lead" style={{fontSize:'.92em',color:'#64748b'}}>Натискай на виділені слова — на малюнку засвітиться відповідний елемент.</p>;
+  const F=EXF[fg];
+  const left=(<>
+    <Tabs val={tab} set={goTab} items={[['def','Означення'],['thm','Теорема 29.2'],['ex','Приклади'],['plane','Спільної площини немає']]}/>
+    {tab==='def'&&<div className="fade">
+      <Box title="Означення">Дві прямі в просторі називають мимобіжними, якщо вони <span className="cr">не лежать в одній площині</span>.</Box>
+      <div className="chips">
+        <button className={'chip'+(d===1?' on':'')} onClick={()=>setD(1)}><span className="cg">AB і DC</span></button>
+        <button className={'chip'+(d===2?' on':'')} onClick={()=>setD(2)}><span className="cr">AA₁ і DC</span></button>
+      </div>
+      {d===1&&<Note>Прямі <M>AB</M> і <M>DC</M> лежать в одній площині <M>ABC</M>: вони <span className="cg">паралельні</span>.</Note>}
+      {d===2&&<Note>Прямі <M>AA₁</M> і <M>DC</M> не лежать в одній площині: вони <span className="cr">мимобіжні</span>.</Note>}
+    </div>}
+    {tab==='thm'&&<div className="fade">
+      <div className="box"><h4>Теорема 29.2 (ознака мимобіжних прямих)</h4>
+        <p>Якщо <Clk c={colM} on={hl==='in'} onClick={()=>setHl('in')}>одна з двох прямих лежить у площині</Clk>, а <Clk c={colP} on={hl==='cross'} onClick={()=>setHl('cross')}>друга перетинає цю площину в точці</Clk>, <Clk c={colX} on={hl==='notOn'} onClick={()=>setHl('notOn')}>яка не належить першій прямій</Clk>, то дані прямі є <Clk c={C.skew} on={hl==='skew'} onClick={()=>setHl('skew')}>мимобіжними</Clk>.</p></div>
+      {hint}
+      {hl&&<button className="btn ghost sm" onClick={()=>setHl(null)}>↻ Скинути</button>}
+    </div>}
+    {tab==='ex'&&<div className="fade">
+      <div className="chips">
+        <button className={'chip'+(fg==='cube'?' on':'')} onClick={()=>{setFg('cube');setHl(null);}}>Куб</button>
+        <button className={'chip'+(fg==='tet'?' on':'')} onClick={()=>{setFg('tet');setHl(null);}}>Тетраедр <M>DABC</M></button>
+      </div>
+      {[['in',colM],['cross',colP],['notOn',colX],['skew',C.skew]].map(([k,c],i)=>
+        <button key={k} className={'opt'+(hl===k?' sel':'')} onClick={()=>setHl(k)}><b style={{color:c}}>{i+1}.</b><span>{F.t[k]}</span></button>)}
+      {hl&&<button className="btn ghost sm" onClick={()=>setHl(null)}>↻ Скинути</button>}
+    </div>}
+    {tab==='plane'&&<div className="fade">
+      <Note>Спробуємо провести площину через <M>AB</M> так, щоб вона містила <M>DC</M>. Обери третю точку.</Note>
+      <div className="chips">
+        <button className={'chip'+(third==='D'?' on':'')} onClick={()=>setThird('D')}>Площина <M>ABD</M></button>
+        <button className={'chip'+(third==='C'?' on':'')} onClick={()=>setThird('C')}>Площина <M>ABC</M></button>
+      </div>
+      {third==='D'&&<Note>Площина <M>ABD</M> містить <M>AB</M>, а пряма <M>DC</M> лише перетинає її в точці <M>D</M>. Вона <span className="cr">не лежить</span> у цій площині.</Note>}
+      {third==='C'&&<Note>Площина <M>ABC</M> містить <M>AB</M>, а пряма <M>DC</M> лише перетинає її в точці <M>C</M>. Вона <span className="cr">не лежить</span> у цій площині.</Note>}
+      <Key>Через мимобіжні прямі не можна провести площину. Саме це й означає, що вони не лежать в одній площині.</Key>
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} camKey={tab+fg} yaw0={yaw} pitch0={pit}/>;
+}
+
+/* =====================================================================
+   Пункт 4. Лабораторія: рухай пряму b
+   ===================================================================== */
+function Item4(){
+  const [h,setH]=useState(1);const [phi,setPhi]=useState(45);const [seen,setSeen]=useState([]);
+  const HL=3.8,y0=0.8,ph=rad(phi);
+  const dir=[Math.cos(ph),Math.sin(ph),0];
+  const B0=[0,y0,h];
+  const a1=[-HL,0,0],a2=[HL,0,0],b1=sub(B0,mul(dir,HL)),b2=add(B0,mul(dir,HL));
+  const rel=relLines(a1,a2,b1,b2);
+  useEffect(()=>{setSeen(s=>s.includes(rel)?s:[...s,rel]);},[rel]);
+  const al=rectPlane([0,0.6,0],[1,0,0],[0,1,0],HL-0.2,2.3);
+  const pr=[plane(al,C.al,.13),txtPl(al,3,'α',C.al),{t:'seg',a:a1,b:a2,c:C.ink,w:4},{t:'seg',a:b1,b:b2,c:relCol[rel],w:5.4},
+    {t:'txt',p:a2,s:'a',c:C.ink,size:1.4,lo:[1,0]},{t:'txt',p:b2,s:'b',c:relCol[rel],size:1.4,lo:[1,0]}];
+  if(rel==='par'&&h!==0){
+    const e2=nrm(B0);pr.unshift(plane(rectPlane(mul(B0,.5),[1,0,0],e2,HL-0.2,len(B0)/2+0.8),C.par,.18));
+  }
+  if(rel==='int'){
+    const t=-y0/Math.sin(ph);pr.push({t:'pt',p:[t*Math.cos(ph),0,0],label:'M',c:C.int,r:7});
+  }
+  const info={par:['Прямі лежать в одній площині й не перетинаються.','Спільна площина показана зеленим.'],
+    int:['Є рівно одна спільна точка M.','Через дві прямі, що перетинаються, проходить єдина площина.'],
+    skew:['Спільних точок немає, і спільної площини теж немає.','Прямі не лежать в одній площині.']}[rel];
+  const left=(<>
+    <p className="lead">Пряма <M>a</M> нерухома й лежить у площині <M>α</M>. Рухай пряму <M>b</M> і знайди <b>всі три випадки</b>.</p>
+    <Slider label="Висота b над α" min={-2} max={2} step={0.5} val={h} set={setH} unit=""/>
+    <Slider label="Поворот b" min={0} max={150} step={15} val={phi} set={setPhi}/>
+    <div className={'status '+rel}>{relName[rel]}<small>{info[0]} {info[1]}</small></div>
+    <div className="cnt">
+      {['par','int','skew'].map(r=><div key={r} className={seen.includes(r)?'got':''}><b className={r==='par'?'cg':r==='int'?'cv':'cr'}>{seen.includes(r)?'✓':'·'}</b>{relName[r]}</div>)}
+    </div>
+    {seen.length===3&&<div className="fb ok">Усі три випадки знайдено!</div>}
+    <Key>Паралельні — коли <b>поворот 0°</b> (напрямки збігаються). Перетинаються — коли <b>висота 0</b> і поворот не нульовий. Інакше прямі мимобіжні.</Key>
+  </>);
+  const legend=[[C.ink,'пряма a'],[relCol[rel],'пряма b']];
+  return <Frame left={left} scene={{P:{},prims:pr,R:4.3,ctr:[0,0.4,0.2]}} legend={legend} yaw0={0.75} pitch0={0.4}/>;
+}
+
+/* =====================================================================
+   Пункт 5. Задачі
+   ===================================================================== */
+function Item5(){
+  const BX=boxP(1.5,1.1,1.0);
+  const pairs=[[['B','C'],['A1','C'],'BC і A₁C'],[['A','B'],['C1','D1'],'AB і C₁D₁'],[['B','D'],['C','C1'],'BD і CC₁'],
+    [['A','B1'],['D','C1'],'AB₁ і DC₁'],[['D','C1'],['B','B1'],'DC₁ і BB₁'],[['A','A1'],['C','C1'],'AA₁ і CC₁']];
+  const right1=pairs.map(p=>relLines(BX[p[0][0]],BX[p[0][1]],BX[p[1][0]],BX[p[1][1]]));
+  const [ti,setTi]=useState(0);const [tbl,setTbl]=useState(Array(6).fill(''));const [row,setRow]=useState(0);
+  const [done,setDone]=useState([false,false,false,false,false]);const [wrong,setWrong]=useState([[],[],[],[],[]]);
+  const [hov,setHov]=useState(null);const [ex3,setEx3]=useState(0);
+
+  const PY={S:[0.1,0.1,1.75],A:[-1.4,-1.3,-0.95],B:[1.4,-1.3,-0.95],C:[1.4,1.3,-0.95],D:[-1.4,1.3,-0.95]};
+  const pyF=[['A','B','C','D'],['S','A','B'],['S','B','C'],['S','C','D'],['S','D','A']];
+  const t2=['BC і CD','AB і AD','SC і BC','CD і SB','SD і BC'];
+  const T0=[['B','C'],['A','B']];
+  const skewAA1=BOXE.filter(e=>relLines(CUBE.A,CUBE.A1,CUBE[e[0]],CUBE[e[1]])==='skew');
+  const T=[null,
+    {q:<>Дано піраміду <M>SABCD</M>. Укажіть ребра, мимобіжні з ребром <M>SA</M>.</>,opts:t2,ok:0,
+      ex:<>Ребра <M>AB, AD, SB, SC, SD</M> мають із <M>SA</M> спільну точку. <M>BC</M> і <M>CD</M> не лежать з <M>SA</M> в одній площині.</>},
+    {q:<>Точки <M>A, B, C, D</M> не лежать в одній площині. Яке взаємне розміщення прямих <M>AB</M> і <M>CD</M>?</>,
+      opts:['Паралельні','Перетинаються','Мимобіжні','Збігаються','Визначити неможливо'],ok:2,
+      ex:<>Якби <M>AB</M> і <M>CD</M> лежали в одній площині, то й усі чотири точки лежали б в одній площині. Це суперечить умові, тому прямі мимобіжні.</>},
+    {q:<>Прямі <M>a</M> і <M>b</M> паралельні, пряма <M>c</M> перетинає <M>a</M>. Яким може бути розміщення прямих <M>c</M> і <M>b</M>?</>,
+      opts:['Тільки перетинаються','Тільки мимобіжні','Перетинаються або мимобіжні','Паралельні','Збігаються'],ok:2,
+      ex:<><M>c ∥ b</M> бути не може: тоді з <M>b ∥ a</M> випливало б <M>c ∥ a</M>, а <M>c</M> перетинає <M>a</M>. Обидва інші випадки можливі — перемикай приклади на кубі.</>},
+    {q:<>Скільки ребер куба мимобіжні з ребром <M>AA₁</M>?</>,opts:['2','3','4','6','8'],ok:2,
+      ex:<>З ребром <M>AA₁</M> перетинаються 4 ребра (<M>AB, AD, A₁B₁, A₁D₁</M>), паралельні 3 (<M>BB₁, CC₁, DD₁</M>). Решта 4 ребра — <M>BC, CD, B₁C₁, C₁D₁</M> — мимобіжні.</>}];
+
+  let sc,legend=null;
+  if(ti===0){
+    const p=pairs[row];
+    sc={P:BX,R:2.9,prims:[{t:'solid',faces:BOXF,tint:true,w:2.2},{t:'seg',a:p[0][0],b:p[0][1],c:C.gold,w:5.6},{t:'seg',a:p[1][0],b:p[1][1],c:C.inn,w:5.6},...vp(Object.keys(BX))]};
+    legend=[[C.gold,'перша пряма'],[C.inn,'друга пряма']];
+  }
+  if(ti===1){
+    const chosen=hov!=null?(hov===0?['BC','CD']:hov===1?['AB','AD']:hov===2?['SC','BC']:hov===3?['CD','SB']:['SD','BC']):(done[1]?['BC','CD']:null);
+    sc={P:PY,R:3.0,ctr:[0,0,0.2],prims:[{t:'solid',faces:pyF,tint:true,w:2.2,estyle:(a,b)=>{
+      const nm=[a+b,b+a];
+      if(nm.includes('SA'))return{c:C.gold,w:6};
+      if(chosen&&chosen.some(n=>nm.includes(n)))return{c:done[1]?C.skew:C.inn,w:6};
+      return null;}},...vp(Object.keys(PY))]};
+    legend=[[C.gold,'SA'],[C.inn,'вибрані ребра']];
+  }
+  if(ti===2){
+    const Pt={D:[0.2,0.1,1.8],A:[-1.5,-1.1,-0.9],B:[1.4,-0.9,-0.9],C:[0.2,1.5,-0.9]};
+    sc={P:Pt,R:3.0,ctr:[0,0,0.2],prims:[{t:'solid',faces:[['A','B','C'],['D','A','B'],['D','B','C'],['D','C','A']],w:2.2,
+      estyle:(a,b)=>sameEdge(['A','B'],a,b)?{c:C.gold,w:5.6}:sameEdge(['C','D'],a,b)?{c:C.inn,w:5.6}:null},...vp(['A','B','C','D'])]};
+    legend=[[C.gold,'AB'],[C.inn,'CD']];
+  }
+  if(ti===3){
+    const E=ex3===0?['A','D']:['A','A1'];
+    sc={P:CUBE,R:2.8,prims:[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>sameEdge(['A','B'],a,b)?{c:C.gold,w:5.4}:sameEdge(['D','C'],a,b)?{c:C.par,w:5.4}:sameEdge(E,a,b)?{c:C.skew,w:5.4}:null},...vp(Object.keys(CUBE))]};
+    legend=[[C.gold,'a = AB'],[C.par,'b = DC (b ∥ a)'],[C.skew,'c']];
+  }
+  if(ti===4){
+    sc={P:CUBE,R:2.8,prims:[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>sameEdge(['A','A1'],a,b)?{c:C.gold,w:6}:
+      (done[4]&&skewAA1.some(e=>sameEdge(e,a,b)))?{c:C.skew,w:5.4}:null},...vp(Object.keys(CUBE))]};
+    legend=done[4]?[[C.gold,'AA₁'],[C.skew,'мимобіжні ребра']]:[[C.gold,'AA₁']];
+  }
+
+  const d0=tbl.every((x,i)=>x===right1[i]);
+  const isDone=i=>i===0?d0:done[i];
+  const tabs=<div className="tabs">{[0,1,2,3,4].map(i=><button key={i} className={'tab sq'+(ti===i?' on':'')+(isDone(i)?' done':'')} onClick={()=>setTi(i)}>{isDone(i)?'✓ ':''}{i+1}</button>)}</div>;
+  const choose=i=>{
+    if(done[ti]||wrong[ti].includes(i))return;
+    if(i===T[ti].ok){const d=[...done];d[ti]=true;setDone(d);}
+    else{const w=wrong.map(x=>[...x]);w[ti].push(i);setWrong(w);}
+  };
+  const left=(<>
+    {tabs}
+    {ti===0&&<div className="fade">
+      <Note>Дано прямокутний паралелепіпед <M>ABCDA₁B₁C₁D₁</M>. Укажіть взаємне розміщення прямих.</Note>
+      <div className="cnt"><div><b>{row+1}/6</b>пара</div><div><b className="cg">{tbl.filter((x,i)=>x===right1[i]).length}</b>правильно</div></div>
+      <p className="lead" style={{textAlign:'center',fontSize:'1.15em'}}><M>{pairs[row][2]}</M></p>
+      <div className="seg3" style={{flexDirection:'column'}}>{['int','par','skew'].map(v=>{
+        const ans=tbl[row];const good=ans===v&&v===right1[row];const bad=ans===v&&v!==right1[row];
+        return <button key={v} className={good?'ok':bad?'bad':''} style={{minHeight:46,fontSize:'.95em'}} disabled={ans===right1[row]}
+          onClick={()=>{const t=[...tbl];t[row]=v;setTbl(t);}}>{relName[v]}</button>;})}</div>
+      {tbl[row]&&tbl[row]===right1[row]&&<div className="fb ok">Правильно!</div>}
+      {tbl[row]&&tbl[row]!==right1[row]&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {tbl[row]===right1[row]&&row<5&&<button className="btn" onClick={()=>setRow(row+1)}>Наступна пара →</button>}
+      {tbl[row]===right1[row]&&row===5&&<div className="fb ok">Усі пари розібрано!</div>}
+    </div>}
+    {ti>=1&&<div className="fade">
+      <Note>{T[ti].q}</Note>
+      {ti===3&&<div className="chips">
+        <button className={'chip'+(ex3===0?' on':'')} onClick={()=>setEx3(0)}>Приклад 1: <M>c = AD</M></button>
+        <button className={'chip'+(ex3===1?' on':'')} onClick={()=>setEx3(1)}>Приклад 2: <M>c = AA₁</M></button>
+      </div>}
+      {ti===3&&<Note>{ex3===0?<><M>AD</M> перетинає <M>AB</M> і <M>DC</M>. Для <M>c</M> і <M>b</M> маємо <span className="cv">перетин</span> у точці <M>D</M>.</>:<><M>AA₁</M> перетинає <M>AB</M> у точці <M>A</M>, а з <M>DC</M> спільних точок не має. Для <M>c</M> і <M>b</M> маємо <span className="cr">мимобіжні</span>.</>}</Note>}
+      {T[ti].opts.map((o,i)=>{
+        const isOk=done[ti]&&i===T[ti].ok,isBad=wrong[ti].includes(i);
+        return <button key={i} className={'opt'+(isOk?' ok':isBad?' bad':'')} disabled={isBad} onMouseEnter={()=>ti===1&&setHov(i)} onMouseLeave={()=>ti===1&&setHov(null)}
+          onFocus={()=>ti===1&&setHov(i)} onClick={()=>{choose(i);if(ti===1)setHov(i);}}><b>{'АБВГД'[i]}</b><span>{o}</span></button>;})}
+      {done[ti]&&<div className="fb ok">Правильно! <span style={{fontWeight:600}}>{T[ti].ex}</span></div>}
+      {!done[ti]&&wrong[ti].length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {done[ti]&&ti<4&&<button className="btn" onClick={()=>setTi(ti+1)}>Наступне завдання →</button>}
+      {d0&&done.slice(1).every(Boolean)&&ti===4&&<div className="fb ok">Усі завдання виконано правильно!</div>}
+    </div>}
+  </>);
+  return <Frame left={left} scene={sc} legend={legend} yaw0={0.6} pitch0={0.4}/>;
+}
+
+/* =====================================================================
+   Пункт 6. Вправи з підручника (п. 29)
+   ===================================================================== */
+const Yb={f:'#fde047',s:'#a16207',v:'#a99bdc',vs:'#5b4aa8',ln:'#111827',ans:'#dc2626'};
+const ppl=(p,fill,st,op=.55)=>({t:'poly',p,fill,op,stroke:st,sw:2});
+const sg=(a,b,c=Yb.ln,w=2.8,dash)=>({t:'seg',a,b,c,w,dash});
+const lab=(p,s,c=Yb.ln,lo=[1,0])=>({t:'txt',p,s,c,size:1,upright:true,lo});
+const BX6=boxP(1.5,1.1,1.0);
+const PL6=para([-2.6,-1.3,0],[5.4,0,0],[1.3,2.6,0]);
+const DR=[0.3,0.25,-1];
+const foot=p=>linePlane(p,DR,[0,0,0],[0,0,1]);
+const relOpt={par:'Паралельні',int:'Перетинаються',skew:'Мимобіжні'};
+
+function mkBoxTask(i,l1,l2,ord,planePts,ex){
+  const r=relLines(BX6[l1[0]],BX6[l1[1]],BX6[l2[0]],BX6[l2[1]]);
+  const nm=(a)=>L(a[0])+L(a[1]);
+  return{lbl:'29.4 ('+i+')',cam:[0.6,0.4],
+    q:<><b>29.4 ({i}).</b> Дано прямокутний паралелепіпед <M>ABCDA₁B₁C₁D₁</M>. Укажіть взаємне розміщення прямих <M>{nm(l1)}</M> і <M>{nm(l2)}</M>.</>,
+    opts:ord.map(x=>relOpt[x]),ok:ord.indexOf(r),ex,
+    mk:(dn)=>{
+      const col=dn?relCol[r]:null;
+      const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2}];
+      if(dn){
+        pr.push(sg(l1[0],l1[1],C.gold,6),sg(l2[0],l2[1],C.inn,6));
+        if(planePts)pr.push({t:'poly',p:planePts,fill:C.al,op:.2});
+        if(r==='int'){const sh=l1.find(x=>l2.includes(x));pr.push({t:'pt',id:sh,c:Yb.ans,r:8});}
+      }
+      pr.push(...vp(Object.keys(BX6)));
+      return{sc:{P:BX6,R:2.9,prims:pr},legend:dn?[[C.gold,nm(l1)],[C.inn,nm(l2)],[col,relOpt[r]]]:null};
+    }};
+}
+const cubeDone=(edges,col)=>(dn,extra=[])=>{
+  const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>sameEdge(['C','D'],a,b)?{c:C.gold,w:6}:(dn&&edges.some(e=>sameEdge(e,a,b))?{c:col,w:5.6}:null)},...vp(Object.keys(CUBE))];
+  return{sc:{P:CUBE,R:2.8,prims:pr},legend:dn?[[C.gold,'CD'],[col,'шукані ребра']]:[[C.gold,'CD']]};
+};
+
+const T6=[
+ {lbl:'29.1 (1)',cam:[0.65,0.42],q:<><b>29.1 (1).</b> Дано куб <M>ABCDA₁B₁C₁D₁</M>. Яка група його ребер паралельна ребру <M>CD</M>?</>,
+  opts:['AA₁, BB₁, DD₁','AB, A₁B₁, C₁D₁','BC, AD, B₁C₁','AA₁, BB₁, A₁D₁, B₁C₁','CC₁, DD₁, AD, BC'],ok:1,
+  ex:<>З ребром <M>CD</M> паралельні <M>AB</M>, <M>A₁B₁</M> і <M>C₁D₁</M>: кожне з них лежить з <M>CD</M> в одній площині грані куба й не перетинає його.</>,
+  mk:cubeDone([['A','B'],['A1','B1'],['C1','D1']],C.par)},
+ {lbl:'29.1 (2)',cam:[0.65,0.42],q:<><b>29.1 (2).</b> Дано куб <M>ABCDA₁B₁C₁D₁</M>. Яка група його ребер мимобіжна з ребром <M>CD</M>?</>,
+  opts:['AB, A₁B₁, C₁D₁','BC, AD, CC₁, DD₁','AA₁, BB₁, A₁D₁, B₁C₁','AA₁, BB₁, CC₁, DD₁','BC, B₁C₁, AD, A₁D₁'],ok:2,
+  ex:<>Ребра <M>BC, AD, CC₁, DD₁</M> перетинають <M>CD</M>, ребра <M>AB, A₁B₁, C₁D₁</M> паралельні йому. Решта — <M>AA₁, BB₁, A₁D₁, B₁C₁</M> — мимобіжні.</>,
+  mk:cubeDone([['A','A1'],['B','B1'],['A1','D1'],['B1','C1']],C.skew)},
+ mkBoxTask(1,['B','C'],['A1','C'],['par','int','skew'],['B','C','A1'],<>Прямі <M>BC</M> і <M>A₁C</M> мають спільну точку <M>C</M>, тому перетинаються.</>),
+ mkBoxTask(2,['A','B'],['C1','D1'],['skew','int','par'],['A','B','C1','D1'],<>Прямі <M>AB</M> і <M>C₁D₁</M> лежать в одній площині <M>ABC₁</M> і не мають спільних точок, тому паралельні.</>),
+ mkBoxTask(3,['B','D'],['C','C1'],['skew','par','int'],null,<>Пряма <M>BD</M> лежить у площині <M>ABC</M>, пряма <M>CC₁</M> перетинає цю площину в точці <M>C</M>, яка не належить прямій <M>BD</M>. За ознакою прямі мимобіжні.</>),
+ mkBoxTask(4,['A','B1'],['D','C1'],['int','skew','par'],['A','B1','C1','D'],<>Чотирикутник <M>AB₁C₁D</M> — прямокутник, тому <M>AB₁ ∥ DC₁</M>.</>),
+ mkBoxTask(5,['D','C1'],['B','B1'],['par','int','skew'],null,<>Пряма <M>BB₁</M> лежить у площині <M>BCC₁</M>, пряма <M>DC₁</M> перетинає її в точці <M>C₁</M>, яка не належить прямій <M>BB₁</M>. Прямі мимобіжні.</>),
+ mkBoxTask(6,['A','A1'],['C','C1'],['int','par','skew'],['A','A1','C1','C'],<>Прямі <M>AA₁</M> і <M>CC₁</M> лежать в одній площині <M>AA₁C₁C</M> і не перетинаються, тому паралельні.</>),
+ {lbl:'29.5 (1)',cam:[0.65,0.42],q:<><b>29.5 (1).</b> Чи є правильним твердження: дві прямі, які не є паралельними, мають спільну точку?</>,opts:['Так','Ні'],ok:1,
+  ex:<>Мимобіжні прямі не паралельні й не мають спільних точок. Наприклад, <M>AA₁</M> і <M>DC</M>.</>,
+  mk:(dn)=>({sc:{P:CUBE,R:2.8,prims:[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>dn&&(sameEdge(['A','A1'],a,b)||sameEdge(['D','C'],a,b))?{c:C.skew,w:5.6}:null},...vp(Object.keys(CUBE))]},legend:dn?[[C.skew,'AA₁ і DC — мимобіжні']]:null})},
+ {lbl:'29.5 (2)',cam:[0.65,0.42],q:<><b>29.5 (2).</b> Чи є правильним твердження: дві прямі, які не є мимобіжними, лежать в одній площині?</>,opts:['Ні','Так'],ok:1,cases:['AB і DC','AB і AA₁'],
+  ex:<>Так. За означенням мимобіжні прямі не лежать в одній площині, тому всі інші прямі лежать в одній площині.</>,
+  mk:(dn,cs)=>{const e=cs===0?[['A','B'],['D','C']]:[['A','B'],['A','A1']];const c=cs===0?C.par:C.int;
+    const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>dn&&e.some(x=>sameEdge(x,a,b))?{c,w:5.6}:null}];
+    if(dn)pr.push({t:'poly',p:cs===0?BOXF[0]:BOXF[2],fill:C.al,op:.22});pr.push(...vp(Object.keys(CUBE)));
+    return{sc:{P:CUBE,R:2.8,prims:pr},legend:dn?[[c,cs===0?'паралельні':'перетинаються'],[C.al,'спільна площина']]:null};}},
+ {lbl:'29.5 (3)',cam:[0.65,0.42],q:<><b>29.5 (3).</b> Чи є правильним твердження: дві прямі є мимобіжними, якщо вони не перетинаються і не паралельні?</>,opts:['Так','Ні'],ok:0,
+  ex:<>Є лише три випадки: прямі перетинаються, паралельні або мимобіжні. Якщо перших двох немає, залишається третій.</>,
+  mk:(dn)=>({sc:{P:CUBE,R:2.8,prims:[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(a,b)=>dn&&(sameEdge(['A','A1'],a,b)||sameEdge(['D','C'],a,b))?{c:C.skew,w:5.6}:null},...vp(Object.keys(CUBE))]},legend:dn?[[C.skew,'AA₁ і DC — мимобіжні']]:null})},
+ {lbl:'29.7',cam:[0.6,0.35],q:<><b>29.7.</b> Трикутники <M>ABC</M> і <M>ADB</M> лежать у різних площинах. Яким є взаємне розміщення прямих <M>AD</M> і <M>BC</M>?</>,
+  opts:['Перетинаються','Паралельні','Збігаються','Мимобіжні','Визначити неможливо'],ok:3,
+  ex:<>Пряма <M>BC</M> лежить у площині <M>ABC</M>, пряма <M>AD</M> перетинає цю площину в точці <M>A</M>, яка не належить прямій <M>BC</M>. За ознакою мимобіжних прямих <M>AD</M> і <M>BC</M> — мимобіжні.</>,
+  mk:(dn)=>{const pr=[ppl(['A','B','C'],Yb.f,Yb.s,.6),ppl(['A','D','B'],Yb.v,Yb.vs,.55)];
+    if(dn)pr.push(sg('A','D',Yb.ans,5.6),sg('B','C',Yb.ans,5.6));
+    pr.push(...vp(['A','B','C','D']));
+    return{sc:{P:TET,R:3.0,ctr:[0,0,0.2],prims:pr},legend:dn?[[Yb.ans,'AD і BC — мимобіжні']]:null};}},
+ {lbl:'29.8 (1)',cam:[0.65,0.42],q:<><b>29.8 (1).</b> Яким може бути взаємне розміщення прямих <M>b</M> і <M>c</M>, якщо прямі <M>a</M> і <M>b</M> перетинаються, а прямі <M>a</M> і <M>c</M> паралельні?</>,
+  opts:['Тільки перетинаються','Тільки мимобіжні','Перетинаються або мимобіжні','Паралельні','Збігаються'],ok:2,cases:['Приклад 1: b = AD','Приклад 2: b = AA₁'],
+  ex:<>Паралельними <M>b</M> і <M>c</M> бути не можуть: тоді <M>b</M> була б паралельна й прямій <M>a</M>, а вона її перетинає. Обидва інші випадки трапляються — перемикай приклади.</>,
+  mk:(dn,cs)=>{const b=cs===0?['A','D']:['A','A1'];
+    const E=[['A','B',C.par,'a'],['D','C',colM,'c'],[b[0],b[1],C.inn,'b']];
+    const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(x,y)=>{const e=E.find(q=>sameEdge([q[0],q[1]],x,y));return e?{c:e[2],w:5.6}:null;}}];
+    E.forEach(e=>pr.push({t:'txt',p:mid(CUBE[e[0]],CUBE[e[1]]),s:e[3],c:e[2],size:1.5}));
+    return{sc:{P:CUBE,R:2.8,prims:pr},legend:[[C.par,'a'],[C.inn,'b (перетинає a)'],[colM,'c (c ∥ a)'],...(dn?[[GR.txt,cs===0?'b і c перетинаються':'b і c мимобіжні']]:[])]};}},
+ {lbl:'29.8 (2)',cam:[0.65,0.42],q:<><b>29.8 (2).</b> Яким може бути взаємне розміщення прямих <M>b</M> і <M>c</M>, якщо прямі <M>a</M> і <M>b</M> паралельні, а прямі <M>a</M> і <M>c</M> мимобіжні?</>,
+  opts:['Паралельні','Перетинаються або мимобіжні','Тільки мимобіжні','Тільки перетинаються','Збігаються'],ok:1,cases:['Приклад 1: c = CC₁','Приклад 2: c = B₁C₁'],
+  ex:<>Якби <M>b ∥ c</M>, то й <M>a ∥ c</M>, а прямі <M>a</M> і <M>c</M> мимобіжні. Отже, <M>b</M> і <M>c</M> перетинаються або мимобіжні — перемикай приклади.</>,
+  mk:(dn,cs)=>{const c=cs===0?['C','C1']:['B1','C1'];
+    const E=[['A','B',C.par,'a'],['D','C',colM,'b'],[c[0],c[1],C.inn,'c']];
+    const pr=[{t:'solid',faces:BOXF,tint:true,w:2.2,estyle:(x,y)=>{const e=E.find(q=>sameEdge([q[0],q[1]],x,y));return e?{c:e[2],w:5.6}:null;}}];
+    E.forEach(e=>pr.push({t:'txt',p:mid(CUBE[e[0]],CUBE[e[1]]),s:e[3],c:e[2],size:1.5}));
+    return{sc:{P:CUBE,R:2.8,prims:pr},legend:[[C.par,'a'],[colM,'b (b ∥ a)'],[C.inn,'c (мимобіжна з a)'],...(dn?[[GR.txt,cs===0?'c і b перетинаються':'c і b мимобіжні']]:[])]};}},
+ {lbl:'29.9',cam:[0.7,0.4],q:<><b>29.9.</b> Скільки площин можуть задавати три попарно паралельні прямі?</>,
+  opts:['Дві','Одну','Безліч','Одну або три','Три'],ok:3,cases:['Лежать в одній площині','Не лежать в одній площині'],
+  ex:<>Якщо прямі лежать в одній площині, вона єдина. Якщо ні, кожна пара прямих задає свою площину, і всього їх три.</>,
+  mk:(dn,cs)=>{
+    const d=nrm([0,0.35,1]);
+    const co=dn&&cs===0;
+    const Q=co?[[-1.5,0,0],[0,0,0],[1.5,0,0]]:[[-1.4,-0.8,0],[1.3,-0.5,0],[0.1,1.2,0]];
+    const pr=[];const cl=['m','n','p'];
+    Q.forEach((q,i)=>{pr.push(sg(sub(q,mul(d,2.2)),add(q,mul(d,2.2)),dn?C.par:GR.txt,4),{t:'txt',p:add(q,mul(d,2.2)),s:cl[i],c:dn?C.par:GR.txt,size:1.4,lo:[0,-1]});});
+    const cols=[C.al,C.be,C.ga];
+    if(dn){
+      if(cs===0){const pl=rectPlane([0,0,0],[1,0,0],nrm(perp(d,[1,0,0])),2.4,2.0);pr.push(plane(pl,C.al,.16));}
+      else[[0,1],[1,2],[0,2]].forEach(([i,j],t)=>{const qi=Q[i],qj=Q[j];const e1=nrm(sub(qj,qi));const e2=nrm(perp(d,e1));
+        pr.push(plane(rectPlane(mid(qi,qj),e1,e2,len(sub(qj,qi))/2+0.5,2.0),cols[t],.15));});
+    }
+    return{sc:{P:{},R:3.1,ctr:[0,0,0],prims:pr},legend:dn?(cs===0?[[C.al,'одна площина']]:[[C.al,'площина (m, n)'],[C.be,'площина (n, p)'],[C.ga,'площина (m, p)']]):null};}},
+ (()=>{const mk10=(i,k,qtext,opts,ok,ex,given,ans)=>{
+    const A=[-1.5,-0.5,0],B=[0.9,0.1,2.0],Cc=lerp(A,B,k),B1=foot(B),C1=foot(Cc);
+    return{lbl:'29.10 ('+i+')',cam:[0,0.3],q:qtext,opts,ok,ex,
+      mk:(dn)=>{const P={A,B,C:Cc,B1,C1};
+        const pr=[ppl(PL6,Yb.f,Yb.s,.6),txtPl(PL6,0,'α',Yb.s),sg('A','B'),sg('B','B1'),sg('C','C1'),...given(A,B,Cc,B1,C1),...vp(['A','B','C','B1','C1'])];
+        if(dn)pr.push(...ans(A,B,Cc,B1,C1));
+        return{sc:{P,R:2.9,ctr:[0.3,0.1,0.8],prims:pr},legend:dn?[[Yb.ans,'шуканий відрізок']]:null};}};};
+   const t1=mk10(1,0.5,<><b>29.10 (1).</b> Кінець <M>A</M> відрізка <M>AB</M> належить площині <M>α</M>. Через точку <M>B</M> і точку <M>C</M>, що належить відрізку <M>AB</M>, проведено паралельні прямі, які перетинають площину <M>α</M> в точках <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>BB₁</M>, якщо точка <M>C</M> — середина відрізка <M>AB</M> і <M>CC₁ = 5</M> см.</>,
+     ['5 см','10 см','2,5 см','7,5 см','15 см'],1,<>Пряма <M>CC₁</M> паралельна <M>BB₁</M>, а <M>C</M> — середина <M>AB</M>, тому <M>CC₁</M> — середня лінія трикутника <M>ABB₁</M>. Отже, <M>BB₁ = 2 · CC₁ = 10</M> см.</>,
+     (A,B,Cc,B1,C1)=>[lab(mid(Cc,C1),'5 см',Yb.ln,[1,0])],
+     (A,B,Cc,B1,C1)=>[sg(B,B1,Yb.ans,5.6),lab(mid(B,B1),'10 см',Yb.ans,[1,0])]);
+   const t2=mk10(2,3/7,<><b>29.10 (2).</b> Кінець <M>A</M> відрізка <M>AB</M> належить площині <M>α</M>. Через точку <M>B</M> і точку <M>C</M>, що належить відрізку <M>AB</M>, проведено паралельні прямі, які перетинають площину <M>α</M> в точках <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AC : BC = 3 : 4</M> і <M>BB₁ = 28</M> см.</>,
+     ['16 см','21 см','12 см','9 см','24 см'],2,<><M>AC : AB = 3 : 7</M>. З подібності трикутників <M>ACC₁</M> і <M>ABB₁</M>: <M>CC₁ : BB₁ = AC : AB = 3 : 7</M>, тому <M>CC₁ = 28 · 3/7 = 12</M> см.</>,
+     (A,B,Cc,B1,C1)=>[lab(mid(B,B1),'28 см',Yb.ln,[1,0]),lab(mid(A,Cc),'3',Yb.ln,[-1,0]),lab(mid(Cc,B),'4',Yb.ln,[-1,0])],
+     (A,B,Cc,B1,C1)=>[sg(Cc,C1,Yb.ans,5.6),lab(mid(Cc,C1),'12 см',Yb.ans,[1,0])]);
+   return[t1,t2];})(),
+ {lbl:'29.12',cam:[0,0.3],q:<><b>29.12.</b> На відрізку <M>AB</M>, який не перетинає площину <M>α</M>, позначили точку <M>C</M> так, що <M>AC = 4</M> см, <M>BC = 8</M> см. Через точки <M>A</M>, <M>B</M> і <M>C</M> провели паралельні прямі, які перетинають площину <M>α</M> в точках <M>A₁</M>, <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>A₁C₁</M>, якщо <M>B₁C₁ = 10</M> см.</>,
+  opts:['20 см','10 см','5 см','2,5 см','7,5 см'],ok:2,
+  ex:<>Паралельні прямі відтинають на прямих <M>AB</M> і <M>A₁B₁</M> пропорційні відрізки (теорема Фалеса): <M>A₁C₁ : C₁B₁ = AC : CB = 4 : 8</M>. Отже, <M>A₁C₁ = 10 · 4/8 = 5</M> см.</>,
+  mk:(dn)=>{const A=[-1.4,-0.5,1.0],B=[1.1,0.1,2.2],Cc=lerp(A,B,1/3);const A1=foot(A),B1=foot(B),C1=foot(Cc);
+    const P={A,B,C:Cc,A1,B1,C1};
+    const pr=[ppl(PL6,Yb.f,Yb.s,.6),txtPl(PL6,0,'α',Yb.s),sg('A','B'),sg('A','A1'),sg('B','B1'),sg('C','C1'),sg('C1','B1'),
+      lab(mid(A,Cc),'4 см',Yb.ln,[-1,0]),lab(mid(Cc,B),'8 см',Yb.ln,[-1,0]),lab(mid(C1,B1),'10 см',Yb.ln,[0,1]),...vp(['A','B','C','A1','B1','C1'])];
+    if(dn)pr.push(sg('A1','C1',Yb.ans,5.6),lab(mid(A1,C1),'5 см',Yb.ans,[0,1]));
+    return{sc:{P,R:2.9,ctr:[0.2,0.1,0.9],prims:pr},legend:dn?[[Yb.ans,'A₁C₁']]:null};}},
+ {lbl:'29.14',cam:[0,0.3],q:<><b>29.14.</b> Через кінці відрізка <M>AB</M>, що перетинає площину <M>α</M>, і його середину <M>C</M> проведено паралельні прямі, які перетинають площину <M>α</M> в точках <M>A₁</M>, <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AA₁ = 16</M> см, <M>BB₁ = 8</M> см.</>,
+  opts:['4 см','12 см','8 см','24 см','6 см'],ok:0,
+  ex:<>Нехай <M>AB</M> перетинає <M>α</M> у точці <M>O</M>. З подібності трикутників <M>AA₁O</M> і <M>BB₁O</M>: <M>AO : OB = 16 : 8 = 2 : 1</M>, тому <M>AO = ⅔AB</M>. Оскільки <M>AC = ½AB</M>, то <M>CO = AO − AC = ⅙AB</M>. З подібності <M>CC₁O</M> і <M>AA₁O</M>: <M>CC₁ = 16 · CO/AO = 16 · ¼ = 4</M> см.</>,
+  mk:(dn)=>{const A=[-1.6,-0.3,1.6],B=[1.2,0.5,-0.8],Cc=mid(A,B);const A1=foot(A),B1=foot(B),C1=foot(Cc);
+    const P={A,B,C:Cc,A1,B1,C1};
+    const pr=[ppl(PL6,Yb.f,Yb.s,.45),txtPl(PL6,0,'α',Yb.s),sg('A','B'),sg('A','A1'),sg('B','B1'),sg('C','C1'),sg('A1','B1',Yb.ln,2.2,true),
+      lab(mid(A,A1),'16 см',Yb.ln,[-1,0]),lab(mid(B,B1),'8 см',Yb.ln,[1,0]),...vp(['A','B','C','A1','B1','C1'])];
+    if(dn)pr.push(sg('C','C1',Yb.ans,5.6),lab(mid(Cc,C1),'4 см',Yb.ans,[1,0]));
+    return{sc:{P,R:2.9,ctr:[0.1,0.1,0.4],prims:pr},legend:dn?[[Yb.ans,'CC₁']]:null};}},
+ {lbl:'29.15',cam:[0,0.55],q:<><b>29.15.</b> Трикутник <M>ABC</M> не має спільних точок із площиною <M>α</M>. Відрізок <M>BM</M> — медіана трикутника <M>ABC</M>, точка <M>O</M> — середина відрізка <M>BM</M>. Через точки <M>A</M>, <M>B</M>, <M>C</M>, <M>M</M> і <M>O</M> проведено паралельні прямі, які перетинають площину <M>α</M> в точках <M>A₁</M>, <M>B₁</M>, <M>C₁</M>, <M>M₁</M> і <M>O₁</M> відповідно. Знайдіть відрізок <M>BB₁</M>, якщо <M>AA₁ = 17</M> см, <M>CC₁ = 13</M> см, <M>OO₁ = 12</M> см.</>,
+  opts:['11 см','24 см','9 см','7 см','15 см'],ok:2,
+  ex:<><M>MM₁</M> — середня лінія трапеції <M>AA₁C₁C</M>: <M>MM₁ = (17 + 13)/2 = 15</M> см. <M>OO₁</M> — середня лінія трапеції <M>BB₁M₁M</M>: <M>12 = (BB₁ + 15)/2</M>, звідси <M>BB₁ = 9</M> см.</>,
+  mk:(dn)=>{const A=[-2.0,-0.6,1.7],C=[0.6,-0.5,1.3],B=[1.6,0.9,0.9],Mm=mid(A,C),O=mid(B,Mm);
+    const P={A,B,C,M:Mm,O,A1:foot(A),B1:foot(B),C1:foot(C),M1:foot(Mm),O1:foot(O)};
+    const pr=[ppl(PL6,Yb.f,Yb.s,.45),txtPl(PL6,0,'α',Yb.s),
+      sg('A','B'),sg('B','C'),sg('A','C'),sg('B','M'),
+      sg('A','A1'),sg('B','B1'),sg('C','C1'),sg('M','M1'),sg('O','O1'),
+      lab(mid(A,P.A1),'17 см',Yb.ln,[-1,0]),lab(mid(C,P.C1),'13 см',Yb.ln,[1,0]),lab(mid(O,P.O1),'12 см',Yb.ln,[1,0]),
+      ...vp(['A','B','C','M','O','A1','B1','C1','M1','O1'])];
+    if(dn)pr.push({...ppl(['A','C','C1','A1'],'#2563eb','#2563eb',.14),lift:100,sw:1.4},{...ppl(['B','M','M1','B1'],'#ea580c','#ea580c',.14),lift:100,sw:1.4},sg('B','B1',Yb.ans,5.6),lab(mid(B,P.B1),'9 см',Yb.ans,[-1,0]),lab(mid(Mm,P.M1),'15 см',Yb.ln,[1,0]));
+    return{sc:{P,R:2.7,ctr:[0,0.2,0.8],prims:pr},legend:dn?[['#2563eb','трапеція AA₁C₁C'],['#ea580c','трапеція BB₁M₁M'],[Yb.ans,'BB₁']]:null};}}
+].flat();
+
+function Item6(){
+  const T=T6;
+  const [ti,setTi]=useState(0);const [cs,setCs]=useState(0);
+  const [done,setDone]=useState(()=>T.map(()=>false));const [wrong,setWrong]=useState(()=>T.map(()=>[]));
+  const t=T[ti],dn=done[ti];
+  const goTo=i=>{setTi(i);setCs(0);};
+  const r=t.mk(dn,cs);
+  const choose=i=>{
+    if(done[ti]||wrong[ti].includes(i))return;
+    if(i===t.ok){const d=[...done];d[ti]=true;setDone(d);}
+    else{const w=wrong.map(x=>[...x]);w[ti].push(i);setWrong(w);}
+  };
+  const tabs=<div className="tabs">{T.map((x,i)=><button key={i} className={'tab sq'+(ti===i?' on':'')+(done[i]?' done':'')} onClick={()=>goTo(i)}>{done[i]?'✓ ':''}{x.lbl}</button>)}</div>;
+  const left=(<>
+    {tabs}
+    <div className="fade" key={ti}>
+      <Note>{t.q}</Note>
+      {t.opts.map((o,i)=>{const isOk=dn&&i===t.ok,isBad=wrong[ti].includes(i);
+        return <button key={i} className={'opt'+(isOk?' ok':isBad?' bad':'')} disabled={isBad} onClick={()=>choose(i)}><b>{'АБВГД'[i]}</b><span>{o}</span></button>;})}
+      {dn&&<div className="fb ok">Правильно! <span style={{fontWeight:600}}>{t.ex}</span></div>}
+      {dn&&t.cases&&<div className="chips">{t.cases.map((c,i)=><button key={i} className={'chip'+(cs===i?' on':'')} onClick={()=>setCs(i)}>{c}</button>)}</div>}
+      {!dn&&wrong[ti].length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+      {dn&&ti<T.length-1&&<button className="btn" onClick={()=>goTo(ti+1)}>Наступне завдання →</button>}
+      {done.every(Boolean)&&ti===T.length-1&&<div className="fb ok">Усі завдання виконано правильно!</div>}
+    </div>
+  </>);
+  return <Frame left={left} scene={r.sc} legend={r.legend} camKey={ti} yaw0={t.cam[0]} pitch0={t.cam[1]}/>;
+}
+
+/* =====================================================================
+   Оболонка уроку
+   ===================================================================== */
+const ITEMS=[
+  {t:'Три випадки взаємного розміщення прямих',p:'п. 27 · 6 хв',Cmp:Item1},
+  {t:'Паралельні прямі в просторі',p:'п. 27 · 7 хв',Cmp:Item2},
+  {t:'Мимобіжні прямі. Ознака',p:'п. 27 · 7 хв',Cmp:Item3},
+  {t:'Лабораторія: рухай пряму',p:'п. 27 · 5 хв',Cmp:Item4},
+  {t:'Задачі',p:'§ 4 · 10 хв',Cmp:Item5},
+  {t:'Вправи з підручника',p:'§ 4 · 20 хв',Cmp:Item6}];
+
+function startScene(){
+  const B=boxP(1,1,1);
+  return{P:B,R:2.7,prims:[{t:'solid',faces:BOXF,tint:true,w:2.6,c:'#6B21A8'},
+    {t:'seg',a:[-1.9,-1,1.5],b:[1.9,-1,1.5],c:C.skew,w:4.4},
+    {t:'seg',a:[0.2,-1.9,-0.2],b:[0.2,1.9,-0.2],c:C.al,w:4.4}]};
+}
+function App(){
+  const [scr,setScr]=useState('start');
+  const isItem=typeof scr==='number';
+  const nav=isItem&&(<div className="nav">
+    <button className="btn" onClick={()=>setScr('menu')}>☰ Зміст</button>
+    {scr>0&&<button className="btn ghost" onClick={()=>setScr(scr-1)}>← Назад</button>}
+    {scr<ITEMS.length-1?<button className="btn" onClick={()=>setScr(scr+1)}>Далі →</button>:<button className="btn" onClick={()=>setScr('start')}>На початок</button>}
+  </div>);
+  const Cur=isItem?ITEMS[scr].Cmp:null;
+  return(
+    <div className="app">
+      <div className="main">
+        {scr==='start'&&<div className="center start">
+          <div style={{width:'min(78vw,330px)',height:'min(34vh,260px)',position:'relative',marginBottom:'.4em'}}><Scene3D scene={startScene()} bare auto0 yaw0={0.5} pitch0={0.4}/></div>
+          <h1><span>Взаємне розміщення</span><br/>двох прямих у просторі</h1>
+          <button className="go" onClick={()=>setScr('menu')}>ПОЧАТИ<i>▶</i></button>
+        </div>}
+        {scr==='menu'&&<div className="menu"><div style={{maxWidth:'70em',margin:'0 auto'}}><h2>§ 4. Взаємне розміщення двох прямих у просторі</h2>
+          <div className="mgrid">{ITEMS.map((it,i)=><button key={i} className="mcard" onClick={()=>setScr(i)}><span className="n">{i+1}</span><span><b>{it.t}</b><small>{it.p}</small></span></button>)}</div></div></div>}
+        {isItem&&<NavCtx.Provider value={nav}><Cur key={scr}/></NavCtx.Provider>}
+      </div>
+      <div className="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
