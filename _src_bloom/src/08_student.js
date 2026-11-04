@@ -53,7 +53,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
-  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель). Свою задачу чи розв\'язок можна сфотографувати й додати фото.")+'</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
+  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
   h+='</div><div class="act"><div>'+(IX?'<button class="link" id="bk">← Назад</button> ':'')+'<button class="link" id="dk">Не знаю</button></div><button class="btn" id="nx">'+(last?"Здати роботу":"Далі →")+'</button></div></div></div>';
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
@@ -85,6 +85,7 @@ function mixRow(p,j,A){var v=A.ps[j],h='<div class="xrow" data-j="'+j+'"><div cl
   return h+'</div>';}
 /* ---- віджети введення: дріб, знак/вибір, інтервал, стандартний вигляд, нерівність, пара ---- */
 var WSEL={">":[">","<","="],"<":[">","<","="],"=":[">","<","="],"≥":["<",">","=","≤","≥"],"≤":["<",">","=","≤","≥"],"парна":["парна","непарна","загального вигляду"],"непарна":["парна","непарна","загального вигляду"],"загального вигляду":["парна","непарна","загального вигляду"]};
+function needPh(t){return t.l==="Ст"||/розв.язан|обчислен|таблиц|доведи|по кроках|рисун|накрес|побудуй|складіть|склади|на папері/i.test((t.open||"")+" "+(t.openLb||"")+" "+(t.q||""));}
 function wSpec(ans,kind,w){if(kind==="fac"||kind==="l")return null;var a=Array.isArray(ans)?ans[0]:ans;if(typeof a!=="string")return null;
   if(w==="none")return null;
   if(w&&w.indexOf("sym:")===0)return {t:"txt",sym:w.slice(4)};
