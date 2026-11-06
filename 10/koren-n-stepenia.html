@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Означення кореня n-го степеня</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<style>
+:root{
+  --ink:#1f2937; --muted:#64748b; --line:#E4D0FA; --bg:#F2E6FF;
+  --odd:#2563eb; --even:#16a34a; --arith:#6B21A8; --red:#dc2626; --accent:#6B21A8;--chip:#F3E8FF; --soft:#FAF5FF;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);
+  display:flex;flex-direction:column;font-size:clamp(15px,.45vw + 12px,19px);line-height:1.5}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line)}
+header h1{font-size:1em;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .pos{color:var(--muted);font-size:.9em;white-space:nowrap}
+.btn{border:1px solid #d8b4fe;background:var(--chip);color:var(--accent);border-radius:999px;padding:.4em 1em;font-weight:600}
+.btn:hover:not(:disabled){background:#e9d5ff}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{background:#fff;border-color:#d8b4fe;color:var(--accent)}
+
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(340px,5fr) 6fr}
+main.solo{grid-template-columns:1fr}
+main.solo #right{display:none}
+#left{overflow-y:auto;padding:clamp(12px,2vw,28px);background:var(--bg)}
+#left>*+*{margin-top:12px}
+#right{position:relative;background:var(--soft);border-left:1px solid var(--line);min-height:0}
+#svg{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.legend{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:10px;padding:6px 14px;font-weight:700;pointer-events:none;font-size:1.2em}
+.legend .eqrow{font-size:1.2em;color:#111827;border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:3px}
+.hint{position:absolute;bottom:8px;left:12px;color:var(--muted);font-size:.8em;pointer-events:none}
+.replay{position:absolute;top:10px;right:10px;font-size:.85em;padding:.25em .8em}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.solo-wrap{max-width:780px;margin:0 auto}
+.solo-wrap>*+*{margin-top:12px}
+.hero{border-color:#f5c2d7;background:#fff7fb}
+.pink{color:#be185d;font-weight:700}
+.big{text-align:center;font-size:1.7em;margin:.3em 0;color:#be185d}
+.warn{background:#fff7ed;border:2px solid #fb923c;border-radius:10px;padding:10px 14px}
+.warn b{color:#c2410c}
+.head{border-radius:10px;padding:10px 14px;text-align:center;font-weight:700;font-size:1.25em;border:1px solid}
+.head small{font-size:.65em;font-weight:500;color:#475569;margin-left:.4em}
+.head.blue{background:#eff6ff;border-color:#bfdbfe;color:var(--odd)}
+.head.green{background:#f0fdf4;border-color:#bbf7d0;color:var(--even)}
+.head.purple{background:var(--chip);border-color:#d8b4fe;color:var(--accent)}
+.head.gray{background:#f8fafc;border-color:#cbd5e1;color:#334155}
+p{margin:0}
+ul{margin:.3em 0 0;padding-left:1.2em}
+li+li{margin-top:.3em}
+ul.plain{list-style:none;padding:0}
+ul.plain li{padding-left:1em;text-indent:-1em}
+ul.plain li::before{content:"• "}
+ol.how{margin:.3em 0 0;padding-left:1.4em}
+ol.how li+li{margin-top:.35em}
+
+.choice p{font-weight:600;margin-bottom:6px}
+.choice .row{display:flex;flex-wrap:wrap;gap:8px}
+.choice button{min-width:2.6em;height:2.4em;padding:0 .8em;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-weight:700}
+.choice button:hover{background:#f3e8ff}
+.choice button.on{background:var(--c);border-color:var(--c);color:#fff}
+
+.sl label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:4px;gap:8px}
+.sl output{font-variant-numeric:tabular-nums;color:var(--red)}
+.sl input{width:100%;accent-color:var(--red)}
+.sl.p input{accent-color:var(--arith)}
+.sl .play{margin-top:8px}
+
+.live{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:8px 14px;text-align:center;font-weight:600}
+.concl{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px}
+.concl h4{margin:0 0 4px;font-size:1em;color:var(--accent)}
+.concl p+p,.concl li+li{margin-top:.35em}
+.case{border:1px solid transparent;border-radius:8px;padding:4px 8px;transition:background .15s}
+.case.on{background:#fef3c7;border-color:#fcd34d}
+.good{color:#15803d;font-weight:700} .bad{color:#be123c;font-weight:700} .b-odd{color:var(--odd);font-weight:700} .b-even{color:var(--even);font-weight:700}
+
+table.vt{width:100%;border-collapse:collapse;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+table.vt td{padding:5px 8px;border:1px solid var(--line)}
+table.vt td:first-child{font-weight:700;background:#f8fafc;white-space:nowrap}
+
+.btn.go{font-size:1.8em;padding:.15em 1.2em;border-radius:999px;line-height:1.3}
+.btn.go.wide{font-size:1.25em;padding:.4em 1.6em}
+.blink{animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2;transform:scale(1.12)}}
+.head.big1{font-size:1.7em}
+.lg{font-size:1.08em}.lg .card{padding:10px 14px}
+.solo-wrap.wide{max-width:1120px}
+.cols{font-size:.92em}.cols .card{padding:10px 14px}.cols,.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.col>*+*,.exb>*+*{margin-top:10px}
+.ch{margin:0 0 4px;color:var(--accent)}
+.boxed{border:2px solid var(--accent);border-radius:10px;padding:10px 14px;background:#fff}
+.live:empty{display:none}
+.lines p+p{margin-top:.7em}
+.ex{border-left:4px solid #14b8a6}
+.ex summary{color:#0f766e}
+.sk{display:block;width:100%;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:4px}
+.skc{font-size:.75em;color:var(--muted);margin-bottom:8px}
+@media (max-width:820px){.cols,.pair{grid-template-columns:1fr}}
+.ex summary{cursor:pointer;font-weight:600}
+.ex[open]{background:var(--soft)}
+.ex .sol{margin-top:8px;padding-top:8px;border-top:1px dashed #d8b4fe}
+footer{background:#fff;border-top:1px solid var(--line);padding:8px 16px 4px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dots{display:flex;gap:6px}
+.dots button{width:12px;height:12px;border-radius:50%;border:0;background:#d8b4fe;padding:0}
+.dots button.on{background:var(--accent);transform:scale(1.25)}
+.credit{text-align:center;color:var(--muted);font-size:.72em;margin-top:4px}
+
+.overlay{position:fixed;inset:0;background:rgba(30,20,60,.45);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+.overlay.open{display:flex}
+.menu{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:16px}
+.menu h2{margin:0 0 10px;font-size:1.1em}
+.menu button.item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px}
+.menu button.item:hover{border-color:#a78bfa;background:var(--chip)}
+.menu .num{width:2em;height:2em;border-radius:50%;background:var(--chip);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+
+.grid{stroke:#d4d4d8;stroke-width:1;opacity:.6}
+.tick{stroke:#334155;stroke-width:1.5}
+.tl{font:700 12px system-ui,sans-serif;fill:#475569}
+.lbl{font:700 14px system-ui,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.banner{font:700 16px system-ui,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.fade{animation:fade .35s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:dr .8s ease-out forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+.ah{opacity:0;animation:ahIn .25s forwards}
+@keyframes ahIn{to{opacity:1}}
+
+@media (max-width:820px){
+  main{grid-template-columns:1fr;grid-template-rows:42% 58%}
+  main.solo{grid-template-rows:1fr}
+  #right{order:-1;border-left:0;border-bottom:1px solid var(--line)}
+  .dots{display:none}
+  .hint{display:none}
+  .legend{font-size:1em}
+}
+@media (prefers-reduced-motion:reduce){.fade,.draw,.ah{animation:none;opacity:1;stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Означення кореня <i>n</i>-го степеня</h1>
+  <span class="pos" id="pos"></span>
+  <button class="btn ghost" id="menuBtn">☰ Зміст</button>
+</header>
+
+<main id="main">
+  <section id="left"></section>
+  <section id="right">
+    <svg id="svg"></svg>
+    <div class="legend" id="legend"></div>
+    <div class="hint" id="hint"></div>
+    <button class="btn ghost replay" id="replay">↺ Повторити</button>
+  </section>
+</main>
+
+<footer>
+  <div class="nav">
+    <button class="btn ghost" id="prev">← Назад</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn" id="next">Далі →</button>
+  </div>
+  <div class="credit">Автор розробки <b>Ковтун Тетяна</b> за технічної підтримки Claude</div>
+</footer>
+
+<div class="overlay" id="overlay"><div class="menu"><h2>Зміст уроку</h2><div id="menuList"></div></div></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const r = String.raw;
+const T = (s, block) => katex.renderToString(s, { throwOnError: false, displayMode: !!block });
+const rnd2 = v => { let x = Math.round(v * 100) / 100; return Object.is(x, -0) ? 0 : x; };
+const fmt = v => String(rnd2(v)).replace('.', ',').replace('-', '−');
+const tn  = v => String(rnd2(v)).replace('.', '{,}');
+const eq  = v => Math.abs(v - rnd2(v)) < 1e-9 ? '=' : r`\approx`;
+const eqs = v => Math.abs(v - rnd2(v)) < 1e-9 ? '=' : '≈';
+const root = (a, n) => Math.sign(a) * Math.pow(Math.abs(a), 1 / n);
+const RED = '#dc2626', BLUE = '#2563eb', GREEN = '#16a34a', PURPLE = '#6B21A8', GRAY = '#94a3b8', INK = '#334155';
+const N = `<i>n</i>`;
+const AL = '<b style="color:var(--red);font-size:1.4em;font-family:serif;font-style:italic">a</b>';
+const B = s => T('\\boldsymbol{' + s + '}');
+const S = { step: 0, n: 3, a: 3, cube: 8 };
+
+/* ---------- блоки лівої панелі ---------- */
+const choice = (key, vals, label, color = 'var(--accent)') =>
+  `<div class="card choice" data-key="${key}" style="--c:${color}"><p>${label}</p><div class="row">` +
+  vals.map(v => `<button data-v="${v}">${fmt(v)}</button>`).join('') + `</div></div>`;
+const slider = (label, min, max, cls = '', play = false) =>
+  `<div class="card sl ${cls}"><label for="sl"><span>${label}</span><output id="av"></output></label>` +
+  `<input id="sl" type="range" min="${min}" max="${max}" step="0.1" value="${S.a}">` +
+  (play ? `<button class="btn play" id="play">▶ Автоматична анімація</button>` : '') + `</div>`;
+const head = (cls, tex, note) => `<div class="head ${cls}">${T(tex)}${note ? `<small>${note}</small>` : ''}</div>`;
+const table = rows => `<table class="vt">` + rows.map(rw => `<tr>${rw.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') + `</table>`;
+
+/* ---------- геометрія графіка ---------- */
+let G = {}, ANIM = false;
+const X = x => G.cx + x * G.sx, Y = y => G.cy - y * G.sy;
+
+function geom(view, equal) {
+  const rc = $('#right').getBoundingClientRect();
+  const w = rc.width, h = rc.height;
+  let sx = w / (view[1] - view[0]), sy = h / (view[3] - view[2]);
+  if (equal) sx = sy = Math.min(sx, sy);
+  G = { w, h, sx, sy,
+    cx: w / 2 - sx * (view[0] + view[1]) / 2,
+    cy: h / 2 + sy * (view[2] + view[3]) / 2 };
+  G.xmin = -G.cx / sx; G.xmax = (w - G.cx) / sx;
+  G.ymax = G.cy / sy;  G.ymin = (G.cy - h) / sy;
+}
+const niceStep = px => { for (const s of [1, 2, 5, 10, 20, 25, 50, 100, 200]) if (s * px >= 34) return s; return 500; };
+
+function axes() {
+  let s = '';
+  const xs = niceStep(G.sx), ys = niceStep(G.sy);
+  const L = v => v < 0 ? '−' + (-v) : v;
+  for (let i = G.nonum ? 1 : Math.ceil(G.xmin / xs); i <= (G.nonum ? 0 : Math.floor(G.xmax / xs)); i++) {
+    if (!i) continue;
+    const v = i * xs, px = X(v);
+    s += `<line class="grid" x1="${px}" y1="0" x2="${px}" y2="${G.h}"/><line class="tick" x1="${px}" y1="${Y(0) - 3}" x2="${px}" y2="${Y(0) + 3}"/>` +
+         `<text class="tl" x="${px}" y="${Y(0) + 16}" text-anchor="middle">${L(v)}</text>`;
+  }
+  for (let i = G.nonum ? 1 : Math.ceil(G.ymin / ys); i <= (G.nonum ? 0 : Math.floor(G.ymax / ys)); i++) {
+    if (!i) continue;
+    const v = i * ys, py = Y(v);
+    s += `<line class="grid" x1="0" y1="${py}" x2="${G.w}" y2="${py}"/><line class="tick" x1="${X(0) - 3}" y1="${py}" x2="${X(0) + 3}" y2="${py}"/>` +
+         `<text class="tl" x="${X(0) - 8}" y="${py + 4}" text-anchor="end">${L(v)}</text>`;
+  }
+  const x0 = X(0), y0 = Y(0);
+  s += `<line x1="0" y1="${y0}" x2="${G.w}" y2="${y0}" stroke="${INK}" stroke-width="2"/>` +
+       `<line x1="${x0}" y1="${G.h}" x2="${x0}" y2="0" stroke="${INK}" stroke-width="2"/>` +
+       `<polygon points="${G.w},${y0} ${G.w - 10},${y0 - 4} ${G.w - 10},${y0 + 4}" fill="${INK}"/>` +
+       `<polygon points="${x0},0 ${x0 - 4},10 ${x0 + 4},10" fill="${INK}"/>` +
+       `<text x="${G.w - 16}" y="${y0 - 10}" font-family="serif" font-style="italic" font-weight="700" font-size="18" fill="${INK}">x</text>` +
+       `<text x="${x0 + 12}" y="18" font-family="serif" font-style="italic" font-weight="700" font-size="18" fill="${INK}">y</text>` +
+       (G.nonum ? '' : `<text class="tl" x="${x0 - 12}" y="${y0 + 16}">0</text>`);
+  return s;
+}
+
+function pathFn(fn, x0, x1, col, wd = 3.5, n = 500) {
+  let d = '', pen = false;
+  for (let i = 0; i <= n; i++) {
+    const x = x0 + (x1 - x0) * i / n, y = fn(x), py = Y(y);
+    if (!isFinite(y) || Math.abs(py - G.h / 2) > G.h * 2) { pen = false; continue; }
+    d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ',' + py.toFixed(1) + ' '; pen = true;
+  }
+  return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${wd}" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+function pathParam(fx, fy, t0, t1, col, wd = 3.5, n = 400) {
+  let d = '';
+  for (let i = 0; i <= n; i++) {
+    const t = t0 + (t1 - t0) * i / n;
+    d += (i ? 'L' : 'M') + X(fx(t)).toFixed(1) + ',' + Y(fy(t)).toFixed(1) + ' ';
+  }
+  return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${wd}" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+const hline = (y, col) => `<line x1="0" y1="${Y(y)}" x2="${G.w}" y2="${Y(y)}" stroke="${col}" stroke-width="3" stroke-dasharray="10 6"/>`;
+const lineLabel = (a, text, col = RED) =>
+  `<text class="lbl" x="${G.w - 10}" y="${Y(a) - 8}" text-anchor="end" fill="${col}">${text}</text>`;
+function pt(x, y, col, label = '', dx = 0, dy = -10, anc = 'middle') {
+  return `<circle cx="${X(x)}" cy="${Y(y)}" r="5.5" fill="${col}" stroke="#fff" stroke-width="1.5"/>` +
+    (label ? `<text class="lbl" x="${X(x) + dx}" y="${Y(y) + dy}" text-anchor="${anc}" fill="${col}">${label}</text>` : '');
+}
+function tag(x, text, col = INK, below = true) {
+  const fs = 14, w = text.length * fs * .6 + 18, h = fs + 10;
+  const px = Math.min(Math.max(X(x), w / 2 + 4), G.w - w / 2 - 4);
+  const y0 = below ? Y(0) + 22 : Y(0) - 22 - h;
+  return `<g class="fade"><rect x="${px - w / 2}" y="${y0}" width="${w}" height="${h}" rx="6" fill="${col}"/>` +
+    `<text x="${px}" y="${y0 + h / 2 + fs * .35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#fff">${text}</text></g>`;
+}
+const banner = (text, col, y) =>
+  `<text class="banner" x="${G.w - 12}" y="${y === undefined ? G.h - 60 : y}" text-anchor="end" fill="${col}">${text}</text>`;
+
+/* стрілка з анімацією (координати математичні) */
+function arrow(x1, y1, x2, y2, col, d = 0) {
+  const p1 = [X(x1), Y(y1)], p2 = [X(x2), Y(y2)];
+  const len = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+  if (len < 16) return '';
+  const ang = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]), L = 12, W = 6;
+  const bx = p2[0] - L * Math.cos(ang), by = p2[1] - L * Math.sin(ang);
+  const sn = Math.sin(ang), cs = Math.cos(ang);
+  const head = `${p2[0]},${p2[1]} ${bx - W * sn},${by + W * cs} ${bx + W * sn},${by - W * cs}`;
+  return `<path d="M${p1[0]},${p1[1]} L${bx},${by}" pathLength="1" fill="none" stroke="${col}" stroke-width="3"` +
+         (ANIM ? ` class="draw" style="animation-delay:${d}s"` : '') + `/>` +
+         `<polygon points="${head}" fill="${col}"` + (ANIM ? ` class="ah" style="animation-delay:${d + 0.7}s"` : '') + `/>`;
+}
+/* від a на осі y — уздовж прямої до кореня r — і вниз на вісь x */
+function rootArrows(rt, a, col = PURPLE, d = 0) {
+  if (!isFinite(rt)) return '';
+  return arrow(0, a, rt, a, col, d) + arrow(rt, a, rt, 0, col, d + 0.9) +
+         `<circle cx="${X(0)}" cy="${Y(a)}" r="5" fill="${col}" stroke="#fff" stroke-width="1.5"/>`;
+}
+
+/* ---------- кроки ---------- */
+const exBlock = (num, task, items) => `<div class="exb"><div class="head purple">Вправа ${num}<small>${task}</small></div>` +
+  items.map(([q, sol]) => `<details class="card ex"><summary>${q}</summary><div class="sol">${sol}</div></details>`).join('') + `</div>`;
+const ex = (title, blocks) => ({ title, graph: false,
+  render() { return `<div class="solo-wrap" style="font-size:1.2em">` + blocks.map(b => exBlock(...b)).join('') + `</div>`; } });
+
+/* маленький схематичний графік для нерівностей */
+function sketch(o) {
+  const W = 300, H = 170, pl = 28, pr = 10, ptp = 10, pb = 28;
+  const sx = v => pl + (v - o.x0) / (o.x1 - o.x0) * (W - pl - pr), sy = v => H - pb - (v - o.y0) / (o.y1 - o.y0) * (H - ptp - pb);
+  let d = '', pen = false;
+  for (let i = 0; i <= 200; i++) { const x = o.x0 + (o.x1 - o.x0) * i / 200, y = o.f(x);
+    if (!isFinite(y) || y < o.y0 || y > o.y1) { pen = false; continue; }
+    d += (pen ? 'L' : 'M') + sx(x).toFixed(1) + ',' + sy(y).toFixed(1) + ' '; pen = true; }
+  const ax = Math.min(Math.max(sx(0), pl), W - pr), ay = sy(0);
+  let s = `<svg class="sk" viewBox="0 0 ${W} ${H}" role="img">` +
+    `<line x1="${pl}" y1="${ay}" x2="${W - pr}" y2="${ay}" stroke="#334155" stroke-width="1.5"/><line x1="${ax}" y1="${H - pb + 6}" x2="${ax}" y2="${ptp}" stroke="#334155" stroke-width="1.5"/>` +
+    `<line x1="${pl}" y1="${sy(o.a)}" x2="${W - pr}" y2="${sy(o.a)}" stroke="${RED}" stroke-width="1.8" stroke-dasharray="6 4"/>` +
+    `<line x1="${sx(o.xr)}" y1="${sy(o.a)}" x2="${sx(o.xr)}" y2="${ay}" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3"/>` +
+    `<path d="${d}" fill="none" stroke="${BLUE}" stroke-width="2.6" stroke-linecap="round"/>` +
+    `<line x1="${sx(o.from)}" y1="${ay}" x2="${sx(o.to)}" y2="${ay}" stroke="${GREEN}" stroke-width="6" stroke-linecap="round" opacity=".85"/>` +
+    `<circle cx="${sx(o.xr)}" cy="${sy(o.a)}" r="3.5" fill="${RED}"/>` +
+    `<text x="${W - pr}" y="${sy(o.a) - 5}" text-anchor="end" font-size="11" font-weight="700" fill="${RED}">${o.alab}</text>` +
+    `<text x="${pl + 4}" y="${ptp + 10}" font-size="11" font-weight="700" fill="${BLUE}">${o.flab}</text>`;
+  o.marks.forEach(m => { s += `<text x="${sx(m.x)}" y="${ay + 15}" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">${m.t}</text>`; });
+  return s + `</svg><div class="skc">схематично; зелений відрізок — розв’язок</div>`;
+}
+
+function example(o) {
+  return { title: o.title, graph: true, view: o.view,
+    render() { return head(o.cls, `x^{${o.n}}=${o.a}`, o.note) + `<div class="concl"><h4>Корінь</h4>${o.concl}</div>`; },
+    eqn() { return `x^{${o.n}}=${o.a}`; },
+    legend() { return [[o.col, `y=x^{${o.n}}`], [RED, `y=${o.a}`]]; },
+    draw() {
+      let s = pathFn(x => Math.pow(x, o.n), G.xmin, G.xmax, o.col) + hline(o.a, RED) + lineLabel(o.a, `y = ${fmt(o.a)}`, RED);
+      o.roots.forEach(rt => { s += rootArrows(rt, o.a, PURPLE, 0) + pt(rt, o.a, RED) + tag(rt, `корінь x = ${fmt(rt)}`, INK, true); });
+      return s; } };
+}
+
+const steps = [
+
+/* 1. Розв'яжемо x² = 9 */
+{ title: 'Пригадаємо: розв’яжемо x² = 9', graph: true, defaults: { rev: 0 }, view: [-5.5, 5.5, -3, 19],
+  showIf() { return S.rev >= 2; },
+  render() { return `<div class="solo-wrap lg"><div class="head gray big1">Розв’яжемо рівняння: ${T('x^2=9')}</div>` +
+    (S.rev === 0 ? `<div style="text-align:center"><button class="btn go" id="reveal" aria-label="Розв’язати">▶</button></div>`
+      : `<div class="card"><p>${T(r`x_1=3,\quad x_2=-3`)}</p><p style="margin-top:6px">бо ${T('3^2=9')} і ${T('(-3)^2=9')}</p></div>` +
+        (S.rev === 1 ? `<div style="text-align:center"><button class="btn go wide" id="reveal">Графічно ▶</button></div>`
+          : `<div class="concl"><h4>Отже</h4><p>Числа 3 і −3 — корені рівняння ${T('x^2=9')}.</p></div>`)) + `</div>`; },
+  eqn() { return 'x^2=9'; },
+  legend() { return [[BLUE, 'y=x^2'], [RED, 'y=9']]; },
+  draw() { return pathFn(x => x * x, G.xmin, G.xmax, BLUE) + hline(9, RED) + lineLabel(9, 'y = 9') + rootArrows(3, 9) + rootArrows(-3, 9) +
+      pt(3, 9, RED) + pt(-3, 9, RED) + tag(3, 'корінь x = 3') + tag(-3, 'корінь x = −3'); } },
+
+/* 2. Загальний вигляд x² = a */
+{ title: 'Загальний вигляд: x² = a', graph: true, defaults: { a: null, rev: 0 }, view: [-5.5, 5.5, -3, 19],
+  nonum() { return S.a === null; },
+  render() { return head('gray', 'x^2=a', '') +
+    `<div class="card"><p><b>Коренем другого степеня (квадратним коренем)</b> із числа ${T('a')} називають таке число, другий степінь якого дорівнює ${T('a')}.</p></div>` +
+    (S.rev === 0 ? `<div style="text-align:center"><button class="btn go wide blink" id="reveal" aria-label="Взяти число">▶</button></div>`
+      : choice('a', [4, 9, 16], `Оберіть число ${T('a')}:`, BLUE)) + `<div class="live" id="live"></div>`; },
+  update() { const a = S.a, q = Math.sqrt(a);
+    $('#live').innerHTML = a === null ? '' : T(`x^2=${a}`) + '&nbsp;&nbsp;⇒&nbsp;&nbsp;' + T(`x_1=${q},\\ x_2=-${q}`); },
+  eqn() { return S.a === null ? 'x^2=a' : `x^2=${S.a}`; },
+  legend() { return [[BLUE, 'y=x^2'], [RED, S.a === null ? 'y=a' : `y=${S.a}`]]; },
+  draw() { const num = S.a !== null, a = num ? S.a : 9, q = Math.sqrt(a);
+    return pathFn(x => x * x, G.xmin, G.xmax, BLUE) + hline(a, RED) + lineLabel(a, num ? `y = ${a}` : 'y = a') +
+      `<text class="lbl" x="${X(0) + 12}" y="${Y(a) - 8}" fill="${RED}" style="font:italic 700 24px serif">${num ? `a = ${a}` : 'a'}</text>` +
+      rootArrows(q, a) + rootArrows(-q, a) + pt(q, a, RED) + pt(-q, a, RED) +
+      tag(q, num ? `x₁ = ${q} — корінь` : 'x₁ — корінь рівняння') + tag(-q, num ? `x₂ = −${q} — корінь` : 'x₂ — корінь рівняння'); } },
+
+/* 3-5. Три приклади */
+example({ title: 'Приклад 1: x⁵ = 32', n: 5, a: 32, roots: [2], col: BLUE, cls: 'blue', note: '(показник непарний)', view: [-3.5, 3.5, -14, 40],
+  concl: `<p>${T('x=2')} — корінь, бо ${T('2^5=32')}.</p><p>Інших коренів немає: графік перетинає пряму ${T('y=32')} в одній точці.</p>` }),
+example({ title: 'Приклад 2: x³ = −64', n: 3, a: -64, roots: [-4], col: BLUE, cls: 'blue', note: '(показник непарний)', view: [-5.5, 5.5, -80, 80],
+  concl: `<p>${T('x=-4')} — корінь, бо ${T('(-4)^3=-64')}.</p><p>Навіть для від’ємного числа корінь існує, і він один.</p>` }),
+{ title: 'Приклад 3: x⁴ = 81', graph: true, defaults: { m: 81 }, view: [-4.5, 4.5, -115, 100],
+  render() { return head('green', 'x^4=a', '(показник парний)') +
+    choice('m', [81, 0, -81], `Оберіть число ${T('a')}:`, GREEN) +
+    `<div class="live" id="live"></div>
+     <div class="concl"><h4>Корені</h4>
+       <div class="case" id="c-pos">${T('x^4=81')}: два корені, <b>3 і −3</b>, бо ${T('3^4=81')} і ${T('(-3)^4=81')};</div>
+       <div class="case" id="c-zero">${T('x^4=0')}: один корінь — число <b>0</b>;</div>
+       <div class="case" id="c-neg">${T('x^4=-81')}: <span class="bad">коренів немає</span> — четвертий степінь не буває від’ємним.</div></div>`; },
+  update() { const a = S.m;
+    $('#c-pos').classList.toggle('on', a > 0); $('#c-zero').classList.toggle('on', a === 0); $('#c-neg').classList.toggle('on', a < 0);
+    $('#live').innerHTML = a > 0 ? T('x=3') + ' і ' + T('x=-3') : a === 0 ? T('x=0') : 'Коренів немає'; },
+  eqn() { return `x^4=${S.m}`; },
+  legend() { return [[GREEN, 'y=x^4'], [RED, `y=${S.m}`]]; },
+  draw() { const a = S.m;
+    let s = pathFn(x => Math.pow(x, 4), G.xmin, G.xmax, GREEN) + hline(a, RED) + lineLabel(a, `y = ${fmt(a)}`);
+    if (a > 0) s += rootArrows(3, a) + rootArrows(-3, a) + pt(3, a, RED) + pt(-3, a, RED) + tag(3, 'корінь x = 3') + tag(-3, 'корінь x = −3') + banner('два корені', GREEN);
+    else if (a === 0) s += pt(0, 0, RED) + tag(0, 'корінь x = 0') + banner('один корінь — число 0', '#b45309');
+    else s += banner('коренів немає', RED, 40) + `<text class="lbl" x="${G.w / 2}" y="${Y(a) - 14}" text-anchor="middle" fill="${RED}">спільних точок немає</text>`;
+    return s; } },
+
+/* 6. Означення (випливає з прикладів) */
+{ title: 'Означення кореня n-го степеня', graph: false,
+  render() { return `<div class="solo-wrap lg">
+    <div class="card"><p>Ми розв’язали рівняння виду ${T('x^n=a')}:</p>
+      <ul><li>${T('x^5=32')}: число ${T('2')} — корінь п’ятого степеня із 32;</li>
+          <li>${T('x^3=-64')}: число ${T('-4')} — корінь третього степеня із −64;</li>
+          <li>${T('x^4=81')}: числа ${T('3')} і ${T('-3')} — корені четвертого степеня із 81.</li></ul></div>
+    <div class="card hero">
+      <p><span class="pink">Коренем n-го степеня</span> із числа ${T('a')}, де ${T(r`n\in\mathbb N,\ n>1`)}, називають таке число, ${N}-й степінь якого дорівнює ${T('a')}.</p>
+      <div class="big" style="margin:.15em 0">${T('b^n=a')}</div>
+      <p>Тобто число ${T('b')} є коренем ${N}-го степеня з ${T('a')}, якщо ${T('b^n=a')}. Інакше кажучи, <b>корені ${N}-го степеня з ${T('a')} — це корені рівняння</b> ${T('x^n=a')}.</p>
+    </div>
+    <div class="warn"><p>⚠ <b>Важливо:</b> ${T('n>1')};</p><p style="margin-top:4px">при ${T('n=1')} рівняння ${T('x^1=a')} ${T(r`\Rightarrow`)} ${T('x=a')}.</p></div>
+  </div>`; } },
+
+/* 6. Правило для непарного n */
+{ title: 'Висновок: непарний показник', graph: true, defaults: { n: 3, a: 3 }, amin: -8, amax: 8, view: [-3.2, 3.2, -9.5, 9.5],
+  render() { return head('blue', 'x^n=a', `(${N} — непарне, ${T('n>1')})`) +
+    `<p>Перевіримо на інших показниках. Змінюйте ${N} і число ${T('a')}.</p>` +
+    choice('n', [3, 5, 7], `Оберіть показник ${N}:`, BLUE) +
+    slider(AL, -8, 8) +
+    `<div class="live" id="live"></div>
+     <div class="concl"><h4>Правило</h4>
+       <p>Якщо ${N} — <span class="b-odd">непарне</span> натуральне число, <b>більше за 1</b>, то графіки ${T('y=x^n')} і ${T('y=a')} при <b>будь-якому</b> ${T('a')} перетинаються в одній точці.</p>
+       <p><span class="good">Отже, коли ${N} непарне, з будь-якого числа існує корінь ${N}-го степеня, причому тільки один.</span></p></div>`; },
+  update() { const x0 = root(S.a, S.n);
+    $('#live').innerHTML = 'Спільна точка одна: ' + T(r`x=\sqrt[${S.n}]{${tn(S.a)}}${eq(x0)}${tn(x0)}`); },
+  eqn() { return `x^{${S.n}}=${tn(S.a)}`; },
+  legend() { return [[BLUE, `y=x^{${S.n}}`], [RED, `y=${tn(S.a)}`]]; },
+  draw() { const x0 = root(S.a, S.n);
+    return pathFn(x => Math.pow(x, S.n), G.xmin, G.xmax, BLUE) + hline(S.a, RED) + lineLabel(S.a, `y = ${fmt(S.a)}`) +
+      rootArrows(x0, S.a) + pt(x0, S.a, RED) + tag(x0, `x ${eqs(x0)} ${fmt(x0)}`, INK, S.a >= 0); } },
+
+/* 8. Парний n: три випадки */
+{ title: 'Парний показник: три випадки', graph: true, defaults: { n: 2, a: 4 }, amin: -3, amax: 10, view: [-4.5, 4.5, -4.5, 11],
+  render() { return head('green', 'x^n=a', `(${N} — парне)`) +
+    choice('n', [2, 4, 6], `Оберіть показник ${N}:`, GREEN) +
+    slider(AL, -3, 10) +
+    `<div class="live" id="live"></div>
+     <div class="concl"><h4>Правило</h4>
+       <p>Якщо ${N} — <span class="b-even">парне</span> натуральне число, то:</p>
+       <ul><li>при ${B('a<0')} корінь ${N}-го степеня із числа ${T('a')} <span class="bad">не існує</span> (спільних точок немає);</li>
+       <li>при ${B('a=0')} корінь ${N}-го степеня із числа ${T('a')} дорівнює 0 (одна спільна точка);</li>
+       <li>при ${B('a>0')} існують <span class="good">два протилежних числа</span>, кожне з яких є коренем ${N}-го степеня із числа ${T('a')} (дві спільні точки).</li></ul></div>`; },
+  update() { const a = S.a, n = S.n, q = Math.pow(Math.max(a, 0), 1 / n);
+    $('#live').innerHTML = a < 0 ? 'Графіки не перетинаються — коренів немає' :
+      a === 0 ? 'Одна спільна точка: ' + T('x=0') : 'Дві спільні точки: ' + T(`x=${tn(-q)}\\ \\text{і}\\ x=${tn(q)}`); },
+  eqn() { return `x^{${S.n}}=${tn(S.a)}`; },
+  legend() { return [[GREEN, `y=x^{${S.n}}`], [RED, `y=${tn(S.a)}`]]; },
+  draw() { const a = S.a, n = S.n;
+    let s = pathFn(x => Math.pow(x, n), G.xmin, G.xmax, GREEN) + hline(a, RED) + lineLabel(a, `y = ${fmt(a)}`);
+    if (a > 0) { const q = Math.pow(a, 1 / n);
+      s += rootArrows(q, a) + rootArrows(-q, a) + pt(q, a, RED) + pt(-q, a, RED);
+      s += q * G.sx > 55 ? tag(q, fmt(q)) + tag(-q, fmt(-q)) : tag(0, '±' + fmt(q));
+      s += banner('a > 0: два протилежні корені', GREEN); }
+    else if (a === 0) s += pt(0, 0, RED) + tag(0, 'x = 0') + banner('a = 0: один корінь — число 0', '#b45309');
+    else s += banner('a < 0: коренів немає', RED) +
+              `<text class="lbl" x="${G.w / 2}" y="${Y(a) + 22}" text-anchor="middle" fill="${RED}">спільних точок немає</text>`;
+    return s; } },
+
+/* 9. Позначення */
+{ title: 'Корінь n-го степеня: позначення', graph: false,
+  render() { return `<div class="solo-wrap" style="font-size:1.25em">
+      <div class="card" style="background:#fef2f2;border-color:#fecaca">
+        <p>Корінь <b>непарного</b> степеня ${N} (${T('n>1')}) із числа ${T('a')} позначають:</p>
+        <div class="big" style="color:${RED};margin:.1em 0;font-size:1.9em">${T(r`\sqrt[n]{a}`)}</div>
+        <p style="text-align:center;color:#475569">читають: «корінь ${N}-го степеня з ${T('a')}»</p></div>
+      <ul class="plain">
+        <li>Знак ${T(r`\sqrt[n]{\ }`)} — <b style="color:var(--accent)">радикал</b>; вираз під ним — <b style="color:var(--accent)">підкореневий вираз</b>.</li>
+        <li>Корінь третього степеня називають <b style="color:${RED}">кубічним</b>: ${T(r`\sqrt[3]{2}`)} — «кубічний корінь із числа 2».</li>
+        <li>Пригадаймо: <b>квадратний</b> корінь — корінь другого степеня, його позначають ${T(r`\sqrt{a}`)}.</li>
+        <li>Для <b>парного</b> ${N} запис ${T(r`\sqrt[n]{a}`)} має зміст лише при ${T(r`a\geqslant 0`)} — це арифметичний корінь, про нього далі.</li></ul>
+      <div class="boxed"><p>З означення кореня ${N}-го степеня випливає, що при <b>будь-якому</b> ${T('a')}:</p>
+        <div style="text-align:center;color:${RED};font-size:1.15em;margin:.2em 0">${T(r`\left(\sqrt[2k+1]{a}\right)^{2k+1}=a`)}</div>
+        <p>Наприклад: ${T(r`\left(\sqrt[3]{2}\right)^3=2`)}, ${T(r`\left(\sqrt[7]{-0{,}1}\right)^7=-0{,}1`)}.</p></div>
+    </div>`; } },
+
+/* 10. Пригадаємо: арифметичний квадратний корінь */
+{ title: 'Пригадаємо: арифметичний квадратний корінь', graph: true, defaults: { a: 9 }, view: [-5.5, 5.5, -3, 19],
+  render() { return `<div class="card" style="background:#f5f3ff;border-color:#ddd6fe">
+      <p>Пригадаємо: <b style="color:var(--arith)">арифметичним квадратним коренем</b> із невід’ємного числа ${T('a')} називають <b style="color:#16a34a">невід’ємне</b> число, квадрат якого дорівнює ${T('a')}.</p></div>` +
+    choice('a', [4, 9, 16], `Оберіть число ${T('a')}:`, PURPLE) + `<div class="live" id="live"></div><div class="concl" id="no"></div>`; },
+  update() { const a = S.a, q = Math.sqrt(a);
+    $('#live').innerHTML = T(`\\sqrt{${a}}=${q}`) + `<br>бо ${T(`${q}\\geqslant 0`)} і ${T(`${q}^2=${a}`)}`;
+    $('#no').innerHTML = `<p>Число ${T(`-${q}`)} ми <b>не беремо</b>: хоча ${T(`(-${q})^2=${a}`)}, але ${T(`-${q}<0`)}.</p>`; },
+  eqn() { return `x^2=${S.a}`; },
+  legend() { return [[BLUE, 'y=x^2'], [RED, `y=${S.a}`]]; },
+  draw() { const a = S.a, q = Math.sqrt(a);
+    return pathFn(x => x * x, G.xmin, G.xmax, BLUE) + hline(a, RED) + lineLabel(a, `y = ${a}`) +
+      rootArrows(-q, a, GRAY) + rootArrows(q, a, GREEN) + pt(-q, a, GRAY) + pt(q, a, GREEN) +
+      tag(q, `√${a} = ${q}`, GREEN) + tag(-q, `−${q} — не беремо`, '#64748b'); } },
+
+/* 11. Арифметичний корінь n-го степеня */
+{ title: 'Арифметичний корінь n-го степеня', graph: true, defaults: { n: 2, a: 4 }, amin: 0, amax: 10, view: [-4.5, 4.5, -2, 11],
+  render() { return `<div class="card" style="background:#f5f3ff;border-color:#ddd6fe">
+      <p><b style="color:var(--arith)">Арифметичним коренем n-го степеня</b> з невід’ємного числа ${T('a')}, де ${T(r`n\in\mathbb N,\ n>1`)}, називають таке <b>невід’ємне</b> число, ${N}-й степінь якого дорівнює ${T('a')}.</p>
+      <div style="text-align:center;color:var(--arith);font-size:1.15em;margin-top:6px">${T(r`\sqrt[n]{a}=b\iff b\geqslant 0,\ b^n=a`, true)}</div></div>` +
+    choice('n', [2, 4], `Оберіть парний показник ${N}:`, PURPLE) +
+    slider('Змінюйте <i>a</i> ≥ 0 (або тягніть червону пряму)', 0, 10, 'p') +
+    `<div class="live" id="live"></div>
+     <div class="concl"><h4>З означення випливає</h4>
+       <p>1) ${T(r`\sqrt[n]{a}\geqslant 0`)}, де ${T(r`a\geqslant 0`)};</p>
+       <p>2) ${T(r`\left(\sqrt[n]{a}\right)^n=a`)}, де ${T(r`a\geqslant 0`)};</p>
+       <p>3) ${T(r`\sqrt[2k+1]{-a}=-\sqrt[2k+1]{a}`)} (наприклад, ${T(r`\sqrt[3]{-2}=-\sqrt[3]{2}`)}).</p></div>
+     <p>Приклади: ${T(r`\sqrt[4]{81}=3`)}, бо ${T(r`3\geqslant 0`)} і ${T('3^4=81')}; ${T(r`\sqrt[6]{64}=2`)}; ${T(r`\sqrt[10]{0}=0`)}. Рівняння ${T('x^4=5')} має корені ${T(r`-\sqrt[4]{5}`)} і ${T(r`\sqrt[4]{5}`)}, а ${T('x^3=7')} — єдиний корінь ${T(r`\sqrt[3]{7}`)}.</p>`; },
+  update() { const a = S.a, n = S.n, q = Math.pow(a, 1 / n), rt = n === 2 ? r`\sqrt{${tn(a)}}` : r`\sqrt[${n}]{${tn(a)}}`;
+    $('#live').innerHTML = `Усі корені: <span style="color:#64748b">${a > 0 ? fmt(-q) + ' і ' : ''}</span><span class="good">${fmt(q)}</span>` +
+      `<br>арифметичний — лише ` + T(`${rt}${eq(q)}${tn(q)}`); },
+  eqn() { return `x^{${S.n}}=${tn(S.a)}`; },
+  legend() { return [[PURPLE, `y=x^{${S.n}}`], [RED, `y=${tn(S.a)}`]]; },
+  draw() { const a = S.a, n = S.n, q = Math.pow(a, 1 / n), lb = n === 2 ? '√' : '⁴√';
+    let s = pathFn(x => Math.pow(x, n), G.xmin, G.xmax, PURPLE) + hline(a, RED) + lineLabel(a, `y = ${fmt(a)}`);
+    if (a > 0) s += rootArrows(-q, a, GRAY) + rootArrows(q, a, GREEN) + pt(-q, a, GRAY) + pt(q, a, GREEN) +
+      tag(q, `${lb}${fmt(a)} ${eqs(q)} ${fmt(q)}`, GREEN) + tag(-q, fmt(-q), GRAY, false);
+    else s += pt(0, 0, GREEN) + tag(0, `${lb}0 = 0`, GREEN);
+    return s; } },
+
+/* 12. Таблиця + перехід до функцій (поступово) */
+{ title: 'Парне і непарне n; перехід до функцій', graph: false, defaults: { rev: 0 }, prog: true,
+  render() {
+    const items = [
+      `<p style="margin-bottom:6px"><b>Що працює для парного і непарного ${N}:</b></p>` +
+      table([['', `${N} парне`, `${N} непарне`],
+        [T(r`\sqrt[n]{a}`) + ' має зміст', T(r`a\geqslant 0`), `будь-яке ${T('a')}`],
+        [T(r`\sqrt[n]{a}\geqslant 0`), 'так', T(r`a\geqslant 0`)],
+        [T(r`\left(\sqrt[n]{a}\right)^n=a`), T(r`a\geqslant 0`), `будь-яке ${T('a')}`],
+        [T(r`\sqrt[n]{-a}=-\sqrt[n]{a}`), '—', 'так']]),
+      `<div class="card"><p>Тепер розглянемо ${T('x')} як змінну. Кожному значенню ${T('x')}, для якого корінь ${N}-го степеня існує, відповідає <b>єдине</b> число ${T(r`\sqrt[n]{x}`)}. Отже, формула ${T(r`y=\sqrt[n]{x}`)} задає <b>функцію</b>.</p></div>`,
+      `<div class="card"><p>Чи існує корінь — залежить від парності ${N}. Тому розглянемо <b>дві функції</b>:</p></div>`,
+      `<div class="head blue">${T(r`y=\sqrt[2k+1]{x}`)}<small>${N} = 2k+1, ${T(r`k\in\mathbb N`)} — непарний показник: ${T(r`\sqrt[3]{x},\ \sqrt[5]{x},\ \sqrt[7]{x}\ \dots`)}</small></div>`,
+      `<div class="head green">${T(r`y=\sqrt[2k]{x}`)}<small>${N} = 2k, ${T(r`k\in\mathbb N`)} — парний показник: ${T(r`\sqrt{x},\ \sqrt[4]{x},\ \sqrt[6]{x}\ \dots`)}</small></div>`,
+      `<div class="card"><p>Для кожної з них знайдемо область визначення, область значень і побудуємо графік.</p></div>`
+    ];
+    return `<div class="solo-wrap lg">` + items.slice(0, S.rev + 1).map((h, i) => `<div${i === S.rev && i > 0 ? ' class="fade"' : ''}>${h}</div>`).join('') +
+      (S.rev < items.length - 1 ? `<div style="text-align:center"><button class="btn go wide" id="reveal" aria-label="Далі">▶</button></div>` : '') + `</div>`; } },
+
+/* 10. y = корінь непарного степеня */
+{ title: 'Функція y = ⁿ√x (n — непарне)', graph: true, equal: true, defaults: { n: 3 }, view: [-9.5, 9.5, -3.5, 3.5],
+  render() { return `<p>Корінь непарного степеня з будь-якого числа існує, і він єдиний, тому кожному ${T('x')} відповідає єдине ${T('y')}. Отже, маємо <b class="b-odd">функцію</b>:</p>` +
+    head('blue', r`y=\sqrt[2k+1]{x},\ k\in\mathbb N`) +
+    choice('n', [3, 5, 7], `Оберіть показник ${N}:`, BLUE) +
+    `<div id="tbl"></div>
+     <div class="concl"><h4>Властивості функції</h4><ul class="plain">
+       <li><b>Область визначення:</b> ${T(r`D(y)=\mathbb R`)}</li>
+       <li><b>Область значень:</b> ${T(r`E(y)=\mathbb R`)}</li>
+       <li>Функція <b>непарна</b> (графік симетричний відносно початку координат).</li>
+       <li><b>Зростає</b> на всій області визначення.</li>
+       <li><b>Базові точки:</b> (0; 0), (1; 1), (−1; −1)</li></ul></div>`; },
+  update() { const n = S.n, p = Math.pow(2, n);
+    $('#tbl').innerHTML = table([['x', fmt(-p), '−1', '0', '1', fmt(p)], [T(r`y=\sqrt[${n}]{x}`), '−2', '−1', '0', '1', '2']]); },
+  legend() { const l = [[BLUE, r`y=\sqrt[${S.n}]{x}`]]; if (S.n > 3) l.push([GRAY, r`y=\sqrt[3]{x}`]); return l; },
+  draw() { const n = S.n; let s = '';
+    if (n > 3) s += pathParam(t => t * t * t, t => t, -3, 3, GRAY, 2.5);
+    s += pathParam(t => Math.pow(t, n), t => t, -3, 3, BLUE, 4.5);
+    return s + pt(0, 0, BLUE, '(0; 0)', 8, 18, 'start') + pt(1, 1, BLUE, '(1; 1)', 8, 18, 'start') + pt(-1, -1, BLUE, '(−1; −1)', -8, -10, 'end'); } },
+
+/* 11. y = корінь парного степеня */
+{ title: 'Функція y = ⁿ√x (n — парне)', graph: true, equal: true, defaults: { n: 2 }, view: [-1.6, 10.6, -1.4, 3.8],
+  render() { return `<p>Арифметичний корінь парного степеня існує лише з <b>невід’ємних</b> чисел, тому графік розташований тільки в I чверті.</p>` +
+    head('green', r`y=\sqrt[2k]{x},\ k\in\mathbb N`) +
+    choice('n', [2, 4, 6], `Оберіть показник ${N}:`, GREEN) +
+    `<div id="tbl"></div>
+     <div class="concl"><h4>Властивості функції</h4><ul class="plain">
+       <li><b>Область визначення:</b> ${T(r`D(y)=[0;+\infty)`)}</li>
+       <li><b>Область значень:</b> ${T(r`E(y)=[0;+\infty)`)}</li>
+       <li>Функція <b>ні парна, ні непарна</b>.</li>
+       <li><b>Зростає</b> на всій області визначення.</li>
+       <li><b>Базові точки:</b> (0; 0), (1; 1)</li></ul></div>`; },
+  update() { const n = S.n;
+    $('#tbl').innerHTML = table([['x', '0', '1', fmt(Math.pow(2, n)), fmt(Math.pow(3, n))], [T(r`y=\sqrt[${n}]{x}`), '0', '1', '2', '3']]); },
+  legend() { const l = [[GREEN, S.n === 2 ? r`y=\sqrt{x}` : r`y=\sqrt[${S.n}]{x}`]]; if (S.n > 2) l.push([GRAY, r`y=\sqrt{x}`]); return l; },
+  draw() { const n = S.n; let s = '';
+    if (n > 2) s += pathParam(t => t * t, t => t, 0, 3.2, GRAY, 2.5);
+    s += pathParam(t => Math.pow(t, n), t => t, 0, 3.2, GREEN, 4.5);
+    s += pt(0, 0, GREEN, '(0; 0)', 8, -10, 'start') + pt(1, 1, GREEN, '(1; 1)', -8, -10, 'end');
+    if (n === 2) s += pt(4, 2, GREEN, '(4; 2)', 8, 18, 'start') + pt(9, 3, GREEN, '(9; 3)', 0, 20);
+    return s; } },
+
+/* ---------- Вправи з підручника ---------- */
+ex('Вправа 4.1', [['4.1', 'Чи має зміст вираз:', [
+  [`1) ${T(r`\sqrt[3]{2}`)}`, 'Має зміст: корінь непарного степеня існує з будь-якого числа.'],
+  [`2) ${T(r`\sqrt[3]{-2}`)}`, 'Має зміст: корінь непарного степеня існує і з від’ємного числа.'],
+  [`3) ${T(r`\sqrt[4]{2}`)}`, `Має зміст, бо ${T(r`2\geqslant 0`)} (підкореневий вираз невід’ємний).`],
+  [`4) ${T(r`\sqrt[6]{0}`)}`, `Має зміст, бо ${T(r`0\geqslant 0`)}; ${T(r`\sqrt[6]{0}=0`)}.`],
+  [`5) ${T(r`\sqrt[6]{-1}`)}`, `<span class="bad">Не має змісту</span>, бо корінь парного степеня не існує з від’ємного числа.`]]]]),
+ex('Вправи 4.2, 4.3', [
+  ['4.2', 'Чи є правильною рівність (відповідь обґрунтуйте):', [
+    [`1) ${T(r`\sqrt[3]{27}=3`)}`, `<span class="good">Правильна</span>, бо ${T('3^3=27')}.`],
+    [`2) ${T(r`\sqrt[3]{343}=-3`)}`, `<span class="bad">Неправильна</span>: ${T(r`\sqrt[3]{343}\neq -3`)}, бо ${T(r`(-3)^3=-27\neq 343`)}. Насправді ${T(r`\sqrt[3]{343}=7`)}, бо ${T('7^3=343')}.`]]],
+  ['4.3', 'Доведіть, що:', [
+    ['1) число 2 є арифметичним кубічним коренем із числа 8', `${T(r`2\geqslant 0`)} і ${T('2^3=8')}. Отже, ${T(r`\sqrt[3]{8}=2`)}.`],
+    ['2) число 3 є арифметичним коренем четвертого степеня із числа 81', `${T(r`3\geqslant 0`)} і ${T('3^4=81')}. Отже, ${T(r`\sqrt[4]{81}=3`)}.`],
+    ['3) число −3 не є арифметичним коренем четвертого степеня із числа 81', `Хоча ${T('(-3)^4=81')}, але ${T('-3<0')}, а арифметичний корінь — невід’ємне число.`]]]]),
+ex('Вправи 4.4, 4.6', [
+  ['4.4', 'Знайдіть значення виразу:', [
+    [`1) ${T(r`\sqrt[3]{216}`)}`, `${T(r`\sqrt[3]{216}=6`)}, бо ${T('6^3=216')}.`],
+    [`2) ${T(r`\sqrt[4]{0{,}0016}`)}`, `${T(r`\sqrt[4]{0{,}0016}=0{,}2`)}, бо ${T(r`0{,}2^4=0{,}0016`)}.`],
+    [`3) ${T(r`\sqrt[5]{-0{,}00001}`)}`, `${T(r`\sqrt[5]{-0{,}00001}=-0{,}1`)}, бо ${T(r`(-0{,}1)^5=-0{,}00001`)}.`],
+    [`4) ${T(r`\sqrt[3]{-\frac18}`)}`, `${T(r`\sqrt[3]{-\frac18}=-\frac12`)}, бо ${T(r`\left(-\frac12\right)^3=-\frac18`)}.`],
+    [`5) ${T(r`\frac13\sqrt[5]{-243}`)}`, `${T(r`\frac13\cdot(-3)=-1`)}, бо ${T('(-3)^5=-243')}.`]]],
+  ['4.6', 'Обчисліть:', [
+    [`1) ${T(r`\left(\sqrt[3]{5}\right)^3`)}`, `За означенням кореня: ${T(r`\left(\sqrt[3]{5}\right)^3=5`)}.`],
+    [`2) ${T(r`\left(-\sqrt[4]{7}\right)^4`)}`, `${T(r`\left(-\sqrt[4]{7}\right)^4=\left(\sqrt[4]{7}\right)^4=7`)} (парний степінь).`],
+    [`3) ${T(r`\left(-\sqrt[7]{2}\right)^7`)}`, `${T(r`\left(-\sqrt[7]{2}\right)^7=-\left(\sqrt[7]{2}\right)^7=-2`)} (непарний степінь).`]]]]),
+ex('Вправа 4.8', [['4.8', 'Розв’яжіть рівняння:', [
+  [`1) ${T('x^3=27')}`, `${T(r`x=\sqrt[3]{27}=3`)}. <b>Відповідь:</b> 3.`],
+  [`2) ${T('x^5=9')}`, `${T(r`x=\sqrt[5]{9}`)}. <b>Відповідь:</b> ${T(r`\sqrt[5]{9}`)}.`],
+  [`3) ${T('x^7=-2')}`, `${T(r`x=\sqrt[7]{-2}`)}. <b>Відповідь:</b> ${T(r`\sqrt[7]{-2}`)}.`],
+  [`4) ${T('x^4=16')}`, `${T(r`x=\pm\sqrt[4]{16}=\pm 2`)}. <b>Відповідь:</b> −2; 2.`],
+  [`5) ${T('x^6=5')}`, `${T(r`x=\pm\sqrt[6]{5}`)}. <b>Відповідь:</b> ${T(r`-\sqrt[6]{5}`)}; ${T(r`\sqrt[6]{5}`)}.`],
+  [`6) ${T('x^4=-81')}`, 'Парний степінь не може дорівнювати від’ємному числу. <b>Відповідь:</b> розв’язків немає.'],
+  [`7) ${T('27x^3-1=0')}`, `${T(r`x^3=\frac1{27}`)}, ${T(r`x=\frac13`)}. <b>Відповідь:</b> ${T(r`\frac13`)}.`],
+  [`8) ${T('(x-2)^3=125')}`, `${T('x-2=5')}, ${T('x=7')}. <b>Відповідь:</b> 7.`],
+  [`9) ${T('(x+5)^4=10\\,000')}`, `${T(r`x+5=\pm 10`)}; ${T('x=5')} або ${T('x=-15')}. <b>Відповідь:</b> 5; −15.`]]]]),
+ex('Вправи 4.10, 4.14', [
+  ['4.10', 'Розв’яжіть рівняння:', [
+    [`2) ${T('x^4=3')}`, `${T(r`x=\pm\sqrt[4]{3}`)}. <b>Відповідь:</b> ${T(r`-\sqrt[4]{3}`)}; ${T(r`\sqrt[4]{3}`)}.`],
+    [`3) ${T('x^3=-6')}`, `${T(r`x=\sqrt[3]{-6}=-\sqrt[3]{6}`)}. <b>Відповідь:</b> ${T(r`-\sqrt[3]{6}`)}.`],
+    [`4) ${T('x^6=-2')}`, '<b>Відповідь:</b> коренів немає.']]],
+  ['4.14', 'Знайдіть область визначення функції:', [
+    [`1) ${T(r`y=\sqrt[3]{x-1}`)}`, `Корінь непарного степеня існує завжди. ${T(r`D(y)=\mathbb R`)}.`],
+    [`2) ${T(r`y=\sqrt[6]{x+1}`)}`, `${T(r`x+1\geqslant 0`)}, ${T(r`x\geqslant -1`)}. ${T(r`D(y)=[-1;+\infty)`)}.`],
+    [`3) ${T(r`y=\sqrt[4]{x^2-x-2}`)}`, `${T(r`x^2-x-2\geqslant 0`)}; корені тричлена: −1 і 2. ${T(r`D(y)=(-\infty;-1]\cup[2;+\infty)`)}.`]]]]),
+ex('Вправа 4.16', [['4.16', 'Між якими двома послідовними цілими числами міститься на координатній прямій число:', [
+  [`1) ${T(r`\sqrt[3]{3}`)}`, `<div class="lines"><p>${T(r`1^3=1,\qquad 2^3=8`)}</p><p>${T(r`1<3<8`)}</p><p>${T(r`1<\sqrt[3]{3}<2`)}</p><p><b>Отже, між 1 і 2.</b></p></div>`],
+  [`2) ${T(r`\sqrt[4]{21}`)}`, `<div class="lines"><p>${T(r`2^4=16,\qquad 3^4=81`)}</p><p>${T(r`16<21<81`)}</p><p>${T(r`2<\sqrt[4]{21}<3`)}</p><p><b>Отже, між 2 і 3.</b></p></div>`],
+  [`3) ${T(r`\sqrt[3]{100}`)}`, `<div class="lines"><p>${T(r`4^3=64,\qquad 5^3=125`)}</p><p>${T(r`64<100<125`)}</p><p>${T(r`4<\sqrt[3]{100}<5`)}</p><p><b>Отже, між 4 і 5.</b></p></div>`],
+  [`4) ${T(r`-\sqrt[3]{81}`)}`, `<div class="lines"><p>${T(r`4^3=64,\qquad 5^3=125`)}</p><p>${T(r`64<81<125`)}</p><p>${T(r`4<\sqrt[3]{81}<5`)}</p><p>${T(r`-5<-\sqrt[3]{81}<-4`)}</p><p><b>Отже, між −5 і −4.</b></p></div>`]]]]),
+ex('Вправа 4.18', [['4.18', 'Розв’яжіть нерівність:', [
+  [`1) ${T('x^5>3')}`, sketch({ f: x => Math.pow(x, 5), x0: -1.6, x1: 2, y0: -4, y1: 6, a: 3, xr: Math.pow(3, 0.2), from: Math.pow(3, 0.2), to: 1.95, marks: [{ x: Math.pow(3, 0.2), t: '⁵√3' }], flab: 'y = x⁵', alab: 'y = 3' }) +
+    `<p>Функція ${T('y=x^5')} зростає, тому ${T(r`x>\sqrt[5]{3}`)}.</p><p><b>Відповідь:</b> ${T(r`\left(\sqrt[5]{3};+\infty\right)`)}.</p>`],
+  [`2) ${T(r`\sqrt[6]{x-3}<2`)}`, sketch({ f: x => Math.pow(x - 3, 1 / 6), x0: 0, x1: 100, y0: -0.4, y1: 2.8, a: 2, xr: 67, from: 3, to: 67, marks: [{ x: 3, t: '3' }, { x: 67, t: '67' }], flab: 'y = ⁶√(x−3)', alab: 'y = 2' }) +
+    `<p>${T(r`0\leqslant x-3<2^6`)}, ${T('3\\leqslant x<67')}.</p><p><b>Відповідь:</b> ${T('[3;67)')}.</p>`],
+  [`3) ${T(r`\sqrt[4]{x+1}>1`)}`, sketch({ f: x => Math.pow(x + 1, 1 / 4), x0: -1.2, x1: 6, y0: -0.4, y1: 2.1, a: 1, xr: 0, from: 0, to: 5.9, marks: [{ x: -1, t: '−1' }, { x: 0, t: '0' }], flab: 'y = ⁴√(x+1)', alab: 'y = 1' }) +
+    `<p>${T('x+1>1^4')}, ${T('x>0')}.</p><p><b>Відповідь:</b> ${T(r`(0;+\infty)`)}.</p>`]]]]),
+{ title: 'Вправа 4.19', graph: true, equal: true, defaults: { k: 1, rev: 0 }, resetOn: 'k', view: [-5, 5, -5, 5],
+  showIf() { return S.rev >= 2; },
+  render() { const f = S.k === 1 ? r`y=\left(\sqrt[3]{x}\right)^3` : r`y=\left(\sqrt[4]{x}\right)^4`;
+    return `<div class="solo-wrap"><div class="head purple">Вправа 4.19<small>Побудуйте графік функції</small></div>` +
+    choice('k', [1, 2], 'Оберіть пункт:', PURPLE) +
+    `<div class="card"><p><b>Умова:</b> побудуйте графік функції</p><div style="text-align:center;margin-top:4px;font-size:1.2em">${T(f)}</div></div>` +
+    (S.rev >= 1 ? `<div class="card" id="sol"></div>` : '') +
+    (S.rev >= 2 ? '' : `<div style="text-align:center"><button class="btn go wide" id="reveal">${S.rev === 0 ? 'Розв’язання ▶' : 'Побудувати графік ▶'}</button></div>`) + `</div>`; },
+  update() { const el = $('#sol'); if (!el) return; el.innerHTML = S.k === 1
+    ? `<p>${T(r`D(y)=\mathbb R`)}. За означенням кореня ${T(r`\left(\sqrt[3]{x}\right)^3=x`)}, тому ${T('y=x')}.</p>`
+    : `<p>${T(r`D(y)=[0;+\infty)`)}. Для ${T(r`x\geqslant 0`)} маємо ${T(r`\left(\sqrt[4]{x}\right)^4=x`)}, тому ${T('y=x')}, ${T(r`x\geqslant 0`)}.</p>`; },
+  eqn() { return S.k === 1 ? r`y=\left(\sqrt[3]{x}\right)^3` : r`y=\left(\sqrt[4]{x}\right)^4`; },
+  legend() { return [[PURPLE, S.k === 1 ? r`y=x` : r`y=x,\ x\geqslant 0`]]; },
+  draw() { return S.k === 1 ? pathFn(x => x, G.xmin, G.xmax, PURPLE, 4) + pt(0, 0, PURPLE)
+    : pathFn(x => x, 0, G.xmax, PURPLE, 4) + pt(0, 0, PURPLE, '(0; 0)', 8, 18, 'start'); } },
+ex('Вправа 4.20', [['4.20', 'Розв’яжіть рівняння:', [
+  [`1) ${T(r`(x^2-4)\sqrt[4]{x+1}=0`)}`, `<div class="lines"><p>ОДЗ: ${T(r`x+1\geqslant 0`)}, тобто ${T(r`x\geqslant -1`)}.</p><p>Добуток дорівнює нулю, якщо один із множників дорівнює нулю.</p><p>${T('x^2-4=0')}: ${T('x=2')} або ${T('x=-2')}. Число −2 не входить в ОДЗ.</p><p>${T(r`\sqrt[4]{x+1}=0`)}: ${T('x=-1')}.</p><p><b>Відповідь:</b> −1; 2.</p></div>`],
+  [`2) ${T(r`(x-1)\sqrt[10]{x^2-2x-3}=0`)}`, `<div class="lines"><p>ОДЗ: ${T(r`x^2-2x-3\geqslant 0`)}, тобто ${T(r`x\leqslant -1`)} або ${T(r`x\geqslant 3`)}.</p><p>${T('x-1=0')}: ${T('x=1')}. Число 1 не входить в ОДЗ.</p><p>${T(r`\sqrt[10]{x^2-2x-3}=0`)}: ${T('x^2-2x-3=0')}, ${T('x=-1')} або ${T('x=3')}.</p><p><b>Відповідь:</b> −1; 3.</p></div>`]]]]),
+{ title: 'Вправа 4.22', graph: true, defaults: { rev: 0 }, view: [-4, 3, -2, 10],
+  showIf() { return S.rev >= 2; },
+  render() { return `<div class="solo-wrap"><div class="head purple">Вправа 4.22<small>Побудуйте графік функції</small></div>
+    <div class="card"><p><b>Умова:</b> побудуйте графік функції</p><div style="text-align:center;margin-top:4px;font-size:1.1em">${T(r`y=\sqrt[4]{(x-1)^4}+\left(\sqrt[4]{1-x}\right)^4+1`)}</div></div>` +
+    (S.rev >= 1 ? `<div class="card"><ol class="how"><li>Другий доданок існує при ${T(r`1-x\geqslant 0`)}, тобто ${T(r`x\leqslant 1`)}.</li>
+    <li>${T(r`\sqrt[4]{(x-1)^4}=|x-1|=1-x`)} при ${T(r`x\leqslant 1`)}.</li>
+    <li>${T(r`\left(\sqrt[4]{1-x}\right)^4=1-x`)}.</li>
+    <li>${T(r`y=(1-x)+(1-x)+1=3-2x`)}, ${T(r`x\leqslant 1`)}.</li></ol></div>` : '') +
+    (S.rev >= 2 ? `<div class="live">Графік — промінь</div>` : `<div style="text-align:center"><button class="btn go wide" id="reveal">${S.rev === 0 ? 'Розв’язання ▶' : 'Побудувати графік ▶'}</button></div>`) + `</div>`; },
+  eqn() { return r`y=3-2x,\ x\leqslant 1`; },
+  legend() { return []; },
+  draw() { return pathFn(x => 3 - 2 * x, G.xmin, 1, PURPLE, 4) + pt(1, 1, PURPLE, '(1; 1)', 8, 18, 'start') + pt(0, 3, PURPLE, '(0; 3)', 10, -8, 'start'); } }
+
+];
+
+/* ---------- керування ---------- */
+function drawGraph() {
+  const s = steps[S.step];
+  if (s.showIf && !s.showIf()) return;
+  geom(s.view, s.equal);
+  G.nonum = !!(s.nonum && s.nonum());
+  $('#svg').innerHTML = axes() + s.draw();
+  ANIM = false;
+  const eqs0 = s.eqn ? s.eqn() : '';
+  const rows = (eqs0 ? [`<div class="eqrow">${T(eqs0)}</div>`] : []).concat(s.legend().map(([c, t]) => `<div style="color:${c}">${T(t)}</div>`));
+  $('#legend').innerHTML = rows.join('');
+}
+
+function refresh(anim) {
+  const s = steps[S.step];
+  if (s.graph) $('#main').classList.toggle('solo', !!(s.showIf && !s.showIf()));
+  document.querySelectorAll('.choice').forEach(c => {
+    const k = c.dataset.key;
+    c.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v === S[k]));
+  });
+  const sl = $('#sl');
+  if (sl) { sl.value = S.a; $('#av').textContent = fmt(S.a); }
+  if (s.update) s.update();
+  if (s.graph) { ANIM = !!anim; drawGraph(); }
+}
+
+function go(i) {
+  i = Math.max(0, Math.min(steps.length - 1, i));
+  S.step = i;
+  const s = steps[i];
+  Object.assign(S, s.defaults || {});
+  $('#main').classList.toggle('solo', !s.graph);
+  $('#left').innerHTML = s.render();
+  $('#left').scrollTop = 0;
+  $('#hint').textContent = s.amax !== undefined ? 'Червону пряму можна перетягувати' : '';
+  $('#pos').textContent = `${i + 1} / ${steps.length}`;
+  $('#prev').disabled = i === 0;
+  $('#next').textContent = i === steps.length - 1 ? 'На початок ↺' : 'Далі →';
+  document.querySelectorAll('.dots button').forEach((d, j) => d.classList.toggle('on', j === i));
+  refresh(true);
+}
+
+/* події */
+$('#left').addEventListener('click', e => {
+  if (e.target.closest('#reveal')) { S.rev = (S.rev || 0) + 1; $('#left').innerHTML = steps[S.step].render(); refresh(true);
+    if (steps[S.step].prog) $('#left').scrollTop = $('#left').scrollHeight; return; }
+  const b = e.target.closest('.choice button'); if (!b) return;
+  const key = b.closest('.choice').dataset.key; S[key] = +b.dataset.v;
+  const st = steps[S.step];
+  if (st.resetOn === key) { S.rev = 0; $('#left').innerHTML = st.render(); }
+  refresh(true);
+});
+$('#left').addEventListener('input', e => {
+  if (e.target.id === 'sl') { S.a = parseFloat(e.target.value); refresh(false); }
+});
+$('#left').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d.matches && d.matches('details.ex') && d.open) document.querySelectorAll('#left details.ex').forEach(o => { if (o !== d) o.open = false; });
+}, true);
+$('#replay').onclick = () => refresh(true);
+$('#prev').onclick = () => go(S.step - 1);
+$('#next').onclick = () => go(S.step === steps.length - 1 ? 0 : S.step + 1);
+$('#menuBtn').onclick = () => $('#overlay').classList.add('open');
+$('#overlay').onclick = e => { if (e.target.id === 'overlay') $('#overlay').classList.remove('open'); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('#overlay').classList.remove('open');
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key === 'ArrowRight') $('#next').click();
+  if (e.key === 'ArrowLeft' && S.step > 0) go(S.step - 1);
+});
+
+/* перетягування червоної прямої */
+let drag = false;
+function pointer(e) {
+  const s = steps[S.step]; if (s.amax === undefined) return;
+  const rc = $('#svg').getBoundingClientRect();
+  let v = (G.cy - (e.clientY - rc.top)) / G.sy;
+  v = Math.round(Math.max(s.amin, Math.min(s.amax, v)) * 10) / 10;
+  S.a = v === 0 ? 0 : v; refresh(false);
+}
+$('#svg').addEventListener('pointerdown', e => { drag = true; try { e.target.setPointerCapture(e.pointerId); } catch (_) {} pointer(e); });
+$('#svg').addEventListener('pointermove', e => { if (drag) pointer(e); });
+['pointerup', 'pointercancel'].forEach(t => $('#svg').addEventListener(t, () => drag = false));
+
+new ResizeObserver(() => { const s = steps[S.step]; if (!s.graph || (s.showIf && !s.showIf())) return;
+  const rc = $('#right').getBoundingClientRect(); if (Math.abs(rc.width - G.w) < 1 && Math.abs(rc.height - G.h) < 1) return; drawGraph(); }).observe($('#right'));
+
+/* зміст і крапки */
+steps.forEach((s, i) => {
+  $('#menuList').insertAdjacentHTML('beforeend',
+    `<button class="item" data-i="${i}"><span class="num">${i + 1}</span><span>${s.title}</span></button>`);
+  $('#dots').insertAdjacentHTML('beforeend', `<button title="${s.title}" data-i="${i}"></button>`);
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('.menu .item, .dots button'); if (!b) return;
+  $('#overlay').classList.remove('open'); go(+b.dataset.i);
+});
+
+go(0);
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
