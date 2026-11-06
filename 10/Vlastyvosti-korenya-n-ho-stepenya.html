@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Властивості кореня n-го степеня: Інтерактивний урок</title>
+
+    <!-- React, ReactDOM, Babel Standalone -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- KaTeX for math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+
+        @keyframes drawStroke {
+            from { stroke-dashoffset: 5000; }
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-draw {
+            stroke-dasharray: 5000;
+            stroke-dashoffset: 5000;
+            animation: drawStroke 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeInPoint { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in-point { animation: fadeInPoint 1s ease-out forwards; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        input[type=range].slider-purple { accent-color: #8E44AD; }
+        input[type=range].slider-red { accent-color: #E74C3C; }
+        input[type=range].slider-blue { accent-color: #2980B9; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        graphite: '#2C3E50',
+                        accentRed: '#E74C3C',
+                        accentGreen: '#27AE60',
+                        accentBlue: '#2980B9',
+                        accentPurple: '#8E44AD',
+                        accentMagenta: '#E91E63',
+                        panelLeft: '#f2e6ff',
+                        panelRight: '#faf5ff',
+                        colorPrimary: '#34495E',
+                        colorSecondary: '#95A5A6'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 overflow-hidden text-graphite selection:bg-emerald-600 selection:text-white font-sans h-screen w-screen relative">
+
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel" data-type="module" data-presets="react">
+        const { useState, useEffect, useRef } = React;
+
+        const Latex = ({ math, block = false }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current) {
+                    try {
+                        window.katex.render(math, containerRef.current, { displayMode: block, throwOnError: false });
+                    } catch (err) { console.error("Error rendering KaTeX: ", err); }
+                }
+            }, [math, block]);
+            return <span ref={containerRef} />;
+        };
+
+        // ---------- Допоміжні функції ----------
+        const formatNum = (v) => {
+            let rounded = Math.round(v * 100) / 100;
+            if (Object.is(rounded, -0)) rounded = 0;
+            return rounded.toString().replace('.', ',').replace('-', '−');
+        };
+        const texNum = (v) => formatNum(v).replace('−', '-').replace(',', '{,}');
+        const bigTex = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '\\,');
+
+        // Корінь n-го степеня (непарний — з будь-якого числа, парний — з невід'ємного)
+        const nthRoot = (v, n) => (v < 0 && n % 2 === 1) ? -Math.pow(-v, 1 / n) : Math.pow(v, 1 / n);
+        const rootTex = (n, inner) => n === 2 ? `\\sqrt{${inner}}` : `\\sqrt[${n}]{${inner}}`;
+
+        const TXT = "text-[13px] sm:text-[14px] md:text-[16px] lg:text-[20px] xl:text-[24px]";
+        const TXT_HEAD = "text-[16px] sm:text-[18px] md:text-[22px] lg:text-[26px] xl:text-[32px]";
+        const TXT_SUB = "text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] xl:text-[24px]";
+
+        // ---------- Задачі для кроку «Приклади» ----------
+        const EXAMPLES = [
+            { label: 'Обчисліть', task: '\\sqrt[4]{(-7{,}3)^4}', answer: '7{,}3', steps: [
+                { note: 'Показник кореня парний і збігається з показником степеня. За теоремою 5.1: \u00A0 ²ᵏ√(a²ᵏ) = |a|.', tex: '\\sqrt[4]{(-7{,}3)^4}=|-7{,}3|' },
+                { note: 'Модуль від’ємного числа — число додатне.', tex: '|-7{,}3|=7{,}3' }
+            ]},
+            { label: 'Обчисліть', task: '\\sqrt[6]{1{,}2^{12}}', answer: '1{,}44', steps: [
+                { note: 'Подаємо підкореневий вираз як шосту степінь.', tex: '1{,}2^{12}=\\left(1{,}2^{2}\\right)^{6}' },
+                { note: 'Застосовуємо теорему 5.1 (парний показник).', tex: '\\sqrt[6]{\\left(1{,}2^{2}\\right)^{6}}=\\left|1{,}2^{2}\\right|=1{,}2^{2}' },
+                { note: 'Обчислюємо степінь.', tex: '1{,}2^{2}=1{,}44' }
+            ]},
+            { label: 'Обчисліть', task: '\\sqrt[5]{16}\\cdot\\sqrt[5]{2}', answer: '2', steps: [
+                { note: 'Теорема 5.2 «справа наліво»: добуток коренів — це корінь із добутку.', tex: '\\sqrt[5]{16}\\cdot\\sqrt[5]{2}=\\sqrt[5]{16\\cdot 2}=\\sqrt[5]{32}' },
+                { note: 'Оскільки 2⁵ = 32:', tex: '\\sqrt[5]{32}=2' }
+            ]},
+            { label: 'Обчисліть', task: '\\dfrac{\\sqrt[3]{24}}{\\sqrt[3]{375}}', answer: '\\dfrac{2}{5}', steps: [
+                { note: 'Теорема 5.3: частка коренів — це корінь із частки.', tex: '\\dfrac{\\sqrt[3]{24}}{\\sqrt[3]{375}}=\\sqrt[3]{\\dfrac{24}{375}}' },
+                { note: 'Скорочуємо дріб на 3.', tex: '\\dfrac{24}{375}=\\dfrac{8}{125}' },
+                { note: 'Добуваємо корінь із чисельника й знаменника.', tex: '\\sqrt[3]{\\dfrac{8}{125}}=\\dfrac{\\sqrt[3]{8}}{\\sqrt[3]{125}}=\\dfrac{2}{5}' }
+            ]},
+            { label: 'Спростіть', task: '\\sqrt[4]{a^{28}}', answer: '|a|^{7}', steps: [
+                { note: 'Подаємо a²⁸ як четверту степінь.', tex: 'a^{28}=\\left(a^{7}\\right)^{4}' },
+                { note: 'Показник кореня парний — з’являється модуль (теорема 5.1).', tex: '\\sqrt[4]{\\left(a^{7}\\right)^{4}}=\\left|a^{7}\\right|=|a|^{7}' }
+            ]},
+            { label: 'Спростіть (a ≤ 0)', task: '\\sqrt[6]{64a^{18}},\\ a\\leqslant 0', answer: '-2a^{3}', steps: [
+                { note: 'Подаємо підкореневий вираз як шосту степінь.', tex: '64a^{18}=\\left(2a^{3}\\right)^{6}' },
+                { note: 'Теорема 5.1: парний показник дає модуль.', tex: '\\sqrt[6]{\\left(2a^{3}\\right)^{6}}=\\left|2a^{3}\\right|=2\\left|a^{3}\\right|' },
+                { note: 'Якщо a ≤ 0, то a³ ≤ 0, тому |a³| = −a³.', tex: '2\\left|a^{3}\\right|=-2a^{3}' }
+            ]},
+            { label: 'Спростіть (a ≥ 0)', task: '\\sqrt[12]{a^{3}}', answer: '\\sqrt[4]{a}', steps: [
+                { note: 'Показник кореня 12 = 4·3, а показник степеня дорівнює 3 — друга теорема про корінь зі степеня (n = 4, k = 3).', tex: '\\sqrt[4\\cdot 3]{a^{3}}=\\sqrt[4]{a}' },
+                { note: 'Перевірка при a = 16:', tex: '\\sqrt[12]{16^{3}}=\\sqrt[12]{4096}=2,\\qquad \\sqrt[4]{16}=2' }
+            ]},
+            { label: 'Винесіть множник з-під знака кореня', task: '\\sqrt[3]{250}', answer: '5\\sqrt[3]{2}', steps: [
+                { note: 'Подаємо 250 як добуток, де один множник — куб числа.', tex: '250=5^{3}\\cdot 2' },
+                { note: 'Корінь із добутку (теорема 5.2) і теорема 5.1.', tex: '\\sqrt[3]{5^{3}\\cdot 2}=\\sqrt[3]{5^{3}}\\cdot\\sqrt[3]{2}=5\\sqrt[3]{2}' }
+            ]},
+            { label: 'Внесіть множник під знак кореня', task: '-2\\sqrt[6]{3}', answer: '-\\sqrt[6]{192}', steps: [
+                { note: 'Число 2 подаємо як корінь шостого степеня.', tex: '2=\\sqrt[6]{2^{6}}=\\sqrt[6]{64}' },
+                { note: 'Знак «−» залишаємо перед коренем; перемножуємо підкореневі вирази.', tex: '-2\\sqrt[6]{3}=-\\sqrt[6]{64}\\cdot\\sqrt[6]{3}=-\\sqrt[6]{192}' }
+            ]}
+,
+            // ---------- Розв’язання вправ (по пунктах) ----------
+            { tag: '5.1', label: "5.1. Знайдіть значення виразу",
+              parts: [
+                { task: String.raw`\sqrt[3]{64\cdot125}`, answer: String.raw`20`, steps: [
+                  { note: "Теорема 5.2: корінь із добутку дорівнює добутку коренів.", tex: String.raw`\sqrt[3]{64\cdot125}=\sqrt[3]{64}\cdot\sqrt[3]{125}=4\cdot5=20` }
+                ]},
+                { task: String.raw`\sqrt[5]{2^{10}\cdot7^{5}}`, answer: String.raw`28`, steps: [
+                  { note: "Подаємо 2¹⁰ як п’яту степінь і застосовуємо теореми 5.2 та 5.1.", tex: String.raw`\sqrt[5]{2^{10}\cdot7^{5}}=\sqrt[5]{\left(2^{2}\right)^{5}}\cdot\sqrt[5]{7^{5}}=2^{2}\cdot7=28` }
+                ]},
+                { task: String.raw`\sqrt[4]{\dfrac{3^{12}\cdot11^{4}}{5^{8}\cdot2^{16}}}`, answer: String.raw`\dfrac{297}{400}`, steps: [
+                  { note: "Подаємо кожен степінь як четверту степінь.", tex: String.raw`\sqrt[4]{\dfrac{3^{12}\cdot11^{4}}{5^{8}\cdot2^{16}}}=\sqrt[4]{\dfrac{\left(3^{3}\right)^{4}\cdot11^{4}}{\left(5^{2}\right)^{4}\cdot\left(2^{4}\right)^{4}}}` },
+                  { note: "Застосовуємо теореми 5.3 і 5.1 та обчислюємо.", tex: String.raw`=\dfrac{3^{3}\cdot11}{5^{2}\cdot2^{4}}=\dfrac{27\cdot11}{25\cdot16}=\dfrac{297}{400}` }
+                ]}
+              ]},
+            { tag: '5.3', label: "5.3. Знайдіть значення виразу",
+              parts: [
+                { task: String.raw`\sqrt[4]{2}\cdot\sqrt[4]{8}`, answer: String.raw`2`, steps: [
+                  { note: "Теорема 5.2 «справа наліво».", tex: String.raw`\sqrt[4]{2}\cdot\sqrt[4]{8}=\sqrt[4]{16}=2` }
+                ]},
+                { task: String.raw`\sqrt[3]{0{,}054}\cdot\sqrt[3]{4}`, answer: String.raw`0{,}6`, steps: [
+                  { note: "Те саме: перемножуємо підкореневі вирази.", tex: String.raw`\sqrt[3]{0{,}054}\cdot\sqrt[3]{4}=\sqrt[3]{0{,}216}=0{,}6` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[5]{4}}{\sqrt[5]{128}}`, answer: String.raw`\dfrac12`, steps: [
+                  { note: "Теорема 5.3: частка коренів — корінь із частки.", tex: String.raw`\dfrac{\sqrt[5]{4}}{\sqrt[5]{128}}=\sqrt[5]{\dfrac{4}{128}}=\sqrt[5]{\dfrac{1}{32}}=\dfrac12` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[8]{2^{30}\cdot7^{12}}}{\sqrt[8]{2^{6}\cdot7^{4}}}`, answer: String.raw`56`, steps: [
+                  { note: "Теорема 5.3, потім скорочуємо степені з однаковими основами.", tex: String.raw`\dfrac{\sqrt[8]{2^{30}\cdot7^{12}}}{\sqrt[8]{2^{6}\cdot7^{4}}}=\sqrt[8]{2^{24}\cdot7^{8}}=2^{3}\cdot7=56` }
+                ]},
+                { task: String.raw`\sqrt[3]{6\sqrt3+10}\cdot\sqrt[3]{6\sqrt3-10}`, answer: String.raw`2`, steps: [
+                  { note: "Теорема 5.2 і формула різниці квадратів.", tex: String.raw`\sqrt[3]{\left(6\sqrt3\right)^{2}-10^{2}}=\sqrt[3]{108-100}=\sqrt[3]{8}=2` }
+                ]},
+                { task: String.raw`\sqrt[4]{3}\cdot\sqrt[3]{3}\cdot\sqrt[4]{27}\cdot\sqrt[3]{-9}`, answer: String.raw`-9`, steps: [
+                  { note: "Групуємо множники з однаковими показниками: ⁴√3·⁴√27 і ³√3·³√(−9).", tex: String.raw`\sqrt[4]{3}\cdot\sqrt[4]{27}=\sqrt[4]{81}=3` },
+                  { note: "Корінь непарного степеня з від’ємного числа: ³√(−9) = −³√9.", tex: String.raw`\sqrt[3]{3}\cdot\sqrt[3]{-9}=-\sqrt[3]{27}=-3,\qquad 3\cdot(-3)=-9` }
+                ]}
+              ]},
+            { tag: '5.5', label: "5.5. Спростіть вираз",
+              parts: [
+                { task: String.raw`\sqrt{\sqrt[5]{a}}`, answer: String.raw`\sqrt[10]{a}`, steps: [
+                  { note: "Теорема 5.5: корінь із кореня — корінь, показник якого дорівнює добутку показників (a ⩾ 0).", tex: String.raw`\sqrt{\sqrt[5]{a}}=\sqrt[2\cdot5]{a}=\sqrt[10]{a}` }
+                ]},
+                { task: String.raw`\sqrt[4]{\sqrt[3]{x}}`, answer: String.raw`\sqrt[12]{x}`, steps: [
+                  { note: "Так само (x ⩾ 0).", tex: String.raw`\sqrt[4]{\sqrt[3]{x}}=\sqrt[4\cdot3]{x}=\sqrt[12]{x}` }
+                ]},
+                { task: String.raw`\sqrt[15]{c^{6}}`, answer: String.raw`\sqrt[5]{c^{2}}`, steps: [
+                  { note: "Показник 15 = 5·3, а c⁶ = (c²)³ — друга теорема про корінь зі степеня (теорема 5.6), де c² ⩾ 0.", tex: String.raw`\sqrt[15]{c^{6}}=\sqrt[5\cdot3]{\left(c^{2}\right)^{3}}=\sqrt[5]{c^{2}}` }
+                ]},
+                { task: String.raw`\sqrt[18]{a^{8}b^{24}}`, answer: String.raw`\sqrt[9]{a^{4}b^{12}}`, steps: [
+                  { note: "Показник 18 = 9·2, а a⁸b²⁴ = (a⁴b¹²)², причому a⁴b¹² ⩾ 0 — теорема 5.6.", tex: String.raw`\sqrt[18]{a^{8}b^{24}}=\sqrt[9\cdot2]{\left(a^{4}b^{12}\right)^{2}}=\sqrt[9]{a^{4}b^{12}}` }
+                ]}
+              ]},
+            { tag: '5.7', label: "5.7. Винесіть множник з-під знака кореня",
+              parts: [
+                { task: String.raw`\sqrt[3]{16}`, answer: String.raw`2\sqrt[3]{2}`, steps: [
+                  { note: "16 = 8·2, де 8 — куб числа 2.", tex: String.raw`\sqrt[3]{16}=\sqrt[3]{2^{3}\cdot2}=2\sqrt[3]{2}` }
+                ]},
+                { task: String.raw`\sqrt[4]{162}`, answer: String.raw`3\sqrt[4]{2}`, steps: [
+                  { note: "162 = 81·2, де 81 = 3⁴.", tex: String.raw`\sqrt[4]{162}=\sqrt[4]{3^{4}\cdot2}=3\sqrt[4]{2}` }
+                ]},
+                { task: String.raw`\sqrt[3]{250}`, answer: String.raw`5\sqrt[3]{2}`, steps: [
+                  { note: "250 = 125·2, де 125 = 5³.", tex: String.raw`\sqrt[3]{250}=\sqrt[3]{5^{3}\cdot2}=5\sqrt[3]{2}` }
+                ]},
+                { task: String.raw`\sqrt[3]{40a^{5}}`, answer: String.raw`2a\sqrt[3]{5a^{2}}`, steps: [
+                  { note: "40a⁵ = 8a³ · 5a².", tex: String.raw`\sqrt[3]{40a^{5}}=\sqrt[3]{(2a)^{3}\cdot5a^{2}}=2a\sqrt[3]{5a^{2}}` }
+                ]},
+                { task: String.raw`\sqrt[3]{-a^{7}}`, answer: String.raw`-a^{2}\sqrt[3]{a}`, steps: [
+                  { note: "−a⁷ = (−a²)³ · a. Корінь непарного степеня існує з будь-якого числа.", tex: String.raw`\sqrt[3]{-a^{7}}=\sqrt[3]{\left(-a^{2}\right)^{3}\cdot a}=-a^{2}\sqrt[3]{a}` }
+                ]}
+              ]},
+            { tag: '5.9', label: "5.9. Внесіть множник під знак кореня",
+              parts: [
+                { task: String.raw`2\sqrt3`, answer: String.raw`\sqrt{12}`, steps: [
+                  { note: "Подаємо 2 як √4.", tex: String.raw`2\sqrt3=\sqrt{2^{2}\cdot3}=\sqrt{12}` }
+                ]},
+                { task: String.raw`4\sqrt[3]{5}`, answer: String.raw`\sqrt[3]{320}`, steps: [
+                  { note: "Подаємо 4 як ³√64 (4³ = 64).", tex: String.raw`4\sqrt[3]{5}=\sqrt[3]{4^{3}\cdot5}=\sqrt[3]{320}` }
+                ]},
+                { task: String.raw`5\sqrt[3]{0{,}04x}`, answer: String.raw`\sqrt[3]{5x}`, steps: [
+                  { note: "5³ = 125.", tex: String.raw`5\sqrt[3]{0{,}04x}=\sqrt[3]{5^{3}\cdot0{,}04x}=\sqrt[3]{125\cdot0{,}04x}=\sqrt[3]{5x}` }
+                ]},
+                { task: String.raw`b\sqrt[5]{3b^{3}}`, answer: String.raw`\sqrt[5]{3b^{8}}`, steps: [
+                  { note: "Показник кореня непарний, тому множник b вносимо під знак кореня для будь-якого b.", tex: String.raw`b\sqrt[5]{3b^{3}}=\sqrt[5]{b^{5}\cdot3b^{3}}=\sqrt[5]{3b^{8}}` }
+                ]},
+                { task: String.raw`c\sqrt[3]{\dfrac{5}{c^{2}}}`, answer: String.raw`\sqrt[3]{5c}`, steps: [
+                  { note: "Так само: c = ³√(c³).", tex: String.raw`c\sqrt[3]{\dfrac{5}{c^{2}}}=\sqrt[3]{c^{3}\cdot\dfrac{5}{c^{2}}}=\sqrt[3]{5c}` }
+                ]}
+              ]},
+            { tag: '5.11', label: "5.11. Замініть вираз на тотожно рівний йому",
+              parts: [
+                { task: String.raw`\sqrt[3]{625}-\sqrt[3]{320}-\sqrt[3]{135}+\sqrt[3]{40}`, answer: String.raw`0`, steps: [
+                  { note: "Подаємо кожне підкореневе число як добуток куба та числа 5.", tex: String.raw`625=125\cdot5,\quad 320=64\cdot5,\quad 135=27\cdot5,\quad 40=8\cdot5` },
+                  { note: "Виносимо множники з-під знака кореня.", tex: String.raw`5\sqrt[3]{5}-4\sqrt[3]{5}-3\sqrt[3]{5}+2\sqrt[3]{5}` },
+                  { note: "Зводимо подібні доданки.", tex: String.raw`(5-4-3+2)\sqrt[3]{5}=0\cdot\sqrt[3]{5}=0` }
+                ]}
+              ]},
+            { tag: '5.13', label: "5.13. Спростіть вираз",
+              parts: [
+                { task: String.raw`\sqrt{2\sqrt3}`, answer: String.raw`\sqrt[4]{12}`, steps: [
+                  { note: "Вносимо множник 2 під знак кореня, потім застосовуємо теорему 5.5.", tex: String.raw`\sqrt{2\sqrt3}=\sqrt{\sqrt{4\cdot3}}=\sqrt{\sqrt{12}}=\sqrt[4]{12}` }
+                ]},
+                { task: String.raw`\sqrt[4]{a\sqrt[3]{a}}`, answer: String.raw`\sqrt[3]{a}`, steps: [
+                  { note: "(a ⩾ 0) Спочатку вносимо множник a під знак внутрішнього кореня.", tex: String.raw`a\sqrt[3]{a}=\sqrt[3]{a^{3}\cdot a}=\sqrt[3]{a^{4}}` },
+                  { note: "Теорема 5.5, а потім теорема 5.6 (12 = 3·4).", tex: String.raw`\sqrt[4]{\sqrt[3]{a^{4}}}=\sqrt[12]{a^{4}}=\sqrt[3\cdot4]{a^{4}}=\sqrt[3]{a}` }
+                ]},
+                { task: String.raw`\sqrt[3]{2\sqrt{2\sqrt2}}`, answer: String.raw`\sqrt[12]{128}`, steps: [
+                  { note: "Працюємо зсередини назовні. Спочатку внутрішній корінь: 2√2 = √8.", tex: String.raw`\sqrt{2\sqrt2}=\sqrt{\sqrt{4\cdot2}}=\sqrt[4]{8}` },
+                  { note: "Вносимо множник 2 під знак кореня четвертого степеня.", tex: String.raw`2\sqrt{2\sqrt2}=2\sqrt[4]{8}=\sqrt[4]{2^{4}\cdot8}=\sqrt[4]{128}` },
+                  { note: "Теорема 5.5.", tex: String.raw`\sqrt[3]{\sqrt[4]{128}}=\sqrt[12]{128}` }
+                ]}
+              ]},
+            { tag: '5.15', label: "5.15. Спростіть вираз",
+              parts: [
+                { task: String.raw`\left(1+\sqrt[3]{a}+\sqrt[3]{a^{2}}\right)\left(1-\sqrt[3]{a}\right)`, answer: String.raw`1-a`, steps: [
+                  { note: "Позначимо t = ³√a, тоді ³√(a²) = t². Застосуємо формулу різниці кубів: (1 − t)(1 + t + t²) = 1 − t³.", tex: String.raw`\left(1+t+t^{2}\right)(1-t)=1-t^{3}=1-\left(\sqrt[3]{a}\right)^{3}=1-a` }
+                ]},
+                { task: String.raw`\left(1+\sqrt{a}\right)\left(1+\sqrt[4]{a}\right)\left(1-\sqrt[4]{a}\right)`, answer: String.raw`1-a`, steps: [
+                  { note: "Спочатку перемножуємо останні дві дужки за формулою різниці квадратів. (a ⩾ 0)", tex: String.raw`\left(1+\sqrt[4]{a}\right)\left(1-\sqrt[4]{a}\right)=1-\left(\sqrt[4]{a}\right)^{2}=1-\sqrt{a}` },
+                  { note: "Ще раз різниця квадратів.", tex: String.raw`\left(1+\sqrt{a}\right)\left(1-\sqrt{a}\right)=1-a` }
+                ]}
+              ]},
+            { tag: '5.17', label: "5.17. При яких значеннях a виконується рівність",
+              parts: [
+                { task: String.raw`\sqrt[4]{a^{4}}=a`, answer: String.raw`a\geqslant0`, steps: [
+                  { note: "Теорема 5.1 (парний показник): ⁴√(a⁴) = |a|. Рівність |a| = a правильна, коли a ⩾ 0.", tex: String.raw`|a|=a\ \Leftrightarrow\ a\geqslant0` }
+                ]},
+                { task: String.raw`\sqrt[4]{a^{4}}=-a`, answer: String.raw`a\leqslant0`, steps: [
+                  { note: "Рівність |a| = −a правильна, коли a ⩽ 0.", tex: String.raw`|a|=-a\ \Leftrightarrow\ a\leqslant0` }
+                ]},
+                { task: String.raw`\sqrt[3]{a^{3}}=a`, answer: String.raw`a\in\mathbb{R}`, steps: [
+                  { note: "Теорема 5.1 (непарний показник): ³√(a³) = a для будь-якого a.", tex: String.raw`a=a\ \Rightarrow\ a\in\mathbb{R}` }
+                ]},
+                { task: String.raw`\sqrt[3]{a^{3}}=-a`, answer: String.raw`a=0`, steps: [
+                  { note: "Маємо a = −a.", tex: String.raw`a=-a\ \Rightarrow\ 2a=0\ \Rightarrow\ a=0` }
+                ]}
+              ]},
+            { tag: '5.19', label: "5.19. При яких значеннях a і b виконується рівність",
+              parts: [
+                { task: String.raw`\sqrt[4]{ab}=\sqrt[4]{-a}\cdot\sqrt[4]{-b}`, answer: String.raw`a\leqslant0,\ b\leqslant0`, steps: [
+                  { note: "Права частина має зміст, лише коли −a ⩾ 0 і −b ⩾ 0, тобто a ⩽ 0, b ⩽ 0. Для таких a і b за теоремою 5.2 рівність правильна.", tex: String.raw`\sqrt[4]{ab}=\sqrt[4]{(-a)(-b)}=\sqrt[4]{-a}\cdot\sqrt[4]{-b}` }
+                ]},
+                { task: String.raw`\sqrt[4]{-ab}=\sqrt[4]{a}\cdot\sqrt[4]{-b}`, answer: String.raw`a\geqslant0,\ b\leqslant0`, steps: [
+                  { note: "Права частина має зміст, лише коли a ⩾ 0 і −b ⩾ 0, тобто a ⩾ 0, b ⩽ 0. Тоді −ab = a·(−b) ⩾ 0, і за теоремою 5.2 рівність правильна.", tex: String.raw`\sqrt[4]{-ab}=\sqrt[4]{a\cdot(-b)}=\sqrt[4]{a}\cdot\sqrt[4]{-b}` }
+                ]},
+                { task: String.raw`\sqrt[5]{ab}=\sqrt[5]{a}\cdot\sqrt[5]{b}`, answer: String.raw`a,b\in\mathbb{R}`, steps: [
+                  { note: "Корінь непарного степеня існує з будь-якого числа, і властивість кореня з добутку для непарного показника правильна для всіх a і b.", tex: String.raw`\sqrt[5]{ab}=\sqrt[5]{a}\cdot\sqrt[5]{b},\quad a,\,b\in\mathbb{R}` }
+                ]},
+                { task: String.raw`\sqrt[5]{ab}=\sqrt[5]{-a}\cdot\sqrt[5]{-b}`, answer: String.raw`a,b\in\mathbb{R}`, steps: [
+                  { note: "Оскільки ab = (−a)(−b), ліва і права частини збігаються для всіх a і b.", tex: String.raw`\sqrt[5]{ab}=\sqrt[5]{(-a)(-b)}=\sqrt[5]{-a}\cdot\sqrt[5]{-b},\quad a,\,b\in\mathbb{R}` }
+                ]}
+              ]},
+            { tag: '5.21', label: "5.21. Спростіть вираз",
+              parts: [
+                { task: String.raw`\sqrt[6]{m^{6}},\ m\geqslant0`, answer: String.raw`m`, steps: [
+                  { note: "Теорема 5.1: парний показник дає модуль; m ⩾ 0.", tex: String.raw`\sqrt[6]{m^{6}}=|m|=m` }
+                ]},
+                { task: String.raw`\sqrt[4]{n^{4}},\ n\leqslant0`, answer: String.raw`-n`, steps: [
+                  { note: "n ⩽ 0, тому |n| = −n.", tex: String.raw`\sqrt[4]{n^{4}}=|n|=-n` }
+                ]},
+                { task: String.raw`\sqrt[8]{256k^{8}},\ k\leqslant0`, answer: String.raw`-2k`, steps: [
+                  { note: "256 = 2⁸, тому підкореневий вираз — восьма степінь числа 2k.", tex: String.raw`\sqrt[8]{256k^{8}}=\sqrt[8]{(2k)^{8}}=|2k|=-2k` }
+                ]},
+                { task: String.raw`\sqrt[6]{c^{24}}`, answer: String.raw`c^{4}`, steps: [
+                  { note: "c²⁴ = (c⁴)⁶, а c⁴ ⩾ 0 для будь-якого c.", tex: String.raw`\sqrt[6]{c^{24}}=\sqrt[6]{\left(c^{4}\right)^{6}}=\left|c^{4}\right|=c^{4}` }
+                ]},
+                { task: String.raw`\sqrt{0{,}25b^{14}},\ b\leqslant0`, answer: String.raw`-0{,}5b^{7}`, steps: [
+                  { note: "0,25b¹⁴ = (0,5b⁷)². Якщо b ⩽ 0, то b⁷ ⩽ 0, тому |0,5b⁷| = −0,5b⁷.", tex: String.raw`\sqrt{0{,}25b^{14}}=\sqrt{\left(0{,}5b^{7}\right)^{2}}=\left|0{,}5b^{7}\right|=-0{,}5b^{7}` }
+                ]},
+                { task: String.raw`\sqrt[4]{81x^{8}y^{4}},\ y\geqslant0`, answer: String.raw`3x^{2}y`, steps: [
+                  { note: "81x⁸y⁴ = (3x²y)⁴; оскільки x² ⩾ 0 і y ⩾ 0, то 3x²y ⩾ 0.", tex: String.raw`\sqrt[4]{81x^{8}y^{4}}=\sqrt[4]{\left(3x^{2}y\right)^{4}}=\left|3x^{2}y\right|=3x^{2}y` }
+                ]}
+              ]},
+            { tag: '5.23', label: "5.23. Скоротіть дріб",
+              parts: [
+                { task: String.raw`\dfrac{\sqrt{a}-\sqrt{b}}{\sqrt[4]{a}+\sqrt[4]{b}}`, answer: String.raw`\sqrt[4]{a}-\sqrt[4]{b}`, steps: [
+                  { note: "Чисельник розкладаємо як різницю квадратів: √a = (⁴√a)², √b = (⁴√b)².", tex: String.raw`\dfrac{\left(\sqrt[4]{a}\right)^{2}-\left(\sqrt[4]{b}\right)^{2}}{\sqrt[4]{a}+\sqrt[4]{b}}=\dfrac{\left(\sqrt[4]{a}-\sqrt[4]{b}\right)\left(\sqrt[4]{a}+\sqrt[4]{b}\right)}{\sqrt[4]{a}+\sqrt[4]{b}}=\sqrt[4]{a}-\sqrt[4]{b}` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[6]{x}-9}{\sqrt[12]{x}+3}`, answer: String.raw`\sqrt[12]{x}-3`, steps: [
+                  { note: "⁶√x = (¹²√x)², 9 = 3². Різниця квадратів у чисельнику.", tex: String.raw`\dfrac{\left(\sqrt[12]{x}\right)^{2}-3^{2}}{\sqrt[12]{x}+3}=\dfrac{\left(\sqrt[12]{x}-3\right)\left(\sqrt[12]{x}+3\right)}{\sqrt[12]{x}+3}=\sqrt[12]{x}-3` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[8]{ab^{2}}-\sqrt[8]{a^{2}b}}{\sqrt[4]{a}-\sqrt[4]{b}}`, answer: String.raw`-\dfrac{\sqrt[8]{ab}}{\sqrt[8]{a}+\sqrt[8]{b}}`, steps: [
+                  { note: "У чисельнику виносимо спільний множник ⁸√(ab).", tex: String.raw`\sqrt[8]{ab^{2}}-\sqrt[8]{a^{2}b}=\sqrt[8]{ab}\left(\sqrt[8]{b}-\sqrt[8]{a}\right)` },
+                  { note: "Знаменник — різниця квадратів: ⁴√a = (⁸√a)², ⁴√b = (⁸√b)².", tex: String.raw`\sqrt[4]{a}-\sqrt[4]{b}=\left(\sqrt[8]{a}-\sqrt[8]{b}\right)\left(\sqrt[8]{a}+\sqrt[8]{b}\right)` },
+                  { note: "Оскільки ⁸√b − ⁸√a = −(⁸√a − ⁸√b), скорочуємо дріб.", tex: String.raw`\dfrac{\sqrt[8]{ab}\left(\sqrt[8]{b}-\sqrt[8]{a}\right)}{\left(\sqrt[8]{a}-\sqrt[8]{b}\right)\left(\sqrt[8]{a}+\sqrt[8]{b}\right)}=-\dfrac{\sqrt[8]{ab}}{\sqrt[8]{a}+\sqrt[8]{b}}` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[3]{x^{2}}+4\sqrt[3]{x}+16}{x-64}`, answer: String.raw`\dfrac{1}{\sqrt[3]{x}-4}`, steps: [
+                  { note: "Знаменник розкладаємо за формулою різниці кубів: x = (³√x)³, 64 = 4³.", tex: String.raw`x-64=\left(\sqrt[3]{x}\right)^{3}-4^{3}=\left(\sqrt[3]{x}-4\right)\left(\sqrt[3]{x^{2}}+4\sqrt[3]{x}+16\right)` },
+                  { note: "Скорочуємо дріб.", tex: String.raw`\dfrac{\sqrt[3]{x^{2}}+4\sqrt[3]{x}+16}{\left(\sqrt[3]{x}-4\right)\left(\sqrt[3]{x^{2}}+4\sqrt[3]{x}+16\right)}=\dfrac{1}{\sqrt[3]{x}-4}` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt{a}+\sqrt{b}}{\sqrt[3]{a}-\sqrt[6]{ab}+\sqrt[3]{b}}`, answer: String.raw`\sqrt[6]{a}+\sqrt[6]{b}`, steps: [
+                  { note: "Чисельник розкладаємо як суму кубів: √a = (⁶√a)³, √b = (⁶√b)³.", tex: String.raw`\sqrt{a}+\sqrt{b}=\left(\sqrt[6]{a}+\sqrt[6]{b}\right)\left(\sqrt[3]{a}-\sqrt[6]{ab}+\sqrt[3]{b}\right)` },
+                  { note: "Тут (⁶√a)² = ³√a, ⁶√a·⁶√b = ⁶√(ab), (⁶√b)² = ³√b. Скорочуємо дріб.", tex: String.raw`\dfrac{\left(\sqrt[6]{a}+\sqrt[6]{b}\right)\left(\sqrt[3]{a}-\sqrt[6]{ab}+\sqrt[3]{b}\right)}{\sqrt[3]{a}-\sqrt[6]{ab}+\sqrt[3]{b}}=\sqrt[6]{a}+\sqrt[6]{b}` }
+                ]},
+                { task: String.raw`\dfrac{\sqrt[4]{a^{3}}-\sqrt[4]{a}+\sqrt{a}-1}{a-\sqrt{a}}`, answer: String.raw`\dfrac{\sqrt[4]{a}+1}{\sqrt{a}}`, steps: [
+                  { note: "У чисельнику групуємо доданки: ⁴√(a³) = ⁴√a · √a.", tex: String.raw`\sqrt[4]{a}\left(\sqrt{a}-1\right)+\left(\sqrt{a}-1\right)=\left(\sqrt{a}-1\right)\left(\sqrt[4]{a}+1\right)` },
+                  { note: "У знаменнику виносимо √a за дужки та скорочуємо дріб.", tex: String.raw`\dfrac{\left(\sqrt{a}-1\right)\left(\sqrt[4]{a}+1\right)}{\sqrt{a}\left(\sqrt{a}-1\right)}=\dfrac{\sqrt[4]{a}+1}{\sqrt{a}}` }
+                ]}
+              ]},
+            { tag: '5.25', label: "5.25. Розв’яжіть рівняння",
+              parts: [
+                { task: String.raw`\sqrt[4]{(x+4)^{4}}=x+4`, answer: String.raw`[-4;+\infty)`, steps: [
+                  { note: "За теоремою 5.1 ліва частина дорівнює |x + 4|. Рівність |x + 4| = x + 4 виконується, коли x + 4 ⩾ 0.", tex: String.raw`|x+4|=x+4\ \Leftrightarrow\ x+4\geqslant0\ \Leftrightarrow\ x\geqslant-4` }
+                ]},
+                { task: String.raw`\sqrt[4]{(1-3x)^{8}}=(1-3x)^{2}`, answer: String.raw`(-\infty;+\infty)`, steps: [
+                  { note: "Подаємо (1 − 3x)⁸ як четверту степінь числа (1 − 3x)².", tex: String.raw`\sqrt[4]{(1-3x)^{8}}=\sqrt[4]{\left((1-3x)^{2}\right)^{4}}=\left|(1-3x)^{2}\right|` },
+                  { note: "Квадрат будь-якого числа невід’ємний, тому модуль можна опустити: рівність правильна за будь-якого x.", tex: String.raw`\left|(1-3x)^{2}\right|=(1-3x)^{2}\ \Rightarrow\ x\in\mathbb{R}` }
+                ]}
+              ]},
+            { tag: '5.26', label: "5.26. Спростіть вираз",
+              parts: [
+                { task: String.raw`\sqrt[6]{\left(\sqrt6-2\right)^{3}}`, answer: String.raw`\sqrt{\sqrt6-2}`, steps: [
+                  { note: "√6 − 2 > 0, бо √6 > √4 = 2. Застосовуємо теорему 5.6 (6 = 2·3).", tex: String.raw`\sqrt[6]{\left(\sqrt6-2\right)^{3}}=\sqrt[2\cdot3]{\left(\sqrt6-2\right)^{3}}=\sqrt{\sqrt6-2}` }
+                ]},
+                { task: String.raw`\sqrt[4]{\left(1-\sqrt2\right)^{2}}`, answer: String.raw`\sqrt{\sqrt2-1}`, steps: [
+                  { note: "1 − √2 < 0, але (1 − √2)² = (√2 − 1)², а √2 − 1 > 0. Далі — теорема 5.6 (4 = 2·2).", tex: String.raw`\sqrt[4]{\left(1-\sqrt2\right)^{2}}=\sqrt[4]{\left(\sqrt2-1\right)^{2}}=\sqrt{\sqrt2-1}` }
+                ]},
+                { task: String.raw`\sqrt[9]{\left(\sqrt2-\sqrt3\right)^{3}}`, answer: String.raw`-\sqrt[3]{\sqrt3-\sqrt2}`, steps: [
+                  { note: "Показник 9 непарний: y = (³√y)³ для будь-якого y, тому ⁹√(y³) = ⁹√((³√y)⁹) = ³√y. Тут √2 − √3 < 0.", tex: String.raw`\sqrt[9]{\left(\sqrt2-\sqrt3\right)^{3}}=\sqrt[3]{\sqrt2-\sqrt3}=-\sqrt[3]{\sqrt3-\sqrt2}` }
+                ]}
+              ]},
+            { tag: '5.28', label: "5.28. Винесіть множник з-під знака кореня",
+              parts: [
+                { task: String.raw`\sqrt[4]{-m^{9}}`, answer: String.raw`m^{2}\sqrt[4]{-m}`, steps: [
+                  { note: "Вираз має зміст, коли −m⁹ ⩾ 0, тобто m ⩽ 0. Подаємо −m⁹ = (−m)⁸ · (−m).", tex: String.raw`\sqrt[4]{-m^{9}}=\sqrt[4]{(-m)^{8}\cdot(-m)}=\sqrt[4]{(-m)^{8}}\cdot\sqrt[4]{-m}` },
+                  { note: "Теорема 5.1: ⁴√((−m)⁸) = ⁴√(((−m)²)⁴) = (−m)² = m².", tex: String.raw`\sqrt[4]{(-m)^{8}}\cdot\sqrt[4]{-m}=m^{2}\sqrt[4]{-m}` }
+                ]},
+                { task: String.raw`\sqrt[4]{a^{8}b^{13}},\ a>0`, answer: String.raw`a^{2}b^{3}\sqrt[4]{b}`, steps: [
+                  { note: "Оскільки a > 0, корінь існує, лише коли b ⩾ 0. Подаємо a⁸b¹³ = a⁸b¹² · b.", tex: String.raw`\sqrt[4]{a^{8}b^{13}}=\sqrt[4]{\left(a^{2}b^{3}\right)^{4}\cdot b}=\left|a^{2}b^{3}\right|\sqrt[4]{b}` },
+                  { note: "Оскільки a > 0 і b ⩾ 0, то a²b³ ⩾ 0 і модуль можна опустити.", tex: String.raw`\left|a^{2}b^{3}\right|\sqrt[4]{b}=a^{2}b^{3}\sqrt[4]{b}` }
+                ]}
+              ]},
+            { tag: '5.30', label: "5.30. Внесіть множник під знак кореня",
+              parts: [
+                { task: String.raw`c\sqrt[8]{3},\ c\leqslant0`, answer: String.raw`-\sqrt[8]{3c^{8}}`, steps: [
+                  { note: "Оскільки c ⩽ 0, то c = −|c| = −⁸√(c⁸). Знак «−» залишається перед коренем.", tex: String.raw`c\sqrt[8]{3}=-|c|\sqrt[8]{3}=-\sqrt[8]{c^{8}}\cdot\sqrt[8]{3}=-\sqrt[8]{3c^{8}}` }
+                ]},
+                { task: String.raw`b\sqrt[6]{6}`, answer: String.raw`\sqrt[6]{6b^{6}},\ b\geqslant0;\quad -\sqrt[6]{6b^{6}},\ b<0`, steps: [
+                  { note: "Якщо b ⩾ 0, то b = ⁶√(b⁶).", tex: String.raw`b\sqrt[6]{6}=\sqrt[6]{b^{6}}\cdot\sqrt[6]{6}=\sqrt[6]{6b^{6}}` },
+                  { note: "Якщо b < 0, то b = −|b| = −⁶√(b⁶).", tex: String.raw`b\sqrt[6]{6}=-|b|\sqrt[6]{6}=-\sqrt[6]{6b^{6}}` }
+                ]},
+                { task: String.raw`a\sqrt[6]{-a}`, answer: String.raw`-\sqrt[6]{-a^{7}}`, steps: [
+                  { note: "Корінь існує, коли −a ⩾ 0, тобто a ⩽ 0. Тоді a = −|a| = −⁶√(a⁶).", tex: String.raw`a\sqrt[6]{-a}=-\sqrt[6]{a^{6}}\cdot\sqrt[6]{-a}=-\sqrt[6]{a^{6}\cdot(-a)}=-\sqrt[6]{-a^{7}}` }
+                ]}
+              ]},
+            { tag: '5.32', label: "5.32. Розв’яжіть рівняння",
+              parts: [
+                { task: String.raw`\sqrt[4]{(x-3)^{4}}+\sqrt[6]{(5-x)^{6}}=2`, answer: String.raw`x\in[3;5]`, steps: [
+                  { note: "За теоремою 5.1 (парні показники) корені дорівнюють модулям підкореневих виразів у степенях.", tex: String.raw`|x-3|+|5-x|=2` },
+                  { note: "Нулі підмодульних виразів: 3 і 5. Розглянемо три проміжки. Якщо x < 3, то x − 3 < 0 і 5 − x > 0.", tex: String.raw`-(x-3)+(5-x)=2\ \Rightarrow\ 8-2x=2\ \Rightarrow\ x=3\notin(-\infty;3)` },
+                  { note: "Якщо 3 ⩽ x ⩽ 5, то x − 3 ⩾ 0 і 5 − x ⩾ 0. Рівність правильна для кожного x із цього проміжку.", tex: String.raw`(x-3)+(5-x)=2\ \Rightarrow\ 2=2\ \Rightarrow\ x\in[3;5]` },
+                  { note: "Якщо x > 5, то x − 3 > 0 і 5 − x < 0.", tex: String.raw`(x-3)-(5-x)=2\ \Rightarrow\ 2x-8=2\ \Rightarrow\ x=5\notin(5;+\infty)` }
+                ]}
+              ]}
+        ];
+
+
+        // ---------- Огляд: 6 формул на 2 сторінках (формула справа, приклад зліва) ----------
+        const OVERVIEW = [
+            { num: '1', title: 'Корінь зі степеня (теорема 5.1)', color: '#2980B9', note: null,
+              formulas: [String.raw`\sqrt[2k+1]{a^{2k+1}} = a`, String.raw`\sqrt[2k]{a^{2k}} = |a|`],
+              examples: [String.raw`\sqrt[3]{(-2)^{3}} = -2`, String.raw`\sqrt[4]{(-3)^{4}} = |-3| = 3`] },
+            { num: '2', title: 'Корінь із добутку (теорема 5.2)', color: '#8E44AD', note: 'a ⩾ 0, b ⩾ 0',
+              formulas: [String.raw`\sqrt[n]{ab} = \sqrt[n]{a}\cdot\sqrt[n]{b}`],
+              examples: [String.raw`\sqrt[3]{8\cdot 27} = \sqrt[3]{8}\cdot\sqrt[3]{27} = 2\cdot 3 = 6`] },
+            { num: '3', title: 'Корінь із частки (теорема 5.3)', color: '#27AE60', note: 'a ⩾ 0, b > 0',
+              formulas: [String.raw`\sqrt[n]{\dfrac{a}{b}} = \dfrac{\sqrt[n]{a}}{\sqrt[n]{b}}`],
+              examples: [String.raw`\sqrt[4]{\dfrac{16}{81}} = \dfrac{\sqrt[4]{16}}{\sqrt[4]{81}} = \dfrac{2}{3}`] },
+            { num: '4', title: 'Степінь кореня (теорема 5.4)', color: '#E74C3C', note: 'a ⩾ 0',
+              formulas: [String.raw`\left(\sqrt[n]{a}\right)^{k} = \sqrt[n]{a^{k}}`],
+              examples: [String.raw`\left(\sqrt[3]{8}\right)^{2} = 2^{2} = 4 = \sqrt[3]{64} = \sqrt[3]{8^{2}}`] },
+            { num: '5', title: 'Корінь із кореня (теорема 5.5)', color: '#E91E63', note: 'a ⩾ 0, k > 1',
+              formulas: [String.raw`\sqrt[n]{\sqrt[k]{a}} = \sqrt[nk]{a}`],
+              examples: [String.raw`\sqrt[3]{\sqrt{64}} = \sqrt[3\cdot 2]{64} = \sqrt[6]{64} = 2`] },
+            { num: '6', title: 'Друга теорема про корінь зі степеня (5.6)', color: '#D68910', note: 'a ⩾ 0',
+              formulas: [String.raw`\sqrt[nk]{a^{k}} = \sqrt[n]{a}`],
+              examples: [String.raw`\sqrt[6]{9^{3}} = \sqrt[2\cdot 3]{9^{3}} = \sqrt{9} = 3`] }
+        ];
+        const OV_PER_PAGE = 3;
+        const OV_MAX = OV_PER_PAGE * 2; // формула, приклад, формула, приклад, формула, приклад
+
+        // ---------- Допоміжні компоненти лівої панелі ----------
+        const Accordion = ({ title, open, onToggle, children }) => (
+            <div className="space-y-1.5 lg:space-y-3 pt-1 lg:pt-2">
+                <div className="flex items-center justify-between gap-2 bg-slate-50 p-2 lg:p-3 xl:p-4 rounded-lg border border-slate-200 shadow-xs cursor-pointer hover:bg-slate-100 transition-colors" onClick={onToggle}>
+                    <span className={`font-bold text-slate-700 ${TXT}`}>{title}</span>
+                    <button className="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 rounded-full flex items-center justify-center bg-white border border-slate-300 text-slate-500">
+                        <i className={`fa-solid fa-chevron-down text-[10px] lg:text-sm xl:text-base transition-transform ${open ? 'rotate-180' : ''}`}></i>
+                    </button>
+                </div>
+                {open && (
+                    <div className={`p-2.5 md:p-3 lg:p-4 xl:p-6 bg-white rounded-lg border border-slate-200 animate-fade-in text-left font-medium space-y-2 lg:space-y-3 xl:space-y-4 ${TXT}`}>
+                        {children}
+                    </div>
+                )}
+            </div>
+        );
+
+        const ChoiceButtons = ({ label, values, current, onPick, color = '#8E44AD' }) => (
+            <div className="border border-slate-200 p-3 lg:p-5 xl:p-6 rounded-lg shadow-sm bg-slate-50">
+                <p className={`${TXT} font-bold text-slate-700 mb-2 lg:mb-4 text-center`}>{label}</p>
+                <div className="flex justify-center flex-wrap gap-3 lg:gap-6 xl:gap-8">
+                    {values.map(val => (
+                        <button key={val} onClick={() => onPick(val)}
+                            style={current === val ? { backgroundColor: color } : {}}
+                            className={`min-w-[2.5rem] h-10 md:min-w-[3rem] md:h-12 lg:min-w-[4rem] lg:h-16 xl:min-w-[5rem] xl:h-20 px-2 rounded-full font-bold text-[14px] sm:text-[16px] md:text-[18px] lg:text-[24px] xl:text-[30px] transition-all duration-200 cursor-pointer shadow-sm flex items-center justify-center
+                            ${current === val ? 'text-white ring-2 ring-purple-300 scale-110' : 'bg-white text-slate-600 border border-slate-300 hover:bg-purple-50'}`}>
+                            {val}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const MiniChoice = ({ label, values, current, onPick, color = '#8E44AD' }) => (
+            <div className="flex items-center justify-between gap-2 border border-slate-200 rounded-lg bg-slate-50 p-2 lg:p-3 shadow-xs">
+                <span className={`${TXT} font-bold text-slate-700`}>{label}</span>
+                <div className="flex gap-2 lg:gap-4">
+                    {values.map(v => (
+                        <button key={v} onClick={() => onPick(v)}
+                            style={current === v ? { backgroundColor: color } : {}}
+                            className={`min-w-[2rem] h-8 md:min-w-[2.5rem] md:h-10 lg:min-w-[3.2rem] lg:h-12 px-2 rounded-full font-bold text-[13px] md:text-[16px] lg:text-[22px] transition-all cursor-pointer shadow-sm flex items-center justify-center
+                            ${current === v ? 'text-white ring-2 ring-purple-300 scale-105' : 'bg-white text-slate-600 border border-slate-300 hover:bg-purple-50'}`}>
+                            {v}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const ValueTable = ({ color, border, bg, rows }) => (
+            <div className={`overflow-x-auto my-2 lg:my-4 border ${border} rounded-lg shadow-sm`}>
+                <table className={`w-full text-center ${TXT}`}>
+                    <tbody>
+                        {rows.map((r, ri) => (
+                            <tr key={ri} className={ri === 0 ? `border-b ${border} ${bg}` : ''}>
+                                <td className={`font-bold border-r ${border} py-1 lg:py-2 px-2`} style={{ color }}><Latex math={r[0]} /></td>
+                                {r.slice(1).map((c, ci) => (
+                                    <td key={ci} className={`${ci < r.length - 2 ? `border-r ${border}` : ''} py-1 lg:py-2 px-2`}>{c}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+
+        const HighlightBox = ({ active, title, children }) => (
+            <div className={`p-2 lg:p-4 rounded-lg transition-colors ${active ? 'bg-amber-100 border border-amber-300' : 'bg-transparent border border-transparent'}`}>
+                <span className={`font-bold ${TXT}`}>{title}</span><br />
+                <span className={`${TXT} font-medium`}>{children}</span>
+            </div>
+        );
+
+        const Slider = ({ min, max, step, value, onChange, cls = 'slider-purple', label }) => (
+            <div className="px-2 py-2 lg:py-3">
+                {label && <p className={`${TXT} font-bold text-slate-700 mb-2 text-center`}>{label}</p>}
+                <input type="range" min={min} max={max} step={step} value={value}
+                    onChange={(e) => onChange(parseFloat(e.target.value))}
+                    className={`w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer focus:outline-none ${cls}`} />
+                <div className="flex justify-between text-xs lg:text-base text-slate-500 mt-2 font-bold">
+                    <span>{formatNum(min)}</span>
+                    <span>{formatNum((min + max) / 2)}</span>
+                    <span>{formatNum(max)}</span>
+                </div>
+            </div>
+        );
+
+        const Header = ({ bg, border, color, math, note }) => (
+            <div className={`${bg} p-2.5 lg:p-4 rounded-lg border ${border} text-center animate-pop shadow-xs`}>
+                <p className={`font-bold ${TXT_HEAD}`} style={{ color }}>
+                    <Latex math={math} />
+                    {note && <span className={`text-slate-600 ${TXT_SUB} font-medium ml-2`}>{note}</span>}
+                </p>
+            </div>
+        );
+
+        const Hint = ({ children }) => (
+            <div className={`${TXT} font-medium text-slate-700 bg-white p-2 lg:p-3 xl:p-4 rounded border border-amber-200 flex items-center gap-2 lg:gap-4`}>
+                <i className="fa-solid fa-hand-pointer text-amber-500"></i>
+                <span>{children}</span>
+            </div>
+        );
+
+        const PropCard = ({ num, title, color, children, note }) => (
+            <div className="rounded-lg border bg-white shadow-xs p-3 lg:p-5 animate-pop" style={{ borderColor: color }}>
+                <div className="flex items-center gap-2 lg:gap-3 mb-1 lg:mb-2">
+                    <span className="w-7 h-7 lg:w-9 lg:h-9 rounded-full text-white font-extrabold flex items-center justify-center text-[13px] lg:text-[18px] shrink-0" style={{ backgroundColor: color }}>{num}</span>
+                    <span className="font-bold text-slate-700 text-[14px] sm:text-[15px] md:text-[17px] lg:text-[20px] xl:text-[22px]">{title}</span>
+                </div>
+                <div className="text-center font-bold text-[16px] sm:text-[18px] md:text-[20px] lg:text-[26px] xl:text-[30px] space-y-1" style={{ color }}>{children}</div>
+                {note && <p className="text-center text-slate-500 font-medium text-[12px] sm:text-[13px] md:text-[15px] lg:text-[18px] mt-1">{note}</p>}
+            </div>
+        );
+
+        // ---------- Блоки схеми «два шляхи» ----------
+        const FlowNode = ({ tex, color }) => (
+            <div className="rounded-xl border-2 bg-white px-2.5 py-1.5 lg:px-5 lg:py-3 font-bold shadow-sm animate-pop text-[14px] sm:text-[16px] md:text-[18px] lg:text-[24px] xl:text-[28px]" style={{ borderColor: color, color }}>
+                <Latex math={tex} />
+            </div>
+        );
+        const FlowArrow = ({ tex, color }) => (
+            <div className="flex flex-col items-center px-0.5 lg:px-2 animate-fade-in" style={{ color }}>
+                <span className="text-[12px] sm:text-[14px] md:text-[16px] lg:text-[22px]"><Latex math={tex} /></span>
+                <i className="fa-solid fa-arrow-right text-sm lg:text-2xl"></i>
+            </div>
+        );
+        const FlowRow = ({ label, nodes, ops, color }) => (
+            <div className="animate-fade-in bg-white/80 border border-slate-200 rounded-xl p-3 lg:p-6 shadow-sm">
+                <p className="font-bold text-slate-600 mb-2 lg:mb-4 text-[13px] sm:text-[14px] md:text-[16px] lg:text-[20px]">{label}</p>
+                <div className="flex flex-wrap items-center gap-1 lg:gap-3">
+                    {nodes.map((nd, i) => (
+                        <React.Fragment key={i}>
+                            <FlowNode tex={nd} color={color} />
+                            {i < ops.length && <FlowArrow tex={ops[i]} color={color} />}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const App = () => {
+            const [hasStarted, setHasStarted] = useState(false);
+            const [viewingMenu, setViewingMenu] = useState(false);
+            const [step, setStep] = useState(0);
+            const [subStep, setSubStep] = useState(0);
+
+            const [v1Expanded, setV1Expanded] = useState(false);
+            const [visitedBlocks, setVisitedBlocks] = useState({ v1: false });
+
+            // Інтерактивні параметри
+            const [nVal, setNVal] = useState(2);
+            const [kVal, setKVal] = useState(2);
+            const [mVal, setMVal] = useState(2);
+            const [aVal, setAVal] = useState(2);
+            const [bVal, setBVal] = useState(3);
+            const [xv, setXv] = useState(-2.5);
+            const [exIdx, setExIdx] = useState(0);
+            const [exShown, setExShown] = useState(0);
+            const [partOpen, setPartOpen] = useState(0);
+            const [partMax, setPartMax] = useState(0);
+            const [partShown, setPartShown] = useState({});
+            const openPartRef = useRef(null);
+            useEffect(() => { setPartOpen(0); setPartMax(0); setPartShown({}); }, [exIdx]);
+            useEffect(() => {
+                if (step === 8 && openPartRef.current) openPartRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, [partOpen, partMax, partShown, exIdx, step]);
+            const [ovPage, setOvPage] = useState(0);
+            const [ovShown, setOvShown] = useState(1);
+            const ovReturnRef = useRef(false);
+
+            const svgContainerRef = useRef(null);
+            const svgRef = useRef(null);
+            const [dim, setDim] = useState({ w: 800, h: 600 });
+            const dragFrameRef = useRef(null);
+            const [isDragging, setIsDragging] = useState(false);
+
+            const LAST = 8;
+
+            // ---------- Система координат ----------
+            const cfg = (() => {
+                if (step === 2) { const s = Math.min(dim.w / 11, dim.h / 11); return { cxF: 0.5, cyF: 0.5, sx: s, sy: s }; }
+                if (step === 3 || step === 4) return { cxF: 0.07, cyF: 0.8, sx: dim.w * 0.88 / 16.6, sy: dim.h * 0.7 / 4.4 };
+                return { cxF: 0.5, cyF: 0.5, sx: 40, sy: 40 };
+            })();
+            const cx = Math.floor(dim.w * cfg.cxF);
+            const cy = Math.floor(dim.h * cfg.cyF);
+            const sx = cfg.sx, sy = cfg.sy;
+
+            const mathToSvg = (mx, my) => ({ x: cx + mx * sx, y: cy - my * sy });
+            const svgToMath = (px, py) => ({ mx: (px - cx) / sx, my: (cy - py) / sy });
+
+            useEffect(() => {
+                const container = svgContainerRef.current;
+                if (!container || !hasStarted) return;
+                const observer = new ResizeObserver(entries => {
+                    for (let entry of entries) setDim({ w: entry.contentRect.width, h: entry.contentRect.height });
+                });
+                observer.observe(container);
+                setDim({ w: container.clientWidth, h: container.clientHeight });
+                return () => observer.disconnect();
+            }, [hasStarted, viewingMenu, step]);
+
+            const delays = {
+                0: [0],
+                1: [0],
+                2: [0, 600, 1200],
+                3: [0, 600, 1200],
+                4: [0, 600, 1200],
+                5: [0, 700, 1400],
+                6: [0, 700, 1400],
+                7: [0, 700, 1400],
+                8: [0]
+            };
+
+            useEffect(() => {
+                setSubStep(0);
+                setV1Expanded(false);
+                setVisitedBlocks({ v1: false });
+                setNVal(step === 2 ? 3 : 2);
+                setKVal(2);
+                setMVal(2);
+                setAVal(step === 4 ? 8 : 2);
+                setBVal(step === 4 ? 2 : 3);
+                setXv(-2.5);
+                setExIdx(0);
+                setExShown(0);
+                if (ovReturnRef.current) { setOvPage(1); setOvShown(OV_MAX); ovReturnRef.current = false; }
+                else { setOvPage(0); setOvShown(1); }
+            }, [step]);
+
+            useEffect(() => {
+                if (!hasStarted || viewingMenu) return;
+                let timer;
+                const d = delays[step];
+                if (d && subStep < d.length - 1) {
+                    timer = setTimeout(() => setSubStep(p => p + 1), d[subStep + 1] - d[subStep]);
+                }
+                return () => clearTimeout(timer);
+            }, [step, subStep, hasStarted, viewingMenu]);
+
+            const isCurrentStepFinished = () => {
+                const d = delays[step];
+                return d ? subStep >= d.length - 1 : true;
+            };
+            const canShowNext = () => {
+                if (step === 1) return true;
+                if (step >= 2 && step <= 7) return visitedBlocks.v1;
+                return false;
+            };
+            const prevStep = () => {
+                if (step === 1) {
+                    if (ovShown > 1) setOvShown(v => v - 1);
+                    else if (ovPage === 1) { setOvPage(0); setOvShown(OV_MAX); }
+                    else setViewingMenu(true);
+                    return;
+                }
+                if (step === LAST) { ovReturnRef.current = true; setStep(1); return; }
+                if (step > 1) setStep(s => s - 1);
+            };
+            const nextStep = () => {
+                if (step === 1) {
+                    if (ovShown < OV_MAX) setOvShown(v => v + 1);
+                    else if (ovPage === 0) { setOvPage(1); setOvShown(1); }
+                    else setStep(LAST); // одразу до розв'язування вправ
+                    return;
+                }
+                if (canShowNext() && step < LAST) setStep(s => s + 1);
+            };
+            const restartLesson = () => { setHasStarted(false); setViewingMenu(false); setStep(0); };
+            const toggleBlock = () => { setVisitedBlocks({ v1: true }); setV1Expanded(v => !v); };
+
+            // ---------- Перетягування точки на графіку (крок 2) ----------
+            const draggable = step === 2;
+            const applyPointer = (clientX, clientY) => {
+                if (!svgRef.current) return;
+                const pt = svgRef.current.createSVGPoint();
+                pt.x = clientX; pt.y = clientY;
+                const p = pt.matrixTransform(svgRef.current.getScreenCTM().inverse());
+                const m = svgToMath(p.x, p.y);
+                if (step === 2) setXv(Math.max(-4, Math.min(4, Math.round(m.mx * 10) / 10)));
+            };
+            const handlePointerDown = (e) => {
+                if (!draggable) return;
+                setIsDragging(true);
+                try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+                applyPointer(e.clientX, e.clientY);
+            };
+            const handlePointerMove = (e) => {
+                if (!isDragging) return;
+                const x = e.clientX, y = e.clientY;
+                if (dragFrameRef.current) cancelAnimationFrame(dragFrameRef.current);
+                dragFrameRef.current = requestAnimationFrame(() => applyPointer(x, y));
+            };
+            const handlePointerUp = (e) => {
+                if (isDragging) {
+                    setIsDragging(false);
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+                }
+            };
+
+            // ---------- Побудова графіків ----------
+            const generatePath = (fn, xFrom = null, xTo = null) => {
+                const xMinVis = (0 - cx) / sx - 1;
+                const xMaxVis = (dim.w - cx) / sx + 1;
+                const yTop = cy / sy + 2;
+                const yBot = (dim.h - cy) / sy + 2;
+                const x0 = xFrom === null ? xMinVis : Math.max(xFrom, xMinVis);
+                const x1 = xTo === null ? xMaxVis : Math.min(xTo, xMaxVis);
+                const base = 2 / sx;
+                let d = '', pen = false, mx = x0;
+                while (mx <= x1 + 1e-9) {
+                    const my = fn(mx);
+                    if (!isFinite(my) || my > yTop || my < -yBot) { pen = false; }
+                    else {
+                        const p = mathToSvg(mx, my);
+                        d += `${pen ? 'L' : 'M'} ${p.x.toFixed(2)},${p.y.toFixed(2)} `;
+                        pen = true;
+                    }
+                    mx += Math.abs(mx) < 0.3 ? Math.min(base, 0.002) : base;
+                }
+                return d;
+            };
+
+            const renderAxes = () => {
+                const lines = [];
+                const iL = Math.floor(-cx / sx), iR = Math.ceil((dim.w - cx) / sx);
+                const iB = Math.floor(-(dim.h - cy) / sy), iT = Math.ceil(cy / sy);
+                const labX = sx >= 34 ? 1 : 2;
+                const labY = sy >= 34 ? 1 : 2;
+                for (let i = iL; i <= iR; i++) {
+                    if (i === 0) continue;
+                    const px = cx + i * sx;
+                    lines.push(<line key={`v-${i}`} x1={px} y1={0} x2={px} y2={dim.h} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />);
+                    lines.push(<line key={`vt-${i}`} x1={px} y1={cy - 3} x2={px} y2={cy + 3} stroke="#34495E" strokeWidth="1.5" />);
+                    if (i % labX === 0 && px > 10 && px < dim.w - 24) {
+                        lines.push(<text key={`vl-${i}`} x={px} y={cy + 17} textAnchor="middle" className="text-[10px] sm:text-[11px] lg:text-[14px] 2xl:text-[16px]" fontWeight="bold" fill="#34495E">{i < 0 ? `−${-i}` : i}</text>);
+                    }
+                }
+                for (let i = iB; i <= iT; i++) {
+                    if (i === 0) continue;
+                    const py = cy - i * sy;
+                    lines.push(<line key={`h-${i}`} x1={0} y1={py} x2={dim.w} y2={py} stroke="#D4D4D8" strokeWidth="1" opacity="0.6" />);
+                    lines.push(<line key={`ht-${i}`} x1={cx - 3} y1={py} x2={cx + 3} y2={py} stroke="#34495E" strokeWidth="1.5" />);
+                    if (i % labY === 0 && py > 14 && py < dim.h - 4) {
+                        lines.push(<text key={`hl-${i}`} x={cx - 8} y={py + 5} textAnchor="end" className="text-[10px] sm:text-[11px] lg:text-[14px] 2xl:text-[16px]" fontWeight="bold" fill="#34495E">{i < 0 ? `−${-i}` : i}</text>);
+                    }
+                }
+                return (
+                    <g className="axes select-none pointer-events-none">
+                        {lines}
+                        <line x1="0" y1={cy} x2={dim.w} y2={cy} stroke="#34495E" strokeWidth="2" />
+                        <line x1={cx} y1={dim.h} x2={cx} y2="0" stroke="#34495E" strokeWidth="2" />
+                        <polygon points={`${dim.w},${cy} ${dim.w - 10},${cy - 4} ${dim.w - 10},${cy + 4}`} fill="#34495E" />
+                        <polygon points={`${cx},0 ${cx - 4},10 ${cx + 4},10`} fill="#34495E" />
+                        <text x={dim.w - 20} y={cy - 12} className="text-[14px] sm:text-[16px] lg:text-[20px] 2xl:text-[24px]" fontFamily="serif" fontStyle="italic" fontWeight="bold" fill="#34495E">x</text>
+                        <text x={cx + 15} y={20} className="text-[14px] sm:text-[16px] lg:text-[20px] 2xl:text-[24px]" fontFamily="serif" fontStyle="italic" fontWeight="bold" fill="#34495E">y</text>
+                        <text x={cx - 12} y={cy + 20} className="text-[11px] sm:text-[12px] lg:text-[16px] 2xl:text-[18px]" fontWeight="bold" fill="#34495E">0</text>
+                    </g>
+                );
+            };
+
+            const Dot = ({ mx, my, color, label, dy = -12 }) => {
+                const p = mathToSvg(mx, my);
+                const r = dim.w > 1024 ? 7 : 5;
+                return (
+                    <g className="animate-fade-in-point">
+                        <circle cx={p.x} cy={p.y} r={r} fill={color} stroke="#FFF" strokeWidth="1.5" />
+                        {label && <text x={p.x} y={p.y + dy} textAnchor="middle" className="text-[11px] sm:text-[12px] lg:text-[16px] 2xl:text-[18px]" fontWeight="bold" fill={color} style={{ paintOrder: 'stroke', stroke: '#fff', strokeWidth: 4 }}>{label}</text>}
+                    </g>
+                );
+            };
+
+            const AxisTag = ({ mx, text, color = "#34495E", below = true, lvl = 0 }) => {
+                const p = mathToSvg(mx, 0);
+                const fs = dim.w > 1200 ? 18 : (dim.w > 768 ? 15 : 12);
+                const w = Math.max(text.length * fs * 0.62 + 14, 34);
+                const h = fs + 10;
+                const y0 = below ? cy + 12 + lvl * (h + 4) : cy - 12 - h - lvl * (h + 4);
+                const xx = Math.min(Math.max(p.x, w / 2 + 2), dim.w - w / 2 - 2);
+                return (
+                    <g className="pointer-events-none select-none">
+                        <rect x={xx - w / 2} y={y0} width={w} height={h} rx="5" fill={color} />
+                        <text x={xx} y={y0 + h / 2 + fs * 0.36} textAnchor="middle" fontSize={fs} fontWeight="bold" fill="#FFF">{text}</text>
+                    </g>
+                );
+            };
+
+            const Drop = ({ mx, my, color = "#34495E" }) => {
+                const p = mathToSvg(mx, my);
+                return <line x1={p.x} y1={cy} x2={p.x} y2={p.y} stroke={color} strokeWidth="1.5" strokeDasharray="4,4" />;
+            };
+
+            // ---------- Меню ----------
+            const renderMenuContent = () => {
+                const goOverview = (page) => {
+                    if (step !== 1) {
+                        if (page === 1) ovReturnRef.current = true;
+                        setStep(1);
+                    } else if (page === 1) { setOvPage(1); setOvShown(OV_MAX); }
+                    else { setOvPage(0); setOvShown(1); }
+                    setViewingMenu(false);
+                };
+                const topics = [
+                    { id: 1, name: "Властивості кореня n-го степеня: формули 1–3", go: () => goOverview(0) },
+                    { id: 2, name: "Властивості кореня n-го степеня: формули 4–6", go: () => goOverview(1) },
+                    { id: 3, name: "Приклади розв’язування задач", go: () => { setStep(LAST); setViewingMenu(false); } },
+                ];
+                return (
+                    <div className="p-4 md:p-6 lg:p-8 xl:p-12 animate-fade-in flex-grow max-w-4xl lg:max-w-6xl 2xl:max-w-7xl mx-auto w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 xl:gap-10 overflow-y-auto no-scrollbar pr-1">
+                            {topics.map((t) => (
+                                <div key={t.id}
+                                    onClick={t.go}
+                                    className="p-4 md:p-5 lg:p-6 xl:p-8 rounded-xl border border-slate-200/60 hover:border-purple-400 hover:bg-purple-50/60 hover:shadow-md transition-all duration-200 cursor-pointer flex items-center gap-4 lg:gap-6 group bg-panelRight">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-full bg-[#E2E8F0]/40 group-hover:bg-purple-100 text-slate-600 group-hover:text-purple-700 font-extrabold text-base md:text-lg lg:text-xl xl:text-2xl flex items-center justify-center shrink-0 transition-colors">
+                                        {t.id}
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="font-bold text-slate-800 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl group-hover:text-purple-800 transition-colors">{t.name}</h3>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------- Легенда графіка ----------
+            const renderLegend = () => {
+                if (step < 2 || step > 4) return null;
+                const items = [];
+                if (step === 2) {
+                    items.push({ c: nVal % 2 === 1 ? '#2980B9' : '#27AE60', m: `y = ${rootTex(nVal, `x^{${nVal}}`)}` });
+                    if (nVal % 2 === 0) items.push({ c: '#94a3b8', m: 'y = x' });
+                } else {
+                    items.push({ c: '#2980B9', m: `y = ${rootTex(nVal, 'x')}` });
+                }
+                const pos = step === 2 ? 'bottom-2 left-1/2 -translate-x-1/2' : 'top-2 left-3';
+                return (
+                    <div className={`absolute ${pos} z-30 pointer-events-none bg-white/85 rounded-lg px-3 py-2 lg:px-4 lg:py-3 shadow-sm border border-slate-200 space-y-1 text-[15px] sm:text-[17px] lg:text-[22px] 2xl:text-[28px] font-bold animate-fade-in`}>
+                        {items.map((it, i) => <div key={i} style={{ color: it.c }}><Latex math={it.m} /></div>)}
+                    </div>
+                );
+            };
+
+            // ---------- Графічна права панель (кроки 2–4) ----------
+            const renderGraph = () => {
+                const sw = dim.w > 1024 ? 4 : 3;
+                return (
+                    <svg ref={svgRef} className={`absolute top-0 left-0 w-full h-full touch-none z-20 animate-fade-in ${draggable ? 'cursor-crosshair' : ''}`}
+                        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
+                        {renderAxes()}
+
+                        {step === 2 && (() => {
+                            const n = nVal, odd = n % 2 === 1;
+                            const val = odd ? nthRoot(Math.pow(xv, n), n) : Math.pow(Math.pow(xv, n), 1 / n);
+                            const col = odd ? '#2980B9' : '#27AE60';
+                            return (
+                                <g>
+                                    {!odd && <path d={generatePath(x => x)} fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="8,6" />}
+                                    <path key={`p2-${n}`} d={generatePath(x => odd ? x : Math.abs(x))} fill="none" stroke={col} strokeWidth={sw + 1} className="animate-draw" />
+                                    <Drop mx={xv} my={val} />
+                                    {!odd && xv < 0 && <Dot mx={xv} my={xv} color="#94a3b8" label={formatNum(xv)} dy={18} />}
+                                    <Dot mx={xv} my={val} color="#E74C3C" label={`(${formatNum(xv)}; ${formatNum(val)})`} dy={-14} />
+                                    <AxisTag mx={xv} below={val >= 0 ? true : false} color="#34495E" text={`x = ${formatNum(xv)}`} />
+                                </g>
+                            );
+                        })()}
+
+                        {(step === 3 || step === 4) && (() => {
+                            const n = nVal, A = aVal, B = bVal;
+                            const C = step === 3 ? A * B : A / B;
+                            const lab = step === 3 ? 'ab' : 'a/b';
+                            const pts = [
+                                { x: A, c: '#8E44AD', t: 'a', below: true, lvl: 0 },
+                                { x: B, c: '#E74C3C', t: 'b', below: false, lvl: 0 },
+                                { x: C, c: '#27AE60', t: lab, below: true, lvl: 1 },
+                            ];
+                            return (
+                                <g>
+                                    <path key={`pr-${n}`} d={generatePath(x => nthRoot(x, n), 0, 16.5)} fill="none" stroke="#2980B9" strokeWidth={sw + 0.5} className="animate-draw" />
+                                    {pts.map((p, i) => (
+                                        <g key={i}>
+                                            <Drop mx={p.x} my={nthRoot(p.x, n)} color={p.c} />
+                                            <Dot mx={p.x} my={nthRoot(p.x, n)} color={p.c} label={formatNum(nthRoot(p.x, n))} dy={p.x > 12 ? 20 : -12} />
+                                            <AxisTag mx={p.x} below={p.below} lvl={p.lvl} color={p.c} text={`${p.t}=${formatNum(p.x)}`} />
+                                        </g>
+                                    ))}
+                                </g>
+                            );
+                        })()}
+                    </svg>
+                );
+            };
+
+            // ---------- Права панель зі схемою «два шляхи» (кроки 5–7) ----------
+            const renderFlow = () => {
+                const n = nVal, k = kVal, m = mVal;
+                const OP = (nn) => rootTex(nn, '\\ ');
+                const PW = `(\\ )^{${k}}`;
+                let rows = [], result = '';
+                if (step === 5) {
+                    const a = Math.pow(m, n), ak = Math.pow(a, k), R = Math.pow(m, k);
+                    rows = [
+                        { label: 'Спочатку корінь, потім степінь', color: '#2980B9', nodes: [`${bigTex(a)}`, `${rootTex(n, bigTex(a))}=${m}`, `${m}^{${k}}=${bigTex(R)}`], ops: [OP(n), PW] },
+                        { label: 'Спочатку степінь, потім корінь', color: '#8E44AD', nodes: [`${bigTex(a)}`, `${bigTex(a)}^{${k}}=${bigTex(ak)}`, `${rootTex(n, bigTex(ak))}=${bigTex(R)}`], ops: [PW, OP(n)] },
+                    ];
+                    result = `\\left(${rootTex(n, bigTex(a))}\\right)^{${k}}=${rootTex(n, `${bigTex(a)}^{${k}}`)}=${bigTex(R)}`;
+                } else if (step === 6) {
+                    const a = Math.pow(m, n * k), mid = Math.pow(m, n);
+                    rows = [
+                        { label: 'Два корені послідовно', color: '#2980B9', nodes: [`${bigTex(a)}`, `${rootTex(k, bigTex(a))}=${bigTex(mid)}`, `${rootTex(n, bigTex(mid))}=${m}`], ops: [OP(k), OP(n)] },
+                        { label: 'Один корінь зі степенем n·k', color: '#8E44AD', nodes: [`${bigTex(a)}`, `${rootTex(n * k, bigTex(a))}=${m}`], ops: [OP(n * k)] },
+                    ];
+                    result = `${rootTex(n, rootTex(k, bigTex(a)))}=${rootTex(n * k, bigTex(a))}=${m}`;
+                } else {
+                    const a = Math.pow(m, n), ak = Math.pow(a, k);
+                    rows = [
+                        { label: 'Піднесли до степеня k і добули корінь n·k', color: '#2980B9', nodes: [`${bigTex(a)}`, `${bigTex(a)}^{${k}}=${bigTex(ak)}`, `${rootTex(n * k, bigTex(ak))}=${m}`], ops: [PW, OP(n * k)] },
+                        { label: 'Одразу добули корінь n-го степеня', color: '#8E44AD', nodes: [`${bigTex(a)}`, `${rootTex(n, bigTex(a))}=${m}`], ops: [OP(n)] },
+                    ];
+                    result = `${rootTex(n * k, `${bigTex(a)}^{${k}}`)}=${rootTex(n, bigTex(a))}=${m}`;
+                }
+                return (
+                    <div className="absolute inset-0 overflow-y-auto no-scrollbar p-3 md:p-5 lg:p-8 flex flex-col justify-center gap-3 lg:gap-6 animate-fade-in">
+                        <FlowRow {...rows[0]} />
+                        {subStep >= 1 && <FlowRow {...rows[1]} />}
+                        {subStep >= 2 && (
+                            <div className="animate-pop bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3 lg:p-6 text-center shadow-sm">
+                                <p className="font-bold text-emerald-700 mb-1 lg:mb-3 text-[13px] sm:text-[14px] md:text-[16px] lg:text-[20px]"><i className="fa-solid fa-circle-check mr-2"></i>Обидва шляхи дають однаковий результат</p>
+                                <div className="font-bold text-slate-800 text-[15px] sm:text-[17px] md:text-[20px] lg:text-[28px] overflow-x-auto no-scrollbar"><Latex math={result} /></div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderNextButton = () => {
+                if (step === LAST) return null;
+                const isReady = canShowNext();
+                return (
+                    <button onClick={isReady ? nextStep : null}
+                        className={`px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 rounded-full font-semibold transition-all text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl flex items-center justify-center gap-1.5 lg:gap-3
+                            ${isReady
+                                ? 'shadow-md active:scale-95 border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff] animate-pop cursor-pointer'
+                                : 'border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-75'}`}>
+                        Далі ➔
+                    </button>
+                );
+            };
+
+            // ---------- Ліва панель: вміст кроків ----------
+            const renderStepContent = () => {
+                const card = "bg-white rounded-lg p-3 md:p-4 lg:p-6 xl:p-8 shadow-xs leading-normal text-slate-800 animate-fade-in space-y-2 lg:space-y-4 xl:space-y-6";
+                const n = nVal, k = kVal, m = mVal;
+
+                // --- Крок 1: огляд (2 сторінки по 3 формули) ---
+                if (step === 1) {
+                    const pageItems = OVERVIEW.slice(ovPage * OV_PER_PAGE, (ovPage + 1) * OV_PER_PAGE);
+                    return (
+                        <div className="bg-white rounded-lg p-3 md:p-6 lg:p-8 xl:p-10 shadow-sm leading-normal text-slate-800 animate-fade-in space-y-3 md:space-y-4 lg:space-y-5 max-w-3xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full mt-1 md:mt-4 border border-purple-100">
+                            {ovPage === 0 && (
+                                <div className="bg-pink-50/50 p-3 md:p-5 lg:p-6 rounded-lg border border-pink-100 shadow-xs">
+                                    <p className="font-bold text-[14px] sm:text-[16px] md:text-[18px] lg:text-[22px] xl:text-[26px] leading-relaxed text-left">
+                                        <span className="text-[#E91E63]">Властивості кореня n-го степеня</span> дають змогу спрощувати вирази та обчислювати значення коренів.
+                                    </p>
+                                    <p className="font-medium text-slate-700 text-[13px] sm:text-[14px] md:text-[16px] lg:text-[20px] xl:text-[23px] mt-2">
+                                        Нехай <Latex math="a \geqslant 0,\ b \geqslant 0,\ n \in \mathbb{N},\ k \in \mathbb{N},\ n > 1" />.
+                                    </p>
+                                </div>
+                            )}
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-500 text-[12px] sm:text-[13px] md:text-[15px] lg:text-[18px]">Сторінка {ovPage + 1} з 2</span>
+                                <span className="text-slate-400 text-[12px] md:text-[14px] lg:text-[17px]"><i className="fa-solid fa-hand-pointer text-amber-500 mr-2"></i>Натискайте «Далі ➔»</span>
+                            </div>
+                            <div className="space-y-3 lg:space-y-5">
+                                {pageItems.map((it, r) => {
+                                    const showF = ovShown >= 2 * r + 1;
+                                    const showE = ovShown >= 2 * r + 2;
+                                    if (!showF) return null;
+                                    return (
+                                        <div key={`${ovPage}-${r}`} className="grid grid-cols-2 gap-2 md:gap-4 lg:gap-6 items-stretch">
+                                            {/* Формула — ліворуч */}
+                                            <PropCard num={it.num} title={it.title} color={it.color} note={it.note}>
+                                                {it.formulas.map((f, i) => <div key={i}><Latex math={f} /></div>)}
+                                            </PropCard>
+                                            {/* Приклад — праворуч */}
+                                            <div className="flex">
+                                                {showE ? (
+                                                    <div className="w-full rounded-lg border-2 border-dashed bg-emerald-50/60 p-2.5 lg:p-5 animate-pop flex flex-col justify-center" style={{ borderColor: '#27AE60' }}>
+                                                        <p className="font-bold text-emerald-700 mb-1 lg:mb-2 text-[12px] sm:text-[13px] md:text-[15px] lg:text-[18px]"><i className="fa-solid fa-calculator mr-2"></i>Приклад</p>
+                                                        <div className="text-center font-bold text-slate-800 text-[14px] sm:text-[16px] md:text-[18px] lg:text-[24px] xl:text-[28px] overflow-x-auto no-scrollbar space-y-1">
+                                                            {it.examples.map((ex, i) => <div key={i}><Latex math={ex} /></div>)}
+                                                        </div>
+                                                    </div>
+                                                ) : <div className="w-full" />}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                }
+
+                // --- Крок 2: корінь зі степеня ---
+                if (step === 2) {
+                    const odd = n % 2 === 1;
+                    const val = odd ? nthRoot(Math.pow(xv, n), n) : Math.pow(Math.pow(xv, n), 1 / n);
+                    return (
+                        <div className={card}>
+                            <Header bg="bg-blue-50/70" border="border-blue-200" color="#2980B9" math="\sqrt[n]{x^{n}}" note="(показник кореня дорівнює показнику степеня)" />
+                            <ChoiceButtons label={<>Оберіть показник <span className="font-serif italic text-black">n</span>:</>} values={[2, 3, 4, 5]} current={n} onPick={setNVal} color="#2980B9" />
+                            <Slider min={-4} max={4} step={0.1} value={xv} onChange={setXv} cls="slider-blue" label={<>Змінюйте <Latex math="x" /> (або тягніть точку по графіку)</>} />
+                            <div className="p-2 lg:p-4 rounded-lg bg-amber-100 border border-amber-300 text-center overflow-x-auto no-scrollbar">
+                                <span className={`${TXT} font-bold`}><Latex math={`${rootTex(n, `(${texNum(xv)})^{${n}}`)} = ${texNum(val)}`} /></span>
+                            </div>
+                            <div className="p-2 lg:p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1 lg:space-y-2">
+                                <HighlightBox active={odd} title={<>Якщо <Latex math="n" /> — непарне:</>}><Latex math={`${rootTex(n, `x^{${n}}`)} = x`} /> — знак числа зберігається.</HighlightBox>
+                                <HighlightBox active={!odd} title={<>Якщо <Latex math="n" /> — парне:</>}><Latex math={`${rootTex(n, `x^{${n}}`)} = |x|`} /> — результат ніколи не від’ємний.</HighlightBox>
+                            </div>
+                            <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                <p>Для будь-якого <Latex math="a" /> і <Latex math="k \in \mathbb{N}" />:</p>
+                                <div className="text-center text-[#2980B9] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[2k+1]{a^{2k+1}} = a" /></div>
+                                <div className="text-center text-[#27AE60] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[2k]{a^{2k}} = |a|" /></div>
+                                <p>• Корінь непарного степеня існує з будь-якого числа, тому <Latex math="a" /> «повертається» без змін.</p>
+                                <p>• Арифметичний корінь парного степеня невід’ємний, тому для <Latex math="a < 0" /> отримуємо <Latex math="|a| = -a" />.</p>
+                                <p>Наприклад: <Latex math="\sqrt[4]{(-7{,}3)^4} = 7{,}3" />, <Latex math="\sqrt[3]{(-2)^3} = -2" />.</p>
+                            </Accordion>
+                        </div>
+                    );
+                }
+
+                // --- Кроки 3 і 4: добуток і частка ---
+                if (step === 3 || step === 4) {
+                    const prod = step === 3;
+                    const A = aVal, B = bVal;
+                    const ra = nthRoot(A, n), rb = nthRoot(B, n);
+                    const lhs = prod ? nthRoot(A * B, n) : nthRoot(A / B, n);
+                    const rhs = prod ? ra * rb : ra / rb;
+                    const rA = rootTex(n, 'a'), rB = rootTex(n, 'b');
+                    return (
+                        <div className={card}>
+                            {prod
+                                ? <Header bg="bg-purple-50/70" border="border-purple-200" color="#8E44AD" math="\sqrt[n]{ab} = \sqrt[n]{a}\cdot\sqrt[n]{b}" note="(a ⩾ 0, b ⩾ 0)" />
+                                : <Header bg="bg-green-50/70" border="border-green-200" color="#27AE60" math="\sqrt[n]{\dfrac{a}{b}} = \dfrac{\sqrt[n]{a}}{\sqrt[n]{b}}" note="(a ⩾ 0, b > 0)" />}
+                            <ChoiceButtons label={<>Оберіть показник <span className="font-serif italic text-black">n</span>:</>} values={[2, 3, 4]} current={n} onPick={setNVal} color={prod ? '#8E44AD' : '#27AE60'} />
+                            <Slider min={0} max={prod ? 4 : 16} step={0.1} value={A} onChange={setAVal} cls="slider-purple" label={<span style={{ color: '#8E44AD' }}>Число <Latex math="a" /> = {formatNum(A)}</span>} />
+                            <Slider min={prod ? 0 : 1} max={4} step={0.1} value={B} onChange={setBVal} cls="slider-red" label={<span style={{ color: '#E74C3C' }}>Число <Latex math="b" /> = {formatNum(B)}</span>} />
+                            <ValueTable color={prod ? '#8E44AD' : '#27AE60'} border={prod ? 'border-purple-200' : 'border-green-200'} bg={prod ? 'bg-purple-50/50' : 'bg-green-50/50'} rows={[
+                                ['\\ ', <Latex math={rA} />, <Latex math={rB} />,
+                                    <Latex math={prod ? `${rA}\\cdot${rB}` : `\\dfrac{${rA}}{${rB}}`} />,
+                                    <Latex math={rootTex(n, prod ? 'ab' : '\\dfrac{a}{b}')} />],
+                                ['\\approx', formatNum(ra), formatNum(rb), formatNum(rhs), formatNum(lhs)]
+                            ]} />
+                            <div className={`p-2 lg:p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-center ${TXT} font-bold text-emerald-700`}>
+                                <i className="fa-solid fa-circle-check mr-2"></i>Останні два числа в таблиці однакові: {formatNum(rhs)} = {formatNum(lhs)}
+                            </div>
+                            {prod ? (
+                                <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                    <p>Якщо <Latex math="a \geqslant 0,\ b \geqslant 0,\ n \in \mathbb{N},\ n > 1" />, то</p>
+                                    <div className="text-center text-[#8E44AD] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[n]{ab} = \sqrt[n]{a}\cdot\sqrt[n]{b}" /></div>
+                                    <p><span className="font-bold">Чому так?</span> Число <Latex math="\sqrt[n]{a}\cdot\sqrt[n]{b}" /> невід’ємне, а його <Latex math="n" />-й степінь дорівнює <Latex math="\left(\sqrt[n]{a}\right)^{n}\left(\sqrt[n]{b}\right)^{n} = ab" />.</p>
+                                    <p>Корінь із добутку можна «розбивати» на добуток коренів і навпаки: <Latex math="\sqrt[5]{16}\cdot\sqrt[5]{2} = \sqrt[5]{32} = 2" />.</p>
+                                    <p>Так виносять множник з-під знака кореня: <Latex math="\sqrt[3]{250} = \sqrt[3]{125\cdot 2} = 5\sqrt[3]{2}" />.</p>
+                                </Accordion>
+                            ) : (
+                                <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                    <p>Якщо <Latex math="a \geqslant 0,\ b > 0,\ n \in \mathbb{N},\ n > 1" />, то</p>
+                                    <div className="text-center text-[#27AE60] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[n]{\dfrac{a}{b}} = \dfrac{\sqrt[n]{a}}{\sqrt[n]{b}}" /></div>
+                                    <p><span className="font-bold">Чому так?</span> Число <Latex math="\dfrac{\sqrt[n]{a}}{\sqrt[n]{b}}" /> невід’ємне, а його <Latex math="n" />-й степінь дорівнює <Latex math="\dfrac{a}{b}" />.</p>
+                                    <p>Наприклад: <Latex math="\sqrt[3]{\dfrac{24}{375}} = \sqrt[3]{\dfrac{8}{125}} = \dfrac{2}{5}" />.</p>
+                                    <p>Умова <Latex math="b > 0" /> потрібна, бо на нуль ділити не можна.</p>
+                                </Accordion>
+                            )}
+                        </div>
+                    );
+                }
+
+                // --- Кроки 5–7: схеми «два шляхи» ---
+                if (step === 5) {
+                    const a = Math.pow(m, n), R = Math.pow(m, k);
+                    return (
+                        <div className={card}>
+                            <Header bg="bg-red-50/70" border="border-red-200" color="#E74C3C" math="\left(\sqrt[n]{a}\right)^{k} = \sqrt[n]{a^{k}}" note="(a ⩾ 0)" />
+                            <MiniChoice label={<>Показник кореня <span className="font-serif italic text-black">n</span>:</>} values={[2, 3]} current={n} onPick={setNVal} color="#E74C3C" />
+                            <MiniChoice label={<>Степінь <span className="font-serif italic text-black">k</span>:</>} values={[2, 3]} current={k} onPick={setKVal} color="#E74C3C" />
+                            <MiniChoice label={<>Основа <span className="font-serif italic text-black">m</span>, де <Latex math="a = m^{n}" />:</>} values={[2, 3, 4]} current={m} onPick={setMVal} color="#E74C3C" />
+                            <div className="p-2 lg:p-4 rounded-lg bg-amber-100 border border-amber-300 text-center overflow-x-auto no-scrollbar">
+                                <span className={`${TXT} font-bold`}><Latex math={`a = ${m}^{${n}} = ${bigTex(a)};\\quad \\left(${rootTex(n, bigTex(a))}\\right)^{${k}} = ${bigTex(R)}`} /></span>
+                            </div>
+                            <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                <p>Якщо <Latex math="a \geqslant 0,\ n \in \mathbb{N},\ k \in \mathbb{N},\ n > 1" />, то</p>
+                                <div className="text-center text-[#E74C3C] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\left(\sqrt[n]{a}\right)^{k} = \sqrt[n]{a^{k}}" /></div>
+                                <p><span className="font-bold">Доведення:</span> степінь — це добуток однакових множників, а корінь із добутку дорівнює добутку коренів (теорема 5.2):</p>
+                                <div className="text-center overflow-x-auto no-scrollbar"><Latex math="\left(\sqrt[n]{a}\right)^{k} = \underbrace{\sqrt[n]{a}\cdot\ldots\cdot\sqrt[n]{a}}_{k} = \sqrt[n]{\underbrace{a\cdot\ldots\cdot a}_{k}} = \sqrt[n]{a^{k}}" /></div>
+                                <p>Наприклад: <Latex math="\left(\sqrt[3]{5}\right)^{2} = \sqrt[3]{25}" />.</p>
+                            </Accordion>
+                        </div>
+                    );
+                }
+
+                if (step === 6) {
+                    const a = Math.pow(m, n * k);
+                    return (
+                        <div className={card}>
+                            <Header bg="bg-pink-50/70" border="border-pink-200" color="#E91E63" math="\sqrt[n]{\sqrt[k]{a}} = \sqrt[nk]{a}" note="(a ⩾ 0, k > 1)" />
+                            <MiniChoice label={<>Зовнішній корінь <span className="font-serif italic text-black">n</span>:</>} values={[2, 3]} current={n} onPick={setNVal} color="#E91E63" />
+                            <MiniChoice label={<>Внутрішній корінь <span className="font-serif italic text-black">k</span>:</>} values={[2, 3]} current={k} onPick={setKVal} color="#E91E63" />
+                            <MiniChoice label={<>Основа <span className="font-serif italic text-black">m</span>, де <Latex math="a = m^{nk}" />:</>} values={[2, 3]} current={m} onPick={setMVal} color="#E91E63" />
+                            <div className="p-2 lg:p-4 rounded-lg bg-amber-100 border border-amber-300 text-center overflow-x-auto no-scrollbar">
+                                <span className={`${TXT} font-bold`}><Latex math={`a = ${m}^{${n * k}} = ${bigTex(a)};\\quad ${rootTex(n, rootTex(k, bigTex(a)))} = ${rootTex(n * k, bigTex(a))} = ${m}`} /></span>
+                            </div>
+                            <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                <p>Якщо <Latex math="a \geqslant 0,\ n \in \mathbb{N},\ k \in \mathbb{N},\ n > 1,\ k > 1" />, то</p>
+                                <div className="text-center text-[#E91E63] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[n]{\sqrt[k]{a}} = \sqrt[nk]{a}" /></div>
+                                <p><span className="font-bold">Доведення:</span> число <Latex math="\sqrt[n]{\sqrt[k]{a}}" /> невід’ємне, а його <Latex math="nk" />-й степінь дорівнює <Latex math="\left(\left(\sqrt[n]{\sqrt[k]{a}}\right)^{n}\right)^{k} = \left(\sqrt[k]{a}\right)^{k} = a" />.</p>
+                                <p>Показники коренів перемножуються: <Latex math="\sqrt[3]{\sqrt{64}} = \sqrt[6]{64} = 2" />.</p>
+                            </Accordion>
+                        </div>
+                    );
+                }
+
+                if (step === 7) {
+                    const a = Math.pow(m, n), ak = Math.pow(a, k);
+                    return (
+                        <div className={card}>
+                            <Header bg="bg-amber-50/70" border="border-amber-200" color="#D68910" math="\sqrt[nk]{a^{k}} = \sqrt[n]{a}" note="(a ⩾ 0)" />
+                            <MiniChoice label={<>Показник <span className="font-serif italic text-black">n</span>:</>} values={[2, 3]} current={n} onPick={setNVal} color="#D68910" />
+                            <MiniChoice label={<>Показник <span className="font-serif italic text-black">k</span>:</>} values={[2, 3]} current={k} onPick={setKVal} color="#D68910" />
+                            <MiniChoice label={<>Основа <span className="font-serif italic text-black">m</span>, де <Latex math="a = m^{n}" />:</>} values={[2, 3]} current={m} onPick={setMVal} color="#D68910" />
+                            <div className="p-2 lg:p-4 rounded-lg bg-amber-100 border border-amber-300 text-center overflow-x-auto no-scrollbar">
+                                <span className={`${TXT} font-bold`}><Latex math={`a = ${m}^{${n}} = ${bigTex(a)};\\quad ${rootTex(n * k, `${bigTex(a)}^{${k}}`)} = ${rootTex(n * k, bigTex(ak))} = ${m}`} /></span>
+                            </div>
+                            <Accordion title="Висновок" open={v1Expanded} onToggle={toggleBlock}>
+                                <p>Якщо <Latex math="a \geqslant 0,\ n \in \mathbb{N},\ k \in \mathbb{N},\ n > 1" />, то</p>
+                                <div className="text-center text-[#D68910] font-bold text-lg lg:text-2xl xl:text-3xl"><Latex math="\sqrt[nk]{a^{k}} = \sqrt[n]{a}" /></div>
+                                <p>Показник кореня й показник степеня підкореневого виразу можна одночасно скоротити на спільний множник <Latex math="k" />:</p>
+                                <div className="text-center"><Latex math="\sqrt[12]{a^{3}} = \sqrt[4]{a}" /></div>
+                                <p><span className="text-rose-600 font-bold">Увага:</span> умова <Latex math="a \geqslant 0" /> істотна. Наприклад, <Latex math="\sqrt[4]{(-3)^{2}} = \sqrt[4]{9} = \sqrt{3}" />, але вираз <Latex math="\sqrt{-3}" /> не існує. Для <Latex math="a < 0" /> замість <Latex math="a" /> беруть <Latex math="|a|" />.</p>
+                            </Accordion>
+                        </div>
+                    );
+                }
+
+                // --- Крок 8: приклади ---
+                if (step === 8) {
+                    const ex = EXAMPLES[exIdx];
+                    const done = ex.parts ? false : exShown >= ex.steps.length;
+                    return (
+                        <div className="bg-white rounded-lg p-3 md:p-6 lg:p-8 xl:p-10 shadow-sm leading-normal text-slate-800 animate-fade-in space-y-3 lg:space-y-5 max-w-3xl lg:max-w-5xl mx-auto w-full mt-1 md:mt-4 border border-purple-100">
+                            <p className={`font-bold text-slate-700 text-center ${TXT_SUB}`}>Приклади розв’язування задач</p>
+                            <div className="flex flex-wrap justify-center gap-2 lg:gap-3">
+                                {EXAMPLES.map((e, i) => (
+                                    <button key={i} onClick={() => { setExIdx(i); setExShown(0); }}
+                                        className={`min-w-[2.25rem] h-9 px-2 lg:min-w-[3rem] lg:h-12 rounded-full font-bold text-[14px] lg:text-[20px] transition-all cursor-pointer shadow-sm
+                                        ${i === exIdx ? 'bg-[#8E44AD] text-white ring-2 ring-purple-300 scale-110' : 'bg-white text-slate-600 border border-slate-300 hover:bg-purple-50'}`}>{e.tag || i + 1}</button>
+                                ))}
+                            </div>
+                            {ex.parts ? renderParts(ex) : (<>
+                            <div className="bg-pink-50/60 border border-pink-100 rounded-lg p-3 lg:p-5 text-center animate-pop" key={`task-${exIdx}`}>
+                                <p className={`font-medium text-slate-600 ${TXT}`}>{ex.label}:</p>
+                                <div className="font-bold text-[#E91E63] text-[20px] sm:text-[24px] md:text-[28px] lg:text-[36px] overflow-x-auto no-scrollbar"><Latex math={ex.task} /></div>
+                            </div>
+                            <div className="space-y-2 lg:space-y-3">
+                                {ex.steps.slice(0, exShown).map((s, i) => (
+                                    <div key={`${exIdx}-${i}`} className="animate-fade-in bg-slate-50 border border-slate-200 rounded-lg p-2.5 lg:p-4">
+                                        <p className={`${TXT} font-medium text-slate-700`}><span className="font-extrabold text-[#8E44AD] mr-2">Крок {i + 1}.</span>{s.note}</p>
+                                        <div className="text-center font-bold text-[16px] sm:text-[18px] md:text-[22px] lg:text-[28px] mt-1 overflow-x-auto no-scrollbar"><Latex math={s.tex} /></div>
+                                    </div>
+                                ))}
+                            </div>
+                            {!done ? (
+                                <div className="text-center">
+                                    <button onClick={() => setExShown(s => s + 1)} className="px-4 py-2 lg:px-8 lg:py-3 rounded-full border border-purple-300 bg-[#f4ebff] text-[#6b21a8] font-semibold shadow-md hover:bg-[#ebdfff] active:scale-95 transition-all cursor-pointer text-[0.85rem] md:text-base lg:text-xl">
+                                        <i className="fa-solid fa-lightbulb mr-2"></i>{exShown === 0 ? 'Показати розв’язання' : 'Наступний крок'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="animate-pop bg-emerald-50 border-2 border-emerald-300 rounded-lg p-3 lg:p-5 text-center">
+                                    <p className={`font-bold text-emerald-700 ${TXT}`}><i className="fa-solid fa-circle-check mr-2"></i>Відповідь:</p>
+                                    <div className="font-bold text-slate-800 text-[20px] md:text-[26px] lg:text-[34px]"><Latex math={ex.answer} /></div>
+                                    <div className="mt-2 flex flex-wrap justify-center gap-2 lg:gap-3">
+                                        <button onClick={() => setExShown(0)} className="px-3 py-1.5 lg:px-6 lg:py-2 rounded-full border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 cursor-pointer text-[0.8rem] md:text-base lg:text-lg">Спробувати ще раз</button>
+                                        {exIdx < EXAMPLES.length - 1 && <button onClick={() => { setExIdx(exIdx + 1); setExShown(0); }} className="px-3 py-1.5 lg:px-6 lg:py-2 rounded-full border border-purple-300 bg-[#f4ebff] text-[#6b21a8] font-semibold hover:bg-[#ebdfff] cursor-pointer text-[0.8rem] md:text-base lg:text-lg">Наступна задача ➔</button>}
+                                    </div>
+                                </div>
+                            )}
+                            </>)}
+                        </div>
+                    );
+                }
+                return null;
+            };
+
+            // ---------- Вправи по пунктах: умова → розв’язання → наступний пункт ----------
+            const renderParts = (ex) => {
+                const parts = ex.parts;
+                const multi = parts.length > 1;
+                const openP = Math.min(partOpen, parts.length - 1);
+                return (
+                    <div className="space-y-2 lg:space-y-3" key={`parts-${exIdx}`}>
+                        <p className={`font-bold text-[#E91E63] text-center ${TXT}`}>{ex.label}:</p>
+                        {parts.map((p, pi) => {
+                            if (pi > partMax) return null;
+                            const shown = partShown[pi] || 0;
+                            const done = shown >= p.steps.length;
+                            const isLast = pi === parts.length - 1;
+                            const badge = multi && (
+                                <span className="shrink-0 min-w-[2rem] h-8 lg:min-w-[2.6rem] lg:h-10 px-2 rounded-full bg-[#8E44AD] text-white font-extrabold flex items-center justify-center text-[13px] lg:text-[18px]">{pi + 1})</span>
+                            );
+                            if (pi !== openP) {
+                                return (
+                                    <div key={pi} onClick={() => setPartOpen(pi)}
+                                        className="flex items-center gap-2 lg:gap-4 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 lg:px-4 lg:py-3 cursor-pointer hover:bg-purple-50 transition-colors animate-fade-in">
+                                        {badge}
+                                        <div className="font-bold text-slate-700 text-[15px] md:text-[18px] lg:text-[22px] overflow-x-auto no-scrollbar min-w-0"><Latex math={p.task} /></div>
+                                        {done && <>
+                                            <i className="fa-solid fa-arrow-right text-slate-400 shrink-0"></i>
+                                            <div className="font-bold text-emerald-700 text-[15px] md:text-[18px] lg:text-[22px] overflow-x-auto no-scrollbar min-w-0"><Latex math={p.answer} /></div>
+                                        </>}
+                                        <i className="fa-solid fa-chevron-down text-slate-400 ml-auto shrink-0"></i>
+                                    </div>
+                                );
+                            }
+                            return (
+                                <div key={pi} ref={openPartRef} style={{ scrollMarginBottom: '5rem' }} className="border border-purple-200 rounded-lg p-2.5 lg:p-4 space-y-2 lg:space-y-3 bg-white animate-fade-in">
+                                    <div className="bg-pink-50/60 border border-pink-100 rounded-lg p-2.5 lg:p-4 flex items-center justify-center gap-2 lg:gap-4 animate-pop">
+                                        {badge}
+                                        <div className="font-bold text-[#E91E63] text-[18px] sm:text-[22px] md:text-[26px] lg:text-[32px] overflow-x-auto no-scrollbar min-w-0"><Latex math={p.task} /></div>
+                                    </div>
+                                    <div className="space-y-2 lg:space-y-3">
+                                        {p.steps.slice(0, shown).map((st, i) => (
+                                            <div key={`${exIdx}-${pi}-${i}`} className="animate-fade-in bg-slate-50 border border-slate-200 rounded-lg p-2.5 lg:p-4">
+                                                <p className={`${TXT} font-medium text-slate-700`}><span className="font-extrabold text-[#8E44AD] mr-2">Крок {i + 1}.</span>{st.note}</p>
+                                                <div className="text-center font-bold text-[16px] sm:text-[18px] md:text-[22px] lg:text-[28px] mt-1 overflow-x-auto no-scrollbar"><Latex math={st.tex} /></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {!done ? (
+                                        <div className="text-center">
+                                            <button onClick={() => setPartShown(m => ({ ...m, [pi]: (m[pi] || 0) + 1 }))} className="px-4 py-2 lg:px-8 lg:py-3 rounded-full border border-purple-300 bg-[#f4ebff] text-[#6b21a8] font-semibold shadow-md hover:bg-[#ebdfff] active:scale-95 transition-all cursor-pointer text-[0.85rem] md:text-base lg:text-xl">
+                                                <i className="fa-solid fa-lightbulb mr-2"></i>{shown === 0 ? 'Показати розв’язання' : 'Наступний крок'}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="animate-pop bg-emerald-50 border-2 border-emerald-300 rounded-lg p-2.5 lg:p-4 text-center">
+                                            <p className={`font-bold text-emerald-700 ${TXT}`}><i className="fa-solid fa-circle-check mr-2"></i>Відповідь:</p>
+                                            <div className="font-bold text-slate-800 text-[20px] md:text-[26px] lg:text-[32px] overflow-x-auto no-scrollbar"><Latex math={p.answer} /></div>
+                                            <div className="mt-2 flex flex-wrap justify-center gap-2 lg:gap-3">
+                                                <button onClick={() => setPartShown(m => ({ ...m, [pi]: 0 }))} className="px-3 py-1.5 lg:px-6 lg:py-2 rounded-full border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 cursor-pointer text-[0.8rem] md:text-base lg:text-lg">Спробувати ще раз</button>
+                                                {!isLast && <button onClick={() => { setPartMax(m => Math.max(m, pi + 1)); setPartOpen(pi + 1); }} className="px-3 py-1.5 lg:px-6 lg:py-2 rounded-full border border-purple-300 bg-[#f4ebff] text-[#6b21a8] font-semibold hover:bg-[#ebdfff] cursor-pointer text-[0.8rem] md:text-base lg:text-lg">Наступний пункт ➔</button>}
+                                                {isLast && exIdx < EXAMPLES.length - 1 && <button onClick={() => { setExIdx(exIdx + 1); setExShown(0); }} className="px-3 py-1.5 lg:px-6 lg:py-2 rounded-full border border-purple-300 bg-[#f4ebff] text-[#6b21a8] font-semibold hover:bg-[#ebdfff] cursor-pointer text-[0.8rem] md:text-base lg:text-lg">Наступна вправа ➔</button>}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            };
+
+            const navBtn = "px-3 py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-3 xl:px-8 xl:py-4 min-h-[2.1rem] md:min-h-[2.5rem] lg:min-h-[3rem] xl:min-h-[3.5rem] rounded-full font-semibold transition-all shadow-md active:scale-95 text-[0.8rem] sm:text-sm md:text-base lg:text-lg xl:text-xl cursor-pointer";
+            const fullWidth = viewingMenu || step === 1 || step === LAST;
+
+            return (
+                <div className="flex flex-col w-full h-[100dvh] overflow-hidden font-sans text-graphite bg-white text-[13px] sm:text-[14px] md:text-[15px] lg:text-[17px] xl:text-[20px] 2xl:text-[22px]">
+                    <div className="flex flex-col md:flex-row w-full flex-1 relative overflow-hidden">
+                        {!hasStarted ? (
+                            <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-[#f2e6ff] p-4 text-center">
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-slate-800 mb-6 lg:mb-10 xl:mb-14 animate-fade-in">
+                                    <span className="text-purple-700">Властивості кореня</span><br /><span className="font-serif italic">n</span>-го степеня
+                                </h1>
+                                <button onClick={() => { setHasStarted(true); setViewingMenu(true); }}
+                                    className="px-5 py-2.5 md:px-6 md:py-3 lg:px-8 lg:py-4 xl:px-10 xl:py-5 bg-white border border-[#e9d5ff] text-[#581c87] rounded-full shadow-[0_2px_8px_rgba(88,28,135,0.05)] hover:shadow-[0_4px_12px_rgba(88,28,135,0.08)] hover:border-purple-300 transition-all duration-300 active:scale-95 text-[12px] sm:text-sm md:text-base lg:text-lg xl:text-xl uppercase tracking-widest cursor-pointer animate-pop flex items-center justify-between gap-3 lg:gap-5 group">
+                                    <span className="pl-1.5 font-extrabold tracking-widest text-[#581c87] group-hover:text-purple-800 transition-colors">ПОЧАТИ УРОК</span>
+                                    <span className="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 rounded-full bg-[#f3e8ff] flex items-center justify-center text-[#581c87] transition-all duration-300 group-hover:scale-105 shadow-inner shrink-0">
+                                        <i className="fa-solid fa-play text-[10px] md:text-xs lg:text-sm xl:text-base translate-x-[1px]"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {/* LEFT CONTENT PANEL */}
+                                <div className={`w-full ${fullWidth ? 'h-full md:w-full' : 'h-[55%] md:h-full md:w-[40%]'} bg-panelLeft relative z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] md:shadow-none flex flex-col justify-between order-2 md:order-1 border-r border-slate-200 overflow-hidden`}>
+                                    <div className="w-full h-full p-3 md:p-4 lg:p-6 xl:p-8 2xl:p-10 pb-14 md:pb-16 lg:pb-20 xl:pb-24 flex flex-col justify-between overflow-y-auto no-scrollbar relative animate-fade-in">
+                                        <div className="space-y-2.5 md:space-y-4 lg:space-y-6 pt-0.5 flex-grow">
+                                            {viewingMenu && renderMenuContent()}
+                                            {!viewingMenu && renderStepContent()}
+                                        </div>
+                                    </div>
+
+                                    {/* Navigation buttons */}
+                                    <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 lg:bottom-6 lg:right-6 xl:bottom-8 xl:right-8 pointer-events-auto z-30 flex gap-2 lg:gap-4 items-center">
+                                        {!viewingMenu && (
+                                            <button onClick={() => setViewingMenu(true)} className={`${navBtn} border border-purple-200 bg-[#f4ebff] text-purple-700 hover:bg-purple-100/80 flex items-center gap-1.5 lg:gap-3`}>
+                                                <i className="fa-solid fa-list-ul"></i> Зміст
+                                            </button>
+                                        )}
+                                        {viewingMenu ? (
+                                            step > 0 && (
+                                                <button onClick={() => setViewingMenu(false)} className={`${navBtn} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 animate-fade-in flex items-center gap-1.5 lg:gap-3`}>
+                                                    Повернутись ➔
+                                                </button>
+                                            )
+                                        ) : step === LAST ? (
+                                            <>
+                                                <button onClick={prevStep} className={`${navBtn} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 animate-fade-in`}>← Назад</button>
+                                                <button onClick={restartLesson} className={`${navBtn} border border-purple-300 bg-[#f4ebff] text-[#6b21a8] hover:bg-[#ebdfff] animate-fade-in`}>На початок</button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {step >= 1 && <button onClick={prevStep} className={`${navBtn} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 animate-fade-in`}>← Назад</button>}
+                                                {renderNextButton()}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* RIGHT MATH PANEL */}
+                                {!fullWidth && (
+                                    <div ref={svgContainerRef} className="w-full h-[45%] md:h-full md:w-[60%] bg-panelRight shadow-inner relative z-0 overflow-hidden order-1 md:order-2">
+                                        {renderLegend()}
+                                        {step <= 4 ? renderGraph() : renderFlow()}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* Підпис про авторство */}
+                    <div className="w-full shrink-0 z-[2000] select-none text-center py-1.5 md:py-2 bg-slate-50 border-t border-slate-200 text-[11px] sm:text-[12px] md:text-[13px] lg:text-[15px] xl:text-[17px] text-slate-500 tracking-wide">
+                        Автор розробки <span className="font-bold text-slate-800">Ковтун Тетяна</span> за технічної підтримки <span className="text-blue-500">Claude</span>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body>
