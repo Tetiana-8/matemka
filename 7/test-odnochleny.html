@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Тест. Одночлени (7 клас)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--c:#1f78a8;--cl:#e3f1f8;--g:#2e9e5b;--r:#d6453d;--t:#1c2b36}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font:17px Nunito,Arial,sans-serif;color:var(--t);background:linear-gradient(160deg,#e6f2fa,#e6f6f0);touch-action:manipulation}
+#app{height:100%;max-width:860px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px #0001}
+.main{flex:1;min-height:0;overflow:auto}
+h1{font-size:22px;margin:0 0 10px;color:var(--c)}
+i{font-family:"Times New Roman",serif;font-size:1.08em}sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.8em;line-height:1.1;margin-right:1px}
+.fr u{text-decoration:none;border-bottom:1.5px solid currentColor;padding:0 2px}.fr b{font-weight:400}
+.row{display:flex;flex-wrap:wrap;gap:5px}
+.n{width:30px;height:30px;border:2px solid #b9cbd6;border-radius:8px;background:#fff;font:700 13px Nunito;cursor:pointer;padding:0}
+.n.f{background:var(--c);color:#fff;border-color:var(--c)}.n.cur{border-width:4px;border-color:#123f58}
+.n.ok{background:var(--g);border-color:var(--g);color:#fff}.n.no{background:var(--r);border-color:var(--r);color:#fff}
+.n.cur.ok,.n.cur.no{border-color:#123f58}
+.btn{min-height:46px;padding:0 20px;border:0;border-radius:12px;background:var(--c);color:#fff;font:800 17px Nunito;cursor:pointer}
+.btn.s{background:#fff;color:var(--c);border:2px solid var(--c)}.btn:disabled{opacity:.4}
+.nav{display:flex;gap:8px;justify-content:space-between}.nav .btn{flex:1}
+.q{font-size:21px;margin:6px 0 14px}.num{color:var(--c);font-weight:800}
+.o{display:block;width:100%;text-align:left;min-height:50px;margin:8px 0;padding:8px 14px;border:2px solid #b9cbd6;border-radius:12px;background:#fff;font:700 21px Nunito;cursor:pointer}
+.o.sel{border-color:var(--c);background:var(--cl)}.o.ok{border-color:var(--g);background:#dff3e6}.o.no{border-color:var(--r);background:#fbe1df}
+input.t{width:100%;min-height:46px;margin:5px 0 10px;padding:0 12px;font:17px Nunito;border:2px solid #b9cbd6;border-radius:10px}
+input.t.e{border-color:var(--r)}.err{color:var(--r);font-weight:700;margin:4px 0}
+.sg{text-align:center;font-size:13px;color:#5b6f7b;padding:2px}
+#key{position:fixed;top:6px;right:6px;opacity:.35;border:0;background:none;font-size:20px;cursor:pointer;z-index:5}
+#jr{position:fixed;inset:0;background:#0007;display:none;z-index:9;padding:10px}
+#jr .card{max-height:100%;overflow:auto;max-width:1000px;margin:0 auto}
+table{border-collapse:collapse;font-size:13px;width:100%}td,th{border:1px solid #c9d6de;padding:4px 6px;text-align:center}
+td.nm{text-align:left;cursor:pointer;color:var(--c);font-weight:700}.red{color:var(--r);font-weight:800}
+.sig{text-align:center;font-size:13px;color:#5b6f7b}
+</style></head><body>
+<button id="key" title="Журнал">🔑</button><div id="jr"></div><div id="app"></div>
+<script>
+(function(){"use strict";
+//LOGIC
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const F=(n,d=1)=>{if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return[n/g,d/g]};
+const fm=(a,b)=>F(a[0]*b[0],a[1]*b[1]),fp=(a,n)=>F(a[0]**n,a[1]**n),D=x=>F(Math.round(x*100),100),neg=c=>F(-c[0],c[1]);
+const sc=(e,n)=>{const r={};for(const k in e)r[k]=e[k]*n;return r},ad=(e,n)=>{const r={};for(const k in e)r[k]=e[k]+n;return r};
+const mul=(x,y)=>{const e={...x.e};for(const k in y.e)e[k]=(e[k]||0)+y.e[k];return{c:fm(x.c,y.c),e}};
+const pw=(x,n)=>({c:fp(x.c,n),e:sc(x.e,n)});
+const key=m=>m.c+'|'+Object.keys(m.e).sort().map(k=>k+m.e[k]).join(',');
+const textOf=h=>h.replace(/<sup>(.*?)<\/sup>/g,'^$1').replace(/<u>(\d+)<\/u><b>(\d+)<\/b>/g,'$1/$2').replace(/<[^>]+>/g,'');
+function cf(c){let n=Math.abs(c[0]),d=c[1];if(d==1)return''+n;let k=0;while(k<7&&(10**k)%d)k++;
+ if((10**k)%d==0){let s=''+(n*(10**k/d));while(s.length<=k)s='0'+s;return s.slice(0,s.length-k)+','+s.slice(s.length-k)}
+ return`<span class=fr><u>${n}</u><b>${d}</b></span>`}
+function fmt(m){const vs=Object.keys(m.e).sort(),ng=m.c[0]<0;let h=(Math.abs(m.c[0])==1&&m.c[1]==1&&vs.length)?'':cf(m.c);
+ for(const v of vs){const e=m.e[v];h+=`<i>${v}</i>`+(e>1?`<sup>${e}</sup>`:'')}return(ng?'−':'')+h}
+const par=(m,n)=>`(${fmt(m)})<sup>${n}</sup>`;
+const VP=[['a','b'],['x','y'],['m','n'],['c','d'],['p','q'],['k','t']];
+const powAlts=(m,n)=>{const p=fp(m.c,n);return[{c:p,e:ad(m.e,n)},{c:m.c,e:sc(m.e,n)},{c:fm(m.c,F(n)),e:sc(m.e,n)},{c:neg(p),e:sc(m.e,n)}]};
+function shuf(R,a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mk(R,num,q,cor,alts,bad,show){bad=bad||(()=>false);show=show||(m=>fmt(m));
+ const seen=new Set([key(cor)]),out=[cor];
+ const add=m=>{if(out.length>=4||Object.values(m.e).some(v=>v<1))return;const k=key(m);if(seen.has(k)||bad(m))return;seen.add(k);out.push(m)};
+ shuf(R,alts).forEach(add);let g=0;
+ while(out.length<4&&g++<300){const m={c:[...cor.c],e:{...cor.e}},ks=Object.keys(m.e),r=Math.floor(R()*4),k=ks[Math.floor(R()*ks.length)];
+  if(r==0)m.c=neg(m.c);else if(r==1)m.e[k]+=R()<.5?1:-1;else if(r==2)m.c=fm(m.c,F(R()<.5?2:1,R()<.5?1:2));else m.e[k]+=2;add(m)}
+ const o=shuf(R,out);return{num,q,qp:textOf(q),opts:o.map(show),op:o.map(m=>textOf(show(m))),ans:o.indexOf(cor)}}
+function build(R){
+ const ri=(a,b)=>a+Math.floor(R()*(b-a+1)),pk=a=>a[ri(0,a.length-1)],T=[];
+ const M=(c,e)=>({c:Array.isArray(c)?c:F(c),e});
+ const pt=(num,pre,m,n,paren)=>T.push(mk(R,num,pre+(paren?par(m,n):fmt(m)),pw(m,n),powAlts(m,n)));
+ const lab=n=>n==2?'Піднесіть до квадрата одночлен: ':'Піднесіть до куба одночлен: ';
+ // 289
+ let [v,w]=pk(VP);pt('289.1',lab(2),M(ri(2,9),{[v]:1}),2);
+ [v,w]=pk(VP);pt('289.2',lab(2),M(ri(2,9),{[v]:ri(2,5)}),2);
+ [v,w]=pk(VP);pt('289.3',lab(2),M(-ri(2,9),{[v]:ri(2,5),[w]:ri(2,6)}),2);
+ // 290
+ [v,w]=pk(VP);pt('290.1',lab(3),M(pk([2,3,4,5]),{[v]:1}),3);
+ [v,w]=pk(VP);pt('290.2',lab(3),M(pk([10,2,3,5]),{[v]:ri(2,6)}),3);
+ [v,w]=pk(VP);pt('290.3',lab(3),M(F(1,pk([3,6,7])),{[v]:ri(3,7)}),3);
+ // 291
+ const pre='Перетворіть в одночлен стандартного вигляду вираз: ';
+ [v,w]=pk(VP);pt('291.1',pre,M(ri(2,5),{[v]:ri(2,4),[w]:1}),2,1);
+ [v,w]=pk(VP);pt('291.2',pre,M(neg(D(pk([.1,.2,.3]))),{[v]:ri(2,5),[w]:ri(2,6)}),3,1);
+ [v,w]=pk(VP);pt('291.3',pre,M(pk([-10,-2,-3,10]),{[v]:ri(2,6),[w]:ri(2,8)}),4,1);
+ // 294, 295
+ const prod=(num,txt,P,N,star1,isProd)=>{const X=mul(P,N);
+  const alts=[{c:N.c,e:X.e},{c:neg(N.c),e:N.e},{c:X.c,e:N.e},{c:fm(N.c,P.c),e:N.e}];
+  const q=isProd?`Подайте даний вираз у вигляді добутку двох одночленів, один з яких дорівнює ${fmt(P)}: ${fmt(X)}`
+   :`Яким одночленом треба замінити зірочку, щоб виконувалася рівність: ${star1?'*·'+fmt(P):fmt(P)+'·*'} = ${fmt(X)}`;
+  T.push(mk(R,num,q,N,alts))};
+ for(const isP of[1,0]){const num=isP?'294':'295';
+  [v,w]=pk(VP);
+  if(isP){prod(num+'.1',0,M(ri(2,5),{[v]:ri(2,5),[w]:ri(2,6)}),M(ri(2,9),{[v]:ri(1,4),[w]:ri(1,5)}),0,1)}
+  else prod(num+'.1',0,M(ri(2,5),{[w]:ri(2,5)}),M(ri(2,5),{[w]:ri(1,5)}),1,0);
+  [v,w]=pk(VP);prod(num+'.2',0,M(isP?ri(2,5):-ri(2,9),{[v]:ri(2,5),[w]:ri(2,6)}),M(isP?-ri(2,9):ri(2,9),{[v]:ri(1,4),[w]:ri(1,5)}),0,isP);
+  [v,w]=pk(VP);prod(num+'.3',0,M(isP?ri(2,5):-ri(2,9),{[v]:ri(2,5),[w]:ri(2,6)}),M(D(pk([-1,1])*ri(2,9)/10),{[v]:ri(1,4),[w]:ri(1,5)}),0,isP)}
+ // 297, 298
+ for(const n of[2,3]){const num=n==2?'297':'298';
+  const wrap=m=>{const h=fmt(m);return[`(${h})<sup>${n}</sup>`][0]};
+  const one=(sfx,root)=>{const X=pw(root,n),hf=F(X.c[0],X.c[1]*n);
+   const al=[{c:hf,e:sc(root.e,1)},{c:root.c,e:X.e},{c:X.c,e:root.e},{c:root.c,e:ad(root.e,1)}];
+   T.push(mk(R,num+sfx,`Подайте у вигляді ${n==2?'квадрата':'куба'} одночлена стандартного вигляду вираз: ${fmt(X)}`,root,al,m=>key(pw(m,n))==key(X),wrap))};
+  [v,w]=pk(VP);one('.1',M(n==2?ri(2,9):ri(2,5),{[v]:ri(2,6)}));
+  [v,w]=pk(VP);one('.2',M(n==2?ri(2,9):-ri(2,5),{[v]:ri(1,5),[w]:ri(1,5)}));
+  [v,w]=pk(VP);one('.3',M(D(pk(n==2?[.2,.3,.4,.5,.6,.7]:[.1,.2,.3])),{[v]:ri(2,6),[w]:ri(2,6)}))}
+ // 301
+ const sim=(num,base,n,other,first)=>{const A=pw(base,n),ex=first?mul(other,A):mul(A,other);
+  const al=powAlts(base,n).map(a=>mul(a,other)),oh=fmt(other);
+  const q=`Спростіть вираз: ${first?oh+'·'+par(base,n):par(base,n)+'·'+oh}`;T.push(mk(R,num,q,ex,al))};
+ [v,w]=pk(VP);sim('301.1',M(-ri(2,9),{[v]:ri(2,4),[w]:ri(2,5)}),2,M(ri(2,5),{[v]:ri(2,5)}),1);
+ [v,w]=pk(VP);sim('301.2',M(-1,{[v]:ri(2,6),[w]:1}),3,M(ri(2,12),{[v]:ri(2,5),[w]:ri(2,6)}),0);
+ [v,w]=pk(VP);sim('301.3',M(neg(D(pk([.2,.3,.4,.5,.6]))),{[v]:ri(2,5),[w]:ri(2,6)}),2,M(ri(2,5),{[v]:ri(1,4),[w]:ri(2,8)}),0);
+ return T}
+//ENDLOGIC
+const FIREBASE_CONFIG={apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",authDomain:"math-5-892a5.firebaseapp.com",projectId:"math-5-892a5",storageBucket:"math-5-892a5.firebasestorage.app",messagingSenderId:"163114803328",appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",measurementId:"G-E06VKZ2GP5"};
+const APP_ID='default-app-id';
+const COLLECTION='results_monomials_7';
+const TEACHER_PASSWORD='8019';
+const FBV='10.12.2';
+const TEST_NAME='Одночлени (7 клас)';
+let fbPromise=null;
+function fb(){
+  if(!fbPromise){
+    fbPromise=(async()=>{
+      const [appM,authM,fs]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app=appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return{db:fs.getFirestore(app),fs};
+    })();
+    fbPromise.catch(()=>{fbPromise=null;});
+  }
+  return fbPromise;
+}
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){
+  try{const{db,fs}=await fb();await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}
+  catch(e){console.warn('Save failed',e);}
+}
+async function loadResults(){
+  const{db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  const out=[];snap.forEach(d=>out.push(d.data()));
+  return out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+async function clearResults(){
+  const{db,fs}=await fb();
+  const snap=await fs.getDocs(coll(db,fs));
+  await Promise.all(snap.docs.map(d=>fs.deleteDoc(d.ref)));
+}
+fb().catch(()=>{});
+
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0},S;
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};}
+function leave(){if(!S||S.checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++;}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0;}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);window.addEventListener('focus',back);
+
+const $=s=>document.querySelector(s),A=$('#app');
+const mmss=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function newTest(keep){const v=new URLSearchParams(location.search).get('v');
+ const seed=(!keep&&v)?+v:Math.floor(Math.random()*1e9);
+ const tasks=build(mulberry32(seed));
+ S={tasks,ans:tasks.map(()=>-1),idx:0,screen:keep?'task':'start',checked:false,warn:false,sur:keep?S.sur:'',nam:keep?S.nam:'',score:0,marks:[]};
+ resetWatch();if(keep)S.screen='task';render()}
+function bar(){const N=S.tasks.length;let h='';
+ if(S.checked)h+=`<div class=card style="padding:8px 12px"><b>${S.sur} ${S.nam}</b> — ${S.score} з ${N} <button class="btn s" data-a=again style="min-height:36px;margin-left:8px;padding:0 12px">Пройти ще раз</button></div>`;
+ h+='<div class=card style="padding:8px"><div class=row>'+S.tasks.map((t,i)=>{let c='n';
+  if(S.checked)c+=S.marks[i]?' ok':' no';else if(S.ans[i]>=0)c+=' f';if(S.screen=='task'&&i==S.idx)c+=' cur';
+  return`<button class="${c}" data-a=go data-i=${i}>${i+1}</button>`}).join('')+'</div></div>';return h}
+function render(){const N=S.tasks.length;
+ if(S.screen=='start'){A.innerHTML=`<div class="card main"><h1>Тест. Одночлени (7 клас)</h1>
+ <label>Прізвище</label><input class=t id=sur value="${S.sur}" autocomplete=off><label>Ім'я</label><input class=t id=nam value="${S.nam}" autocomplete=off>
+ <div class=err id=e></div><button class=btn data-a=start>Почати</button></div><div class=sig>Автор розробки <b>Ковтун Тетяна</b></div>`;return}
+ if(S.screen=='task'){const t=S.tasks[S.idx],a=S.ans[S.idx];
+  let o=t.opts.map((h,j)=>{let c='o';if(S.checked){if(j==t.ans)c+=' ok';else if(j==a)c+=' no'}else if(j==a)c+=' sel';
+   return`<button class="${c}" data-a=pick data-j=${j} ${S.checked?'disabled':''}>${h}</button>`}).join('');
+  let info='';if(S.checked)info=`<p>${S.marks[S.idx]?'✓ Правильно':'✗ Неправильно'}. Ваша відповідь: <b>${a>=0?t.opts[a]:'—'}</b>. Правильна: <b>${t.opts[t.ans]}</b></p>`;
+  A.innerHTML=bar()+`<div class="card main"><div class=num>Завдання ${S.idx+1} з ${N}</div><div class=q>${t.q}</div>${o}${info}</div>
+  <div class=nav><button class="btn s" data-a=prev ${S.idx==0?'disabled':''}>← Назад</button><button class=btn data-a=next ${S.checked&&S.idx==N-1?'disabled':''}>Далі →</button></div><div class=sig>Автор розробки <b>Ковтун Тетяна</b></div>`;return}
+ if(S.screen=='review'){const un=S.ans.filter(x=>x<0).length;
+  A.innerHTML=`<div class=card><b>Перед здачею</b><div class=sg>Відповіли на ${N-un} з ${N}</div><div class=row style="margin-top:8px">${S.tasks.map((t,i)=>`<button class="n ${S.ans[i]>=0?'f':''}" style="${S.ans[i]<0?'border-color:var(--r);border-width:3px':''}" data-a=go data-i=${i}>${i+1}</button>`).join('')}</div></div>
+  <div class="card main">${S.warn&&un?`<div class=err>Ви не завершили ${un} завдань</div>`:''}</div>
+  <div class=nav><button class="btn s" data-a=prev>← Назад</button><button class=btn data-a=${S.warn&&un?'force':'check'}>${S.warn&&un?'Все одно перевірити':'Перевірити'}</button></div><div class=sig>Автор розробки <b>Ковтун Тетяна</b></div>`}}
+function check(){const now=Date.now();back();S.marks=S.tasks.map((t,i)=>S.ans[i]==t.ans?1:0);S.score=S.marks.reduce((a,b)=>a+b,0);
+ S.checked=true;S.screen='task';S.idx=0;
+ saveResult({id:now+'_'+Math.random().toString(36).slice(2,8),name:`${S.sur} ${S.nam}`,surname:S.sur,firstName:S.nam,ts:now,date:new Date(now).toISOString(),
+  score:S.score,max:S.tasks.length,tasks:S.marks,qtext:S.tasks.map(t=>t.num+': '+t.qp),answers:S.tasks.map((t,i)=>S.ans[i]>=0?t.op[S.ans[i]]:'—'),correct:S.tasks.map(t=>t.op[t.ans]),
+  durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,test:TEST_NAME});render()}
+function next(){if(S.idx<S.tasks.length-1){S.idx++;render()}else if(!S.checked){S.screen='review';render()}}
+function prev(){if(S.screen=='review'){S.screen='task';S.idx=S.tasks.length-1}else if(S.idx>0)S.idx--;render()}
+A.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+ if(a=='start'){const s=$('#sur').value.trim(),n=$('#nam').value.trim();$('#sur').classList.toggle('e',!s);$('#nam').classList.toggle('e',!n);
+  if(!s||!n){$('#e').textContent='Введіть прізвище та ім\'я, щоб почати';return}S.sur=s;S.nam=n;S.screen='task';W.t0=Date.now();render()}
+ else if(a=='pick'){S.ans[S.idx]=+b.dataset.j;render()}
+ else if(a=='go'){S.idx=+b.dataset.i;S.screen='task';render()}
+ else if(a=='next')next();else if(a=='prev')prev();
+ else if(a=='check'){S.warn=true;if(S.ans.some(x=>x<0))render();else check()}
+ else if(a=='force')check();else if(a=='again')newTest(true)});
+document.addEventListener('keydown',e=>{if(!S||S.screen!='task'||/INPUT/.test(document.activeElement.tagName))return;
+ if(e.key=='ArrowRight'||(e.key=='Enter'&&S.ans[S.idx]>=0))next();else if(e.key=='ArrowLeft')prev()});
+
+// Журнал
+const J=$('#jr');let authed=false;
+$('#key').onclick=()=>{J.style.display='block';if(authed)showJ();else{J.innerHTML='<div class=card style="max-width:320px"><b>Пароль</b><input class=t id=pw type=password><div class=err id=pe></div><button class=btn id=pg>Увійти</button> <button class="btn s" id=pc>Закрити</button></div>';
+ $('#pc').onclick=()=>J.style.display='none';$('#pg').onclick=()=>{if($('#pw').value==TEACHER_PASSWORD){authed=true;showJ()}else $('#pe').textContent='Неправильний пароль'}}};
+async function showJ(){J.innerHTML='<div class=card>Завантаження…</div>';let R;
+ try{R=await loadResults()}catch(e){J.innerHTML='<div class=card><div class=err>Не вдалося підключитися до бази результатів</div><button class=btn id=jc>Закрити</button></div>';$('#jc').onclick=()=>J.style.display='none';return}
+ const mx=Math.max(0,...R.map(r=>r.max||0));let h=`<div class=card><div class=row style="margin-bottom:8px"><button class=btn id=jo>Оновити</button><button class="btn s" id=jv>Завантажити CSV</button><button class="btn s" id=jx>Очистити</button><button class="btn s" id=jc>Закрити</button></div><div id=cf></div><div style="overflow:auto"><table><tr><th>№<th>Прізвище та ім'я<th>Дата<th>Час<th>Виходів<th>Бал${Array.from({length:mx},(_,i)=>'<th>'+(i+1)).join('')}</tr>`;
+ R.forEach((r,k)=>{const d=r.durationSec!=null,l=r.leaves!=null;
+  h+=`<tr><td>${k+1}<td class=nm data-k=${k}>${r.name}<td>${(r.date||'').slice(0,16).replace('T',' ')}<td class="${d&&r.durationSec<120?'red':''}" title="${d&&r.durationSec<120?'Дуже швидко':''}">${d?mmss(r.durationSec):'—'}<td class="${l&&r.leaves>=3?'red':''}" title="поза вікном: ${r.awaySec||0} с">${l?r.leaves:'—'}<td>${r.score}/${r.max}${(r.tasks||[]).map(x=>'<td>'+(x?'✓':'✗')).join('')}</tr><tr id=d${k} style="display:none"><td colspan=${6+mx} style="text-align:left">${(r.qtext||[]).map((q,i)=>`${i+1}) ${q} — відповідь: <b>${(r.answers||[])[i]}</b>; правильна: <b>${(r.correct||[])[i]}</b>`).join('<br>')}</tr>`});
+ J.innerHTML=h+'</table></div></div>';
+ $('#jc').onclick=()=>J.style.display='none';$('#jo').onclick=showJ;
+ J.querySelectorAll('.nm').forEach(c=>c.onclick=()=>{const r=$('#d'+c.dataset.k);r.style.display=r.style.display=='none'?'table-row':'none'});
+ $('#jx').onclick=()=>{$('#cf').innerHTML=`Видалити всі записи (${R.length})? <button class=btn id=jy>Так, видалити</button> <button class="btn s" id=jn>Скасувати</button>`;$('#jn').onclick=()=>$('#cf').innerHTML='';
+  $('#jy').onclick=async()=>{try{await clearResults();showJ()}catch(e){$('#cf').innerHTML='<div class=err>Не вдалося очистити записи. Перевірте правила бази Firebase</div>'}}};
+ $('#jv').onclick=()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"';let c='ім\'я;дата;час (хв:с);виходів з вікна;поза вікном (хв:с);бал;'+Array.from({length:mx},(_,i)=>'завд. '+(i+1)).join(';')+'\n';
+  R.forEach(r=>{c+=[q(r.name),(r.date||'').slice(0,16).replace('T',' '),r.durationSec!=null?mmss(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?mmss(r.awaySec):'',r.score+'/'+r.max,...Array.from({length:mx},(_,i)=>(r.tasks||[])[i]==null?'':(r.tasks[i]?'+':'-'))].join(';')+'\n'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+c],{type:'text/csv;charset=utf-8'}));a.download='Одночлени_7клас_результати.csv';a.click()}}
+newTest(false);
+})();
+</script></body></html>
