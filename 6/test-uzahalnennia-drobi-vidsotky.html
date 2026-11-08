@@ -57,6 +57,10 @@ i{font-family:'Times New Roman',serif}
 .fin:focus{border-color:var(--c);box-shadow:0 0 0 3px var(--cl)}
 .fin.ok{border-color:var(--ok);background:var(--okl)}
 .fin.bad{border-color:var(--bad);background:var(--badl)}
+.fin.part{border-color:var(--acc);background:var(--cl)}
+.fb.part{color:var(--ch)}
+.strip button.part{background:#FDBA74;border-color:var(--acc);color:#431407}
+table.j td.h{color:var(--acc);font-weight:800}
 .hint{margin-top:10px;font-size:.85rem;color:#8a5a3c}
 .fb{margin-top:14px;font-weight:800;font-size:1.05rem}
 .fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
@@ -351,6 +355,13 @@ function isOk(i){
   const v = t.kind==='frac' ? fracVal(a) : parseInput(a);
   return !!v && req(v, t.ans);
 }
+function grade(i){
+  if(!isOk(i)) return 0;
+  const t=S.tasks[i];
+  if(t.kind==='frac'){ const a=S.ans[i]; if(a[1]!==''&&a[2]!==''&&gcd(+a[1],+a[2])>1) return 0.5; }
+  return 1;
+}
+const sc2 = x => String(x).replace('.',',');
 function correctText(i){ const t=S.tasks[i]; return t.kind==='mc' ? t.ansText : fmt(t.ans); }
 function answerText(i){
   const t=S.tasks[i], a=S.ans[i];
@@ -364,7 +375,7 @@ function stripHTML(big){
   let h = '<div class="strip'+(big?' big':'')+'">';
   S.tasks.forEach((t,i)=>{
     let c = '';
-    if(S.screen==='result'){ c = S.marks[i] ? 'ok' : 'bad'; if(i===S.rcur) c += ' cur'; }
+    if(S.screen==='result'){ c = S.marks[i]===1 ? 'ok' : (S.marks[i]>0 ? 'part' : 'bad'); if(i===S.rcur) c += ' cur'; }
     else if(S.screen==='review'){ c = isAns(i) ? 'a' : 'miss'; }
     else { if(isAns(i)) c = 'a'; if(i===S.cur) c += ' cur'; }
     h += '<button class="'+c+'" data-act="goto" data-i="'+i+'" aria-label="Завдання '+(i+1)+'">'+(i+1)+'</button>';
@@ -387,23 +398,25 @@ function cardHTML(i, res){
     });
   } else if(t.kind==='frac'){
     h += '<div class="q">'+t.q+'</div>';
-    const cls = res ? (S.marks[i]?' ok':' bad') : '';
+    const cls = res ? (S.marks[i]===1?' ok':(S.marks[i]>0?' part':' bad')) : '';
     const im = touch ? 'none' : 'numeric';
     const a = S.ans[i];
     const fin = p => '<input class="fin'+cls+'" data-p="'+p+'" type="text" maxlength="4" autocomplete="off" spellcheck="false" inputmode="'+im+'" value="'+esc(a[p])+'"'+(res?' readonly':'')+'>';
     h += '<div class="fansw"><label>Відповідь:</label>'+
       '<div class="fbox">'+fin(0)+'<small>ціла частина</small></div>'+
       '<div class="ffr"><div class="fr1">'+fin(1)+'<small>чисельник</small></div><div class="bar"></div><div class="fr1">'+fin(2)+'<small>знаменник</small></div></div></div>';
-    if(!res) h += '<div class="hint">Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
+    if(!res) h += '<div class="hint">Відповідь запишіть скороченим дробом. Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
   } else {
     h += '<div class="q">'+t.q+'</div>';
-    const cls = res ? (S.marks[i]?' ok':' bad') : '';
+    const cls = res ? (S.marks[i]===1?' ok':(S.marks[i]>0?' part':' bad')) : '';
     const im = touch ? 'none' : 'numeric';
     h += '<div class="arow"><label for="inp">Відповідь:</label><input id="inp" class="ansin'+cls+'" type="text" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="'+im+'" value="'+esc(S.ans[i])+'"'+(res?' readonly':'')+'>'+(t.unit?'<span class="unit">'+esc(t.unit)+'</span>':'')+'</div>';
   }
   if(res){
-    h += S.marks[i]
+    h += S.marks[i]===1
       ? '<div class="fb ok">✓ Правильно</div>'
+      : S.marks[i]>0
+      ? '<div class="fb part">Відповідь правильна, але дріб не скорочено. Скоротіть його. Ваша відповідь: '+esc(answerText(i))+'. Скорочено: '+esc(correctText(i))+'. За завдання 0,5 бала</div>'
       : '<div class="fb bad">✗ Неправильно. Ваша відповідь: '+esc(answerText(i))+'. Правильно: '+esc(correctText(i))+'</div>';
   }
   return h;
@@ -443,7 +456,7 @@ function render(){
       '<div class="nav"><button class="btn ghost" data-act="rback">← Назад до завдань</button></div>'+'<div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>';
   } else {
     const sc = S.marks.reduce((a,b)=>a+b,0), n = S.tasks.length;
-    h = '<div class="top"><div class="rrow"><div class="sum">'+esc(S.sur+' '+S.nam)+': <span class="score">'+sc+' з '+n+'</span></div>'+
+    h = '<div class="top"><div class="rrow"><div class="sum">'+esc(S.sur+' '+S.nam)+': <span class="score">'+sc2(sc)+' з '+n+'</span></div>'+
       '<button class="btn ghost" style="min-height:40px;padding:6px 14px" data-act="retry">Пройти ще раз</button></div>'+stripHTML(false)+'</div>'+
       '<div class="card">'+cardHTML(S.rcur,true)+'</div>'+
       '<div class="nav"><button class="btn ghost" data-act="back"'+(S.rcur===0?' disabled':'')+'>← Назад</button><button class="btn" data-act="next"'+(S.rcur===n-1?' disabled':'')+'>Далі →</button></div>'+'<div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>';
@@ -515,7 +528,7 @@ function check(){
   if(!S.sur || !S.nam){ S.screen='start'; render(); return; }
   const now = Date.now();
   back();
-  S.marks = S.tasks.map((t,i)=>isOk(i)?1:0);
+  S.marks = S.tasks.map((t,i)=>grade(i));
   const score = S.marks.reduce((a,b)=>a+b,0);
   S.checked = true; S.screen = 'result'; S.rcur = 0;
   saveResult({
@@ -622,15 +635,15 @@ function drawJournal(msg){
     const lcls = hasL && r.leaves>=3 ? ' class="red"' : '';
     const ltitle = hasL ? ' title="Поза вікном: '+mmss(r.awaySec||0)+'"' : '';
     h += '<tr><td>'+(ri+1)+'</td><td class="nm" data-j="det" data-i="'+ri+'">'+esc(r.name)+'</td><td>'+esc(r.ts?new Date(r.ts).toLocaleString('uk-UA'):'')+'</td>'+
-      '<td'+tcls+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+lcls+ltitle+'>'+(hasL?r.leaves:'—')+'</td><td><b>'+esc(r.score)+'/'+esc(r.max)+'</b></td>';
+      '<td'+tcls+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+lcls+ltitle+'>'+(hasL?r.leaves:'—')+'</td><td><b>'+esc(sc2(r.score))+'/'+esc(r.max)+'</b></td>';
     for(let i=0;i<maxN;i++){
       const m = r.tasks && r.tasks[i];
-      h += (m===undefined) ? '<td></td>' : '<td class="'+(m?'p':'m')+'">'+(m?'✓':'✗')+'</td>';
+      h += (m===undefined) ? '<td></td>' : (m===1 ? '<td class="p">✓</td>' : (m>0 ? '<td class="h" title="Не скорочено">½</td>' : '<td class="m">✗</td>'));
     }
     h += '</tr><tr class="det" id="det'+ri+'" style="display:none"><td colspan="'+(6+maxN)+'">';
     const n = r.max||(r.tasks?r.tasks.length:0);
     for(let i=0;i<n;i++){
-      h += '<div>'+((r.tasks&&r.tasks[i])?'✓':'✗')+' <b>'+(i+1)+'.</b> '+esc(r.qtext&&r.qtext[i])+' — відповідь учня: <b>'+esc(r.answers&&r.answers[i])+'</b>; правильно: <b>'+esc(r.correct&&r.correct[i])+'</b></div>';
+      h += '<div>'+((r.tasks&&r.tasks[i]===1)?'✓':((r.tasks&&r.tasks[i]>0)?'½ (не скорочено)':'✗'))+' <b>'+(i+1)+'.</b> '+esc(r.qtext&&r.qtext[i])+' — відповідь учня: <b>'+esc(r.answers&&r.answers[i])+'</b>; правильно: <b>'+esc(r.correct&&r.correct[i])+'</b></div>';
     }
     h += '</td></tr>';
   });
@@ -648,8 +661,8 @@ function downloadCSV(){
       typeof r.durationSec==='number'?mmss(r.durationSec):'',
       typeof r.leaves==='number'?r.leaves:'',
       typeof r.awaySec==='number'?mmss(r.awaySec):'',
-      r.score+'/'+r.max];
-    for(let i=0;i<maxN;i++) row.push(r.tasks&&r.tasks[i]!==undefined ? (r.tasks[i]?'+':'-') : '');
+      sc2(r.score)+'/'+r.max];
+    for(let i=0;i<maxN;i++) row.push(r.tasks&&r.tasks[i]!==undefined ? (r.tasks[i]===1?'+':(r.tasks[i]>0?'0,5':'-')) : '');
     lines.push(row.map(q).join(';'));
   });
   const blob = new Blob(['\ufeff'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
