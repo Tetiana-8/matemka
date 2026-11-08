@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Урок «Множення многочлена на многочлен»</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=STIX+Two+Text:ital,wght@1,500;1,600;1,700&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#173F5F;--muted:#5d7b93;
@@ -20,7 +20,7 @@ html{font-size:clamp(13px,min(2.2vh,1.3vw),26px);height:100%}
 body{margin:0;height:100dvh;overflow:hidden;font-family:Nunito,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);
   background:linear-gradient(135deg,#EAF2F7 0%,#DCE9F2 55%,#c7dbea 100%) fixed;-webkit-font-smoothing:antialiased;line-height:1.35}
 button{font:inherit;color:inherit;touch-action:manipulation}
-i{font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-style:italic;font-weight:600}
+i{font-family:"STIX Two Text","Cambria Math",Cambria,"Times New Roman",serif;font-style:italic;font-weight:600;font-size:1.08em;padding-right:.04em}
 sup{font-size:.62em;line-height:0;position:relative;top:-.12em;margin-right:.06em}
 .dot{margin:0 .14em;color:var(--muted)}
 .cf{color:var(--o1)} .lt{color:var(--o2)}
@@ -671,7 +671,7 @@ function addPlus(stage, host, make) {
 }
 
 /* ---------- схема «кожний член на кожний» зі стрілками ---------- */
-const AC = ['#b45309', '#7c3aed', '#be185d', '#1F4E73', '#c2410c', '#6b21a8'];
+const AC = ['#e8590c', '#7048e8', '#d6336c', '#1971c2', '#f08c00', '#ae3ec9'];
 function arcBoard(ex, o) {
   o = o || {};
   const v = ex.v, A = ex.A, B = ex.B, pairs = [];
@@ -697,20 +697,19 @@ function arcBoard(ex, o) {
   const hint = el('div', 'abhint'), rows = el('div', 'rows'), bar = el('div', 'bar');
   const bReset = el('button', 'btn light', '↺ Спочатку'), bStep = el('button', 'btn', 'Крок ▶'), bAll = el('button', 'btn light', 'Показати все');
   bar.append(bReset, bStep, bAll);
+  if (o.onNew) { const bn = el('button', 'btn light', 'Новий приклад ↻'); bn.onclick = o.onNew; bar.appendChild(bn); }
   root.append(wrap, hint, el('div'), rows, bar);
   const termStr = (t, neg) => { const s = termHTML(t[0], t[1], v); return neg ? '(' + MINUS + s + ')' : s; };
   const prod = k => { const a = A[pairs[k][0]], b = B[pairs[k][1]]; return [a[0] * b[0], a[1] + b[1]]; };
   function renderRows() {
     let h = '';
     if (r > 0) {
-      const m = [], t = [];
+      const t = [];
       for (let k = 0; k < Math.min(r, n); k++) {
         const a = A[pairs[k][0]], b = B[pairs[k][1]], p = prod(k), mi = p[1] in gidx ? gidx[p[1]] : -1;
-        m.push('<span style="color:' + AC[k] + '">' + termStr(a, a[0] < 0) + '·' + termStr(b, b[0] < 0) + '</span>');
         const tm = termHTML(p[0], p[1], v);
-        t.push('<span style="color:' + AC[k] + '">' + (k === 0 ? (p[0] < 0 ? MINUS : '') : ' ' + (p[0] < 0 ? MINUS : '+') + ' ') + (mi >= 0 ? mkd(tm, mi) : tm) + '</span>');
+        t.push('<span style="color:' + AC[k] + ';font-weight:800">' + (k === 0 ? (p[0] < 0 ? MINUS : '') : ' ' + (p[0] < 0 ? MINUS : '+') + ' ') + (mi >= 0 ? mkd(tm, mi) : tm) + '</span>');
       }
-      h += '<div class="rw"><span class="eq">=</span>' + m.join(' + ') + '</div>';
       h += '<div class="rw"><span class="eq">=</span>' + t.join('') + '</div>';
     }
     if (r > n) {
@@ -793,6 +792,26 @@ function stWarm() {
 }
 
 /* 2. Множення зі стрілками й правило */
+/* приклади для пояснення правила: скільки потрібно, стільки й генеруємо */
+function genRuleEx(kind) {
+  for (let t = 0; t < 300; t++) {
+    const v = pick(VARS), p = pick([1, 1, 2, 3]), r = pick([1, 1, 2]), q = sgn() * rnd(1, 6), s2 = sgn() * rnd(1, 7);
+    if (kind === 2) {
+      if (p * s2 + q * r === 0 || q * s2 === 0) continue;
+      return { v, A: [[p, 1], [q, 0]], B: [[r, 1], [s2, 0]] };
+    }
+    const u = sgn() * rnd(1, 6), r2 = pick([1, 1, 2]);
+    if (p * s2 + q * r2 === 0 || p * u + q * s2 === 0) continue;
+    return { v, A: [[p, 1], [q, 0]], B: [[r2, 2], [s2, 1], [u, 0]] };
+  }
+  return { v: 'x', A: [[1, 1], [-1, 0]], B: [[1, 2], [3, 1], [-2, 0]] };
+}
+function exBoard(kind, first) {
+  const box = el('div');
+  const show = ex => { box.innerHTML = ''; box.appendChild(arcBoard(ex, { onNew: () => show(genRuleEx(kind)) })); };
+  show(first); return box;
+}
+
 function stRule() {
   const rule = () => {
     const d = el('div');
@@ -801,8 +820,8 @@ function stRule() {
     return d;
   };
   const b = tabs([
-    { label: 'Двочлен на двочлен', make: () => arcBoard({ v: 'x', A: [[2, 1], [-3, 0]], B: [[1, 1], [4, 0]] }) },
-    { label: 'Двочлен на тричлен', make: () => arcBoard({ v: 'x', A: [[1, 1], [-1, 0]], B: [[1, 2], [3, 1], [-2, 0]] }) },
+    { label: 'Двочлен на двочлен', make: () => exBoard(2, { v: 'x', A: [[2, 1], [-3, 0]], B: [[1, 1], [4, 0]] }) },
+    { label: 'Двочлен на тричлен', make: () => exBoard(3, { v: 'x', A: [[1, 1], [-1, 0]], B: [[1, 2], [3, 1], [-2, 0]] }) },
     { label: 'Правило', make: rule }
   ]);
   return mkStage('Множення многочлена на многочлен', b);
