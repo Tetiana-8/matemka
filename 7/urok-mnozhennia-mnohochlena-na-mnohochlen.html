@@ -211,7 +211,8 @@ input.ans.bad{background:var(--badbg);border-color:var(--bad)}
 .ynr .yb{border-color:var(--tb,var(--line))}
 
 /* маркер подібних членів */
-.mkd.on{background:linear-gradient(transparent 14%,var(--c) 14%,var(--c) 92%,transparent 92%);padding:0 .06em}
+.mkd{padding:0 .06em}
+.mkd.on{background:linear-gradient(transparent 14%,var(--c) 14%,var(--c) 92%,transparent 92%)}
 
 /* розв’язання по кроках */
 .task .stepper{margin:.4rem 0}
@@ -388,7 +389,7 @@ function genSimplify(level) {
   else { cands.push(pSub(A, B)); for (let i = 0; i < B.length; i++) { const w = R.slice(); while (w.length < B.length) w.push(0); w[i] -= 2 * B[i]; cands.push(w); } }
   const expr = par([q, p], v) + par([s, r], v) + ' ' + (minus ? MINUS : '+') + ' ' + par([k, u], v) + par([m, l], v);
   const LL = descTerms(A).concat(descTerms(minus ? pNeg(B) : B)), mk = grpMarks(LL), RR = descTerms(R);
-  const steps = [stp('', par(A, v) + ' ' + (minus ? MINUS : '+') + ' ' + par(B, v)), stp('', mTerms(LL, v, LL.map(mk))),
+  const steps = [stp('', par(A, v) + ' ' + (minus ? MINUS : '+') + ' ' + par(B, v)), stp('', mTerms(LL, v, LL.map(mk), true)),
     stp('', '<span class="res">' + mTerms(RR, v, RR.map(mk)) + '</span>')];
   return mcPoly({ q: 'Спростіть вираз', v, expr, correct: R, cands, steps,
     hint: minus ? 'Спочатку виконайте кожне множення. Перед другим добутком мінус: розкриваючи дужки, змініть знаки всіх його членів.'
@@ -401,7 +402,7 @@ function genValue() {
   const c0 = q * s - k * m, val = sgn() * rnd(1, 6);
   const ans = slope * val + c0;
   const P1 = pMul([q, 1], [s, 1]), P2 = pMul([k, 1], [m, 1]), LL = descTerms(P1).concat(descTerms(pNeg(P2))), mk = grpMarks(LL), RR = descTerms([c0, slope]);
-  const steps = [stp('', par(P1, v) + ' ' + MINUS + ' ' + par(P2, v)), stp('', mTerms(LL, v, LL.map(mk))), stp('', mTerms(RR, v, RR.map(mk))),
+  const steps = [stp('', par(P1, v) + ' ' + MINUS + ' ' + par(P2, v)), stp('', mTerms(LL, v, LL.map(mk), true)), stp('', mTerms(RR, v, RR.map(mk))),
     stp('', num(slope) + '·' + (val < 0 ? '(' + num(val) + ')' : val) + (c0 ? (c0 < 0 ? ' ' + MINUS + ' ' : ' + ') + Math.abs(c0) : '') + ' = ' + num(ans)),
     stp('', '<span class="res">' + num(ans) + '</span>')];
   return { kind: 'input', q: 'Спростіть вираз і знайдіть його значення', answer: ans, steps,
@@ -423,7 +424,7 @@ function genEq(level) {
   const red = [[slope, 1]]; if (w) red.push([w, 0]);
   const steps = [
     stp('Виконуємо множення: кожний член на кожний', par(P1, v) + ' ' + MINUS + ' ' + par(P2, v) + ' = ' + num(k)),
-    stp('Розкриваємо дужки: знаки в других дужках змінюються', mTerms(LL, v, LL.map(grpMarks(LL))) + ' = ' + num(k)),
+    stp('Розкриваємо дужки: знаки в других дужках змінюються', mTerms(LL, v, LL.map(grpMarks(LL)), true) + ' = ' + num(k)),
     stp('Зводимо подібні члени: ' + varHTML(v, 2) + ' скоротились', mTerms(red, v, red.map(grpMarks(LL))) + ' = ' + num(k))
   ];
   if (w) steps.push(stp('Переносимо ' + num(w) + ' у праву частину, змінюючи знак', mTerms([[slope, 1]], v) + ' = ' + num(k) + (w > 0 ? ' ' + MINUS + ' ' : ' + ') + Math.abs(w) + ' = ' + num(k - w)));
@@ -442,7 +443,7 @@ function genConsec() {
     stp('Нехай менше число дорівнює ' + X + '. Тоді числа:', X + ', ' + X + ' + 1, ' + X + ' + 2, ' + X + ' + 3'),
     stp('Складаємо рівняння: добуток третього й четвертого на ' + D + ' більший за добуток першого й другого', '(' + X + ' + 2)(' + X + ' + 3) ' + MINUS + ' ' + X + '(' + X + ' + 1) = ' + D),
     stp('Виконуємо множення', '(' + sq + ' + 5' + X + ' + 6) ' + MINUS + ' (' + sq + ' + ' + X + ') = ' + D),
-    stp('Розкриваємо дужки: знаки в других дужках змінюються', mkd(sq, 0) + ' + ' + mkd('5' + X, 1) + ' + 6 ' + MINUS + ' ' + mkd(sq, 0) + ' ' + MINUS + ' ' + mkd(X, 1) + ' = ' + D),
+    stp('Розкриваємо дужки: знаки в других дужках змінюються', mkd(sq, 0, true) + ' + ' + mkd('5' + X, 1, true) + ' + 6 ' + MINUS + ' ' + mkd(sq, 0, true) + ' ' + MINUS + ' ' + mkd(X, 1, true) + ' = ' + D),
     stp('Зводимо подібні члени: ' + sq + ' скоротились', mkd('4' + X, 1) + ' + 6 = ' + D),
     stp('Переносимо 6 у праву частину, змінюючи знак', '4' + X + ' = ' + D + ' ' + MINUS + ' 6 = ' + (D - 6)),
     stp('Ділимо обидві частини на 4', X + ' = ' + (D - 6) + ' : 4 = ' + x),
@@ -516,7 +517,7 @@ const cf = h => '<span class="cf">' + h + '</span>', lt = h => '<span class="lt"
 
 /* ---------- кольори запитань і маркери ---------- */
 const MK = ['rgba(255,214,60,.5)', 'rgba(104,200,128,.42)', 'rgba(240,120,176,.34)', 'rgba(130,130,238,.32)'];
-const mkd = (h, i, cur) => '<span class="mkd on' + (cur ? ' cur' : '') + '" style="--c:' + MK[i % MK.length] + '">' + h + '</span>';
+const mkd = (h, i, pre) => '<span class="mkd' + (pre ? ' pre' : ' on') + '" style="--c:' + MK[i % MK.length] + '">' + h + '</span>';
 const QP = [{ c: '#2f7d4f', l: '#e6f3ec', b: '#a9d3b9' }, { c: '#2A6592', l: '#EAF2F7', b: '#A8CADD' }, { c: '#66811d', l: '#f0f5df', b: '#c3d38f' }, { c: '#4b5fb0', l: '#e8ebf8', b: '#b3bde3' }];
 let QI = 0;
 function qColor(node, i) {
@@ -526,10 +527,10 @@ function qColor(node, i) {
 const num = c => (c < 0 ? MINUS : '') + Math.abs(c);
 const stp = (lab, exp) => '<div class="sexp">' + exp + '</div>';
 /* члени [коефіцієнт, степінь] з маркерами (marks[i] — номер кольору або -1) */
-function mTerms(list, v, marks) {
+function mTerms(list, v, marks, pre) {
   return list.map((t, i) => {
     const neg = t[0] < 0, sgn_ = i === 0 ? (neg ? MINUS : '') : ' ' + (neg ? MINUS : '+') + ' ', h = termHTML(t[0], t[1], v);
-    return sgn_ + (marks && marks[i] >= 0 ? mkd(h, marks[i]) : h);
+    return sgn_ + (marks && marks[i] >= 0 ? mkd(h, marks[i], pre) : h);
   }).join('');
 }
 /* кольорові групи подібних членів: групі з ≥2 членами одного степеня — свій колір */
@@ -548,7 +549,9 @@ function stepper(steps, cls, onDone) {
     if (n < steps.length) {
       const s = steps[n], box = el('div', 'step', '<span class="sn">' + (n + 1) + '</span>');
       if (typeof s === 'function') { box.classList.add('wide'); box.appendChild(s()); } else box.insertAdjacentHTML('beforeend', s);
-      list.appendChild(box); n++; if (n > 1) setTimeout(() => (n < steps.length ? btn : box).scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
+      list.appendChild(box);
+      if (box.querySelector('.mkd.on') && box.previousElementSibling) box.previousElementSibling.querySelectorAll('.mkd.pre').forEach(e => { e.classList.remove('pre'); e.classList.add('on'); });
+      n++; if (n > 1) setTimeout(() => (n < steps.length ? btn : box).scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
     }
     if (n >= steps.length) { btn.style.display = 'none'; if (onDone) setTimeout(onDone, 0); }
   };
@@ -708,7 +711,7 @@ function arcBoard(ex, o) {
       for (let k = 0; k < Math.min(r, n); k++) {
         const a = A[pairs[k][0]], b = B[pairs[k][1]], p = prod(k), mi = p[1] in gidx ? gidx[p[1]] : -1;
         const tm = termHTML(p[0], p[1], v);
-        t.push('<span style="color:' + AC[k] + ';font-weight:800">' + (k === 0 ? (p[0] < 0 ? MINUS : '') : ' ' + (p[0] < 0 ? MINUS : '+') + ' ') + (mi >= 0 ? mkd(tm, mi) : tm) + '</span>');
+        t.push('<span style="color:' + AC[k] + ';font-weight:800">' + (k === 0 ? (p[0] < 0 ? MINUS : '') : ' ' + (p[0] < 0 ? MINUS : '+') + ' ') + (mi >= 0 && r > n ? mkd(tm, mi) : tm) + '</span>');
       }
       h += '<div class="rw"><span class="eq">=</span>' + t.join('') + '</div>';
     }
