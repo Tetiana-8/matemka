@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Повторення та розширення відомостей про функцію: Інтерактивний урок</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        html { font-size: clamp(13px, min(2.2vh, 1.3vw), 26px); }
+        body { font-size: 1rem; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type=range] { -webkit-appearance: auto; appearance: auto; }
+        .katex { font-size: 1.05em; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        panelLeft: '#EBF0FF',
+                        panelRight: '#F6F8FF',
+                        brand: '#1D4ED8',
+                        brandLight: '#DBE5FF',
+                        colD: '#0D9488',
+                        colE: '#9333EA',
+                        colPt: '#F97316'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 overflow-hidden text-slate-800 font-sans h-[100dvh] w-full relative">
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel" data-presets="react">
+        const { useState, useEffect, useRef } = React;
+
+        const CL = { brand: '#1D4ED8', D: '#0D9488', E: '#9333EA', pt: '#F97316', ax: '#334155', ok: '#16A34A', bad: '#DC2626' };
+        const PC = ['#DB2777', '#CA8A04', '#4D7C0F'];   // кольори частин кусково заданої функції
+
+        // ---------- Пам'ять уроку: пройдені кроки не потрібно проходити знову ----------
+        const MEM = {};
+        const usePS = (key, init) => {
+            const [v, setV] = useState(() => (key in MEM ? MEM[key] : init));
+            useEffect(() => { MEM[key] = v; }, [key, v]);
+            return [v, setV];
+        };
+        const clearMem = (prefix) => { Object.keys(MEM).forEach((k) => { if (k.indexOf(prefix) === 0) delete MEM[k]; }); };
+
+        const Latex = ({ math, block = false }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    try { window.katex.render(math, ref.current, { displayMode: block, throwOnError: false }); }
+                    catch (err) { console.error(err); }
+                }
+            }, [math, block]);
+            return <span ref={ref} />;
+        };
+
+        const fmt = (v) => String(Math.round(v * 100) / 100).replace('.', ',').replace('-', '−');
+        const tx = (v) => String(Math.round(v * 100) / 100).replace('.', '{,}');
+
+        // ---------- Координатна площина ----------
+        const PW = 600, PH = 500;
+        const Plane = ({ u = 40, ox = 300, oy = 250, st = 1, children }) => {
+            const X = (x) => ox + x * u;
+            const Y = (y) => oy - y * u;
+            const mx0 = Math.ceil(-ox / u / st), mx1 = Math.floor((PW - ox) / u / st);
+            const my0 = Math.ceil(-(PH - oy) / u / st), my1 = Math.floor(oy / u / st);
+            const grid = [], labels = [];
+            for (let m = mx0; m <= mx1; m++) {
+                const i = m * st;
+                if (i === 0) continue;
+                grid.push(<line key={'v' + i} x1={X(i)} y1={0} x2={X(i)} y2={PH} stroke="#E2E8F0" strokeWidth="1" />);
+                grid.push(<line key={'vt' + i} x1={X(i)} y1={oy - 4} x2={X(i)} y2={oy + 4} stroke={CL.ax} strokeWidth="1.5" />);
+                labels.push(<text key={'vl' + i} x={X(i)} y={oy + 22} textAnchor="middle" fontSize="17" fontWeight="700" fill={CL.ax}>{i < 0 ? '−' + (-i) : i}</text>);
+            }
+            for (let m = my0; m <= my1; m++) {
+                const i = m * st;
+                if (i === 0) continue;
+                grid.push(<line key={'h' + i} x1={0} y1={Y(i)} x2={PW} y2={Y(i)} stroke="#E2E8F0" strokeWidth="1" />);
+                grid.push(<line key={'ht' + i} x1={ox - 4} y1={Y(i)} x2={ox + 4} y2={Y(i)} stroke={CL.ax} strokeWidth="1.5" />);
+                labels.push(<text key={'hl' + i} x={ox - 9} y={Y(i) + 6} textAnchor="end" fontSize="17" fontWeight="700" fill={CL.ax}>{i < 0 ? '−' + (-i) : i}</text>);
+            }
+            return (
+                <svg viewBox={`0 0 ${PW} ${PH}`} className="w-full h-full touch-none select-none" preserveAspectRatio="xMidYMid meet">
+                    <defs><clipPath id="plclip"><rect width={PW} height={PH} rx="10" /></clipPath></defs>
+                    <rect width={PW} height={PH} rx="10" fill="#fff" stroke="#CBD5E1" strokeWidth="1.5" />
+                    <g clipPath="url(#plclip)">
+                        {grid}
+                        <line x1="0" y1={oy} x2={PW} y2={oy} stroke={CL.ax} strokeWidth="2.2" />
+                        <line x1={ox} y1={PH} x2={ox} y2="0" stroke={CL.ax} strokeWidth="2.2" />
+                        <polygon points={`${PW - 2},${oy} ${PW - 14},${oy - 5} ${PW - 14},${oy + 5}`} fill={CL.ax} />
+                        <polygon points={`${ox},2 ${ox - 5},14 ${ox + 5},14`} fill={CL.ax} />
+                        <text x={PW - 24} y={oy - 12} fontSize="22" fontStyle="italic" fontFamily="serif" fontWeight="700" fill={CL.ax}>x</text>
+                        <text x={ox + 14} y={24} fontSize="22" fontStyle="italic" fontFamily="serif" fontWeight="700" fill={CL.ax}>y</text>
+                        <text x={ox - 16} y={oy + 22} fontSize="17" fontWeight="700" fill={CL.ax}>0</text>
+                        {labels}
+                        {children({ X, Y, u, ox, oy })}
+                    </g>
+                </svg>
+            );
+        };
+
+        const mkPath = (f, a, b, X, Y, st = 0.05, lim = 9) => {
+            let d = '', pen = false;
+            for (let x = a; x <= b + 1e-9; x = Math.round((x + st) * 1e4) / 1e4) {
+                const y = f(x);
+                if (!isFinite(y) || Math.abs(y) > lim) { pen = false; continue; }
+                d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(y).toFixed(1) + ' ';
+                pen = true;
+            }
+            return d;
+        };
+
+        const halo = { paintOrder: 'stroke', stroke: '#fff', strokeWidth: 5, strokeLinejoin: 'round' };
+
+        // ---------- Загальні елементи ----------
+        const Def = ({ title, color = CL.brand, children }) => (
+            <div className="rounded-xl border-2 p-3 bg-white shadow-sm animate-fade-in" style={{ borderColor: color + '66' }}>
+                <p className="font-extrabold mb-0.5" style={{ color }}>{title}</p>
+                <div className="font-semibold text-slate-800 leading-snug">{children}</div>
+            </div>
+        );
+
+        // висновок: просто помаранчевий бокс, без заголовка
+        const Key = ({ children }) => (
+            <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3 animate-fade-in">
+                <div className="font-semibold text-slate-800 leading-snug">{children}</div>
+            </div>
+        );
+
+        const Card = ({ children, className = '' }) => (
+            <div className={`rounded-xl bg-white border border-slate-200 p-3 shadow-sm animate-fade-in font-semibold ${className}`}>{children}</div>
+        );
+
+        const DownBtn = ({ onClick }) => (
+            <div className="flex justify-center py-0.5">
+                <button onClick={onClick} className="w-[2.6rem] h-[2.6rem] rounded-full bg-white border-2 border-brand/40 text-brand shadow-md animate-bounce flex items-center justify-center cursor-pointer active:scale-95">
+                    <i className="fa-solid fa-arrow-down"></i>
+                </button>
+            </div>
+        );
+
+        const Hint = ({ children }) => (
+            <p className="text-slate-600 font-semibold"><i className="fa-solid fa-hand-pointer text-colPt mr-2"></i>{children}</p>
+        );
+
+        // повзунок із підписаними значеннями: видно, які значення можна обрати
+        const ValSlider = ({ vals, idx, onChange, color }) => (
+            <div>
+                <input type="range" min={0} max={vals.length - 1} step={1} value={idx}
+                    onChange={(e) => onChange(parseInt(e.target.value, 10))}
+                    className="w-full h-7 cursor-pointer" style={{ accentColor: color || CL.pt }} />
+                <div className="flex justify-between text-[0.85rem] font-bold">
+                    {vals.map((v, i) => (
+                        <button key={i} onClick={() => onChange(i)}
+                            className={`min-w-[1.5rem] rounded-md px-1 cursor-pointer ${i === idx ? 'text-white' : 'text-slate-500'}`}
+                            style={i === idx ? { background: color || CL.pt } : {}}>{fmt(v)}</button>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const Chip = ({ active, done, onClick, children, className = '' }) => (
+            <button onClick={onClick}
+                className={`min-h-[2.6rem] px-3 rounded-xl border-2 font-bold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-2 ${className} ${active ? 'bg-brand text-white border-brand shadow-md' : 'bg-white text-slate-700 border-slate-300 hover:border-brand/60'}`}>
+                {children}
+                {done && !active && <i className="fa-solid fa-check text-emerald-600"></i>}
+            </button>
+        );
+
+        const Badge = ({ n, color }) => (
+            <span className="inline-flex w-[1.6rem] h-[1.6rem] rounded-full text-white font-extrabold items-center justify-center shrink-0 text-[0.9rem]" style={{ background: color }}>{n}</span>
+        );
+
+        // двозонний макет: ліворуч пояснення і кнопки навігації, праворуч малюнок
+        const Layout = ({ left, right, nav, onReset }) => (
+            <>
+                <div className="w-full h-[55%] md:h-full md:w-[40%] bg-panelLeft z-10 order-2 md:order-1 border-r border-slate-200 flex flex-col min-h-0">
+                    <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-3 space-y-2.5">
+                        {left}
+                    </div>
+                    {nav}
+                </div>
+                <div className="w-full h-[45%] md:h-full md:w-[60%] bg-panelRight relative order-1 md:order-2 flex flex-col overflow-hidden">
+                    <button onClick={onReset} title="Спочатку"
+                        className="absolute top-2 left-2 z-20 w-[2.4rem] h-[2.4rem] rounded-full bg-white border border-slate-300 text-slate-600 shadow-md flex items-center justify-center cursor-pointer active:scale-95">
+                        <i className="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <div className="flex-1 min-h-0 flex flex-col p-2">{right}</div>
+                </div>
+            </>
+        );
+
+        // макет на весь екран (письмове розв'язання, завдання підручника)
+        const FullLayout = ({ children, nav, onReset }) => (
+            <div className="w-full h-full bg-panelRight flex flex-col min-h-0 relative">
+                <button onClick={onReset} title="Спочатку"
+                    className="absolute top-2 left-2 z-20 w-[2.4rem] h-[2.4rem] rounded-full bg-white border border-slate-300 text-slate-600 shadow-md flex items-center justify-center cursor-pointer active:scale-95">
+                    <i className="fa-solid fa-rotate-right"></i>
+                </button>
+                <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-3 pb-3 pt-2 pl-[3.4rem]">
+                    {children}
+                </div>
+                <div className="shrink-0 bg-panelLeft border-t border-slate-200">{nav}</div>
+            </div>
+        );
+
+        // =====================================================================
+        // 1. Що таке функція
+        // =====================================================================
+        const Item1 = ({ nav, setReady, onReset }) => {
+            const [sub, setSub] = usePS('i1.sub', 0);
+            const [ex, setEx] = usePS('i1.ex', 0);
+            const [seen, setSeen] = usePS('i1.seen', []);
+            useEffect(() => { setReady(seen.length === 3 && sub >= 3); }, [seen, sub]);
+            const pick = (i) => { setEx(i); setSeen((s) => (s.includes(i) ? s : [...s, i])); };
+
+            const EXS = [null,
+                { pairs: [[1, 4], [2, 5], [3, 6]], ok: true, note: 'Кожному x відповідає одне y.' },
+                { pairs: [[1, 4], [2, 4], [3, 5]], ok: true, note: 'Кожному x відповідає одне y. Різним x може відповідати те саме y.' },
+                { pairs: [[1, 4], [2, 5], [2, 6], [3, 6]], ok: false, note: 'Числу 2 відповідають два значення y: 5 і 6.' }
+            ];
+            const pos = { 1: 130, 2: 230, 3: 330, 4: 130, 5: 230, 6: 330 };
+            const cur = EXS[ex];
+
+            const left = (
+                <>
+                    <Def title="Функція">
+                        Функція — це правило, за яким кожному значенню незалежної змінної <Latex math="x" /> з множини <Latex math="X" /> відповідає єдине значення залежної змінної <Latex math="y" /> з множини <Latex math="Y" />.
+                    </Def>
+                    {sub >= 1 && (
+                        <Card className="space-y-1">
+                            <p className="text-center text-[1.2rem]"><Latex math="y = f(x)" /></p>
+                            <p><span style={{ color: CL.D }}><Latex math="x" /> — аргумент</span> (незалежна змінна)</p>
+                            <p><span style={{ color: CL.E }}><Latex math="y" /> — значення функції</span> (залежна змінна)</p>
+                        </Card>
+                    )}
+                    {sub >= 2 && (
+                        <Card>
+                            <p className="text-brand font-extrabold">Приклад</p>
+                            <p><span style={{ color: CL.D }}>x — час доби</span>, <span style={{ color: CL.E }}>y — температура повітря</span>.</p>
+                            <p>Кожному моменту часу відповідає одна температура.</p>
+                        </Card>
+                    )}
+                    {sub >= 3 && (
+                        <Key>
+                            <p>Одному <Latex math="x" /> — лише одне <Latex math="y" />.</p>
+                            <p>Різним <Latex math="x" /> може відповідати те саме <Latex math="y" />.</p>
+                        </Key>
+                    )}
+                    {sub < 3 && <DownBtn onClick={() => setSub((s) => s + 1)} />}
+                </>
+            );
+
+            const right = (
+                <>
+                    <div className="flex-1 min-h-0">
+                        <svg viewBox="0 0 600 450" className="w-full h-full select-none">
+                            <defs>
+                                <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#475569" /></marker>
+                                <marker id="arrBad" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill={CL.bad} /></marker>
+                            </defs>
+                            <ellipse cx="170" cy="230" rx="85" ry="190" fill="#CCFBF1" fillOpacity="0.55" stroke={CL.D} strokeWidth="3" />
+                            <ellipse cx="430" cy="230" rx="85" ry="190" fill="#F3E8FF" fillOpacity="0.8" stroke={CL.E} strokeWidth="3" />
+                            <text x="170" y="28" textAnchor="middle" fontSize="28" fontStyle="italic" fontFamily="serif" fontWeight="700" fill={CL.D}>X</text>
+                            <text x="430" y="28" textAnchor="middle" fontSize="28" fontStyle="italic" fontFamily="serif" fontWeight="700" fill={CL.E}>Y</text>
+                            {cur && cur.pairs.map(([a, b], i) => {
+                                const bad = !cur.ok && a === 2;
+                                return <line key={ex + '-' + i} x1={190} y1={pos[a]} x2={408} y2={pos[b]} stroke={bad ? CL.bad : '#475569'} strokeWidth="3.5" markerEnd={bad ? 'url(#arrBad)' : 'url(#arr)'} className="animate-fade-in" />;
+                            })}
+                            {[1, 2, 3].map((n) => (
+                                <g key={'x' + n}><circle cx="170" cy={pos[n]} r="20" fill="#fff" stroke={CL.D} strokeWidth="3" /><text x="170" y={pos[n] + 7} textAnchor="middle" fontSize="22" fontWeight="800" fill={CL.D}>{n}</text></g>
+                            ))}
+                            {[4, 5, 6].map((n) => (
+                                <g key={'y' + n}><circle cx="430" cy={pos[n]} r="20" fill="#fff" stroke={CL.E} strokeWidth="3" /><text x="430" y={pos[n] + 7} textAnchor="middle" fontSize="22" fontWeight="800" fill={CL.E}>{n}</text></g>
+                            ))}
+                        </svg>
+                    </div>
+                    <div className="shrink-0 space-y-2 pt-1">
+                        <div className="flex gap-2 justify-center">
+                            {[1, 2, 3].map((i) => (
+                                <Chip key={i} active={ex === i} done={seen.includes(i)} onClick={() => pick(i)}>Приклад {i}</Chip>
+                            ))}
+                        </div>
+                        {!cur && <Hint>Оберіть приклад</Hint>}
+                        {cur && (
+                            <div className={`rounded-xl border-2 p-2 font-semibold animate-pop ${cur.ok ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-red-400 bg-red-50 text-red-800'}`}>
+                                <p className="font-extrabold">{cur.ok ? <><i className="fa-solid fa-circle-check mr-2"></i>Це функція</> : <><i className="fa-solid fa-circle-xmark mr-2"></i>Це не функція</>}</p>
+                                <p>{cur.note}</p>
+                            </div>
+                        )}
+                    </div>
+                </>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 2. Область визначення та область значень (два приклади)
+        // =====================================================================
+        const f2a = (x) => Math.sqrt(x);
+        const f2b = (x) => 4 - x * x;
+        const X2A = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const X2B = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
+
+        const Item2 = ({ nav, setReady, onReset }) => {
+            const [sub, setSub] = usePS('i2.sub', 0);
+            const [ex, setEx] = usePS('i2.ex', 0);
+            const [ia, setIa] = usePS('i2.ia', 3);
+            const [ib, setIb] = usePS('i2.ib', 4);
+            useEffect(() => { setReady(sub >= 4); }, [sub]);
+            const vals = ex === 0 ? X2A : X2B;
+            const idx = ex === 0 ? ia : ib;
+            const x = vals[idx];
+            const inD = ex === 0 ? x >= 0 : (x >= -1 && x <= 3);
+            const y = inD ? (ex === 0 ? f2a(x) : f2b(x)) : NaN;
+            const yTxt = Number.isInteger(y) ? String(y) : '≈ ' + fmt(y);
+            const advance = () => { setSub((s) => s + 1); if (sub === 2) setEx(1); };
+
+            const left = (
+                <>
+                    <Def title="Область визначення" color={CL.D}>
+                        Незалежну змінну називають <b>аргументом</b>. Множину всіх значень, яких набуває аргумент, називають <b>областю визначення</b> функції.
+                        <p className="mt-0.5" style={{ color: CL.D }}><Latex math="D(f)" /> або <Latex math="D(y)" /></p>
+                    </Def>
+                    {sub >= 1 && (
+                        <Def title="Область значень" color={CL.E}>
+                            Множину всіх значень, яких набуває залежна змінна, називають <b>областю значень</b> функції.
+                            <p className="mt-0.5" style={{ color: CL.E }}><Latex math="E(f)" /> або <Latex math="E(y)" /></p>
+                        </Def>
+                    )}
+                    {sub >= 2 && (
+                        <Card className={ex === 0 ? 'ring-2 ring-brand/30' : ''}>
+                            <p className="text-brand font-extrabold">Приклад 1</p>
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-0.5">
+                                <Latex math="y=\sqrt{x}" />
+                                <span style={{ color: CL.D }}><Latex math="D(y)=[0;\,+\infty)" /></span>
+                                <span style={{ color: CL.E }}><Latex math="E(y)=[0;\,+\infty)" /></span>
+                            </div>
+                        </Card>
+                    )}
+                    {sub >= 3 && (
+                        <Card className={ex === 1 ? 'ring-2 ring-brand/30' : ''}>
+                            <p className="text-brand font-extrabold">Приклад 2</p>
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-0.5">
+                                <Latex math="y=4-x^2,\ x\in[-1;\,3]" />
+                                <span style={{ color: CL.D }}><Latex math="D(y)=[-1;\,3]" /></span>
+                                <span style={{ color: CL.E }}><Latex math="E(y)=[-5;\,4]" /></span>
+                            </div>
+                        </Card>
+                    )}
+                    {sub >= 2 && sub < 4 && <Hint>Рухайте повзунок</Hint>}
+                    {sub >= 4 && (
+                        <Key>
+                            <p style={{ color: CL.D }}><Latex math="D" /> — усі можливі <Latex math="x" /> (вісь <Latex math="x" />).</p>
+                            <p style={{ color: CL.E }}><Latex math="E" /> — усі можливі <Latex math="y" /> (вісь <Latex math="y" />).</p>
+                        </Key>
+                    )}
+                    {sub < 4 && <DownBtn onClick={advance} />}
+                </>
+            );
+
+            const right = (
+                <>
+                    <div className="flex-1 min-h-0">
+                        {ex === 0 ? (
+                            <Plane u={50} ox={110} oy={400}>
+                                {({ X, Y, ox, oy }) => (
+                                    <>
+                                        <rect x={0} y={0} width={X(0)} height={PH} fill="#FEE2E2" opacity="0.45" />
+                                        <line x1={X(0)} y1={oy} x2={PW - 6} y2={oy} stroke={CL.D} strokeWidth="9" opacity="0.75" strokeLinecap="round" />
+                                        {sub >= 1 && <line x1={ox} y1={Y(0)} x2={ox} y2={6} stroke={CL.E} strokeWidth="9" opacity="0.75" strokeLinecap="round" />}
+                                        <text x={X(6.4)} y={oy - 16} fontSize="22" fontWeight="800" fill={CL.D} style={halo}>D(y)</text>
+                                        {sub >= 1 && <text x={ox + 16} y={Y(7.4)} fontSize="22" fontWeight="800" fill={CL.E} style={halo}>E(y)</text>}
+                                        <path d={mkPath(f2a, 0, 9.8, X, Y, 0.05, 20)} fill="none" stroke={CL.brand} strokeWidth="4.5" strokeLinecap="round" />
+                                        {inD ? (
+                                            <>
+                                                <line x1={X(x)} y1={oy} x2={X(x)} y2={Y(y)} stroke={CL.D} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <line x1={ox} y1={Y(y)} x2={X(x)} y2={Y(y)} stroke={CL.E} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <circle cx={X(x)} cy={oy} r="7" fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                                <circle cx={ox} cy={Y(y)} r="7" fill={CL.E} stroke="#fff" strokeWidth="2" />
+                                                <circle cx={X(x)} cy={Y(y)} r="9" fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <line x1={X(x)} y1={0} x2={X(x)} y2={PH} stroke={CL.bad} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <text x={X(x)} y={oy + 8} textAnchor="middle" fontSize="30" fontWeight="800" fill={CL.bad}>✕</text>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </Plane>
+                        ) : (
+                            <Plane u={40} ox={250} oy={190}>
+                                {({ X, Y, ox, oy }) => (
+                                    <>
+                                        <rect x={0} y={0} width={X(-1)} height={PH} fill="#FEE2E2" opacity="0.45" />
+                                        <rect x={X(3)} y={0} width={PW - X(3)} height={PH} fill="#FEE2E2" opacity="0.45" />
+                                        <line x1={X(-1)} y1={oy} x2={X(3)} y2={oy} stroke={CL.D} strokeWidth="9" opacity="0.75" strokeLinecap="round" />
+                                        <line x1={ox} y1={Y(-5)} x2={ox} y2={Y(4)} stroke={CL.E} strokeWidth="9" opacity="0.75" strokeLinecap="round" />
+                                        <line x1={X(3)} y1={Y(-5)} x2={ox} y2={Y(-5)} stroke={CL.E} strokeWidth="2" strokeDasharray="6,5" />
+                                        <line x1={X(-1)} y1={oy} x2={X(-1)} y2={Y(3)} stroke={CL.D} strokeWidth="2" strokeDasharray="6,5" />
+                                        <line x1={X(3)} y1={oy} x2={X(3)} y2={Y(-5)} stroke={CL.D} strokeWidth="2" strokeDasharray="6,5" />
+                                        <text x={X(3.3)} y={oy - 14} fontSize="22" fontWeight="800" fill={CL.D} style={halo}>D(y)</text>
+                                        <text x={ox - 22} y={Y(-2)} textAnchor="end" fontSize="22" fontWeight="800" fill={CL.E} style={halo}>E(y)</text>
+                                        <path d={mkPath(f2b, -1, 3, X, Y, 0.05, 20)} fill="none" stroke={CL.brand} strokeWidth="4.5" strokeLinecap="round" />
+                                        <circle cx={X(-1)} cy={Y(3)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                                        <circle cx={X(3)} cy={Y(-5)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                                        {inD ? (
+                                            <>
+                                                <line x1={X(x)} y1={oy} x2={X(x)} y2={Y(y)} stroke={CL.D} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <line x1={ox} y1={Y(y)} x2={X(x)} y2={Y(y)} stroke={CL.E} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <circle cx={X(x)} cy={oy} r="7" fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                                <circle cx={ox} cy={Y(y)} r="7" fill={CL.E} stroke="#fff" strokeWidth="2" />
+                                                <circle cx={X(x)} cy={Y(y)} r="9" fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <line x1={X(x)} y1={0} x2={X(x)} y2={PH} stroke={CL.bad} strokeWidth="2.5" strokeDasharray="6,5" />
+                                                <text x={X(x)} y={oy + 8} textAnchor="middle" fontSize="30" fontWeight="800" fill={CL.bad}>✕</text>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </Plane>
+                        )}
+                    </div>
+                    <div className="shrink-0 pt-1 space-y-1">
+                        {sub >= 3 && (
+                            <div className="flex gap-2 justify-center">
+                                <Chip active={ex === 0} onClick={() => setEx(0)}>Приклад 1</Chip>
+                                <Chip active={ex === 1} onClick={() => setEx(1)}>Приклад 2</Chip>
+                            </div>
+                        )}
+                        <ValSlider vals={vals} idx={idx} onChange={ex === 0 ? setIa : setIb} color={CL.D} />
+                        <p className="font-bold text-center">
+                            <span style={{ color: CL.D }}>x = {fmt(x)}</span>
+                            <span className="mx-3 text-slate-400">→</span>
+                            {inD ? <span style={{ color: CL.E }}>y = {yTxt}</span> : <span style={{ color: CL.bad }}>значення не існує</span>}
+                        </p>
+                    </div>
+                </>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 3. Способи задання функції
+        // =====================================================================
+        const Item3 = ({ nav, setReady, onReset }) => {
+            const [open, setOpen] = usePS('i3.open', 0);
+            const [vis, setVis] = usePS('i3.vis', []);
+            const [hi, setHi] = usePS('i3.hi', null);
+            const xs = [-1, 0, 1, 2, 3];
+            const ys = xs.map((x) => 2 * x - 1);
+            useEffect(() => { setReady(vis.length === 4); }, [vis]);
+            const toggle = (id) => { setOpen((o) => (o === id ? 0 : id)); setVis((v) => (v.includes(id) ? v : [...v, id])); };
+            const ways = [
+                { id: 1, name: 'Описово', icon: 'fa-comment-dots' },
+                { id: 2, name: 'Формулою', icon: 'fa-square-root-variable' },
+                { id: 3, name: 'Таблицею', icon: 'fa-table' },
+                { id: 4, name: 'Графічно', icon: 'fa-chart-line' }
+            ];
+            const cellBase = 'py-1.5 px-2 border border-slate-300 text-center cursor-pointer';
+
+            const left = (
+                <>
+                    <Def title="Функція задана, якщо вказано">
+                        <p>1) область визначення;</p>
+                        <p>2) правило, за яким для кожного <Latex math="x" /> знаходять <Latex math="y" />.</p>
+                    </Def>
+                    <div className="space-y-2">
+                        {ways.map((w) => (
+                            <div key={w.id} className="rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                                <button onClick={() => toggle(w.id)} className="w-full min-h-[2.8rem] flex items-center justify-between gap-2 px-3 py-1.5 cursor-pointer hover:bg-brandLight/50">
+                                    <span className="font-extrabold text-brand flex items-center gap-3">
+                                        <i className={`fa-solid ${w.icon} w-6 text-center`}></i>{w.name}
+                                        {vis.includes(w.id) && <i className="fa-solid fa-check text-emerald-600"></i>}
+                                    </span>
+                                    <i className={`fa-solid fa-chevron-down text-slate-500 transition-transform ${open === w.id ? 'rotate-180' : ''}`}></i>
+                                </button>
+                                {open === w.id && (
+                                    <div className="px-3 pb-3 animate-fade-in font-semibold">
+                                        {w.id === 1 && <p>Кожному з чисел −1; 0; 1; 2; 3 ставимо у відповідність число, яке на 1 менше від подвоєного даного числа.</p>}
+                                        {w.id === 2 && (
+                                            <>
+                                                <p className="text-center text-brand"><Latex math="y=2x-1,\quad x\in\{-1;\,0;\,1;\,2;\,3\}" /></p>
+                                                <p className="text-slate-600">Найчастіше функцію задають формулою.</p>
+                                            </>
+                                        )}
+                                        {w.id === 3 && (
+                                            <>
+                                                <table className="w-full border-collapse bg-white my-1">
+                                                    <tbody>
+                                                        <tr className="bg-brandLight/60">
+                                                            <td className={cellBase + ' font-bold'} style={{ color: CL.D }}><Latex math="x" /></td>
+                                                            {xs.map((x, i) => <td key={i} onClick={() => setHi(i)} className={cellBase + (hi === i ? ' bg-orange-200' : '')}><Latex math={String(x)} /></td>)}
+                                                        </tr>
+                                                        <tr>
+                                                            <td className={cellBase + ' font-bold'} style={{ color: CL.E }}><Latex math="y" /></td>
+                                                            {ys.map((y, i) => <td key={i} onClick={() => setHi(i)} className={cellBase + (hi === i ? ' bg-orange-200' : '')}><Latex math={String(y)} /></td>)}
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <Hint>Натисніть на стовпчик</Hint>
+                                            </>
+                                        )}
+                                        {w.id === 4 && <p>Кожній парі <Latex math="(x;\,y)" /> з таблиці відповідає точка координатної площини. Графік функції — усі такі точки.</p>}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            );
+
+            const right = (
+                <div className="flex-1 min-h-0">
+                    <Plane u={50} ox={200} oy={330}>
+                        {({ X, Y, ox, oy }) => (
+                            <>
+                                {hi !== null && (
+                                    <>
+                                        <line x1={X(xs[hi])} y1={oy} x2={X(xs[hi])} y2={Y(ys[hi])} stroke={CL.D} strokeWidth="2.5" strokeDasharray="6,5" />
+                                        <line x1={ox} y1={Y(ys[hi])} x2={X(xs[hi])} y2={Y(ys[hi])} stroke={CL.E} strokeWidth="2.5" strokeDasharray="6,5" />
+                                    </>
+                                )}
+                                {xs.map((x, i) => (
+                                    <g key={i} onClick={() => setHi(i)} className="cursor-pointer">
+                                        <circle cx={X(x)} cy={Y(ys[i])} r={hi === i ? 11 : 8} fill={hi === i ? CL.pt : CL.brand} stroke="#fff" strokeWidth="2.5" />
+                                        <text x={X(x) + 12} y={Y(ys[i]) + 26} fontSize="18" fontWeight="800" fill={hi === i ? CL.pt : CL.brand} style={halo}>({fmt(x)}; {fmt(ys[i])})</text>
+                                    </g>
+                                ))}
+                            </>
+                        )}
+                    </Plane>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 4. Область визначення за формулою (три випадки)
+        // =====================================================================
+        const RULE_COL = ['#2563EB', '#D97706', '#DB2777'];
+        const EX4 = [
+            { f: 'y=3x-2', rule: -1, lines: [{ txt: 'Дробу і кореня немає. Обмежень на x немає.' }, { ans: 'D(y)=(-\\infty;\\,+\\infty)' }], segs: [{ a: null, b: null }] },
+            { f: 'y=\\dfrac{5}{x+2}', rule: 0, lines: [{ txt: 'Є дріб. Знаменник не дорівнює нулю.' }, { tex: 'x+2\\neq 0' }, { tex: 'x\\neq -2' }, { ans: 'D(y)=(-\\infty;\\,-2)\\cup(-2;\\,+\\infty)' }], segs: [{ a: null, b: -2, bc: false }, { a: -2, ac: false, b: null }] },
+            { f: 'y=\\sqrt{x-3}', rule: 1, lines: [{ txt: 'Є квадратний корінь. Підкореневий вираз ≥ 0.' }, { tex: 'x-3\\geq 0' }, { tex: 'x\\geq 3' }, { ans: 'D(y)=[3;\\,+\\infty)' }], segs: [{ a: 3, ac: true, b: null }] },
+            { f: 'y=\\dfrac{1}{\\sqrt{x-1}}', rule: 2, lines: [{ txt: 'Корінь у знаменнику. Підкореневий вираз > 0.' }, { tex: 'x-1>0' }, { tex: 'x>1' }, { ans: 'D(y)=(1;\\,+\\infty)' }], segs: [{ a: 1, ac: false, b: null }] }
+        ];
+
+        const NumLine = ({ segs, show, u = 44, rng = 6, lstep = 1 }) => {
+            const ox = 300, cy = 70;
+            const X = (v) => ox + v * u;
+            const ticks = [];
+            for (let i = -rng; i <= rng; i++) {
+                ticks.push(<line key={'t' + i} x1={X(i)} y1={cy - 7} x2={X(i)} y2={cy + 7} stroke={CL.ax} strokeWidth="2" />);
+                if (i % lstep === 0) ticks.push(<text key={'l' + i} x={X(i)} y={cy + 34} textAnchor="middle" fontSize="17" fontWeight="700" fill={CL.ax}>{i < 0 ? '−' + (-i) : i}</text>);
+            }
+            return (
+                <svg viewBox="0 0 600 120" className="w-full select-none">
+                    <line x1="6" y1={cy} x2="590" y2={cy} stroke={CL.ax} strokeWidth="2.5" />
+                    <polygon points={`596,${cy} 584,${cy - 6} 584,${cy + 6}`} fill={CL.ax} />
+                    <text x="580" y={cy - 14} fontSize="22" fontStyle="italic" fontFamily="serif" fontWeight="700" fill={CL.ax}>x</text>
+                    {ticks}
+                    {show && segs.map((s, i) => {
+                        if (s.pt !== undefined) return <circle key={i} cx={X(s.pt)} cy={cy} r="9" fill={CL.D} stroke="#fff" strokeWidth="2" className="animate-fade-in" />;
+                        const xa = s.a === null ? 8 : X(s.a);
+                        const xb = s.b === null ? 590 : X(s.b);
+                        return (
+                            <g key={i} className="animate-fade-in">
+                                <rect x={xa} y={cy - 6} width={xb - xa} height="12" rx="6" fill={CL.D} opacity="0.85" />
+                                {s.a !== null && <circle cx={xa} cy={cy} r="9" fill={s.ac ? CL.D : '#fff'} stroke={CL.D} strokeWidth="3.5" />}
+                                {s.b !== null && <circle cx={xb} cy={cy} r="9" fill={s.bc ? CL.D : '#fff'} stroke={CL.D} strokeWidth="3.5" />}
+                            </g>
+                        );
+                    })}
+                </svg>
+            );
+        };
+
+        const Item4 = ({ nav, setReady, onReset }) => {
+            const [ex, setEx] = usePS('i4.ex', 0);
+            const [prog, setProg] = usePS('i4.prog', [0, 0, 0, 0]);
+            const done = (i) => prog[i] >= EX4[i].lines.length;
+            useEffect(() => { setReady([0, 1, 2, 3].every((i) => prog[i] >= EX4[i].lines.length)); }, [prog]);
+            const cur = EX4[ex];
+            const k = prog[ex];
+            const adv = () => setProg((p) => p.map((v, i) => (i === ex ? v + 1 : v)));
+            const RULES = [
+                { name: 'Дріб', tex: '\\dfrac{\\ldots}{A},\\ A\\neq 0' },
+                { name: 'Корінь', tex: '\\sqrt{A},\\ A\\geq 0' },
+                { name: 'Корінь у знаменнику', tex: '\\dfrac{\\ldots}{\\sqrt{A}},\\ A>0' }
+            ];
+
+            const left = (
+                <>
+                    <Def title="Якщо область визначення не вказано">
+                        Областю визначення функції є область визначення виразу, який входить до формули.
+                    </Def>
+                    <div className="space-y-1.5">
+                        {RULES.map((r, i) => (
+                            <div key={i} className={`rounded-xl bg-white border-2 px-3 py-1.5 shadow-sm flex items-center justify-between gap-3 font-semibold transition-all ${cur.rule === i ? 'ring-2' : ''}`}
+                                style={{ borderColor: RULE_COL[i] + (cur.rule === i ? '' : '55'), '--tw-ring-color': RULE_COL[i] + '55' }}>
+                                <span className="font-extrabold" style={{ color: RULE_COL[i] }}>{i + 1}) {r.name}</span>
+                                <span className="text-brand"><Latex math={r.tex} /></span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {EX4.map((e, i) => (
+                            <Chip key={i} active={ex === i} done={done(i)} onClick={() => setEx(i)}>
+                                <span className="font-extrabold">{'абвг'[i]})</span> <Latex math={e.f} />
+                            </Chip>
+                        ))}
+                    </div>
+                    <div className="space-y-1.5" key={ex}>
+                        {cur.lines.slice(0, k).map((ln, i) => (
+                            <div key={i} className={`rounded-xl px-3 py-1.5 font-semibold animate-fade-in border-2 ${ln.ans ? 'bg-emerald-50 border-emerald-400' : 'bg-white border-slate-200'}`}>
+                                {ln.txt && <p>{ln.txt}</p>}
+                                {ln.tex && <p className="text-center"><Latex math={ln.tex} /></p>}
+                                {ln.ans && <p className="text-center text-emerald-800"><span className="font-extrabold">Відповідь: </span><Latex math={ln.ans} /></p>}
+                            </div>
+                        ))}
+                    </div>
+                    {k < cur.lines.length && <DownBtn onClick={adv} />}
+                </>
+            );
+
+            const right = (
+                <div className="flex-1 min-h-0 flex flex-col justify-center gap-4 px-2">
+                    <div className="text-center text-brand text-[2.4rem] font-bold bg-white rounded-2xl border border-slate-200 shadow-sm py-5">
+                        <Latex math={cur.f} />
+                    </div>
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
+                        <NumLine segs={cur.segs} show={done(ex)} />
+                        <div className="h-[2.4rem] text-center font-bold text-[1.5rem]" style={{ color: CL.D }}>
+                            {done(ex) && <Latex math={cur.lines[cur.lines.length - 1].ans} />}
+                        </div>
+                    </div>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 5. Розв'язуємо письмово (завдання типу 7.1) — на весь екран
+        // =====================================================================
+        const F71 = (x) => -2 * x * x + 5 * x;
+        const W_TABS = [
+            { id: 0, name: '1) Значення функції', ask: 'Знайдіть f(1); f(0); f(1/2); f(−5).' },
+            { id: 1, name: '2) Значення аргументу', ask: 'Знайдіть значення x, при яких значення функції дорівнює 0; 2; −3.' },
+            { id: 2, name: '3) Чи правильна рівність', ask: 'Чи є правильною рівність f(−1) = 7; f(4) = −12?' }
+        ];
+        const W_CARDS = [
+            [
+                { h: 'f(1)', lines: ['f(1)=-2\\cdot1^2+5\\cdot1', '=-2+5'], ans: 'f(1)=3' },
+                { h: 'f(0)', lines: ['f(0)=-2\\cdot0^2+5\\cdot0'], ans: 'f(0)=0' },
+                { h: 'f(1/2)', lines: ['f\\left(\\dfrac{1}{2}\\right)=-2\\cdot\\left(\\dfrac{1}{2}\\right)^2+5\\cdot\\dfrac{1}{2}', '=-\\dfrac{1}{2}+\\dfrac{5}{2}'], ans: 'f\\left(\\dfrac{1}{2}\\right)=2' },
+                { h: 'f(−5)', lines: ['f(-5)=-2\\cdot(-5)^2+5\\cdot(-5)', '=-50-25'], ans: 'f(-5)=-75' }
+            ],
+            [
+                { h: 'f(x) = 0', lines: ['-2x^2+5x=0', 'x(-2x+5)=0'], ans: 'x=0\\ \\text{або}\\ x=2{,}5' },
+                { h: 'f(x) = 2', lines: ['-2x^2+5x=2', '2x^2-5x+2=0', 'D=25-16=9', 'x=\\dfrac{5\\pm3}{4}'], ans: 'x=2\\ \\text{або}\\ x=0{,}5' },
+                { h: 'f(x) = −3', lines: ['-2x^2+5x=-3', '2x^2-5x-3=0', 'D=25+24=49', 'x=\\dfrac{5\\pm7}{4}'], ans: 'x=3\\ \\text{або}\\ x=-0{,}5' }
+            ],
+            [
+                { h: 'f(−1) = 7 ?', lines: ['f(-1)=-2\\cdot(-1)^2+5\\cdot(-1)', '=-2-5'], ans: 'f(-1)=-7\\neq 7', bad: true },
+                { h: 'f(4) = −12 ?', lines: ['f(4)=-2\\cdot4^2+5\\cdot4', '=-32+20'], ans: 'f(4)=-12' }
+            ]
+        ];
+
+        const Item5 = ({ nav, setReady, onReset }) => {
+            const [tab, setTab] = usePS('i5.tab', 0);
+            const [prog, setProg] = usePS('i5.prog', [0, 0, 0]);
+            const total = (t) => W_CARDS[t].length;
+            const doneTab = (t) => prog[t] >= total(t);
+            useEffect(() => { setReady([0, 1, 2].every(doneTab)); }, [prog]);
+            const cards = W_CARDS[tab];
+            const k = prog[tab];
+            const [cur, setCur] = usePS('i5.cur', {});
+            const shownIdx = cur[tab] !== undefined ? cur[tab] : k - 1;
+            const adv = () => { setProg((p) => p.map((v, i) => (i === tab ? v + 1 : v))); setCur((m) => { const n = { ...m }; delete n[tab]; return n; }); };
+
+            return (
+                <FullLayout nav={nav} onReset={onReset}>
+                    <div className="max-w-5xl mx-auto space-y-2.5">
+                        <div className="rounded-xl border-2 border-brand/30 bg-white p-3 shadow-sm flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
+                            <div>
+                                <p className="text-brand font-extrabold">Завдання з підручника № 7.1</p>
+                                <p className="font-semibold text-slate-700">Функцію задано формулою</p>
+                            </div>
+                            <div className="text-brand text-[2rem] font-bold"><Latex math="f(x)=-2x^2+5x" /></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {W_TABS.map((t) => (
+                                <Chip key={t.id} active={tab === t.id} done={doneTab(t.id)} onClick={() => setTab(t.id)}>{t.name}</Chip>
+                            ))}
+                        </div>
+                        <p className="font-bold text-slate-700 px-1">{W_TABS[tab].ask}</p>
+                        <div className="max-w-2xl mx-auto space-y-2" key={tab}>
+                            {k > 1 && (
+                                <div className="flex flex-wrap gap-1.5 justify-center">
+                                    {cards.slice(0, k).map((c, i) => (
+                                        <button key={i} onClick={() => setCur((m) => ({ ...m, [tab]: i }))}
+                                            className={`px-2.5 min-h-[2rem] rounded-lg border-2 font-bold text-[0.9rem] cursor-pointer ${shownIdx === i ? 'bg-brandLight border-brand/40 text-brand' : 'bg-white border-slate-300 text-slate-600'}`}>
+                                            <i className="fa-solid fa-check text-emerald-600 mr-1"></i>{c.h}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {k > 0 && (() => { const c = cards[shownIdx]; return (
+                                <div key={shownIdx} className="rounded-xl bg-white border-2 border-slate-200 p-4 shadow-sm animate-fade-in font-semibold text-[1.3rem]">
+                                    <p className="font-extrabold mb-1" style={{ color: CL.brand }}>{c.h}</p>
+                                    <div className="space-y-1">
+                                        {c.lines.map((l, j) => <p key={j} className="text-slate-800 text-center"><Latex math={l} /></p>)}
+                                    </div>
+                                    <p className={`mt-2 rounded-lg px-2 py-1.5 border-2 text-center ${c.bad ? 'bg-red-50 border-red-400 text-red-800' : 'bg-emerald-50 border-emerald-400 text-emerald-800'}`}>
+                                        <i className={`fa-solid ${c.bad ? 'fa-circle-xmark' : 'fa-circle-check'} mr-2`}></i><Latex math={c.ans} />
+                                    </p>
+                                </div>
+                            ); })()}
+                        </div>
+                        {k < cards.length && <DownBtn onClick={adv} />}
+                    </div>
+                </FullLayout>
+            );
+        };
+
+        // =====================================================================
+        // 6. Розв'язуємо графічно (те саме завдання 7.1)
+        // =====================================================================
+        const solveB = (b) => {
+            const d = 25 - 8 * b;
+            if (d < 0) return [];
+            const r = Math.sqrt(d);
+            const q = [(5 - r) / 4, (5 + r) / 4].map((v) => Math.round(v * 1000) / 1000);
+            return q[0] === q[1] ? [q[0]] : q.sort((p, w) => p - w);
+        };
+        const VIEW_N = { u: 44, ox: 245, oy: 225, st: 1 };
+        const VIEW_Z = { u: 20, ox: 300, oy: 168, st: 5 };
+        const VIEW_F = { u: 4.5, ox: 300, oy: 60, st: 10 };
+        const T6 = [
+            { id: 'y1', g: 0, kind: 'y', a: 1, chip: 'f(1)' },
+            { id: 'y0', g: 0, kind: 'y', a: 0, chip: 'f(0)' },
+            { id: 'yh', g: 0, kind: 'y', a: 0.5, chip: 'f\\left(\\tfrac{1}{2}\\right)', name: 'f\\left(\\tfrac{1}{2}\\right)' },
+            { id: 'y5', g: 0, kind: 'y', a: -5, chip: 'f(-5)', far: true },
+            { id: 'x0', g: 1, kind: 'x', b: 0, chip: 'f(x)=0' },
+            { id: 'x2', g: 1, kind: 'x', b: 2, chip: 'f(x)=2' },
+            { id: 'x3', g: 1, kind: 'x', b: -3, chip: 'f(x)=-3' },
+            { id: 'e1', g: 2, kind: 'eq', a: -1, v: 7, chip: 'f(-1)=7\\,?' },
+            { id: 'e2', g: 2, kind: 'eq', a: 4, v: -12, chip: 'f(4)=-12\\,?' }
+        ];
+        const G6 = ['1) Знайдіть значення функції', '2) Знайдіть значення аргументу, при яких функція дорівнює', '3) Чи є правильною рівність'];
+
+        const Item6 = ({ nav, setReady, onReset }) => {
+            const [sel, setSel] = usePS('i6.sel', 'y1');
+            const [vis, setVis] = usePS('i6.vis', ['y1']);
+            useEffect(() => { setReady(vis.length === T6.length); }, [vis]);
+            const pick = (id) => { setSel(id); setVis((v) => (v.includes(id) ? v : [...v, id])); };
+            const T = T6.find((t) => t.id === sel);
+            const view = T.far ? VIEW_F : (T.kind === 'eq' ? VIEW_Z : VIEW_N);
+            const sol = T.kind === 'x' ? solveB(T.b) : [];
+            const fa = T.kind !== 'x' ? F71(T.a) : 0;
+            const steps = T.kind === 'x' ? [
+                { c: CL.E, t: <>Позначте <Latex math="b" /> на осі <Latex math="Oy" /></> },
+                { c: CL.pt, t: <>Проведіть горизонталь до графіка</> },
+                { c: CL.D, t: <>Опустіться до осі <Latex math="Ox" />: це шукані <Latex math="x" /></> }
+            ] : [
+                { c: CL.D, t: <>Позначте <Latex math="x" /> на осі <Latex math="Ox" /></> },
+                { c: CL.pt, t: <>Підніміться або опустіться до графіка</> },
+                { c: CL.E, t: <>Перейдіть до осі <Latex math="Oy" />: це <Latex math="f(x)" /></> }
+            ];
+            const aTex = T.kind !== 'x' ? tx(T.a) : '';
+            const aPar = T.kind !== 'x' && T.a < 0 ? '(' + aTex + ')' : aTex;
+
+            const left = (
+                <>
+                    <Card className="!p-2.5">
+                        <p className="text-brand font-extrabold">Завдання з підручника № 7.1</p>
+                        <p>Функцію задано формулою <Latex math="f(x)=-2x^2+5x" />. Розв’яжіть кожне завдання за графіком.</p>
+                    </Card>
+                    {[0, 1, 2].map((g) => (
+                        <div key={g} className="space-y-1">
+                            <p className="font-bold text-slate-700 text-[0.95rem]">{G6[g]}</p>
+                            <div className={`grid gap-1.5 ${g === 0 ? 'grid-cols-4' : g === 1 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                {T6.filter((t) => t.g === g).map((t) => (
+                                    <Chip key={t.id} active={sel === t.id} done={vis.includes(t.id)} onClick={() => pick(t.id)} className="!px-1.5"><Latex math={t.chip} /></Chip>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                    <Card className="space-y-1" key={sel}>
+                        <div className="space-y-1">
+                            {steps.map((s, i) => (
+                                <div key={i} className="flex items-center gap-2"><Badge n={i + 1} color={s.c} /><span>{s.t}</span></div>
+                            ))}
+                        </div>
+                        <div className="text-center pt-1">
+                            {T.kind === 'y' && <p className="text-[1.4rem] font-bold" style={{ color: CL.E }}><Latex math={`f(${aTex === '0{,}5' ? '\\dfrac{1}{2}' : aTex})=${tx(fa)}`} /></p>}
+                            {T.kind === 'x' && (sol.length ? <p className="text-[1.4rem] font-bold" style={{ color: CL.D }}><Latex math={sol.map((v) => 'x=' + tx(v)).join(';\\ ')} /></p> : <p style={{ color: CL.bad }}>розв’язків немає</p>)}
+                            {T.kind === 'eq' && (
+                                <p className="text-[1.3rem] font-bold" style={{ color: fa === T.v ? CL.ok : CL.bad }}>
+                                    <Latex math={`f(${aTex})=${tx(fa)}${fa === T.v ? '' : '\\neq ' + T.v}`} /> {fa === T.v ? '✓' : '✗'}
+                                </p>
+                            )}
+                            {T.far && <p className="text-slate-600 text-[0.9rem]">Масштаб зменшено, щоб показати точку.</p>}
+                            {T.kind === 'eq' && <p className="text-slate-600 text-[0.9rem]">Масштаб зменшено.</p>}
+                        </div>
+                    </Card>
+                </>
+            );
+
+            const right = (
+                <div className="flex-1 min-h-0">
+                    <Plane u={view.u} ox={view.ox} oy={view.oy} st={view.st}>
+                        {({ X, Y, ox, oy }) => {
+                            const r = T.far ? 6 : 8;
+                            const fs = T.far ? 20 : 19;
+                            return (
+                                <>
+                                    <path d={mkPath(F71, -30, 30, X, Y, view === VIEW_N ? 0.02 : 0.1, 95)} fill="none" stroke={CL.brand} strokeWidth="4.5" strokeLinecap="round" />
+                                    {T.kind === 'y' && (
+                                        <>
+                                            <line x1={X(T.a)} y1={oy} x2={X(T.a)} y2={Y(fa)} stroke={CL.D} strokeWidth="3" strokeDasharray="7,5" />
+                                            <line x1={ox} y1={Y(fa)} x2={X(T.a)} y2={Y(fa)} stroke={CL.E} strokeWidth="3" strokeDasharray="7,5" />
+                                            <circle cx={X(T.a)} cy={oy} r={r} fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                            <circle cx={ox} cy={Y(fa)} r={r} fill={CL.E} stroke="#fff" strokeWidth="2" />
+                                            <circle cx={X(T.a)} cy={Y(fa)} r={r + 2} fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                            <text x={X(T.a)} y={oy + (fa >= 0 ? 42 : -26)} textAnchor="middle" fontSize={fs} fontWeight="800" fill={CL.D} style={halo}>x = {fmt(T.a)}</text>
+                                            <text x={ox + (T.a <= 0 && T.a !== 0 ? 14 : -14)} y={Y(fa) - 12} textAnchor={T.a <= 0 && T.a !== 0 ? 'start' : 'end'} fontSize={fs} fontWeight="800" fill={CL.E} style={halo}>y = {fmt(fa)}</text>
+                                        </>
+                                    )}
+                                    {T.kind === 'x' && (
+                                        <>
+                                            <line x1={ox} y1={Y(T.b)} x2={PW - 4} y2={Y(T.b)} stroke={CL.E} strokeWidth="3" strokeDasharray="8,6" />
+                                            <circle cx={ox} cy={Y(T.b)} r={r} fill={CL.E} stroke="#fff" strokeWidth="2" />
+                                            <text x={ox - 14} y={Y(T.b) - 12} textAnchor="end" fontSize={fs} fontWeight="800" fill={CL.E} style={halo}>y = {fmt(T.b)}</text>
+                                            {sol.map((x, i) => (
+                                                <g key={i}>
+                                                    <line x1={X(x)} y1={Y(T.b)} x2={X(x)} y2={oy} stroke={CL.D} strokeWidth="3" strokeDasharray="7,5" />
+                                                    <circle cx={X(x)} cy={oy} r={r} fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                                    <circle cx={X(x)} cy={Y(T.b)} r={r + 2} fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                                    <text x={X(x)} y={oy + (T.b >= 0 ? 42 : -26)} textAnchor="middle" fontSize={fs} fontWeight="800" fill={CL.D} style={halo}>x = {fmt(x)}</text>
+                                                </g>
+                                            ))}
+                                        </>
+                                    )}
+                                    {T.kind === 'eq' && (
+                                        <>
+                                            <line x1={X(T.a)} y1={oy} x2={X(T.a)} y2={Y(fa)} stroke={CL.D} strokeWidth="3" strokeDasharray="7,5" />
+                                            <circle cx={X(T.a)} cy={oy} r="6" fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                            <circle cx={X(T.a)} cy={Y(fa)} r="8" fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                            <text x={X(T.a) + 14} y={Y(fa) + 5} fontSize="18" fontWeight="800" fill={CL.pt} style={halo}>f({fmt(T.a)}) = {fmt(fa)}</text>
+                                            {fa !== T.v && (
+                                                <>
+                                                    <circle cx={X(T.a)} cy={Y(T.v)} r="8" fill="#fff" stroke={CL.bad} strokeWidth="3.5" />
+                                                    <text x={X(T.a) + 14} y={Y(T.v) + 5} fontSize="18" fontWeight="800" fill={CL.bad} style={halo}>{fmt(T.v)} — не на графіку</text>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </>
+                            );
+                        }}
+                    </Plane>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 7. Читаємо графік: осі, область визначення, область значень
+        // =====================================================================
+        const N5 = [[-4, 2], [-2, -2], [0, 2], [3, -1], [5, 3]];
+
+        const Item7 = ({ nav, setReady, onReset }) => {
+            const [tab, setTab] = usePS('i7.tab', 'oy');
+            const [vis, setVis] = usePS('i7.vis', ['oy']);
+            useEffect(() => { setReady(vis.length === 4); }, [vis]);
+            const pick = (t) => { setTab(t); setVis((v) => (v.includes(t) ? v : [...v, t])); };
+            const tabs = [
+                { id: 'oy', name: 'Перетин з віссю Oy' },
+                { id: 'ox', name: 'Перетин з віссю Ox' },
+                { id: 'D', name: 'Область визначення' },
+                { id: 'E', name: 'Область значень' }
+            ];
+            const polyD = N5.map(([x, y], i) => (i ? 'L' : 'M') + (250 + x * 50) + ',' + (290 - y * 50)).join(' ');
+
+            const left = (
+                <>
+                    <div className="grid grid-cols-2 gap-2">
+                        {tabs.map((t) => <Chip key={t.id} active={tab === t.id} done={vis.includes(t.id)} onClick={() => pick(t.id)}>{t.name}</Chip>)}
+                    </div>
+                    {tab === 'oy' && (
+                        <div className="space-y-2 animate-fade-in">
+                            <Def title="Перетин з віссю Oy" color={CL.pt}>
+                                <p>Точки осі <Latex math="Oy" /> мають абсцису <Latex math="x=0" />.</p>
+                                <p>Шукаємо точку <Latex math="(0;\,f(0))" />.</p>
+                                <p className="text-center text-[1.5rem]" style={{ color: CL.pt }}><Latex math="(0;\,2)" /></p>
+                            </Def>
+                        </div>
+                    )}
+                    {tab === 'ox' && (
+                        <div className="space-y-2 animate-fade-in">
+                            <Def title="Перетин з віссю Ox" color={CL.E}>
+                                <p>Точки осі <Latex math="Ox" /> мають ординату <Latex math="y=0" />, тобто <Latex math="f(x)=0" />. Такі <Latex math="x" /> називають <b>нулями функції</b>.</p>
+                                <p className="text-center text-[1.4rem]" style={{ color: CL.E }}><Latex math="x=-3;\ -1;\ 2;\ 3{,}5" /></p>
+                            </Def>
+                        </div>
+                    )}
+                    {tab === 'D' && (
+                        <div className="space-y-2 animate-fade-in">
+                            <Def title="Область визначення" color={CL.D}>
+                                Проєкція графіка на вісь <Latex math="Ox" />: усі можливі <Latex math="x" />.
+                                <p className="text-center text-[1.5rem]" style={{ color: CL.D }}><Latex math="D(f)=[-4;\,5]" /></p>
+                            </Def>
+                        </div>
+                    )}
+                    {tab === 'E' && (
+                        <div className="space-y-2 animate-fade-in">
+                            <Def title="Область значень" color={CL.E}>
+                                Проєкція графіка на вісь <Latex math="Oy" />: усі можливі <Latex math="y" />.
+                                <p className="text-center text-[1.5rem]" style={{ color: CL.E }}><Latex math="E(f)=[-2;\,3]" /></p>
+                            </Def>
+                        </div>
+                    )}
+                </>
+            );
+
+            const right = (
+                <div className="flex-1 min-h-0">
+                    <Plane u={50} ox={250} oy={290}>
+                        {({ X, Y, ox, oy }) => (
+                            <>
+                                {tab === 'D' && (
+                                    <>
+                                        <line x1={X(-4)} y1={oy} x2={X(5)} y2={oy} stroke={CL.D} strokeWidth="9" opacity="0.7" strokeLinecap="round" />
+                                        <line x1={X(-4)} y1={oy} x2={X(-4)} y2={Y(2)} stroke={CL.D} strokeWidth="2" strokeDasharray="6,5" />
+                                        <line x1={X(5)} y1={oy} x2={X(5)} y2={Y(3)} stroke={CL.D} strokeWidth="2" strokeDasharray="6,5" />
+                                    </>
+                                )}
+                                {tab === 'E' && (
+                                    <>
+                                        <line x1={ox} y1={Y(-2)} x2={ox} y2={Y(3)} stroke={CL.E} strokeWidth="9" opacity="0.7" strokeLinecap="round" />
+                                        <line x1={ox} y1={Y(3)} x2={X(5)} y2={Y(3)} stroke={CL.E} strokeWidth="2" strokeDasharray="6,5" />
+                                        <line x1={ox} y1={Y(-2)} x2={X(-2)} y2={Y(-2)} stroke={CL.E} strokeWidth="2" strokeDasharray="6,5" />
+                                    </>
+                                )}
+                                <path d={polyD} fill="none" stroke={CL.brand} strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" />
+                                <circle cx={X(-4)} cy={Y(2)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                                <circle cx={X(5)} cy={Y(3)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                                {tab === 'oy' && (
+                                    <>
+                                        <circle cx={ox} cy={Y(2)} r="10" fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                        <text x={ox + 16} y={Y(2) - 12} fontSize="20" fontWeight="800" fill={CL.pt} style={halo}>(0; 2)</text>
+                                    </>
+                                )}
+                                {tab === 'ox' && [-3, -1, 2, 3.5].map((x) => (
+                                    <g key={x}>
+                                        <circle cx={X(x)} cy={oy} r="10" fill={CL.E} stroke="#fff" strokeWidth="2.5" />
+                                        <text x={X(x)} y={oy - 18} textAnchor="middle" fontSize="19" fontWeight="800" fill={CL.E} style={halo}>({fmt(x)}; 0)</text>
+                                    </g>
+                                ))}
+                            </>
+                        )}
+                    </Plane>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 8. Повторення: функції, які ми вже вивчали (з базовими точками)
+        // =====================================================================
+        const lineTex = (k, b) => {
+            if (k === 0) return `y=${b}`;
+            const kk = k === 1 ? '' : (k === -1 ? '-' : String(k));
+            const bb = b === 0 ? '' : (b > 0 ? `+${b}` : String(b));
+            return `y=${kk}x${bb}`;
+        };
+
+        const PLANES8 = [
+            { u: 40, ox: 300, oy: 250 },
+            { u: 40, ox: 300, oy: 250 },
+            { u: 30, ox: 300, oy: 340 },
+            { u: 40, ox: 70, oy: 300 }
+        ];
+        const XS8 = [[-1, 0, 1], [-4, -2, -1, 1, 2, 4], [-3, -2, -1, 0, 1, 2, 3], [0, 1, 4, 9]];
+
+        const Item8 = ({ nav, setReady, onReset }) => {
+            const [w, setW] = usePS('i8.w', 0);
+            const [vis, setVis] = usePS('i8.vis', [0]);
+            const [k, setK] = usePS('i8.k', 2);
+            const [b, setB] = usePS('i8.b', -1);
+            const [hk, setHk] = usePS('i8.hk', 2);
+            const [hi, setHi] = usePS('i8.hi', 1);
+            useEffect(() => { setReady(vis.length === 4); }, [vis]);
+            const pick = (i) => { setW(i); setHi(i === 0 ? 1 : 0); setVis((v) => (v.includes(i) ? v : [...v, i])); };
+            const names = ['Пряма', 'Гіпербола', 'Парабола', 'Вітка параболи'];
+            const D = ['(-\\infty;\\,+\\infty)', '(-\\infty;\\,0)\\cup(0;\\,+\\infty)', '(-\\infty;\\,+\\infty)', '[0;\\,+\\infty)'];
+            const E = [k !== 0 ? '(-\\infty;\\,+\\infty)' : `\\{${b}\\}`, '(-\\infty;\\,0)\\cup(0;\\,+\\infty)', '[0;\\,+\\infty)', '[0;\\,+\\infty)'];
+            const forms = [lineTex(k, b), `y=\\dfrac{${hk}}{x}`, 'y=x^2', 'y=\\sqrt{x}'];
+            const btnTex = ['y=kx+b', 'y=\\dfrac{k}{x}', 'y=x^2', 'y=\\sqrt{x}'];
+            const fs = [(x) => k * x + b, (x) => hk / x, (x) => x * x, Math.sqrt];
+            const f = fs[w];
+            const xs = XS8[w];
+            const ys = xs.map(f);
+            const K7 = [-3, -2, -1, 0, 1, 2, 3];
+            const cellBase = 'py-1 px-1.5 border border-slate-300 text-center cursor-pointer';
+
+            const left = (
+                <>
+                    <p className="font-extrabold text-brand text-[1.15rem]"><i className="fa-solid fa-rotate-left mr-2"></i>Повторення</p>
+                    <div className="grid grid-cols-2 gap-2">
+                        {btnTex.map((t, i) => <Chip key={i} active={w === i} done={vis.includes(i)} onClick={() => pick(i)}><Latex math={t} /></Chip>)}
+                    </div>
+                    <div className="rounded-xl bg-white border-2 border-brand/30 p-2.5 shadow-sm space-y-0.5 font-semibold animate-fade-in" key={w}>
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="text-brand font-extrabold">Графік — {names[w].toLowerCase()}</p>
+                            <p className="text-brand text-[1.15rem]"><Latex math={forms[w]} /></p>
+                        </div>
+                        <div className="flex flex-wrap gap-x-5">
+                            <span style={{ color: CL.D }}><Latex math={`D(y)=${D[w]}`} /></span>
+                            <span style={{ color: CL.E }}><Latex math={`E(y)=${E[w]}`} /></span>
+                        </div>
+                        {w === 0 && <p className="text-slate-600 text-[0.9rem]">При <Latex math="k=0" /> область значень складається з одного числа <Latex math="b" />.</p>}
+                        {w === 1 && <p className="text-slate-600 text-[0.9rem]"><Latex math="k\neq 0" />. Гілки в I і III чвертях при <Latex math="k>0" />, у II і IV — при <Latex math="k<0" />.</p>}
+                    </div>
+                    {w === 0 && (
+                        <Card className="space-y-0.5">
+                            <p className="font-bold"><Latex math="k" /> — нахил: <Latex math={`k=${k}`} /></p>
+                            <ValSlider vals={K7} idx={K7.indexOf(k)} onChange={(i) => setK(K7[i])} color={CL.pt} />
+                            <p className="font-bold"><Latex math="b" /> — перетин з <Latex math="Oy" />: <Latex math={`b=${b}`} /></p>
+                            <ValSlider vals={K7} idx={K7.indexOf(b)} onChange={(i) => setB(K7[i])} color={CL.pt} />
+                        </Card>
+                    )}
+                    {w === 1 && (
+                        <Card className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold">Оберіть <Latex math="k" />:</span>
+                            {[-4, -2, 2, 4].map((v) => <Chip key={v} active={hk === v} onClick={() => { setHk(v); setHi(0); }}><Latex math={String(v)} /></Chip>)}
+                        </Card>
+                    )}
+                    <Card className="!p-2">
+                        <table className="w-full border-collapse bg-white">
+                            <tbody>
+                                <tr className="bg-brandLight/60">
+                                    <td className={cellBase + ' font-bold'} style={{ color: CL.D }}><Latex math="x" /></td>
+                                    {xs.map((x, i) => <td key={i} onClick={() => setHi(i)} className={cellBase + (hi === i ? ' bg-orange-200' : '')}><Latex math={tx(x)} /></td>)}
+                                </tr>
+                                <tr>
+                                    <td className={cellBase + ' font-bold'} style={{ color: CL.E }}><Latex math="y" /></td>
+                                    {ys.map((y, i) => <td key={i} onClick={() => setHi(i)} className={cellBase + (hi === i ? ' bg-orange-200' : '')}><Latex math={tx(y)} /></td>)}
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p className="text-slate-600 text-[0.9rem] mt-1"><i className="fa-solid fa-hand-pointer text-colPt mr-2"></i>{w === 0 ? 'Базові точки: x = 0 (перетин з Oy, помаранчева) і ще дві. Натисніть на стовпчик.' : 'Базові точки з таблиці. Натисніть на стовпчик.'}</p>
+                    </Card>
+                </>
+            );
+
+            const pl = PLANES8[w];
+            const right = (
+                <div className="flex-1 min-h-0">
+                    <Plane u={pl.u} ox={pl.ox} oy={pl.oy}>
+                        {({ X, Y, ox, oy }) => {
+                            let d = '';
+                            if (w === 0) d = mkPath(fs[0], -12, 12, X, Y, 0.1, 30);
+                            if (w === 1) d = mkPath(fs[1], -12, 12, X, Y, 0.02, 9);
+                            if (w === 2) d = mkPath(fs[2], -12, 12, X, Y, 0.05, 30);
+                            if (w === 3) d = mkPath(fs[3], 0, 14, X, Y, 0.02, 30);
+                            return (
+                                <>
+                                    <path key={w + '-' + k + '-' + b + '-' + hk} d={d} fill="none" stroke={CL.brand} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="animate-fade-in" />
+                                    {hi !== null && hi < xs.length && (
+                                        <>
+                                            <line x1={X(xs[hi])} y1={oy} x2={X(xs[hi])} y2={Y(ys[hi])} stroke={CL.D} strokeWidth="2.5" strokeDasharray="6,5" />
+                                            <line x1={ox} y1={Y(ys[hi])} x2={X(xs[hi])} y2={Y(ys[hi])} stroke={CL.E} strokeWidth="2.5" strokeDasharray="6,5" />
+                                        </>
+                                    )}
+                                    {xs.map((x, i) => {
+                                        const y = ys[i];
+                                        const px = X(x), py = Y(y);
+                                        if (px < 6 || px > PW - 6 || py < 6 || py > PH - 6) return null;
+                                        const special = w === 0 && x === 0;
+                                        return (
+                                            <g key={w + '-' + i} onClick={() => setHi(i)} className="cursor-pointer">
+                                                <circle cx={px} cy={py} r={hi === i ? 8 : 5.5} fill={special || hi === i ? CL.pt : '#fff'} stroke={special || hi === i ? '#fff' : CL.pt} strokeWidth={special || hi === i ? 2 : 3} />
+                                            </g>
+                                        );
+                                    })}
+                                </>
+                            );
+                        }}
+                    </Plane>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 9. Функція, задана кількома формулами: будуємо графік по частинах
+        // =====================================================================
+        const f7 = (x) => (x < 1 ? x + 2 : (x <= 3 ? 1 : x - 2));
+        const rule7 = (x) => (x < 1 ? 0 : (x <= 3 ? 1 : 2));
+        const PIECES = [
+            { tex: 'x+2,\\ x<1', f: (x) => x + 2, a: -5.4, b: 1, xs: [-4, -2, 0, 1], open: [3] },
+            { tex: '1,\\ 1\\leq x\\leq 3', f: () => 1, a: 1, b: 3, xs: [1, 2, 3], open: [] },
+            { tex: 'x-2,\\ x>3', f: (x) => x - 2, a: 3, b: 7, xs: [3, 4, 5, 6], open: [0] }
+        ];
+        const X9 = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
+
+        const Item9 = ({ nav, setReady, onReset }) => {
+            const [n, setN] = usePS('i9.n', 0);
+            const [sel, setSel] = usePS('i9.sel', 0);
+            const [ix, setIx] = usePS('i9.ix', 2);
+            useEffect(() => { setReady(n >= 3); }, [n]);
+            const click = (i) => {
+                if (i === n) { setN(n + 1); setSel(i); }
+                else if (i < n) setSel(i);
+            };
+            const x = X9[ix];
+            const r = rule7(x);
+            const y = f7(x);
+            const calc = [`f(${tx(x)})=${tx(x)}+2=${tx(y)}`, `f(${tx(x)})=1`, `f(${tx(x)})=${tx(x)}-2=${tx(y)}`][r];
+            const P = PIECES[sel];
+            const built = n >= 3;
+            const openMark = (i) => P.open.includes(i);
+
+            const left = (
+                <>
+                    <Def title="Функція, задана кількома формулами">
+                        Для кожного значення <Latex math="x" /> обирають ту формулу, у чий проміжок воно потрапляє.
+                    </Def>
+                    <Card>
+                        <div className="flex items-stretch gap-2">
+                            <span className="text-brand font-serif self-center text-[1.5rem] shrink-0"><Latex math="f(x)=" /></span>
+                            <svg viewBox="0 0 20 100" preserveAspectRatio="none" className="w-3 shrink-0">
+                                <path d="M18 1 Q8 1 8 13 L8 37 Q8 50 1 50 Q8 50 8 63 L8 87 Q8 99 18 99" fill="none" stroke={CL.brand} strokeWidth="3" vectorEffect="non-scaling-stroke" />
+                            </svg>
+                            <div className="flex-1 space-y-1">
+                                {PIECES.map((p, i) => {
+                                    const enabled = i <= n;
+                                    const active = built ? r === i : (i < n && sel === i);
+                                    return (
+                                        <button key={i} onClick={() => click(i)} disabled={!enabled}
+                                            className={`w-full text-left rounded-lg px-2 py-1 border-2 transition-colors flex items-center justify-between gap-2 ${enabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'} ${i === n && !built ? 'animate-pulse' : ''}`}
+                                            style={{ borderColor: enabled ? PC[i] : '#CBD5E1', background: active ? PC[i] + '22' : '#fff', color: enabled ? PC[i] : '#64748B' }}>
+                                            <Latex math={p.tex} />
+                                            {i < n && <i className="fa-solid fa-check"></i>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        {!built && <p className="mt-1.5 text-slate-600"><i className="fa-solid fa-hand-pointer text-colPt mr-2"></i>Натисніть на {['першу', 'другу', 'третю'][n]} частину функції</p>}
+                    </Card>
+                    {n >= 1 && (
+                        <Card className="!p-2 animate-fade-in" key={sel}>
+                            <table className="w-full border-collapse">
+                                <tbody>
+                                    <tr style={{ background: PC[sel] + '22' }}>
+                                        <td className="py-1 px-1.5 border border-slate-300 text-center font-bold" style={{ color: CL.D }}><Latex math="x" /></td>
+                                        {P.xs.map((xx, i) => <td key={i} className="py-1 px-1.5 border border-slate-300 text-center"><Latex math={tx(xx)} /></td>)}
+                                    </tr>
+                                    <tr>
+                                        <td className="py-1 px-1.5 border border-slate-300 text-center font-bold" style={{ color: CL.E }}><Latex math="y" /></td>
+                                        {P.xs.map((xx, i) => (
+                                            <td key={i} className="py-1 px-1.5 border border-slate-300 text-center font-bold" style={{ color: PC[sel] }}>
+                                                {openMark(i) ? '○ ' : ''}<Latex math={tx(P.f(xx))} />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {P.open.length > 0 && <p className="text-slate-600 text-[0.9rem] mt-1">○ — точка не належить графіку (знак нерівності строгий).</p>}
+                        </Card>
+                    )}
+                    {built && (
+                        <Card className="text-center space-y-0.5">
+                            <p className="font-bold" style={{ color: CL.D }}><Latex math={`x=${tx(x)}`} /></p>
+                            <p className="text-[1.4rem] font-bold" style={{ color: PC[r] }}><Latex math={calc} /></p>
+                        </Card>
+                    )}
+                    {built && (
+                        <Key>
+                            Щоб знайти <Latex math="f(a)" />, визначте, у який проміжок потрапляє <Latex math="a" />, і підставте його у відповідну формулу.
+                        </Key>
+                    )}
+                </>
+            );
+
+            const right = (
+                <>
+                    <div className="flex-1 min-h-0">
+                        <Plane u={50} ox={270} oy={300}>
+                            {({ X, Y, oy }) => (
+                                <>
+                                    {PIECES.map((p, i) => i < n && (
+                                        <line key={'l' + i} x1={X(p.a)} y1={Y(p.f(p.a))} x2={X(p.b)} y2={Y(p.f(p.b))} stroke={PC[i]} strokeWidth={sel === i ? 7 : 5} strokeLinecap="round" opacity={built && r !== i ? 0.55 : 1} className="animate-fade-in" />
+                                    ))}
+                                    {[true, false].map((openPass) => PIECES.map((p, i) => i < n && p.xs.map((xx, j) => {
+                                        const op = p.open.includes(j);
+                                        if (op !== openPass) return null;
+                                        return (
+                                            <circle key={'c' + openPass + i + j} cx={X(xx)} cy={Y(p.f(xx))} r={sel === i ? 6 : 5} fill={op ? '#fff' : PC[i]} stroke={op ? PC[i] : '#fff'} strokeWidth={op ? 3 : 1.5} />
+                                        );
+                                    })))}
+                                    {built && (
+                                        <>
+                                            <line x1={X(x)} y1={oy} x2={X(x)} y2={Y(y)} stroke={CL.D} strokeWidth="2.5" strokeDasharray="6,5" />
+                                            <circle cx={X(x)} cy={oy} r="7" fill={CL.D} stroke="#fff" strokeWidth="2" />
+                                            <circle cx={X(x)} cy={Y(y)} r="10" fill={CL.pt} stroke="#fff" strokeWidth="2.5" />
+                                            <text x={x > 3 ? X(x) - 14 : X(x) + 14} y={Y(y) - 14} textAnchor={x > 3 ? 'end' : 'start'} fontSize="19" fontWeight="800" fill={CL.pt} style={halo}>({fmt(x)}; {fmt(y)})</text>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </Plane>
+                    </div>
+                    {built && (
+                        <div className="shrink-0 pt-1">
+                            <ValSlider vals={X9} idx={ix} onChange={setIx} color={CL.D} />
+                        </div>
+                    )}
+                </>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 10. Закріплення
+        // =====================================================================
+        const SYS7 = 'f(x)=\\begin{cases} x+2, & x<1,\\\\ 1, & 1\\leq x\\leq 3,\\\\ x-2, & x>3. \\end{cases}';
+        const TASKS = [
+            { q: 'Функцію задано формулою', f: 'f(x)=x^2-3x', ask: 'Знайдіть f(−2).', opts: ['-10', '10', '-2', '2'], ok: 1 },
+            { q: 'Знайдіть область визначення функції', f: 'y=\\dfrac{7}{x-4}', opts: ['(4;\\,+\\infty)', '(-\\infty;\\,-4)\\cup(-4;\\,+\\infty)', '(-\\infty;\\,+\\infty)', '(-\\infty;\\,4)\\cup(4;\\,+\\infty)'], ok: 3 },
+            { q: 'Знайдіть область визначення функції', f: 'y=\\sqrt{x+2}', opts: ['[-2;\\,+\\infty)', '(-2;\\,+\\infty)', '[2;\\,+\\infty)', '(-\\infty;\\,-2]'], ok: 0 },
+            { q: 'Знайдіть область значень функції', f: 'y=x^2+3', opts: ['(-\\infty;\\,+\\infty)', '[0;\\,+\\infty)', '[3;\\,+\\infty)', '(3;\\,+\\infty)'], ok: 2 },
+            { q: 'Функцію задано формулами', f: SYS7, ask: 'Знайдіть f(1) + f(4).', opts: ['5', '3', '2', '4'], ok: 1 },
+            { q: 'На рисунку зображено графік функції. Знайдіть її область визначення.', graph: true, opts: ['[-4;\\,5]', '[-2;\\,3]', '(-4;\\,5)', '[-4;\\,3]'], ok: 0 },
+            { q: 'На рисунку зображено графік функції. Знайдіть її область значень.', graph: true, opts: ['[-4;\\,5]', '[-2;\\,3]', '[-2;\\,2]', '[-4;\\,3]'], ok: 1 }
+        ];
+        const LET = ['А', 'Б', 'В', 'Г'];
+
+        const Item10 = ({ nav, setReady, onReset }) => {
+            const [i, setI] = usePS('i10.i', 0);
+            const [bad, setBad] = usePS('i10.bad', []);
+            const [solved, setSolved] = usePS('i10.solved', false);
+            const lastIdx = TASKS.length - 1;
+            useEffect(() => { setReady(i === lastIdx && solved); }, [i, solved]);
+            const t = TASKS[i];
+            const choose = (j) => {
+                if (solved || bad.includes(j)) return;
+                if (j === t.ok) setSolved(true); else setBad((b) => [...b, j]);
+            };
+            const goNext = () => {
+                if (i < lastIdx) { setI(i + 1); setBad([]); setSolved(false); }
+            };
+            const polyD = N5.map(([x, y], k) => (k ? 'L' : 'M') + (250 + x * 50) + ',' + (290 - y * 50)).join(' ');
+
+            const left = (
+                <>
+                    <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-brandLight text-brand font-extrabold">№ {i + 1}</span>
+                        <span className="text-slate-500 font-bold">{i + 1} / {TASKS.length}</span>
+                    </div>
+                    <p className="font-bold">{t.q}{t.ask ? ' ' + t.ask : ''}</p>
+                    <div className="space-y-2" key={i}>
+                        {t.opts.map((o, j) => {
+                            const isBad = bad.includes(j);
+                            const isOk = solved && j === t.ok;
+                            return (
+                                <button key={j} onClick={() => choose(j)} disabled={isBad || solved}
+                                    className={`w-full min-h-[2.8rem] rounded-xl border-2 px-3 py-1.5 flex items-center gap-3 font-semibold text-left transition-all ${isOk ? 'border-emerald-500 bg-emerald-50' : isBad ? 'border-red-400 bg-red-50 opacity-70 cursor-not-allowed' : 'border-slate-300 bg-white hover:border-brand cursor-pointer active:scale-[0.99]'}`}>
+                                    <span className="w-8 h-8 rounded-full bg-brandLight text-brand font-extrabold flex items-center justify-center shrink-0">{LET[j]}</span>
+                                    <Latex math={o} />
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {bad.length > 0 && !solved && <p className="rounded-xl border-2 border-red-400 bg-red-50 p-2 font-bold text-red-800 animate-fade-in">Неправильно. Спробуйте інший варіант.</p>}
+                    {solved && (
+                        <div className="space-y-2 animate-fade-in">
+                            <p className="rounded-xl border-2 border-emerald-400 bg-emerald-50 p-2 font-bold text-emerald-800">Правильно!</p>
+                            {i < lastIdx && (
+                                <button onClick={goNext} className="min-h-[2.6rem] px-5 rounded-full border border-brand/40 bg-brandLight text-brand font-semibold shadow-md cursor-pointer active:scale-95">
+                                    Наступне завдання →
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </>
+            );
+
+            const right = t.graph ? (
+                <div className="flex-1 min-h-0">
+                    <Plane u={50} ox={250} oy={290}>
+                        {({ X, Y }) => (
+                            <>
+                                <path d={polyD} fill="none" stroke={CL.brand} strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" />
+                                <circle cx={X(-4)} cy={Y(2)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                                <circle cx={X(5)} cy={Y(3)} r="6" fill={CL.brand} stroke="#fff" strokeWidth="2" />
+                            </>
+                        )}
+                    </Plane>
+                </div>
+            ) : (
+                <div className="flex-1 min-h-0 flex items-center justify-center px-2">
+                    <div className="text-center text-brand text-[2.4rem] font-bold bg-white rounded-2xl border border-slate-200 shadow-sm py-6 px-4 w-full">
+                        <Latex math={t.f} block={true} />
+                    </div>
+                </div>
+            );
+            return <Layout left={left} right={right} nav={nav} onReset={onReset} />;
+        };
+
+        // =====================================================================
+        // 11. Завдання з підручника (послідовні розв'язання, можна переходити й пропускати)
+        // =====================================================================
+        const FIG76 = "data:image/png;base64,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";
+
+        const Flag = ({ children }) => (
+            <span className="inline-block ml-2 text-[0.78rem] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 align-middle">{children}</span>
+        );
+        const MiniTable = ({ xs, ys, hl = [] }) => {
+            const c = 'py-1 px-2 border border-slate-300 text-center';
+            return (
+                <div className="overflow-x-auto no-scrollbar">
+                    <table className="border-collapse bg-white mx-auto">
+                        <tbody>
+                            <tr className="bg-brandLight/60">
+                                <td className={c + ' font-bold'} style={{ color: CL.D }}><Latex math="x" /></td>
+                                {xs.map((v, i) => <td key={i} className={c + (hl.includes('x' + i) ? ' bg-orange-200 font-bold' : '')}>{v === '' ? '  ' : <Latex math={v} />}</td>)}
+                            </tr>
+                            <tr>
+                                <td className={c + ' font-bold'} style={{ color: CL.E }}><Latex math="y" /></td>
+                                {ys.map((v, i) => <td key={i} className={c + (hl.includes('y' + i) ? ' bg-orange-200 font-bold' : '')}>{v === '' ? '  ' : <Latex math={v} />}</td>)}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+        const L = ({ t }) => <Latex math={t} />;
+        const G10 = ['#DB2777', '#CA8A04', '#4D7C0F', '#1D4ED8'];
+        const F10 = [(x) => -2 * x + 3, (x) => -x / 4, () => 3, (x) => -6 / x];
+        const PTS10 = [[[0, 3], [1, 1]], [[0, 0], [4, -1]], [[0, 3], [2, 3]], [[-6, 1], [-3, 2], [-2, 3], [-1, 6], [1, -6], [2, -3], [3, -2], [6, -1]]];
+        const Dot = ({ cx, cy, c, r = 5 }) => <circle cx={cx} cy={cy} r={r} fill={c} stroke="#fff" strokeWidth="1.8" />;
+
+        // малюнок 7.1 з підручника + підсвічування (координати рисунка: вісь x — 174, вісь y — 136, одиниця — 34,66)
+        const FU = 34.66, FX = (x) => 174 + x * FU, FY = (y) => 136 - y * FU;
+        const Fig76 = ({ ov }) => (
+            <svg viewBox="0 0 417 269" className="w-full bg-white rounded-xl border border-slate-200 shadow-sm select-none">
+                <image href={FIG76} x="0" y="0" width="417" height="269" />
+                {ov && ov.type === 'y' && (
+                    <g>
+                        <line x1={FX(ov.a)} y1={FY(0)} x2={FX(ov.a)} y2={FY(ov.v)} stroke={CL.D} strokeWidth="2" strokeDasharray="5,4" />
+                        <line x1={FX(0)} y1={FY(ov.v)} x2={FX(ov.a)} y2={FY(ov.v)} stroke={CL.E} strokeWidth="2" strokeDasharray="5,4" />
+                        <Dot cx={FX(ov.a)} cy={FY(0)} c={CL.D} r={4.5} />
+                        <Dot cx={FX(0)} cy={FY(ov.v)} c={CL.E} r={4.5} />
+                        <Dot cx={FX(ov.a)} cy={FY(ov.v)} c={CL.pt} r={5.5} />
+                    </g>
+                )}
+                {ov && ov.type === 'x' && (
+                    <g>
+                        <line x1={FX(0)} y1={FY(ov.b)} x2={410} y2={FY(ov.b)} stroke={CL.E} strokeWidth="2" strokeDasharray="5,4" />
+                        <Dot cx={FX(0)} cy={FY(ov.b)} c={CL.E} r={4.5} />
+                        {ov.xs.map((x, i) => (
+                            <g key={i}>
+                                <line x1={FX(x)} y1={FY(ov.b)} x2={FX(x)} y2={FY(0)} stroke={CL.D} strokeWidth="2" strokeDasharray="5,4" />
+                                <Dot cx={FX(x)} cy={FY(0)} c={CL.D} r={4.5} />
+                                <Dot cx={FX(x)} cy={FY(ov.b)} c={CL.pt} r={5.5} />
+                            </g>
+                        ))}
+                    </g>
+                )}
+                {ov && ov.type === 'E' && (
+                    <g>
+                        <line x1={FX(0)} y1={FY(-2.5)} x2={FX(0)} y2={FY(3)} stroke={CL.E} strokeWidth="7" opacity="0.65" strokeLinecap="round" />
+                        <line x1={FX(-2)} y1={FY(3)} x2={FX(0)} y2={FY(3)} stroke={CL.E} strokeWidth="1.8" strokeDasharray="5,4" />
+                        <line x1={FX(0)} y1={FY(-2.5)} x2={FX(5)} y2={FY(-2.5)} stroke={CL.E} strokeWidth="1.8" strokeDasharray="5,4" />
+                    </g>
+                )}
+            </svg>
+        );
+
+        const f12a = (x) => 9 - x * x;
+        const f12b = (x) => x * x + 2 * x - 3;
+        const f19a = (x) => 5 - x * x;
+        const f19c = (x) => Math.abs(x) + 2;
+
+        const TB = [
+            {
+                id: '7.3',
+                stmt: <div className="space-y-1">
+                    <p>Кожному натуральному числу, більшому за 10, але меншому від 20, поставили у відповідність остачу при діленні цього числа на 5.</p>
+                    <p>1) Яким способом задано цю функцію?</p>
+                    <p>2) Яка область значень цієї функції?</p>
+                    <p>3) Задайте цю функцію таблично.</p>
+                </div>,
+                steps: [
+                    { hp: '1) ', h: 'Спосіб задання', txt: 'Функцію задано описово: словами.' },
+                    { hp: '3) ', h: 'Таблиця', lines: ['11=5\\cdot2+1', '15=5\\cdot3+0', '19=5\\cdot3+4'],
+                      extra: <MiniTable xs={['11', '12', '13', '14', '15', '16', '17', '18', '19']} ys={['1', '2', '3', '4', '0', '1', '2', '3', '4']} /> },
+                    { hp: '2) ', h: 'Область значень', txt: 'У нижньому рядку таблиці різні числа:', ans: 'E(f)=\\{0;\\,1;\\,2;\\,3;\\,4\\}' }
+                ]
+            },
+            {
+                id: '7.4',
+                stmt: <div className="space-y-1">
+                    <p>Функцію задано формулою <L t="y=0{,}4x-2" />. Заповніть таблицю відповідних значень <L t="x" /> і <L t="y" />.</p>
+                </div>,
+                steps: [
+                    { lines: ['x=2:\\ y=0{,}4\\cdot2-2=0{,}8-2'], ans: 'y=-1{,}2' },
+                    { lines: ['x=-2{,}5:\\ y=0{,}4\\cdot(-2{,}5)-2=-1-2'], ans: 'y=-3' },
+                    { lines: ['y=-2:\\ 0{,}4x-2=-2', '0{,}4x=0'], ans: 'x=0' },
+                    { lines: ['y=0{,}8:\\ 0{,}4x-2=0{,}8', '0{,}4x=2{,}8', 'x=2{,}8:0{,}4'], ans: 'x=7' }
+                ],
+                vis: (k) => (
+                    <MiniTable xs={['2', '-2{,}5', k >= 3 ? '0' : '', k >= 4 ? '7' : '']} ys={[k >= 1 ? '-1{,}2' : '', k >= 2 ? '-3' : '', '-2', '0{,}8']}
+                        hl={['y0', 'y1', 'x2', 'x3'].slice(k - 1, k)} />
+                )
+            },
+            {
+                id: '7.6',
+                stmt: <div className="space-y-1">
+                    <p>На рисунку 7.1 зображено графік функції <L t="y=f(x)" />, визначеної на проміжку <L t="[-4;\,5]" />. Користуючись графіком, знайдіть:</p>
+                    <p>1) <L t="f(-3{,}5);\ f(-2{,}5);\ f(-1);\ f(2)" />;</p>
+                    <p>2) значення <L t="x" />, при яких <L t="f(x)=-2{,}5;\ f(x)=-2;\ f(x)=0;\ f(x)=2" />;</p>
+                    <p>3) область значень функції.</p>
+                </div>,
+                steps: [
+                    { hp: '1) ', hx: 'f(-3{,}5)', ans: 'f(-3{,}5)=-0{,}5', ov: { type: 'y', a: -3.5, v: -0.5 } },
+                    { hx: 'f(-2{,}5)', ans: 'f(-2{,}5)=2', ov: { type: 'y', a: -2.5, v: 2 } },
+                    { hx: 'f(-1)', ans: 'f(-1)=0', ov: { type: 'y', a: -1, v: 0 } },
+                    { hx: 'f(2)', ans: 'f(2)=-1', ov: { type: 'y', a: 2, v: -1 } },
+                    { hp: '2) ', hx: 'f(x)=-2{,}5', ans: 'x=5', ov: { type: 'x', b: -2.5, xs: [5] } },
+                    { hx: 'f(x)=-2', ans: 'x=3{,}5', ov: { type: 'x', b: -2, xs: [3.5] } },
+                    { hx: 'f(x)=0', ans: 'x=-3;\\ -1;\\ 1{,}5', ov: { type: 'x', b: 0, xs: [-3, -1, 1.5] } },
+                    { hx: 'f(x)=2', ans: 'x=-2{,}5;\\ -1{,}5;\\ 0', ov: { type: 'x', b: 2, xs: [-2.5, -1.5, 0] } },
+                    { hp: '3) ', h: 'Область значень', txt: 'Проєкція графіка на вісь Oy: від найнижчої точки до найвищої.', ans: 'E(f)=[-2{,}5;\\,3]', ov: { type: 'E' } }
+                ],
+                vis: (k, st) => <Fig76 ov={k > 0 ? st[k - 1].ov : null} />
+            },
+            {
+                id: '7.10',
+                stmt: <div className="space-y-1">
+                    <p>Побудуйте графік функції:</p>
+                    <p>1) <L t="f(x)=-2x+3" />; 2) <L t="f(x)=-\dfrac{1}{4}x" /></p>
+                    <p>3) <L t="f(x)=3" />; 4) <L t="f(x)=-\dfrac{6}{x}" />.</p>
+                </div>,
+                steps: [
+                    { hp: '1) ', hx: 'f(x)=-2x+3', txt: 'Це лінійна функція, її графік — пряма. Достатньо двох точок.',
+                      extra: <MiniTable xs={['0', '1']} ys={['3', '1']} /> },
+                    { hp: '2) ', hx: 'f(x)=-\\dfrac{1}{4}x', txt: 'Графік — пряма, k < 0, b = 0: пряма проходить через початок координат. Для зручності беремо x, кратні 4.',
+                      extra: <MiniTable xs={['0', '4']} ys={['0', '-1']} /> },
+                    { hp: '3) ', hx: 'f(x)=3', txt: 'Тут k = 0: при будь-якому x значення функції дорівнює 3. Графік — горизонтальна пряма.',
+                      extra: <MiniTable xs={['0', '2']} ys={['3', '3']} /> },
+                    { hp: '4) ', hx: 'f(x)=-\\dfrac{6}{x}', txt: 'Це обернена пропорційність, k < 0: гілки гіперболи в II і IV чвертях.',
+                      extra: <MiniTable xs={['-6', '-3', '-2', '-1', '1', '2', '3', '6']} ys={['1', '2', '3', '6', '-6', '-3', '-2', '-1']} /> }
+                ],
+                vis: (k) => (
+                    <div style={{ height: 'min(24rem,46dvh)' }}>
+                        <Plane u={36} ox={300} oy={250}>
+                            {({ X, Y }) => k > 0 ? (
+                                <>
+                                    <path d={mkPath(F10[k - 1], -9, 9, X, Y, k === 4 ? 0.02 : 0.1, 7)} fill="none" stroke={G10[k - 1]} strokeWidth="4" strokeLinecap="round" className="animate-fade-in" />
+                                    {PTS10[k - 1].map(([x, y], i) => <Dot key={i} cx={X(x)} cy={Y(y)} c={CL.pt} r={5} />)}
+                                </>
+                            ) : null}
+                        </Plane>
+                    </div>
+                )
+            },
+            {
+                id: '7.12',
+                stmt: <div className="space-y-1">
+                    <p>Знайдіть, не виконуючи побудови, точки перетину з осями координат графіка функції:</p>
+                    <p>3) <L t="g(x)=9-x^2" />; 4) <L t="j(x)=x^2+2x-3" />.</p>
+                </div>,
+                steps: [
+                    { hp: '3) ', h: 'З віссю Oy', lines: ['x=0', 'g(0)=9-0^2=9'], ans: '(0;\\,9)' },
+                    { h: 'З віссю Ox', lines: ['g(x)=0', '9-x^2=0', 'x^2=9'], ans: 'x=-3\\ \\text{або}\\ x=3', ans2: '(-3;\\,0),\\ (3;\\,0)' },
+                    { hp: '4) ', h: 'З віссю Oy', lines: ['x=0', 'j(0)=0^2+2\\cdot0-3=-3'], ans: '(0;\\,-3)' },
+                    { h: 'З віссю Ox', lines: ['x^2+2x-3=0', 'D=4+12=16', 'x=\\dfrac{-2\\pm4}{2}'], ans: 'x=-3\\ \\text{або}\\ x=1', ans2: '(-3;\\,0),\\ (1;\\,0)' }
+                ]
+            },
+            {
+                id: '7.19',
+                stmt: <div className="space-y-1">
+                    <p>Знайдіть область значень функції:</p>
+                    <p>2) <L t="f(x)=5-x^2" />; 3) <L t="f(x)=-7" />; 4) <L t="f(x)=|x|+2" />.</p>
+                </div>,
+                steps: [
+                    { hp: '2) ', hx: 'f(x)=5-x^2', txt: 'Квадрат будь-якого числа невід’ємний.', lines: ['x^2\\geq0'] },
+                    { cont: true, txt: 'Помножимо обидві частини на −1: знак нерівності змінюється.', lines: ['-x^2\\leq0'] },
+                    { cont: true, txt: 'Додамо до обох частин 5.', lines: ['5-x^2\\leq5'], ans: 'E(f)=(-\\infty;\\,5]' },
+                    { hp: '3) ', hx: 'f(x)=-7', txt: 'Формула не містить x: при будь-якому x функція дорівнює −7. Значення лише одне.', ans: 'E(f)=\\{-7\\}' },
+                    { hp: '4) ', hx: 'f(x)=|x|+2', txt: 'Модуль будь-якого числа невід’ємний.', lines: ['|x|\\geq0'] },
+                    { cont: true, txt: 'Додамо до обох частин 2.', lines: ['|x|+2\\geq2'], ans: 'E(f)=[2;\\,+\\infty)' }
+                ]
+            },
+            {
+                id: '7.21',
+                stmt: <div className="space-y-1">
+                    <p>Задайте формулою яку-небудь функцію, областю визначення якої є:</p>
+                    <p>1) множина дійсних чисел, крім чисел 1 і 2;</p>
+                    <p>2) множина всіх чисел, не менших від 5;</p>
+                    <p>3) множина всіх чисел, не більших за 10, крім числа −1;</p>
+                    <p>4) множина, яка складається з одного числа −4.</p>
+                </div>,
+                steps: [
+                    { hp: '1) ', lines: ['f(x)=\\dfrac{1}{(x-1)(x-2)}', '(x-1)(x-2)\\neq0', 'x\\neq1,\\ x\\neq2'], ans: 'D(f)=(-\\infty;\\,1)\\cup(1;\\,2)\\cup(2;\\,+\\infty)',
+                      seg: [{ a: null, b: 1, bc: false }, { a: 1, ac: false, b: 2, bc: false }, { a: 2, ac: false, b: null }] },
+                    { hp: '2) ', lines: ['f(x)=\\sqrt{x-5}', 'x-5\\geq0'], ans: 'D(f)=[5;\\,+\\infty)', seg: [{ a: 5, ac: true, b: null }] },
+                    { hp: '3) ', lines: ['f(x)=\\dfrac{\\sqrt{10-x}}{x+1}', '10-x\\geq0,\\ x\\leq10', 'x+1\\neq0,\\ x\\neq-1'], ans: 'D(f)=(-\\infty;\\,-1)\\cup(-1;\\,10]',
+                      seg: [{ a: null, b: -1, bc: false }, { a: -1, ac: false, b: 10, bc: true }] },
+                    { hp: '4) ', lines: ['f(x)=\\sqrt{x+4}+\\sqrt{-x-4}', 'x+4\\geq0,\\ x\\geq-4', '-x-4\\geq0,\\ x\\leq-4'], ans: 'D(f)=\\{-4\\}', seg: [{ pt: -4 }] }
+                ],
+                vis: (k, st) => (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
+                        <NumLine segs={k > 0 ? st[k - 1].seg : []} show={k > 0} u={22} rng={12} lstep={2} />
+                    </div>
+                )
+            },
+            {
+                id: '7.24',
+                stmt: <div className="space-y-1">
+                    <p>Знайдіть область визначення функції та побудуйте її графік:</p>
+                    <p>1) <L t="f(x)=\dfrac{x^2-16}{x+4}" />;</p>
+                    <p>2) <L t="f(x)=\dfrac{12x-72}{x^2-6x}" />;</p>
+                    <p>3) <L t="f(x)=\dfrac{x^2-9}{x^2-9}" />.</p>
+                </div>,
+                steps: [
+                    { hp: '1) ', lines: ['x+4\\neq0', 'x\\neq-4'], ans: 'D(f)=(-\\infty;\\,-4)\\cup(-4;\\,+\\infty)', v: { k: 'd', n: 1 } },
+                    { cont: true, lines: ['f(x)=\\dfrac{(x-4)(x+4)}{x+4}', 'f(x)=x-4,\\ x\\neq-4'], v: { k: 'd', n: 1 } },
+                    { cont: true, txt: 'Графік — пряма y = x − 4 без точки з абсцисою −4.', ans: '(-4;\\,-8)\\ \\text{— виколота точка}', v: { k: 'g', n: 1 } },
+                    { hp: '2) ', lines: ['x^2-6x\\neq0', 'x(x-6)\\neq0', 'x\\neq0,\\ x\\neq6'], ans: 'D(f)=(-\\infty;\\,0)\\cup(0;\\,6)\\cup(6;\\,+\\infty)', v: { k: 'd', n: 2 } },
+                    { cont: true, lines: ['f(x)=\\dfrac{12(x-6)}{x(x-6)}', 'f(x)=\\dfrac{12}{x},\\ x\\neq0,\\ x\\neq6'], v: { k: 'd', n: 2 } },
+                    { cont: true, txt: 'Графік — гіпербола y = 12/x без точки з абсцисою 6.', lines: ['y(6)=\\dfrac{12}{6}=2'], ans: '(6;\\,2)\\ \\text{— виколота точка}', v: { k: 'g', n: 2 } },
+                    { hp: '3) ', lines: ['x^2-9\\neq0', 'x^2\\neq9', 'x\\neq-3,\\ x\\neq3'], ans: 'D(f)=(-\\infty;\\,-3)\\cup(-3;\\,3)\\cup(3;\\,+\\infty)', v: { k: 'd', n: 3 } },
+                    { cont: true, lines: ['f(x)=\\dfrac{x^2-9}{x^2-9}=1', 'x\\neq-3,\\ x\\neq3'], v: { k: 'd', n: 3 } },
+                    { cont: true, txt: 'Графік — пряма y = 1 без точок з абсцисами −3 і 3.', ans: '(-3;\\,1),\\ (3;\\,1)\\ \\text{— виколоті точки}', v: { k: 'g', n: 3 } }
+                ],
+                vis: (k, st) => {
+                    const v = k > 0 ? st[k - 1].v : null;
+                    return (
+                        <div style={{ height: 'min(24rem,46dvh)' }}>
+                            <Plane u={30} ox={300} oy={250}>
+                                {({ X, Y }) => !v ? null : (
+                                    <>
+                                        {v.n === 1 && <line x1={X(-4)} y1={0} x2={X(-4)} y2={PH} stroke={CL.bad} strokeWidth="2" strokeDasharray="6,5" />}
+                                        {v.n === 2 && <><line x1={X(0)} y1={0} x2={X(0)} y2={PH} stroke={CL.bad} strokeWidth="2" strokeDasharray="6,5" /><line x1={X(6)} y1={0} x2={X(6)} y2={PH} stroke={CL.bad} strokeWidth="2" strokeDasharray="6,5" /></>}
+                                        {v.n === 3 && <><line x1={X(-3)} y1={0} x2={X(-3)} y2={PH} stroke={CL.bad} strokeWidth="2" strokeDasharray="6,5" /><line x1={X(3)} y1={0} x2={X(3)} y2={PH} stroke={CL.bad} strokeWidth="2" strokeDasharray="6,5" /></>}
+                                        {v.k === 'g' && v.n === 1 && <><line x1={X(-9)} y1={Y(-13)} x2={X(9)} y2={Y(5)} stroke={CL.brand} strokeWidth="4" strokeLinecap="round" /><circle cx={X(-4)} cy={Y(-8)} r="7" fill="#fff" stroke={CL.brand} strokeWidth="3.5" /></>}
+                                        {v.k === 'g' && v.n === 2 && <><path d={mkPath((x) => 12 / x, -9, 9, X, Y, 0.02, 8)} fill="none" stroke={CL.brand} strokeWidth="4" strokeLinecap="round" /><circle cx={X(6)} cy={Y(2)} r="7" fill="#fff" stroke={CL.brand} strokeWidth="3.5" /></>}
+                                        {v.k === 'g' && v.n === 3 && <><line x1={X(-10)} y1={Y(1)} x2={X(10)} y2={Y(1)} stroke={CL.brand} strokeWidth="4" strokeLinecap="round" /><circle cx={X(-3)} cy={Y(1)} r="7" fill="#fff" stroke={CL.brand} strokeWidth="3.5" /><circle cx={X(3)} cy={Y(1)} r="7" fill="#fff" stroke={CL.brand} strokeWidth="3.5" /></>}
+                                    </>
+                                )}
+                            </Plane>
+                        </div>
+                    );
+                }
+            }
+        ];
+
+        const StepCard = ({ s }) => {
+            const head = (s.hp || s.h || s.hx) ? <span className="font-extrabold text-brand">{s.hp}{s.h}{s.hx && <L t={s.hx} />}</span> : null;
+            const ansBox = (t) => <p className="rounded-lg px-2 py-1 border-2 bg-emerald-50 border-emerald-400 text-emerald-800 text-center"><L t={t} /></p>;
+            if (head && s.ans && !s.lines && !s.txt && !s.extra) {
+                return (
+                    <div className="rounded-xl bg-white border-2 border-slate-200 px-3 py-2 shadow-sm animate-fade-in font-semibold flex items-center gap-3 text-[1.05rem]">
+                        <div className="shrink-0">{head}</div>
+                        <div className="flex-1">{ansBox(s.ans)}</div>
+                    </div>
+                );
+            }
+            return (
+                <div className="rounded-xl bg-white border-2 border-slate-200 p-3 shadow-sm animate-fade-in font-semibold space-y-1 text-[1.05rem]">
+                    {head && <p>{head}</p>}
+                    {s.txt && <p>{s.txt}</p>}
+                    {s.lines && s.lines.map((l, i) => <p key={i} className="text-center"><L t={l} /></p>)}
+                    {s.extra}
+                    {s.ans && ansBox(s.ans)}
+                    {s.ans2 && ansBox(s.ans2)}
+                </div>
+            );
+        };
+
+        const Item11 = ({ nav, setReady, onReset }) => {
+            const [t, setT] = usePS('i11.t', 0);
+            const [seen, setSeen] = usePS('i11.seen', [0]);
+            const [prog, setProg] = usePS('i11.prog', {});
+            const endRef = useRef(null);
+            useEffect(() => { setReady(true); }, []);
+            const task = TB[t];
+            const k = prog[task.id] || 0;
+            useEffect(() => { if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [k, t]);
+            const go = (i) => { if (i < 0 || i >= TB.length) return; setT(i); setSeen((s) => (s.includes(i) ? s : [...s, i])); };
+            const adv = () => setProg((p) => ({ ...p, [task.id]: (p[task.id] || 0) + 1 }));
+
+            return (
+                <FullLayout nav={nav} onReset={onReset}>
+                    <div className="max-w-6xl mx-auto space-y-2.5">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => go(t - 1)} disabled={t === 0} title="Попередній номер"
+                                className="w-[2.4rem] h-[2.4rem] shrink-0 rounded-full bg-white border border-slate-300 text-brand shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"><i className="fa-solid fa-chevron-left"></i></button>
+                            <div className="flex flex-wrap gap-1.5 flex-1 justify-center">
+                                {TB.map((x, i) => (
+                                    <button key={x.id} onClick={() => go(i)}
+                                        className={`px-2.5 min-h-[2.1rem] rounded-lg border-2 font-bold text-[0.95rem] cursor-pointer active:scale-95 ${t === i ? 'bg-brand text-white border-brand shadow-md' : seen.includes(i) ? 'bg-brandLight text-brand border-brand/30' : 'bg-white text-slate-700 border-slate-300 hover:border-brand/60'}`}>
+                                        {x.id}
+                                    </button>
+                                ))}
+                            </div>
+                            <button onClick={() => go(t + 1)} disabled={t === TB.length - 1} title="Наступний номер"
+                                className="w-[2.4rem] h-[2.4rem] shrink-0 rounded-full bg-white border border-slate-300 text-brand shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"><i className="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div className={`grid gap-3 items-start ${task.vis ? 'md:grid-cols-2' : 'max-w-3xl mx-auto'}`} key={task.id}>
+                            <div className="space-y-2.5">
+                                <Card className="text-[1.1rem] space-y-1">
+                                    <p className="text-brand font-extrabold text-[1.3rem]">Завдання з підручника № {task.id}</p>
+                                    {task.stmt}
+                                </Card>
+                                {(() => {
+                                    let st = Math.max(0, k - 1);
+                                    while (st > 0 && task.steps[st].cont) st--;
+                                    return task.steps.slice(st, k).map((s, i) => <StepCard key={st + i} s={s} />);
+                                })()}
+                                {k < task.steps.length && <DownBtn onClick={adv} />}
+                                <div ref={endRef} />
+                            </div>
+                            {task.vis && <div className="md:sticky md:top-0">{task.vis(k, task.steps)}</div>}
+                        </div>
+                    </div>
+                </FullLayout>
+            );
+        };
+
+        // =====================================================================
+        // Застосунок
+        // =====================================================================
+        const TOPICS = [
+            'Що таке функція',
+            'Область визначення та область значень',
+            'Способи задання функції',
+            'Область визначення за формулою',
+            'Розв’язуємо письмово',
+            'Розв’язуємо графічно',
+            'Читаємо графік функції',
+            'Повторення: функції, які ми вже вивчали',
+            'Функція, задана кількома формулами',
+            'Закріплення',
+            'Завдання з підручника'
+        ];
+        const LAST = TOPICS.length;
+        const ITEMS = [null, Item1, Item2, Item3, Item4, Item5, Item6, Item7, Item8, Item9, Item10, Item11];
+
+        const App = () => {
+            const [started, setStarted] = useState(false);
+            const [menu, setMenu] = useState(false);
+            const [step, setStep] = useState(0);
+            const [done, setDone] = useState({});
+            const [rk, setRk] = useState(0);
+
+            const ready = !!done[step];
+            const setReady = (v) => { if (v) setDone((d) => (d[step] ? d : { ...d, [step]: true })); };
+            const go = (n) => { setStep(n); setMenu(false); };
+            const prev = () => { if (step > 1) go(step - 1); else setMenu(true); };
+            const next = () => { if (ready && step < LAST) go(step + 1); };
+            const restart = () => { Object.keys(MEM).forEach((key) => delete MEM[key]); setDone({}); setStarted(false); setMenu(false); setStep(0); };
+            const reset = () => { clearMem('i' + step + '.'); setDone((d) => ({ ...d, [step]: false })); setRk((v) => v + 1); };
+
+            const btn = "px-3 py-1 min-h-[2.4rem] rounded-full font-semibold transition-all shadow-md active:scale-95 text-[0.95rem] cursor-pointer flex items-center gap-1.5 border";
+            const nav = (
+                <div className="shrink-0 flex justify-end items-center gap-2 px-3 py-2 border-t border-slate-200 bg-panelLeft">
+                    <button onClick={() => setMenu(true)} className={btn + " border-brand/30 bg-brandLight text-brand hover:bg-brandLight/70"}><i className="fa-solid fa-list-ul"></i> Зміст</button>
+                    <button onClick={prev} className={btn + " border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}>← Назад</button>
+                    {step < LAST ? (
+                        <button onClick={next} disabled={!ready}
+                            className={btn + (ready ? " border-brand/40 bg-brandLight text-brand hover:bg-brandLight/70 animate-pop" : " border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-75")}>Далі →</button>
+                    ) : (
+                        <button onClick={restart} className={btn + " border-brand/40 bg-brandLight text-brand hover:bg-brandLight/70"}>На початок</button>
+                    )}
+                </div>
+            );
+
+            const Cur = ITEMS[step];
+
+            return (
+                <div className="flex flex-col w-full h-[100dvh] overflow-hidden bg-white">
+                    <div className="flex flex-col md:flex-row w-full flex-1 min-h-0 relative overflow-hidden">
+                        {!started ? (
+                            <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-panelLeft p-4 text-center">
+                                <h1 className="text-[2.2rem] md:text-[3.2rem] font-bold text-slate-800 mb-8 animate-fade-in leading-tight">
+                                    <span className="text-brand">Повторення та розширення</span><br />відомостей про функцію
+                                </h1>
+                                <button onClick={() => { setStarted(true); setMenu(true); }}
+                                    className="px-6 py-3 bg-white border border-brand/30 text-brand rounded-full shadow-md hover:shadow-lg transition-all active:scale-95 text-[1rem] uppercase tracking-widest cursor-pointer animate-pop flex items-center gap-4 group">
+                                    <span className="pl-1.5 font-extrabold tracking-widest">ПОЧАТИ</span>
+                                    <span className="w-[2.4rem] h-[2.4rem] rounded-full bg-brandLight flex items-center justify-center shrink-0 group-hover:scale-105 transition-all">
+                                        <i className="fa-solid fa-play text-[0.8rem] translate-x-[1px]"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        ) : menu ? (
+                            <div className="w-full h-full bg-panelLeft flex flex-col min-h-0">
+                                <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-4">
+                                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in">
+                                        {TOPICS.map((t, i) => (
+                                            <div key={i} onClick={() => go(i + 1)}
+                                                className="p-3 rounded-xl border border-slate-200/70 hover:border-brand/60 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group bg-panelRight">
+                                                <div className="w-[2.8rem] h-[2.8rem] rounded-full bg-brandLight text-brand font-extrabold text-[1.1rem] flex items-center justify-center shrink-0">{i + 1}</div>
+                                                <h3 className="font-bold text-slate-800 text-[1.05rem] text-left group-hover:text-brand transition-colors flex-1">{t}</h3>
+                                                {done[i + 1] && <i className="fa-solid fa-circle-check text-emerald-600"></i>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {step > 0 && (
+                                    <div className="shrink-0 flex justify-end px-3 py-2 border-t border-slate-200">
+                                        <button onClick={() => setMenu(false)} className={btn + " border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}>Повернутись →</button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Cur key={step + '-' + rk} nav={nav} setReady={setReady} onReset={reset} />
+                        )}
+                    </div>
+                    <div className="w-full shrink-0 z-[2000] select-none text-center py-1 bg-slate-50 border-t border-slate-200 text-[10px] text-gray-500 tracking-wider">
+                        Автор розробки <span className="font-bold text-slate-800">Ковтун Тетяна</span>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
