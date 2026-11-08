@@ -356,11 +356,20 @@ function isOk(i){
   const v = t.kind==='frac' ? fracVal(a) : parseInput(a);
   return !!v && req(v, t.ans);
 }
+// Правильна за значенням відповідь-дріб оцінюється повністю, лише якщо дріб скорочено
+// і цілу частину виділено (не 3/2, а 1 1/2). Інакше -0,5 бала.
+function fracIssues(i){
+  const t=S.tasks[i], a=S.ans[i], o={unred:false,improper:false};
+  if(t.kind!=='frac'||a[1]===''||a[2]==='') return o;
+  const n=+a[1], d=+a[2];
+  o.unred = gcd(n,d)>1;
+  o.improper = n>=d;
+  return o;
+}
 function grade(i){
   if(!isOk(i)) return 0;
-  const t=S.tasks[i];
-  if(t.kind==='frac'){ const a=S.ans[i]; if(a[1]!==''&&a[2]!==''&&gcd(+a[1],+a[2])>1) return 0.5; }
-  return 1;
+  const f=fracIssues(i);
+  return (f.unred||f.improper) ? 0.5 : 1;
 }
 const sc2 = x => String(x).replace('.',',');
 function correctText(i){ const t=S.tasks[i]; return t.kind==='mc' ? t.ansText : fmt(t.ans); }
@@ -406,7 +415,7 @@ function cardHTML(i, res){
     h += '<div class="fansw"><label>Відповідь:</label>'+
       '<div class="fbox">'+fin(0)+'<small>ціла частина</small></div>'+
       '<div class="ffr"><div class="fr1">'+fin(1)+'<small>чисельник</small></div><div class="bar"></div><div class="fr1">'+fin(2)+'<small>знаменник</small></div></div></div>';
-    if(!res) h += '<div class="hint">Відповідь запишіть скороченим дробом і виділіть цілу частину (наприклад, не 3/2, а 1 ціла і 1/2). Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
+    if(!res) h += '<div class="hint">Відповідь запишіть скороченим дробом і виділіть цілу частину (наприклад, не 3/2, а 1 ціла і 1/2). За нескорочений дріб або невиділену цілу частину знімається 0,5 бала. Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
   } else {
     h += '<div class="q">'+t.q+'</div>';
     const cls = res ? (S.marks[i]===1?' ok':(S.marks[i]>0?' part':' bad')) : '';
@@ -417,7 +426,7 @@ function cardHTML(i, res){
     h += S.marks[i]===1
       ? '<div class="fb ok">✓ Правильно</div>'
       : S.marks[i]>0
-      ? '<div class="fb part">Відповідь правильна, але дріб не скорочено. Скоротіть його. Ваша відповідь: '+esc(answerText(i))+'. Скорочено: '+esc(correctText(i))+'. За завдання 0,5 бала</div>'
+      ? '<div class="fb part">Відповідь правильна за значенням, але '+(fracIssues(i).unred&&fracIssues(i).improper?'дріб не скорочено і не виділено цілу частину':(fracIssues(i).unred?'дріб не скорочено':'не виділено цілу частину'))+'. Запишіть скорочений дріб і виділіть цілу частину. Ваша відповідь: '+esc(answerText(i))+'. Правильно: '+esc(correctText(i))+'. За завдання 0,5 бала</div>'
       : '<div class="fb bad">✗ Неправильно. Ваша відповідь: '+esc(answerText(i))+'. Правильно: '+esc(correctText(i))+'</div>';
   }
   return h;
@@ -640,12 +649,12 @@ function drawJournal(msg){
       '<td'+tcls+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+lcls+ltitle+'>'+(hasL?r.leaves:'—')+'</td><td><b>'+esc(sc2(r.score))+'/'+esc(r.max)+'</b></td>';
     for(let i=0;i<maxN;i++){
       const m = r.tasks && r.tasks[i];
-      h += (m===undefined) ? '<td></td>' : (m===1 ? '<td class="p">✓</td>' : (m>0 ? '<td class="h" title="Не скорочено">½</td>' : '<td class="m">✗</td>'));
+      h += (m===undefined) ? '<td></td>' : (m===1 ? '<td class="p">✓</td>' : (m>0 ? '<td class="h" title="Дріб не скорочено або не виділено цілу частину">½</td>' : '<td class="m">✗</td>'));
     }
     h += '</tr><tr class="det" id="det'+ri+'" style="display:none"><td colspan="'+(6+maxN)+'">';
     const n = r.max||(r.tasks?r.tasks.length:0);
     for(let i=0;i<n;i++){
-      h += '<div>'+((r.tasks&&r.tasks[i]===1)?'✓':((r.tasks&&r.tasks[i]>0)?'½ (не скорочено)':'✗'))+' <b>'+(i+1)+'.</b> '+esc(r.qtext&&r.qtext[i])+' — відповідь учня: <b>'+esc(r.answers&&r.answers[i])+'</b>; правильно: <b>'+esc(r.correct&&r.correct[i])+'</b></div>';
+      h += '<div>'+((r.tasks&&r.tasks[i]===1)?'✓':((r.tasks&&r.tasks[i]>0)?'½ (дріб не скорочено / не виділено цілу частину)':'✗'))+' <b>'+(i+1)+'.</b> '+esc(r.qtext&&r.qtext[i])+' — відповідь учня: <b>'+esc(r.answers&&r.answers[i])+'</b>; правильно: <b>'+esc(r.correct&&r.correct[i])+'</b></div>';
     }
     h += '</td></tr>';
   });
