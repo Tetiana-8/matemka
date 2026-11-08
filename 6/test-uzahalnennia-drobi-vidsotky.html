@@ -59,6 +59,7 @@ i{font-family:'Times New Roman',serif}
 .fin.bad{border-color:var(--bad);background:var(--badl)}
 .fin.part{border-color:var(--acc);background:var(--cl)}
 .fb.part{color:var(--ch)}
+.shot{font-weight:800;font-size:.95rem;color:var(--ch);background:var(--cl);border:1px dashed var(--acc);border-radius:10px;padding:6px 10px;margin-bottom:8px}
 .strip button.part{background:#FDBA74;border-color:var(--acc);color:#431407}
 table.j td.h{color:var(--acc);font-weight:800}
 .hint{margin-top:10px;font-size:.85rem;color:#8a5a3c}
@@ -91,7 +92,7 @@ table.j td.h{color:var(--acc);font-weight:800}
 .inp.bad{border-color:var(--bad);background:var(--badl)}
 .msg{color:var(--bad);font-weight:700;min-height:1.3em;margin:4px 0 10px}
 .sum{font-size:1.1rem;font-weight:800}
-.sum .score{color:var(--cd);font-size:1.4rem}
+.sum .score{color:var(--cd);font-size:1.4rem;white-space:nowrap}
 .rrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
 #keyBtn{position:fixed;top:8px;right:8px;z-index:50;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.7);opacity:.4;font-size:1rem;padding:0}
 #keyBtn:hover{opacity:.9}
@@ -157,7 +158,7 @@ function coprimeA(r,b){var a;do{a=r.ri(1,b-1)}while(gcd(a,b)!==1);return a}
 function pf(r,lo,hi){var b=r.ri(lo,hi),a=coprimeA(r,b);return {a:a,b:b,v:R(a,b),h:frH(a,b),t:a+'/'+b}}
 function mixed(r,lo,hi){var b=r.ri(lo,hi),a=coprimeA(r,b),w=r.ri(1,4);return {w:w,a:a,b:b,v:R(w*b+a,b),h:mxH(w,a,b),t:w+' '+a+'/'+b}}
 var PCTS=[5,10,12,15,20,25,30,35,40,45,60,75];
-function pctN(r,p,lo,hi){var step=100/gcd(p,100);return step*r.ri(Math.ceil(lo/step),Math.floor(hi/step))}
+function pctN(r,p,lo,hi){var step=100;return step*r.ri(Math.ceil(lo/step),Math.floor(hi/step))}
 
 function makeTasks(r){
   var T=[],x,y,z,a,b,k,p,N,X,sc;
@@ -405,7 +406,7 @@ function cardHTML(i, res){
     h += '<div class="fansw"><label>Відповідь:</label>'+
       '<div class="fbox">'+fin(0)+'<small>ціла частина</small></div>'+
       '<div class="ffr"><div class="fr1">'+fin(1)+'<small>чисельник</small></div><div class="bar"></div><div class="fr1">'+fin(2)+'<small>знаменник</small></div></div></div>';
-    if(!res) h += '<div class="hint">Відповідь запишіть скороченим дробом. Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
+    if(!res) h += '<div class="hint">Відповідь запишіть скороченим дробом і виділіть цілу частину (наприклад, не 3/2, а 1 ціла і 1/2). Якщо цілої частини немає — залиште першу клітинку порожньою. Якщо відповідь — ціле число, впишіть його в першу клітинку, а чисельник і знаменник залиште порожніми.</div>';
   } else {
     h += '<div class="q">'+t.q+'</div>';
     const cls = res ? (S.marks[i]===1?' ok':(S.marks[i]>0?' part':' bad')) : '';
@@ -456,8 +457,9 @@ function render(){
       '<div class="nav"><button class="btn ghost" data-act="rback">← Назад до завдань</button></div>'+'<div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>';
   } else {
     const sc = S.marks.reduce((a,b)=>a+b,0), n = S.tasks.length;
-    h = '<div class="top"><div class="rrow"><div class="sum">'+esc(S.sur+' '+S.nam)+': <span class="score">'+sc2(sc)+' з '+n+'</span></div>'+
-      '<button class="btn ghost" style="min-height:40px;padding:6px 14px" data-act="retry">Пройти ще раз</button></div>'+stripHTML(false)+'</div>'+
+    h = '<div class="top"><div class="rrow"><div class="sum">'+esc(S.sur+' '+S.nam)+': <span class="score">'+sc2(sc)+' з '+n+' балів · '+Math.round(sc/n*100)+'\u00a0%</span></div>'+
+      '<button class="btn ghost" style="min-height:40px;padding:6px 14px" data-act="retry">Пройти ще раз</button></div>'+
+      '<div class="shot">Зробіть скріншот цього екрана й надішліть його вчителю.</div>'+stripHTML(false)+'</div>'+
       '<div class="card">'+cardHTML(S.rcur,true)+'</div>'+
       '<div class="nav"><button class="btn ghost" data-act="back"'+(S.rcur===0?' disabled':'')+'>← Назад</button><button class="btn" data-act="next"'+(S.rcur===n-1?' disabled':'')+'>Далі →</button></div>'+'<div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>';
   }
@@ -535,7 +537,7 @@ function check(){
     id: now + '_' + Math.random().toString(36).slice(2, 8),
     name: `${S.sur} ${S.nam}`, surname: S.sur, firstName: S.nam,
     ts: now, date: new Date(now).toISOString(),
-    score, max: S.tasks.length, tasks: S.marks,
+    score, max: S.tasks.length, percent: Math.round(score/S.tasks.length*100), tasks: S.marks,
     qtext: S.tasks.map(t=>t.text),
     answers: S.tasks.map((t,i)=>answerText(i)),
     correct: S.tasks.map((t,i)=>correctText(i)),
