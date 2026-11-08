@@ -227,8 +227,14 @@ function mkMatch(v,E){
   var items=E.map(function(p){return {expr:par(p[0],v)+par(p[1],v),res:fmt(mul(p[0],p[1]),v),f:(function(A,B){return function(x){return ev(A,x)*ev(B,x);};})(p[0],p[1])};});
   var seen={},ok=true;items.forEach(function(it){if(seen[it.res])ok=false;seen[it.res]=1;});
   if(!ok)return null;
-  var pool=shuffle(items.map(function(it){return it.res;}));
-  return {type:"match",text:"Перетягніть кожну відповідь у клітинку біля свого добутку.",items:items,pool:pool,m:{kind:"match"}};
+  var distract=null,g=0;
+  while(!distract&&g++<60){
+    var q=ri(0,E.length-1),ws=wrongPolys(E[q][0],E[q][1]).map(function(P){return fmt(P,v);}).filter(function(s){return !seen[s];});
+    if(ws.length)distract=pick(ws);
+  }
+  if(!distract)return null;
+  var pool=shuffle(items.map(function(it){return it.res;}).concat([distract]));
+  return {type:"match",text:"Перетягніть кожну відповідь у клітинку біля свого добутку. Одна відповідь зайва.",items:items,pool:pool,distract:distract,m:{kind:"match"}};
 }
 var GEN=[
 /* 1. правило (теорія) */
@@ -525,7 +531,7 @@ function render(){
   if(S.screen==="result"){
     top.innerHTML="";
     card.innerHTML='<div class="center"><div class="who-name">'+esc(S.sur+" "+S.nam)+'</div><div class="big">'+S.score+" з "+TOTAL+'</div><div class="when">'+esc(S.when)+"</div>"+
-      '<div class="shot"><span class="ic">📸</span><span>Зробіть скріншот цього екрана й надішліть його вчительці.</span></div>'+
+      '<div class="shot"><span class="ic">📸</span><span>Зробіть скриншот цього екрана та прикріпіть його до Д/з.</span></div>'+
       '<div class="info">Натисніть на номер завдання, щоб побачити свою відповідь і правильну.</div>'+chips("rev")+"</div>";
     nav.innerHTML=navBtn("againBtn","Пройти ще раз");
     return;
