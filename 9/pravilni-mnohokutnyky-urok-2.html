@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Правильні многокутники та їх властивості</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=STIX+Two+Text:ital,wght@0,500;0,700;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f1b4d;--muted:#5b6b9a;--acc:#1D4ED8;--acc2:#4f7df0;--accL:#DBE5FF;
+  --soft:#EBF0FF;--soft2:#F6F8FF;--line:#c3d1fb;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --hl:#be185d;--cR:#7c3aed;--cr:#0f766e;--cal:#ea580c;--cbe:#ca8a04;--cph:#2563eb;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px)}
+body{margin:0;height:100dvh;overflow:hidden;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:600;color:var(--ink);
+  background:linear-gradient(135deg,#EBF0FF 0%,#DBE5FF 55%,#C7D6FF 100%) fixed;-webkit-font-smoothing:antialiased}
+#app{height:100%;display:flex;flex-direction:column;min-height:0}
+#stage{flex:1;min-height:0;position:relative}
+.screen{position:absolute;inset:0;display:none;min-height:0}
+.screen.on{display:flex}
+.center{align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:1rem}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+.btn{display:inline-flex;align-items:center;gap:.5rem;min-height:2.6rem;padding:.35rem 1.1rem;border-radius:999px;border:1px solid rgba(29,78,216,.3);background:#fff;color:var(--acc);font-weight:800;font-size:.95rem;box-shadow:0 2px 8px rgba(29,78,216,.15);transition:transform .1s}
+.btn:active{transform:scale(.95)}
+.btn.pri{background:var(--accL)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+h1.title{font-size:2.6rem;line-height:1.15;margin:0 0 .6rem;font-weight:900}
+h1.title span{color:var(--acc)}
+.sub{font-size:1.2rem;color:var(--muted);margin:0 0 2rem;font-weight:700}
+.go{padding:.7rem 1.6rem;font-size:1.05rem;letter-spacing:.12em}
+
+/* меню */
+.menu{display:flex;flex-direction:column;gap:.9rem;width:min(34rem,92%)}
+.mi{display:flex;align-items:center;gap:1rem;background:#fff;border:2px solid var(--line);border-radius:1rem;padding:.8rem 1.1rem;text-align:left;font-size:1.1rem;font-weight:800;color:var(--ink)}
+.mi:hover{border-color:var(--acc)}
+.mi b{flex:none;width:2.6rem;height:2.6rem;border-radius:50%;background:var(--accL);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+
+/* сторінки */
+.cols{gap:.8rem;padding:.8rem;align-items:stretch}
+.panel{background:var(--soft2);border:1px solid var(--line);border-radius:1rem;box-shadow:0 2px 10px rgba(29,78,216,.08);min-height:0;min-width:0;display:flex;flex-direction:column;position:relative}
+.cols .left{flex:0 0 49%}
+.cols .right{flex:1}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:.8rem .9rem .9rem;scrollbar-width:thin}
+.reset{position:absolute;top:.5rem;right:.5rem;z-index:3;width:2.3rem;height:2.3rem;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:1.05rem;display:flex;align-items:center;justify-content:center}
+
+.legend{display:flex;flex-wrap:wrap;gap:.2rem 1.1rem;background:#fff;border:2px solid var(--line);border-radius:.9rem;padding:.5rem .9rem;margin:0 2.6rem .6rem 0;font-size:.95rem}
+.card{background:#fff;border:2px solid var(--line);border-radius:.9rem;padding:.55rem .95rem .7rem;margin-bottom:.6rem;cursor:pointer;animation:pop .35s cubic-bezier(.2,.9,.3,1.1)}
+.card.focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(29,78,216,.14)}
+.card .ct{font-weight:900;font-size:.95rem;margin-bottom:.1rem}
+.card .fl{text-align:center;font-size:1.28rem;padding:.12rem 0;line-height:1.35}
+@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.97)}100%{opacity:1;transform:none}}
+.dn{display:block;margin:.35rem auto .2rem;width:2.9rem;height:2.9rem;border-radius:50%;border:2px solid rgba(29,78,216,.4);background:#fff;color:var(--acc);box-shadow:0 3px 10px rgba(29,78,216,.2);animation:bob 1.2s ease-in-out infinite;display:flex;align-items:center;justify-content:center}
+.dn svg{width:1.4rem;height:1.4rem;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.hint{text-align:center;color:var(--muted);font-size:.9rem;margin:.2rem 0}
+
+#s-form .left{flex:0 0 56%}
+#s-form .right{flex:1}
+#s-form .chips{flex:none;gap:.5rem;padding:.8rem .8rem .3rem}
+#s-form .chip{min-height:2.5rem;min-width:4.6rem;font-size:1rem}
+#s-form .figbox{padding:.3rem .5rem .6rem}
+.figph{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:1.05rem;padding:1rem}
+.frow{background:#fff;border:2px solid var(--line);border-radius:.9rem;margin-bottom:.5rem}
+.frow.on{border-color:var(--acc2)}
+.fh{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%;border:0;background:none;padding:.55rem .9rem;font-size:1rem;font-weight:900;text-align:left;line-height:1.25}
+.fh .chev{flex:none;color:var(--muted);font-size:.9rem}
+.fbody{padding:0 .8rem .6rem}
+.fbody .hint{margin:.1rem 0 0}
+.lns{width:fit-content;max-width:100%;margin:.25rem auto;padding:.3rem .9rem;border:2px solid var(--acc2);border-radius:.7rem;background:var(--soft2);text-align:center;font-size:1.25rem;line-height:1.5;overflow-x:auto}
+.lns.click{cursor:pointer}
+.lns.sel{border-color:var(--hl)}
+.lns table.tb{margin:0}
+.lns table.tb th,.lns table.tb td{padding:.15rem .5rem;min-width:2.8rem;font-size:1.05rem}
+.lns table.tb th small{font-size:.62rem}
+table.tb .hc{background:#fce7f3!important;color:var(--hl);box-shadow:inset 0 0 0 2px #db2777}
+.fcalc{margin-top:.45rem;background:#fdf2f8;border:2px solid #f0abcf;border-radius:.8rem;padding:.35rem .7rem .45rem}
+.fct{font-weight:900;font-size:.92rem;color:var(--hl);margin-bottom:.1rem}
+.ln2{text-align:center;font-size:1.25rem;line-height:1.5;padding:.1rem 0}
+@media (max-width:760px){#s-form .left{flex:1 1 55%}}
+.figbox{flex:1;min-height:0;display:flex;flex-direction:column;padding:.5rem .5rem 0}
+.figbox .fig{flex:1;min-height:0;width:100%;height:100%}
+.fig .lb{font-family:'STIX Two Text','Times New Roman',serif;font-style:italic;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.cap{text-align:center;font-size:1.35rem;padding:.1rem 0 .2rem;min-height:1.9rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;padding:.25rem .6rem}
+.chip{min-height:2.2rem;min-width:2.5rem;padding:.2rem .7rem;border-radius:.7rem;border:2px solid #b4c4f5;background:#fff;color:var(--ink);font-weight:800;font-size:.95rem}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.done{background:var(--accL);border-color:#9db5f5;color:var(--acc)}
+.chip.on.done{background:var(--acc);color:#fff}
+.read{min-height:3.2rem;text-align:center;font-size:1.05rem;padding:.2rem .8rem .6rem;color:var(--ink)}
+
+/* задачі */
+.tasks{flex-direction:column;gap:.55rem;padding:.8rem}
+.trow{display:flex;gap:.4rem;align-items:center}
+.trow .chips{flex:1;padding:0}
+.arr{flex:none;width:2.3rem;height:2.3rem;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--acc);font-weight:900;font-size:1.1rem}
+.arr:disabled{opacity:.35;cursor:not-allowed}
+.tbody{flex:1;min-height:0;display:flex;gap:.8rem}
+.tbody .left{flex:0 0 50%}
+.tbody .right{flex:1}
+.cond{background:#fff;border:2px solid var(--acc2);border-radius:.9rem;padding:.55rem .9rem;margin:0 2.6rem .6rem 0;font-size:1.1rem;line-height:1.5}
+.cond .tn{font-weight:900;color:var(--acc);font-size:1.25rem;margin-bottom:.1rem}
+.cond p{margin:.1rem 0}
+.step{background:#fff;border:2px solid var(--line);border-radius:.9rem;padding:.5rem .9rem .6rem;margin-bottom:.55rem;animation:pop .35s cubic-bezier(.2,.9,.3,1.1)}
+.step .sh{font-weight:900;color:var(--acc);font-size:1.05rem;margin-bottom:.1rem}
+.step .ln{text-align:center;font-size:1.25rem;line-height:1.45;padding:.05rem 0}
+.pbar{display:flex;align-items:center;gap:.6rem;width:100%;background:#f1f5ff;border:2px solid var(--line);border-radius:.9rem;padding:.4rem .8rem;margin-bottom:.55rem;font-size:.98rem;font-weight:800;color:var(--ink);text-align:left}
+.pbar .pck{color:var(--ok);font-weight:900}
+.pbar .pt{color:var(--acc)}
+.pbar .ps{margin-left:auto;font-size:1.05rem;color:var(--oktx)}
+.pbar .pc{margin-left:auto;color:var(--muted);font-size:.8rem;white-space:nowrap}
+.pbar .ps+.pc{margin-left:.6rem}
+.ptit{font-weight:900;color:var(--acc);font-size:1.05rem;margin:.2rem 0 .3rem}
+.ans{margin-top:.35rem;text-align:center;font-size:1.3rem;background:var(--okbg);border:2px solid var(--ok);color:var(--oktx);border-radius:.7rem;padding:.2rem .5rem;font-weight:800}
+.note{margin-top:.3rem;text-align:center;font-size:.95rem;color:var(--muted)}
+.done-msg{text-align:center;color:var(--oktx);font-weight:800;margin:.3rem 0}
+
+table.tb{border-collapse:collapse;margin:.2rem auto;background:#fff}
+table.tb th,table.tb td{border:2px solid var(--line);padding:.25rem .7rem;text-align:center;min-width:3.4rem;font-size:1.15rem}
+table.tb th{background:var(--accL);font-weight:800}
+table.tb th small{display:block;font-size:.72rem;color:var(--muted);font-weight:700}
+table.tb td.fill{background:var(--okbg);animation:pop .4s}
+table.tb td.given{background:#f3f6ff}
+table.tb td.blank{background:#fff}
+.tbwrap{background:#fff;border:2px solid var(--line);border-radius:.9rem;padding:.45rem;margin-bottom:.6rem}
+
+/* математика */
+.m{font-family:'STIX Two Text','Times New Roman',serif;font-size:1.08em;white-space:nowrap}
+.m .v{font-style:italic}
+.m .vR{color:var(--cR);font-weight:700}
+.m .vr{color:var(--cr);font-weight:700}
+.m .cal{color:var(--cal);font-weight:700}
+.m .cbe{color:var(--cbe);font-weight:700}
+.m .cph{color:var(--cph);font-weight:700}
+.m .hl{color:var(--hl);font-weight:800}
+.m .op{margin:0 .22em}
+.m .op2{margin:0 .12em}
+.m .fn{margin:0 .08em 0 .06em}
+.m .tx{font-family:'Nunito',system-ui,sans-serif;font-size:.82em;font-weight:700}
+.m sub,.m sup{font-size:.68em;line-height:0}
+.m .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.2;margin:0 .1em}
+.m .nu{border-bottom:.075em solid currentColor;padding:0 .18em .05em}
+.m .de{padding:.05em .18em 0}
+.m .sq{display:inline-flex;align-items:stretch;vertical-align:middle;padding-top:.1em}
+.m .rg{width:.72em;flex:none;margin-right:-.02em}
+.m .rg path{fill:none;stroke:currentColor;stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:miter}
+.m .rb{border-top:.075em solid currentColor;padding:0 .12em 0 .08em;margin-top:.02em}
+
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+#nav{flex:none;display:none;justify-content:flex-end;align-items:center;gap:.5rem;padding:.4rem .8rem;border-top:1px solid var(--line);background:var(--soft)}
+#nav.on{display:flex}
+
+@media (max-width:760px){
+  .cols,.tbody{flex-direction:column}
+  .cols .left,.tbody .left{flex:1 1 55%}
+  .cols .right,.tbody .right{flex:1 1 45%}
+  h1.title{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <section class="screen center on" id="s-start">
+      <h1 class="title"><span>Правильні многокутники</span><br>та їх властивості</h1>
+      <p class="sub">Формули та задачі з підручника</p>
+      <button class="btn pri go" data-act="start">ПОЧАТИ ▶</button>
+    </section>
+    <section class="screen center" id="s-menu">
+      <div class="menu">
+        <button class="mi" data-act="open" data-p="form"><b>1</b>Формули</button>
+        <button class="mi" data-act="open" data-p="tasks"><b>2</b>Задачі з підручника</button>
+      </div>
+    </section>
+    <section class="screen cols" id="s-form">
+      <div class="panel left">
+        <button class="reset" data-act="resetForm" title="Спочатку">↻</button>
+        <div class="scroll" id="fLeft"></div>
+      </div>
+      <div class="panel right">
+        <div class="chips" id="fChips"></div>
+        <div class="figbox" id="fFig"></div>
+      </div>
+    </section>
+    <section class="screen tasks" id="s-tasks">
+      <div class="trow">
+        <button class="arr" data-act="tprev" id="tPrev" title="Попередня">‹</button>
+        <div class="chips" id="tChips"></div>
+        <button class="arr" data-act="tnext" id="tNext" title="Наступна">›</button>
+      </div>
+      <div class="tbody">
+        <div class="panel left">
+          <button class="reset" data-act="resetTask" title="Спочатку">↻</button>
+          <div class="scroll" id="tLeft"></div>
+        </div>
+        <div class="panel right"><div class="figbox" id="tFig"></div></div>
+      </div>
+    </section>
+  </div>
+  <div id="nav">
+    <button class="btn" data-act="menu">☰ Зміст</button>
+    <button class="btn" data-act="back">← Назад</button>
+    <button class="btn pri" data-act="fwd" id="fwd">Далі →</button>
+  </div>
+  <footer>Автор розробки <b style="color:#334155">Ковтун Тетяна</b></footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= математичний запис ================= */
+function M(src){
+  let i=0;
+  function atom(){
+    const c=src[i++];
+    if(c===undefined)return '';
+    if(/[A-Za-z]/.test(c)){const cl=c==='R'?' vR':(c==='r'?' vr':'');return '<i class="v'+cl+'">'+c+'</i>';}
+    if(c==='-')return '<span class="op">−</span>';
+    if(c==='=')return '<span class="op">=</span>';
+    if(c==='+')return '<span class="op">+</span>';
+    if(c==='<')return '<span class="op">&lt;</span>';
+    if(c==='>')return '<span class="op">&gt;</span>';
+    if(c==='*')return '·';
+    if(c==='~')return '&nbsp;';
+    if(c==='&')return '&amp;';
+    return c;
+  }
+  function group(){i++;const g=seq('}');i++;return g;}
+  function arg(){while(src[i]===' ')i++;return src[i]==='{'?group():atom();}
+  function raw(){while(src[i]===' ')i++;if(src[i]!=='{')return src[i++];i++;let s='';while(i<src.length&&src[i]!=='}')s+=src[i++];i++;return s;}
+  function cmd(n){
+    switch(n){
+      case 'f':{const a=arg(),b=arg();return '<span class="fr"><span class="nu">'+a+'</span><span class="de">'+b+'</span></span>';}
+      case 's':{const a=arg();return '<span class="sq"><svg class="rg" viewBox="0 0 12 24" preserveAspectRatio="none"><path d="M0.6 14.5 L3 12.5 L6.2 22.5 L11.4 1"/></svg><span class="rb">'+a+'</span></span>';}
+      case 't':return '<span class="tx">'+raw()+'</span>';
+      case 'deg':return '°';
+      case 'h':return '<span class="hl">'+arg()+'</span>';
+      case 'cdot':return '<span class="op2">·</span>';
+      case 'approx':return '<span class="op">≈</span>';
+      case 'Rightarrow':return '<span class="op">⇒</span>';
+      case 'perp':return '<span class="op">⟂</span>';
+      case 'al':return '<i class="v cal">α</i>';
+      case 'be':return '<i class="v cbe">β</i>';
+      case 'ph':return '<i class="v cph">φ</i>';
+      case 'Delta':return '△';
+      case 'ang':return '∠';
+      case 'tg':return '<span class="fn">tg</span>';
+      case 'sin':return '<span class="fn">sin</span>';
+      case 'cos':return '<span class="fn">cos</span>';
+      default:return '';
+    }
+  }
+  function seq(stop){
+    let o='';
+    while(i<src.length){
+      const c=src[i];
+      if(stop&&c===stop)break;
+      if(c==='\\'){i++;let n='';while(i<src.length&&/[A-Za-z]/.test(src[i]))n+=src[i++];o+=cmd(n);continue;}
+      if(c==='{'){o+=group();continue;}
+      if(c==='_'||c==='^'){i++;const a=arg();o+=c==='_'?'<sub>'+a+'</sub>':'<sup>'+a+'</sup>';continue;}
+      o+=atom();
+    }
+    return o;
+  }
+  return '<span class="m">'+seq(null)+'</span>';
+}
+const T=(s,...v)=>M(String.raw(s,...v));
+
+/* ================= малювання SVG ================= */
+const D2R=Math.PI/180;
+const C={R:'#7c3aed',r:'#0f766e',a:'#334155',al:'#ea580c',be:'#ca8a04',ph:'#2563eb',fill:'#DBE5FF',ink:'#0f1b4d',diag:'#be185d',faint:'#b6c2e2'};
+const fx=v=>(+v).toFixed(1);
+const P=(cx,cy,r,deg)=>[cx+r*Math.cos(deg*D2R),cy+r*Math.sin(deg*D2R)];
+const ang=(p,q)=>Math.atan2(q[1]-p[1],q[0]-p[0])/D2R;
+const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
+const wrap=(s)=>'<svg viewBox="0 0 500 440" class="fig" xmlns="http://www.w3.org/2000/svg">'+s+'</svg>';
+function pv(n,R,cx,cy,th0){if(th0===undefined)th0=90-180/n;const a=[];for(let i=0;i<n;i++)a.push(P(cx,cy,R,th0+360*i/n));return a;}
+function L(p,q,col,w,dash){return '<line x1="'+fx(p[0])+'" y1="'+fx(p[1])+'" x2="'+fx(q[0])+'" y2="'+fx(q[1])+'" stroke="'+col+'" stroke-width="'+(w||3)+'" stroke-linecap="round"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
+function Cc(c,r,col,w,fill,dash){return '<circle cx="'+fx(c[0])+'" cy="'+fx(c[1])+'" r="'+fx(r)+'" fill="'+(fill||'none')+'" stroke="'+col+'" stroke-width="'+(w||3)+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
+function Pg(pts,fill,stroke,w){return '<path d="M'+pts.map(p=>fx(p[0])+','+fx(p[1])).join('L')+'Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+w+'" stroke-linejoin="round"/>';}
+function Dt(p,r,col){return '<circle cx="'+fx(p[0])+'" cy="'+fx(p[1])+'" r="'+(r||4.5)+'" fill="'+(col||'#1e293b')+'" stroke="#fff" stroke-width="1.5"/>';}
+function Tx(p,t,col,sz,ital){return '<text class="lb" x="'+fx(p[0])+'" y="'+fx(p[1])+'" fill="'+(col||C.ink)+'" font-size="'+(sz||24)+'" text-anchor="middle" dominant-baseline="central"'+(ital===false?' style="font-style:normal"':'')+'>'+t+'</text>';}
+function wedge(v,a1,a2,rad,col,op,label,lcol,lrad){
+  let d=(((a2-a1)%360)+360)%360;if(d>180)d-=360;
+  const p1=P(v[0],v[1],rad,a1),p2=P(v[0],v[1],rad,a1+d);
+  let s='<path d="M'+fx(v[0])+','+fx(v[1])+'L'+fx(p1[0])+','+fx(p1[1])+'A'+rad+','+rad+' 0 0 '+(d>0?1:0)+' '+fx(p2[0])+','+fx(p2[1])+'Z" fill="'+col+'" fill-opacity="'+(op||.35)+'" stroke="'+col+'" stroke-width="2"/>';
+  if(label)s+=Tx(P(v[0],v[1],lrad||rad*1.6,a1+d/2),label,lcol||col,22,false);
+  return s;
+}
+function rmark(v,a1,a2,s){
+  const u1=[Math.cos(a1*D2R),Math.sin(a1*D2R)],u2=[Math.cos(a2*D2R),Math.sin(a2*D2R)];
+  const p1=[v[0]+s*u1[0],v[1]+s*u1[1]],p2=[p1[0]+s*u2[0],p1[1]+s*u2[1]],p3=[v[0]+s*u2[0],v[1]+s*u2[1]];
+  return '<path d="M'+fx(p1[0])+','+fx(p1[1])+'L'+fx(p2[0])+','+fx(p2[1])+'L'+fx(p3[0])+','+fx(p3[1])+'" fill="none" stroke="#334155" stroke-width="2"/>';
+}
+function lab(p,q,t,col,side,d,sz,ital){
+  const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1,m=mid(p,q);
+  return Tx([m[0]+(side||1)*(d||20)*(-dy/l),m[1]+(side||1)*(d||20)*(dx/l)],t,col,sz||24,ital);
+}
+function out(p,O,k){const a=ang(O,p);return P(p[0],p[1],k||24,a);}
+
+/* ================= аркуш формул ================= */
+const ND=[3,4,5,6,8,12];
+function sheetFig(n,f){
+  const cx=250,cy=210,Rp=165,O=[cx,cy];
+  const V=pv(n,Rp,cx,cy),rp=Rp*Math.cos(Math.PI/n),V0=V[0],V1=V[1],Vn=V[n-1];
+  let s='';
+  if(f>=5)s+=Cc(O,Rp,C.R,2.5,'none','8 6')+Cc(O,rp,C.r,2.5,'none','8 6');
+  s+=Pg(V,C.fill,C.a,4.5);
+  const a1=ang(V0,V1),a2=ang(V0,Vn);
+  if(f===1)s+=wedge(V0,a1,a2,48,C.al,.4,'α',C.al,80);
+  if(f===2){
+    s+=L(V0,P(V0[0],V0[1],95,a1+180),C.a,4);
+    s+=wedge(V0,a1,a2,48,C.al,.35,'α',C.al,80);
+    s+=wedge(V0,a1+180,a2,62,C.be,.45,'β',C.be,92);
+  }
+  if(f===3){
+    s+=L(O,V0,C.R,4)+L(O,V1,C.R,4)+Dt(O,5);
+    s+=wedge(O,ang(O,V0),ang(O,V1),Math.min(60,rp*.5),C.ph,.4,'φ',C.ph,Math.min(60,rp*.5)*1.65);
+    s+=Tx(out(V0,O,26),'A',C.ink,26)+Tx(out(V1,O,26),'B',C.ink,26)+Tx([cx+16,cy-16],'O',C.ink,26);
+  }
+  if(f===4){
+    for(let i=0;i<n;i++)for(let j=i+2;j<n;j++){if(i===0&&j===n-1)continue;if(i===0)continue;s+=L(V[i],V[j],C.faint,1.8);}
+    for(let j=2;j<n-1;j++)s+=L(V0,V[j],C.diag,3.5);
+    s+=Dt(V0,6,C.diag);
+  }
+  if(f>=5){
+    const M0=[cx,cy+rp];
+    s+=L(O,V0,C.R,4.5)+L(O,M0,C.r,4.5)+L(V0,V1,C.a,5)+Dt(O,5)+Dt(M0,4)+Dt(V0,5)+Dt(V1,5);
+    s+=rmark(M0,-90,0,16);
+    const wr=Math.min(70,rp*.5);
+    s+=wedge(O,90,ang(O,V0),wr,C.ph,.35,null);
+    s+=Tx(P(cx,cy,wr*1.5+ (n>8?26:0),90-90/n+(n>8?0:0)),'180°/n',C.ph,15,false);
+    s+=lab(O,V0,'R',C.R,-1,18,26)+lab(O,M0,'r',C.r,1,18,26);
+    s+=Tx([(V1[0]+cx)/2,cy+rp+26],'a',C.a,26);
+    s+=Tx(out(V0,O,26),'A',C.ink,26)+Tx(out(V1,O,26),'B',C.ink,26)+Tx([cx+14,cy+rp+22],'M',C.ink,22)+Tx([cx-16,cy-16],'O',C.ink,26);
+  }
+  return wrap(s);
+}
+function f1(x){return String(Math.round(x*1000)/1000).replace('.',',');}
+function sheetRead(n,f){
+  const al=180*(n-2)/n,be=360/n;
+  if(f===1)return T`\al=\f{180\deg\cdot${n-2}}{${n}}=${al}\deg`;
+  if(f===2)return T`\be=180\deg-${al}\deg=${be}\deg`;
+  if(f===3)return T`\ph=\f{360\deg}{${n}}=${be}\deg`;
+  if(f===4)return T`d=\f{${n}\cdot${n-3}}{2}=${n*(n-3)/2}`+'<br><span style="color:var(--muted);font-size:.85em">з однієї вершини — '+(n-3)+' діагонал'+((n-3)===1?'ь':((n-3)>=2&&(n-3)<=4?'і':'ей'))+'</span>';
+  if(f>=5){
+    const t=Math.PI/n,R=1/(2*Math.sin(t)),r=1/(2*Math.tan(t));
+    return '<span style="color:var(--muted);font-size:.85em">для a = 1:</span> '+M('R\\approx'+f1(R)+',~r\\approx'+f1(r))+'<br><span style="color:var(--muted);font-size:.85em">кут при центрі в трикутнику OMA — 180°/'+n+' = '+(180/n)+'°</span>';
+  }
+  return '';
+}
+function cardTable(h,rows){
+  return '<table class="tb"><tr>'+h.map((x,j)=>'<th'+(j===HI?' class="hc"':'')+'>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map((x,i)=>'<td'+(i===0?' style="background:var(--soft)"':(i===HI?' class="hc"':''))+'>'+x+'</td>').join('')+'</tr>').join('')+'</table>';
+}
+const NH=['n',T`n=3`+'<small>трикутник</small>',T`n=4`+'<small>квадрат</small>',T`n=6`+'<small>шестикутник</small>'];
+const CARDS=[
+  {t:'Внутрішній кут',c:'var(--cal)',b:T`\al_n=\f{180\deg\cdot(n-2)}{n}`},
+  {t:'Зовнішній кут',c:'var(--cbe)',b:T`\be_n=180\deg-\al_n=\f{360\deg}{n}`},
+  {t:'Центральний кут',c:'var(--cph)',b:T`\ph_n=\f{360\deg}{n}`},
+  {t:'Кількість діагоналей',c:'#be185d',b:T`d_n=\f{n(n-3)}{2}`},
+  {t:'Радіуси описаного й вписаного кіл через сторону a',c:'var(--acc)',b:T`R_n=\f{a_n}{2\sin\f{180\deg}{n}}`+'<br>'+T`r_n=\f{a_n}{2\tg\f{180\deg}{n}}`},
+  {t:'Сторона через радіус',c:'var(--acc)',b:T`a_n=2R\sin\f{180\deg}{n}`+'<br>'+T`a_n=2r\tg\f{180\deg}{n}`},
+  {t:'Радіуси через сторону a',c:'var(--acc)',get b(){return cardTable(NH,[
+    [T`R`,T`\f{a\s{3}}{3}`,T`\f{a\s{2}}{2}`,T`a`],
+    [T`r`,T`\f{a\s{3}}{6}`,T`\f{a}{2}`,T`\f{a\s{3}}{2}`]]);}},
+  {t:'Сторона через радіуси',c:'var(--acc)',get b(){return cardTable(NH,[
+    [T`a=`+T`R\cdot`,T`R\s{3}`,T`R\s{2}`,T`R`],
+    [T`a=`+T`r\cdot`,T`2r\s{3}`,T`2r`,T`\f{2r\s{3}}{3}`]]);}},
+  {t:'Сторони правильних 8- і 12-кутника через R',c:'var(--acc)',b:T`a_8=R\s{2-\s{2}}`+'<br>'+T`a_{12}=R\s{2-\s{3}}`}
+];
+const NC=CARDS.length;
+const FOC=[0,1,2,3,4,5,5,5,5,5];  // яка «сцена» рисунка відповідає картці
+const S={page:'start',sn:null,sf:-1,fopen:{},fcalc:{},ti:0,prog:{},pexp:{}};
+let HI=-1;
+function resetF(){S.sn=null;S.sf=-1;S.fopen={};S.fcalc={};}
+
+const HA={3:'60',4:'45',5:'36',6:'30',8:'22,5',12:'15'};
+const DT={
+ 3:{al:60,be:120,ph:120,d:0,R:'=\\f{a\\s{3}}{3}',r:'=\\f{a\\s{3}}{6}',aR:'=R\\s{3}',ar:'=2r\\s{3}'},
+ 4:{al:90,be:90,ph:90,d:2,R:'=\\f{a\\s{2}}{2}',r:'=\\f{a}{2}',aR:'=R\\s{2}',ar:'=2r'},
+ 5:{al:108,be:72,ph:72,d:5,R:'\\approx0,851a',r:'\\approx0,688a',aR:'\\approx1,176R',ar:'\\approx1,453r'},
+ 6:{al:120,be:60,ph:60,d:9,R:'=a',r:'=\\f{a\\s{3}}{2}',aR:'=R',ar:'=\\f{2r\\s{3}}{3}'},
+ 8:{al:135,be:45,ph:45,d:20,R:'\\approx1,307a',r:'=\\f{a(1+\\s{2})}{2}\\approx1,207a',aR:'=R\\s{2-\\s{2}}\\approx0,765R',ar:'=2r(\\s{2}-1)\\approx0,828r'},
+ 12:{al:150,be:30,ph:30,d:54,R:'\\approx1,932a',r:'=\\f{a(2+\\s{3})}{2}\\approx1,866a',aR:'=R\\s{2-\\s{2}}'.replace('s{2-\\s{2}}','s{2-\\s{3}}')+'\\approx0,518R',ar:'=2r(2-\\s{3})\\approx0,536r'}
+};
+const NM={3:'трикутника',4:'чотирикутника (квадрата)',5:'п’ятикутника',6:'шестикутника',8:'восьмикутника',12:'дванадцятикутника'};
+const HC={3:1,4:2,6:3};
+function calcHL(i,n){
+  const D=DT[n],h=HA[n],H=x=>'\\h{'+x+'}';
+  switch(i){
+    case 0:return [M('\\al_{'+H(n)+'}=\\f{180\\deg\\cdot('+H(n)+'-2)}{'+H(n)+'}='+D.al+'\\deg')];
+    case 1:return [M('\\be_{'+H(n)+'}=180\\deg-'+H(D.al)+'\\deg='+D.be+'\\deg')];
+    case 2:return [M('\\ph_{'+H(n)+'}=\\f{360\\deg}{'+H(n)+'}='+D.ph+'\\deg')];
+    case 3:return [M('d_{'+H(n)+'}=\\f{'+H(n)+'\\cdot'+H(n-3)+'}{2}='+D.d)];
+    case 4:return [M('R_{'+H(n)+'}=\\f{a}{2\\sin'+H(h)+'\\deg}'+D.R),M('r_{'+H(n)+'}=\\f{a}{2\\tg'+H(h)+'\\deg}'+D.r)];
+    case 5:return [M('a_{'+H(n)+'}=2R\\sin'+H(h)+'\\deg'+D.aR),M('a_{'+H(n)+'}=2r\\tg'+H(h)+'\\deg'+D.ar)];
+    case 6:return [M('R_{'+H(n)+'}'+D.R),M('r_{'+H(n)+'}'+D.r)];
+    case 7:return [M('a_{'+H(n)+'}'+D.aR),M('a_{'+H(n)+'}'+D.ar)];
+    case 8:if(n===8||n===12)return [M('a_{'+H(n)+'}=R\\s{2-\\s{'+(n===8?2:3)+'}}')];return [];
+  }
+  return [];
+}
+function scene(i){return i<0?0:(i<=3?i+1:5);}
+function rowHTML(i){
+  const c=CARDS[i],op=!!S.fopen[i],n=S.sn,ca=op&&n!=null&&!!S.fcalc[i];
+  let h='<div class="frow'+(op?' on':'')+'"><button class="fh" data-act="fopen" data-i="'+i+'"><span style="color:'+c.c+'">'+c.t+'</span><span class="chev">'+(op?'▴':'▾')+'</span></button>';
+  if(op){
+    HI=ca?(HC[n]||-1):-1;
+    const fb=c.b;
+    HI=-1;
+    h+='<div class="fbody"><div class="lns'+(n!=null?' click':'')+(ca?' sel':'')+'" data-act="fcalc" data-i="'+i+'">'+fb+'</div>';
+    if(n!=null&&!ca)h+='<div class="hint">натисніть на формулу — підставимо для n = '+n+'</div>';
+    if(ca){
+      const L=calcHL(i,n);
+      h+='<div class="fcalc"><div class="fct">Для '+NM[n]+' (n = '+n+')</div>'+(L.length?L.map(l=>'<div class="ln2">'+l+'</div>').join(''):'<div class="hint">Ця формула — лише для 8- і 12-кутника</div>')+'</div>';
+    }
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+function renderForm(){
+  const left=document.getElementById('fLeft'),y=left.scrollTop;
+  let h='<div class="legend">'+
+    '<span>'+T`n`+' — кількість сторін</span><span>'+T`a`+' — сторона</span><span>'+T`R`+' — радіус описаного кола</span><span>'+T`r`+' — радіус вписаного кола</span></div>';
+  for(let i=0;i<NC;i++)h+=rowHTML(i);
+  left.innerHTML=h;
+  left.scrollTop=y;
+  document.getElementById('fFig').innerHTML=S.sn==null?'<div class="figph">Оберіть n — з’явиться правильний многокутник</div>':sheetFig(S.sn,scene(S.sf));
+  document.getElementById('fChips').innerHTML=ND.map(n=>'<button class="chip'+(S.sn===n?' on':'')+'" data-act="n" data-n="'+n+'">n = '+n+'</button>').join('');
+}
+/* ================= фігури до задач ================= */
+const CX=250,CY=225;
+function polyFig(n,o){
+  const s=96,sh=o.sh||150,be=180-sh;
+  const hd=[0];for(let i=1;i<=5;i++)hd.push(hd[i-1]+be);
+  // вершини p0..p4; h_i — напрям сторони p_i -> p_{i+1}
+  let pts=[[0,0]];
+  for(let i=0;i<4;i++)pts.push([pts[i][0]+s*Math.cos(hd[i]*D2R),pts[i][1]+s*Math.sin(hd[i]*D2R)]);
+  const t0=[pts[0][0]-s*.55*Math.cos((hd[0]-be)*D2R),pts[0][1]-s*.55*Math.sin((hd[0]-be)*D2R)];
+  const t4=[pts[4][0]+s*.55*Math.cos(hd[4]*D2R),pts[4][1]+s*.55*Math.sin(hd[4]*D2R)];
+  const all=pts.concat([t0,t4]);
+  const x0=Math.min(...all.map(p=>p[0])),x1=Math.max(...all.map(p=>p[0])),y0=Math.min(...all.map(p=>p[1])),y1=Math.max(...all.map(p=>p[1]));
+  const k=Math.min(1,380/(x1-x0||1),250/(y1-y0||1));
+  const ox=CX-k*(x0+x1)/2,oy=CY-8-k*(y0+y1)/2;
+  const tr=p=>[ox+k*p[0],oy+k*p[1]];
+  const Q=pts.map(tr),Z0=tr(t0),Z4=tr(t4);
+  let g=L(Z0,Q[0],C.a,3.5,'3 9')+L(Q[4],Z4,C.a,3.5,'3 9');
+  g+='<path d="M'+Q.map(p=>fx(p[0])+','+fx(p[1])).join('L')+'" fill="none" stroke="'+C.a+'" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  const V0=Q[2],a1=ang(V0,Q[1]),a2=ang(V0,Q[3]),wr=50;
+  if(o.ext!=null)g+=L(V0,P(V0[0],V0[1],wr*1.9,a1+180),C.a,3.5);
+  g+=Dt(Q[1],4)+Dt(Q[3],4)+Dt(V0,5);
+  if(o.int!=null)g+=wedge(V0,a1,a2,wr,C.al,.4,o.int,C.al,wr+34);
+  if(o.ext!=null)g+=wedge(V0,a1+180,a2,wr,C.be,.5,o.ext,C.be,wr+36);
+  return wrap(g)+(o.cap?'<div class="cap">'+o.cap+'</div>':'');
+}
+function polyRr(n,o){
+  const Rp=o.Rp||150,V=pv(n,Rp,CX,CY),rp=Rp*Math.cos(Math.PI/n);
+  const chain=o.open?[V[n-1],V[0],V[1],V[2]]:null;
+  const O=[CX,CY],A=V[0],B=V[1],Mm=[CX,CY+rp];
+  let s=Cc(O,Rp,C.R,2.5,'none','8 6')+Cc(O,rp,C.r,2.5,'none','8 6')+(chain?'<path d="M'+chain.map(p=>fx(p[0])+','+fx(p[1])).join('L')+'" fill="none" stroke="'+C.a+'" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>':Pg(V,C.fill,C.a,4));
+  if(o.tri)s+=Pg([O,Mm,A],'#fde68a',C.a,0).replace('stroke-width="0"','stroke-width="0" fill-opacity=".7"');
+  s+=L(A,B,C.a,5);
+  if(o.R)s+=L(O,A,C.R,4.5);
+  if(o.r)s+=L(O,Mm,C.r,4.5);
+  if(o.tri)s+=rmark(Mm,-90,0,16);
+  s+=Dt(O,5);
+  const lb=o.lab||{};
+  if(o.R)s+=lab(O,A,lb.R||'R',C.R,-1,20,26);
+  if(o.r)s+=lab(O,Mm,lb.r||'r',C.r,1,20,26);
+  if(o.tri){s+=lab(Mm,A,lb.h||'a/2',C.a,1,30,24);s+=Dt(Mm,4);}
+  else s+=Tx([(A[0]+B[0])/2,CY+rp+28],lb.a||'a',C.a,26);
+  if(o.pts)s+=Tx(out(A,O,26),'A',C.ink,26)+Tx(out(B,O,26),'B',C.ink,26)+Tx([CX-16,CY-16],'O',C.ink,26)+(o.tri?Tx([CX-18,CY+rp+26],'M',C.ink,24):'');
+  return wrap(s);
+}
+const sq=(s)=>'<span style="font-size:1.1em">'+s+'</span>';
+function F65(k){
+  if(k>=4)return polyFig(40,{sh:171,int:'171°',cap:T`n=40`});
+  if(k>=3)return polyFig(9,{sh:171,int:'171°',cap:T`n=?`});
+  if(k>=2)return polyFig(18,{sh:160,int:'160°',cap:T`n=18`});
+  return polyFig(9,{sh:160,int:'160°',cap:T`n=?`});
+}
+function F68(k){
+  if(k>=3)return polyFig(20,{sh:162,int:'162°',ext:'18°',cap:T`n=20`});
+  if(k>=2)return polyFig(9,{sh:162,int:'162°',ext:'18°',cap:T`n=?`});
+  return polyFig(9,{sh:150,int:'x',ext:'x/9',cap:T`n=?`});
+}
+function F69(k){
+  if(k>=3)return polyFig(60,{sh:174,int:'174°',ext:'6°',cap:T`n=60`});
+  if(k>=2)return polyFig(9,{sh:174,int:'174°',ext:'6°',cap:T`n=?`});
+  return polyFig(9,{sh:150,int:'α',ext:'β',cap:T`n=?`});
+}
+function F612(k){return wrap('')&&polyRr(3,{R:1,r:1,pts:1});}
+function F613(k){return polyRr(4,{R:1,r:1,pts:1});}
+function F615(k){
+  const Rp=150,V=pv(4,Rp,CX,CY),O=[CX,CY],rp=Rp*Math.SQRT1_2,Mr=[CX+rp,CY];
+  let s='';
+  if(k>=1)s+=Cc(O,Rp,C.R,2.5,'none','8 6');
+  if(k>=2)s+=Cc(O,rp,C.r,2.5,'none','8 6');
+  s+=Pg(V,C.fill,C.a,4.5);
+  s+=L(V[1],V[3],'#334155',3,'9 6');
+  s+=lab(V[1],V[3],'d = 6√2',C.a,1,24,22,false);
+  if(k>=1)s+=L(O,V[3],C.R,4.5)+lab(O,V[3],'R',C.R,-1,20,26);
+  if(k>=2){s+=L(O,Mr,C.r,4.5)+lab(O,Mr,'r',C.r,-1,18,26);s+=Tx([CX,CY+rp+26],'a = 6',C.a,22,false);}
+  s+=Dt(O,5);
+  return wrap(s);
+}
+function F617(k){
+  const rp=130,Rc=rp/Math.cos(Math.PI/6),V=pv(6,Rc,CX,CY),O=[CX,CY],Mm=[CX,CY+rp];
+  let s=Cc(O,rp,C.r,3.5,'#ccfbf1')+Pg(V,'none',C.a,4.5);
+  if(k>=1)s+=L(O,V[0],C.R,3.5)+L(O,V[1],C.R,3.5)+Tx(mid(O,V[0]).map((v,i)=>v+(i?-14:12)),'a',C.R,22);
+  s+=L(O,Mm,C.r,4.5)+Dt(O,5)+Dt(Mm,4)+rmark(Mm,-90,0,14);
+  s+=Tx([CX-30,CY+62],'r = 8√3',C.r,22,false);
+  s+=L(V[0],V[1],C.a,5);
+  s+=Tx([CX,CY+rp+30],k>=2?'a = 16':'a = ?',C.a,26,false);
+  return wrap(s);
+}
+function F619(k){
+  const Rp=140,rp=Rp/2,O=[CX,CY+10],V=pv(3,Rp,CX,CY+10),Mm=[CX,CY+10+rp],top=V[2];
+  let s=Cc(O,Rp,C.R,2.5,'none','8 6')+Cc(O,rp,C.r,2.5,'none','8 6')+Pg(V,C.fill,C.a,4.5);
+  s+=L(O,top,C.R,4.5)+L(O,Mm,C.r,4.5)+Dt(O,5);
+  s+=Tx([CX+22,CY-30],k>=2?'R = 8':'R',C.R,26,k<2?true:false);
+  s+=Tx([CX-26,CY+10+rp/2+4],k>=2?'r = 4':'r',C.r,26,k<2?true:false);
+  if(k>=1){const g1=[CX,CY+10-rp],g2=[CX,CY+10-Rp];s+=L(g1,g2,'#ca8a04',9);s+=Tx([CX+96,(g1[1]+g2[1])/2-6],'R − r = 4',C.be,22,false);}
+  if(k>=3)s+=Tx([CX,V[0][1]+30],'a = 8√3',C.a,24,false);
+  else s+=Tx([CX,V[0][1]+30],'a',C.a,26);
+  return wrap(s);
+}
+function F620(k){return polyRr(10,{open:1,R:1,tri:k>=1,r:k>=1,pts:1,lab:{R:'R',r:'r',h:'a/2',a:'a'}});}
+function F622(k){return polyRr(10,{open:1,R:k>=1,tri:k>=1,r:1,pts:1,lab:{R:'R',r:'r',h:'a/2',a:'a'}});}
+function F624(k){
+  const Rc=100,O=[CX,CY],Sq=pv(4,Rc,CX,CY);
+  let s='';
+  if(k>=2){const Tr=pv(3,Rc*2,CX,CY);s+=Pg(Tr,'rgba(219,229,255,.6)','#334155',4);s+=Tx([CX,CY+Rc+30],'b = ?',C.a,22,false);}
+  s+=Cc(O,Rc,C.R,3,'#fff')+Pg(Sq,C.fill,C.a,4.5);
+  s+=Tx([CX,CY+Rc*.707+22],'6√2',C.a,20,false);
+  if(k>=1){s+=L(O,Sq[3],C.R,4.5)+lab(O,Sq[3],'R = 6',C.R,-1,22,20,false);}
+  s+=Dt(O,5);
+  if(k>=3)s+='';
+  return wrap(s);
+}
+function F625(k){
+  const Rp=150,O=[CX,CY],h=Rp*6/8,V=[[CX+h,CY+h],[CX-h,CY+h],[CX-h,CY-h],[CX+h,CY-h]];
+  let s=Cc(O,Rp,C.r,3.5,'#e0f2f1')+Pg(V,'rgba(250,204,21,.18)','#ca8a04',4);
+  s+=L([CX-Rp,CY],[CX+Rp,CY],'#334155',3,'9 6')+Tx([CX-70,CY-14],'d = 16',C.a,20,false);
+  s+=Tx([CX+8,CY+h+26],'12',C.be,22,false);
+  if(k>=1){s+=L(V[1],V[3],C.R,4.5)+Tx([CX+62,CY-58],'12√2',C.R,22,false);}
+  if(k>=2)V.forEach(p=>{s+=Dt(p,6,'#dc2626');});
+  s+=Dt(O,5);
+  return wrap(s);
+}
+function F626(k){
+  const Rp=150,O=[CX,CY],V=pv(3,Rp,CX,CY,270);
+  let s=Cc(O,Rp,'#a16207',4,'#f3e3c7')+Pg(V,'#fde68a','#334155',4.5);
+  s+=Tx([CX-70,V[1][1]+26],'15',C.a,22,false);
+  if(k>=1)s+=L(O,V[0],C.R,4.5)+Tx([CX+22,CY-62],'R',C.R,26);
+  if(k>=2){s+=L([CX,CY-Rp],[CX,CY+Rp],C.ph,4)+Tx([CX+66,CY+Rp*.78],'d = 2R',C.ph,22,false);}
+  s+=Dt(O,5);
+  return wrap(s);
+}
+function F627(k){
+  const Rp=150,O=[CX,CY],V=pv(4,Rp,CX,CY);
+  let s=Cc(O,Rp,'#a16207',4,'#f3e3c7')+Pg(V,'#fde68a','#334155',4.5);
+  s+=Tx([CX,CY+Rp*.707+24],'14',C.a,22,false);
+  if(k>=1)s+=L(V[1],V[3],C.ph,4.5)+Tx([CX+70,CY-52],'d',C.ph,28);
+  s+=Dt(O,5);
+  return wrap(s);
+}
+function F634(k){
+  const Rc=100,O=[CX,CY],In=pv(3,Rc,CX,CY,90),Out=pv(3,Rc*2,CX,CY);
+  let s='';
+  if(k>=2)s+=Pg(Out,'rgba(219,229,255,.55)',C.ph,4);
+  s+=Cc(O,Rc,C.R,3,'#fff')+Pg(In,k>=1?C.fill:'rgba(219,229,255,.5)',C.a,4.5);
+  if(k>=1)s+=L(O,In[0],C.R,4.5)+Tx([CX+20,CY+54],'R',C.R,26);
+  s+=Tx([CX,CY-Rc*.5+0],'a',C.a,24);
+  if(k>=2)s+=Tx([CX,CY+Rc+30],'b',C.ph,26);
+  s+=Dt(O,5);
+  return wrap(s);
+}
+function F635(k){
+  const Rc=100,O=[CX,CY],In=pv(6,Rc,CX,CY,30),rp=Rc,Out=pv(6,rp/Math.cos(Math.PI/6),CX,CY);
+  let s='';
+  if(k>=2)s+=Pg(Out,'rgba(219,229,255,.55)',C.ph,4);
+  s+=Cc(O,Rc,C.R,3,'#fff')+Pg(In,k>=1?C.fill:'rgba(219,229,255,.5)',C.a,4.5);
+  if(k>=1)s+=L(O,In[0],C.R,4.5)+Tx([CX+62,CY+46],'R',C.R,26);
+  s+=Dt(O,5);
+  s+=Tx([CX+34,CY-36],'a',C.a,24);
+  if(k>=2)s+=Tx([CX,CY+Rc+38],'b',C.ph,26);
+  return wrap(s);
+}
+function FN(n,sideLab){return function(k){
+  const Rp=165,V=pv(n,Rp,CX,CY-5),O=[CX,CY-5],A=V[0],B=V[1];
+  let s=Cc(O,Rp,C.R,2.5,'none','8 6')+Pg(V,C.fill,C.a,4);
+  if(k>=1){s+=Pg([O,A,B],'rgba(250,204,21,.45)','#334155',0);s+=L(O,A,C.R,4.5)+L(O,B,C.R,4.5)+wedge(O,ang(O,A),ang(O,B),52,C.ph,.45,(360/n)+'°',C.ph,86);}
+  s+=L(A,B,C.a,5.5)+Dt(O,5)+Dt(A,5)+Dt(B,5);
+  s+=Tx(out(A,O,26),'A',C.ink,26)+Tx(out(B,O,26),'B',C.ink,26)+Tx([CX+14,CY-24],'O',C.ink,26);
+  if(k>=1){s+=lab(O,A,'R',C.R,-1,20,26);}
+  s+=Tx([CX,CY-5+Rp*Math.cos(Math.PI/n)+28],sideLab,C.a,26);
+  return wrap(s);
+};}
+
+/* ================= задачі ================= */
+const TB612=[
+  {g:'a',gv:T`6\s{3}`,c:[['R',T`6`],['r',T`3`]]},
+  {g:'R',gv:T`4\s{3}`,c:[['a',T`12`],['r',T`2\s{3}`]]},
+  {g:'r',gv:T`2`,c:[['a',T`4\s{3}`],['R',T`4`]]}
+];
+const TB613=[
+  {g:'a',gv:T`8`,c:[['R',T`4\s{2}`],['r',T`4`]]},
+  {g:'R',gv:T`4`,c:[['a',T`4\s{2}`],['r',T`2\s{2}`]]},
+  {g:'r',gv:T`2`,c:[['a',T`4`],['R',T`2\s{2}`]]}
+];
+function tbl(rows,k){
+  let h='<div class="tbwrap"><table class="tb"><tr><th>'+T`a`+'</th><th>'+T`R`+'</th><th>'+T`r`+'</th></tr>';
+  rows.forEach((r,i)=>{
+    const done=k>i,cur=k===i+1;
+    h+='<tr>';
+    ['a','R','r'].forEach(col=>{
+      if(col===r.g)h+='<td class="given">'+r.gv+'</td>';
+      else{const c=r.c.find(x=>x[0]===col);h+=done?'<td class="fill'+'">'+c[1]+'</td>':'<td class="blank">&nbsp;</td>';}
+    });
+    h+='</tr>';
+  });
+  return h+'</table></div>';
+}
+const cm=(s)=>s;
+const TASKS=[
+ {id:'6.5',cond:'<p>Скільки сторін має правильний многокутник, кут якого дорівнює:</p><p>1) 160°; 2) 171°?</p>',fig:F65,parts:[0,2],pl:['1) кут 160°','2) кут 171°'],
+  steps:[
+   {h:'1)',lines:[T`\f{180\deg\cdot(n-2)}{n}=160\deg`]},
+   {lines:[T`180(n-2)=160n`,T`180n-360=160n`,T`20n=360`],ans:T`n=18`,note:'Інакше: '+T`\be=180\deg-160\deg=20\deg,~n=\f{360\deg}{20\deg}=18`},
+   {h:'2)',lines:[T`\f{180\deg\cdot(n-2)}{n}=171\deg`]},
+   {lines:[T`180n-360=171n`,T`9n=360`],ans:T`n=40`,note:'Інакше: '+T`\be=180\deg-171\deg=9\deg,~n=\f{360\deg}{9\deg}=40`}
+  ]},
+ {id:'6.8',cond:'<p>Скільки сторін має правильний многокутник, якщо кут, суміжний із кутом многокутника, становить '+T`\f{1}{9}`+' кута многокутника?</p>',fig:F68,
+  steps:[
+   {lines:[T`\al=x`,T`\be=\f{x}{9}`,T`\al+\be=180\deg`]},
+   {lines:[T`x+\f{x}{9}=180\deg`,T`\f{10x}{9}=180\deg`,T`x=162\deg`]},
+   {lines:[T`\be=180\deg-162\deg=18\deg`,T`n=\f{360\deg}{\be}=\f{360\deg}{18\deg}`],ans:T`n=20`}
+  ]},
+ {id:'6.9',cond:'<p>Визначте кількість сторін правильного многокутника, якщо його кут на 168° більший за суміжний із ним кут.</p>',fig:F69,
+  steps:[
+   {lines:[T`\al=\be+168\deg`,T`\al+\be=180\deg`]},
+   {lines:[T`\be+168\deg+\be=180\deg`,T`2\be=12\deg`,T`\be=6\deg`]},
+   {lines:[T`n=\f{360\deg}{\be}=\f{360\deg}{6\deg}`],ans:T`n=60`}
+  ]},
+ {id:'6.12',cond:'<p>Нехай '+T`a`+' — довжина сторони правильного трикутника, '+T`R`+' і '+T`r`+' — відповідно радіуси його описаного та вписаного кіл. Заповніть таблицю (довжини відрізків дано в сантиметрах).</p>',fig:F612,parts:[0,1,2],pl:['Рядок 1 (відома a)','Рядок 2 (відомий R)','Рядок 3 (відомий r)'],
+  table:(k)=>tbl(TB612,k),
+  steps:[
+   {lines:[T`R=\f{a\s{3}}{3}=\f{6\s{3}\cdot\s{3}}{3}=6`,T`r=\f{a\s{3}}{6}=\f{6\s{3}\cdot\s{3}}{6}=3`]},
+   {lines:[T`a=R\s{3}=4\s{3}\cdot\s{3}=12`,T`r=\f{a\s{3}}{6}=\f{12\s{3}}{6}=2\s{3}`]},
+   {lines:[T`a=2r\s{3}=4\s{3}`,T`R=\f{a\s{3}}{3}=\f{4\s{3}\cdot\s{3}}{3}=4`]}
+  ]},
+ {id:'6.13',cond:'<p>Нехай '+T`a`+' — довжина сторони квадрата, '+T`R`+' і '+T`r`+' — відповідно радіуси його описаного та вписаного кіл. Заповніть таблицю (довжини відрізків дано в сантиметрах).</p>',fig:F613,parts:[0,1,2],pl:['Рядок 1 (відома a)','Рядок 2 (відомий R)','Рядок 3 (відомий r)'],
+  table:(k)=>tbl(TB613,k),
+  steps:[
+   {lines:[T`R=\f{a\s{2}}{2}=\f{8\s{2}}{2}=4\s{2}`,T`r=\f{a}{2}=4`]},
+   {lines:[T`a=R\s{2}=4\s{2}`,T`r=\f{a}{2}=2\s{2}`]},
+   {lines:[T`a=2r=4`,T`R=\f{a\s{2}}{2}=\f{4\s{2}}{2}=2\s{2}`]}
+  ]},
+ {id:'6.15',cond:'<p>Діагональ квадрата дорівнює '+T`6\s{2}~\t{см}`+'. Чому дорівнює радіус:</p><p>1) описаного кола; 2) вписаного кола?</p>',fig:F615,parts:[0,1],pl:['Радіус описаного кола','Радіус вписаного кола'],
+  steps:[
+   {h:'1)',lines:[T`R=\f{d}{2}=\f{6\s{2}}{2}`],ans:T`R=3\s{2}~\t{см}`,note:'Діагональ квадрата — діаметр описаного кола'},
+   {h:'2)',lines:[T`a=\f{d}{\s{2}}=\f{6\s{2}}{\s{2}}=6`,T`r=\f{a}{2}=3`],ans:T`r=3~\t{см}`}
+  ]},
+ {id:'6.17',cond:'<p>Радіус кола дорівнює '+T`8\s{3}~\t{см}`+'. Знайдіть сторону описаного навколо цього кола правильного шестикутника.</p>',fig:F617,
+  steps:[
+   {lines:[T`r=\f{a\s{3}}{2}`,T`8\s{3}=\f{a\s{3}}{2}`],note:'Коло вписане в шестикутник'},
+   {lines:[T`a=\f{2\cdot8\s{3}}{\s{3}}=16`],ans:T`a=16~\t{см}`}
+  ]},
+ {id:'6.19',cond:'<p>Радіус кола, описаного навколо правильного трикутника, на 4 см більший за радіус вписаного кола. Знайдіть радіуси вписаного й описаного кіл та сторону трикутника.</p>',fig:F619,parts:[0,2],pl:['Радіуси r і R','Сторона a'],
+  steps:[
+   {lines:[T`R-r=4`,T`R=2r`],note:T`R=\f{a\s{3}}{3},~r=\f{a\s{3}}{6}~\Rightarrow~R=2r`},
+   {lines:[T`2r-r=4`,T`r=4,~R=2r=8`],ans:T`r=4~\t{см},~R=8~\t{см}`},
+   {lines:[T`a=R\s{3}=8\s{3}`],ans:T`a=8\s{3}~\t{см}`}
+  ]},
+ {id:'6.20',cond:'<p>Сторона правильного многокутника дорівнює '+T`a`+', радіус описаного кола дорівнює '+T`R`+'. Знайдіть радіус вписаного кола.</p>',fig:F620,
+  steps:[
+   {lines:[T`OM\perp AB,~AM=\f{a}{2}`,T`OA=R,~OM=r`],note:'△OAB рівнобедрений, тому висота OM є й медіаною'},
+   {lines:[T`\Delta OMA:~OM^2=OA^2-AM^2`,T`r^2=R^2-\f{a^2}{4}`],ans:T`r=\s{R^2-\f{a^2}{4}}`}
+  ]},
+ {id:'6.22',cond:'<p>Сторона правильного многокутника дорівнює '+T`a`+', радіус вписаного кола дорівнює '+T`r`+'. Знайдіть радіус описаного кола.</p>',fig:F622,
+  steps:[
+   {lines:[T`OM=r,~AM=\f{a}{2}`],note:'OM — висота рівнобедреного △OAB, M — середина AB'},
+   {lines:[T`\Delta OMA:~OA^2=OM^2+AM^2`,T`R^2=r^2+\f{a^2}{4}`],ans:T`R=\s{r^2+\f{a^2}{4}}`}
+  ]},
+ {id:'6.24',cond:'<p>У коло вписано квадрат зі стороною '+T`6\s{2}~\t{см}`+'. Знайдіть сторону правильного трикутника, описаного навколо цього кола.</p>',fig:F624,
+  steps:[
+   {h:'Коло описане навколо квадрата',lines:[T`R=\f{a_4\s{2}}{2}=\f{6\s{2}\cdot\s{2}}{2}=6`]},
+   {h:'Це ж коло вписане в трикутник',lines:[T`r_3=R=6`,T`r_3=\f{b\s{3}}{6}`,T`b=\f{6\cdot6}{\s{3}}=\f{36}{\s{3}}=12\s{3}`],ans:T`b=12\s{3}~\t{см}`}
+  ]},
+ {id:'6.25',cond:'<p>Діаметр круга дорівнює 16 см. Чи можна з нього вирізати квадрат зі стороною 12 см?</p>',fig:F625,
+  steps:[
+   {h:'Діагональ квадрата',lines:[T`d=a\s{2}=12\s{2}`]},
+   {h:'Порівняємо з діаметром',lines:[T`(12\s{2})^2=144\cdot2=288`,T`16^2=256`,T`288>256`],ans:'Ні, не можна: '+T`12\s{2}>16`}
+  ]},
+ {id:'6.26',cond:'<p>Яким має бути найменший діаметр круглої колоди, щоб із неї можна було виготовити брус, поперечним перерізом якого є правильний трикутник зі стороною 15 см?</p>',fig:F626,
+  steps:[
+   {lines:[T`R=\f{a\s{3}}{3}=\f{15\s{3}}{3}=5\s{3}`]},
+   {lines:[T`d=2R=10\s{3}\approx17,32`],ans:T`d\approx17,4~\t{см}`,note:'Округлюємо з надлишком, щоб брус точно вмістився'}
+  ]},
+ {id:'6.27',cond:'<p>Яким має бути найменший діаметр круглої колоди, щоб із неї можна було виготовити брус, поперечним перерізом якого є квадрат зі стороною 14 см?</p>',fig:F627,
+  steps:[
+   {lines:[T`d=a\s{2}=14\s{2}`],note:'Діагональ квадрата — діаметр описаного кола'},
+   {lines:[T`d\approx14\cdot1,414\approx19,8`],ans:T`d\approx19,8~\t{см}`}
+  ]},
+ {id:'6.34',cond:'<p>У коло вписано правильний трикутник і навколо нього описано правильний трикутник. Знайдіть відношення сторін цих трикутників.</p>',fig:F634,
+  steps:[
+   {h:'Вписаний трикутник',lines:[T`a=R\s{3}`]},
+   {h:'Описаний трикутник',lines:[T`r=R`,T`r=\f{b\s{3}}{6}`,T`b=\f{6R}{\s{3}}=2R\s{3}`]},
+   {lines:[T`\f{a}{b}=\f{R\s{3}}{2R\s{3}}=\f{1}{2}`],ans:T`a:b=1:2`}
+  ]},
+ {id:'6.35',cond:'<p>У коло вписано правильний шестикутник і навколо нього описано правильний шестикутник. Знайдіть відношення сторін цих шестикутників.</p>',fig:F635,
+  steps:[
+   {h:'Вписаний шестикутник',lines:[T`a=R`]},
+   {h:'Описаний шестикутник',lines:[T`r=R`,T`r=\f{b\s{3}}{2}`,T`b=\f{2R}{\s{3}}`]},
+   {lines:[T`\f{a}{b}=\f{R}{\f{2R}{\s{3}}}=\f{\s{3}}{2}`],ans:T`a:b=\s{3}:2`}
+  ]},
+ {id:'6.36',cond:'<p>Доведіть, що сторона правильного восьмикутника дорівнює '+T`R\s{2-\s{2}}`+', де '+T`R`+' — радіус його описаного кола.</p>',fig:FN(8,'a'),
+  steps:[
+   {lines:[T`\ang AOB=\f{360\deg}{8}=45\deg`,T`OA=OB=R`]},
+   {h:'Теорема косинусів',lines:[T`AB^2=OA^2+OB^2-2\cdot OA\cdot OB\cdot\cos45\deg`,T`AB^2=2R^2-2R^2\cdot\f{\s{2}}{2}`]},
+   {lines:[T`AB^2=R^2(2-\s{2})`],ans:T`a_8=R\s{2-\s{2}}`}
+  ]},
+ {id:'6.37',cond:'<p>Доведіть, що сторона правильного дванадцятикутника дорівнює '+T`R\s{2-\s{3}}`+', де '+T`R`+' — радіус його описаного кола.</p>',fig:FN(12,'a'),
+  steps:[
+   {lines:[T`\ang AOB=\f{360\deg}{12}=30\deg`,T`OA=OB=R`]},
+   {h:'Теорема косинусів',lines:[T`AB^2=OA^2+OB^2-2\cdot OA\cdot OB\cdot\cos30\deg`,T`AB^2=2R^2-2R^2\cdot\f{\s{3}}{2}`]},
+   {lines:[T`AB^2=R^2(2-\s{3})`],ans:T`a_{12}=R\s{2-\s{3}}`}
+  ]}
+];
+
+function kOf(i){return S.prog[TASKS[i].id]||0;}
+function stepHTML(s){
+  return '<div class="step">'+(s.h?'<div class="sh">'+s.h+'</div>':'')+'<div class="lns">'+s.lines.map(l=>'<div class="ln">'+l+'</div>').join('')+'</div>'+(s.ans?'<div class="ans">'+s.ans+'</div>':'')+(s.note?'<div class="note">'+s.note+'</div>':'')+'</div>';
+}
+function renderTasks(scroll){
+  const t=TASKS[S.ti],k=kOf(S.ti),parts=t.parts||[0],pl=t.pl||[];
+  document.getElementById('tChips').innerHTML=TASKS.map((x,i)=>{
+    const dn=kOf(i)>=x.steps.length;
+    return '<button class="chip'+(i===S.ti?' on':'')+(dn?' done':'')+'" data-act="task" data-i="'+i+'">'+x.id+(dn?' ✓':'')+'</button>';
+  }).join('');
+  document.getElementById('tPrev').disabled=S.ti===0;
+  document.getElementById('tNext').disabled=S.ti===TASKS.length-1;
+  let h='<div class="cond"><div class="tn">Задача '+t.id+'</div>'+t.cond+'</div>';
+  if(t.table)h+=t.table(k);
+  let cp=0;
+  for(let j=0;j<parts.length;j++)if(k>parts[j])cp=j;
+  for(let j=0;j<=cp;j++){
+    const a=parts[j],b=j+1<parts.length?parts[j+1]:t.steps.length,e=Math.min(b,k);
+    if(e<=a)continue;
+    const key=t.id+':'+j,label=pl[j]||('Частина '+(j+1)),collapsed=j<cp&&!S.pexp[key];
+    if(j<cp){
+      const last=t.steps[b-1];
+      h+='<button class="pbar" data-act="ptoggle" data-k="'+key+'"><span class="pck">✓</span><span class="pt">'+label+'</span>'+(collapsed&&last.ans?'<span class="ps">'+last.ans+'</span>':'')+'<span class="pc">'+(collapsed?'розгорнути ▾':'згорнути ▴')+'</span></button>';
+    }else if(parts.length>1&&pl[j]&&!t.steps[a].h){
+      h+='<div class="ptit">'+label+'</div>';
+    }
+    if(!collapsed)for(let i=a;i<e;i++)h+=stepHTML(t.steps[i]);
+  }
+  if(k<t.steps.length)h+='<button class="dn" data-act="tstep" title="Далі"><svg viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></svg></button>';
+  else h+='<div class="done-msg">Задачу розв’язано</div>';
+  const left=document.getElementById('tLeft'),prev=left.scrollTop;
+  left.innerHTML=h;
+  if(scroll===true)left.scrollTop=left.scrollHeight;else if(scroll==='keep')left.scrollTop=prev;else left.scrollTop=0;
+  document.getElementById('tFig').innerHTML=t.fig(k);
+}
+/* ================= навігація ================= */
+function show(p){
+  S.page=p;
+  ['start','menu','form','tasks'].forEach(x=>document.getElementById('s-'+x).classList.toggle('on',x===p));
+  document.getElementById('nav').classList.toggle('on',p==='form'||p==='tasks');
+  const fw=document.getElementById('fwd');
+  fw.textContent=p==='tasks'?'На початок':'Далі →';
+  if(p==='form')renderForm(false);
+  if(p==='tasks')renderTasks(false);
+}
+document.addEventListener('click',function(e){
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.getAttribute('data-act');
+  if(a==='start')show('menu');
+  else if(a==='open')show(b.getAttribute('data-p'));
+  else if(a==='menu')show('menu');
+  else if(a==='back'){if(S.page==='tasks')show('form');else show('menu');}
+  else if(a==='fwd'){if(S.page==='form')show('tasks');else{S.prog={};S.pexp={};S.ti=0;resetF();show('start');}}
+  else if(a==='fopen'){const i=+b.getAttribute('data-i');if(S.fopen[i]){delete S.fopen[i];delete S.fcalc[i];}else{S.fopen[i]=1;if(S.sn!=null)S.sf=i;}renderForm();}
+  else if(a==='fcalc'){const i=+b.getAttribute('data-i');if(S.sn!=null){if(S.fcalc[i])delete S.fcalc[i];else S.fcalc[i]=1;S.sf=i;renderForm();}}
+  else if(a==='n'){S.sn=+b.getAttribute('data-n');S.fcalc={};S.sf=-1;renderForm();}
+  else if(a==='resetForm'){resetF();renderForm();}
+  else if(a==='ptoggle'){const k=b.getAttribute('data-k');S.pexp[k]=!S.pexp[k];renderTasks('keep');}
+  else if(a==='task'){S.ti=+b.getAttribute('data-i');renderTasks(false);}
+  else if(a==='tprev'){if(S.ti>0){S.ti--;renderTasks(false);}}
+  else if(a==='tnext'){if(S.ti<TASKS.length-1){S.ti++;renderTasks(false);}}
+  else if(a==='tstep'){const t=TASKS[S.ti];if(kOf(S.ti)<t.steps.length){S.prog[t.id]=kOf(S.ti)+1;renderTasks(true);}}
+  else if(a==='resetTask'){const id=TASKS[S.ti].id;S.prog[id]=0;Object.keys(S.pexp).forEach(x=>{if(x.indexOf(id+':')===0)delete S.pexp[x];});renderTasks(false);}
+});
+
+/* налагодження: #p=form&sk=9&sf=5&n=6   або   #p=tasks&t=3&k=2 ; #selftest */
+(function(){
+  const h=location.hash.replace(/^#/,'');if(!h)return;
+  if(h==='selftest'){
+    const res=[];
+    try{
+      TASKS.forEach((t,i)=>{for(let k=0;k<=t.steps.length;k++){const f=t.fig(k);if(!f||f.indexOf('NaN')>=0)res.push('bad fig '+t.id+' k='+k);if(t.table)t.table(k);}});
+      ND.forEach(n=>{for(let f=1;f<=5;f++){const s=sheetFig(n,f);if(s.indexOf('NaN')>=0)res.push('bad sheet n='+n+' f='+f);sheetRead(n,f);}});
+    }catch(err){res.push('ERR '+err.message);}
+    window.addEventListener('DOMContentLoaded',()=>{document.title='SELFTEST '+(res.length?res.join('; '):'OK');});
+    return;
+  }
+  const q={};h.split('&').forEach(x=>{const [a,b]=x.split('=');q[a]=b;});
+  window.addEventListener('DOMContentLoaded',()=>{
+    if(q.n)S.sn=+q.n;
+    if(q.p==='form'){(q.o||'').split(',').forEach(x=>{if(x!=='')S.fopen[+x]=1;});(q.c||'').split(',').forEach(x=>{if(x!=='')S.fcalc[+x]=1;});S.sf=q.sf!=null?+q.sf:-1;show('form');}
+    if(q.p==='tasks'){S.ti=+(q.t||0);S.prog[TASKS[S.ti].id]=+(q.k||0);show('tasks');}
+    if(q.p==='menu')show('menu');
+  });
+})();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
