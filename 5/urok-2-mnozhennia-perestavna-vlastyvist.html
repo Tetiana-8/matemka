@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Урок 16 (2): Множення. Переставна властивість множення (5 клас)</title>
+<title>Множення. Переставна властивість множення (5 клас)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -33,9 +33,9 @@ b,strong{font-weight:900}
   box-shadow:0 .5rem 1.6rem rgba(120,20,70,.14);padding:1rem 1.2rem;display:flex;flex-direction:column;align-items:center}
 .card.start{background:linear-gradient(160deg,#fff 0%,#fff7fa 100%)}
 .inner{margin:auto;width:100%;max-width:58rem;display:flex;flex-direction:column;align-items:center;gap:.8rem}
-.inner.wide{max-width:72rem;gap:.5rem}
+.inner.wide{max-width:72rem;gap:.4rem}
 .h1{font-size:2.8rem;font-weight:900;color:var(--acc);margin:0;text-align:center}
-.topic{font-size:1.55rem;font-weight:800;text-align:center;max-width:36rem;line-height:1.3;margin:0 0 .6rem}
+.topic{font-size:2.3rem;font-weight:900;color:var(--acc);text-align:center;max-width:40rem;line-height:1.25;margin:0 0 .8rem}
 .title2{font-size:1.5rem;font-weight:900;color:var(--acc);margin:0;text-align:center}
 .q{font-size:1.5rem;font-weight:800;text-align:center;line-height:1.45;margin:0}
 .q small{display:block;font-size:1.05rem;font-weight:700;color:var(--muted)}
@@ -110,6 +110,16 @@ b,strong{font-weight:900}
 .cond b{font-weight:900}
 .vis{width:100%;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.2rem}
 .vis svg{display:block;width:100%;height:auto;max-height:17vh}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;width:100%}
+.tile{min-height:6.2rem;border:2px solid var(--line);border-radius:.9rem;background:var(--soft2);color:var(--ink);font-family:inherit;font-weight:900;font-size:2.2rem;box-shadow:0 .2rem .6rem rgba(120,20,70,.1);display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap;padding:.3rem}
+.tile:hover{border-color:var(--acc2)}
+.tile .r{color:var(--oktx)}
+.tile.open{background:var(--okbg);border-color:var(--ok)}
+.tile.mental{background:#fff}
+.cond .sl{margin:.1rem 0}
+.side:not(:has(.vis:not([hidden]),.cbox:not([hidden]),.sol)){display:none}
+.work .cond{padding:.5rem 1rem}
+@media (max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
 .work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem;width:100%;align-items:start}
 .wl{display:flex;flex-direction:column;align-items:center;gap:.6rem;min-width:0}
 .side{display:flex;flex-direction:column;gap:.6rem;min-width:0;background:var(--soft2);border:2px solid var(--line);border-radius:.8rem;padding:.6rem;align-self:stretch}
@@ -208,18 +218,16 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 <!-- 0. Стартовий екран -->
 <section class="stage" id="stage-0"><div class="card start"><div class="inner">
   <button class="gem corner" onclick="toggleModal()" title="Методична картка для вчителя"><span class="gemsvg"></span></button>
-  <h2 class="h1">Урок 16 (2)</h2>
-  <p class="topic">Тема: Множення. Переставна властивість множення</p>
+  <p class="topic">Множення. Переставна властивість множення</p>
   <button class="btn a big" onclick="goTo(1)">Почати ▶</button>
 </div></div></section>
 
 <!-- 1. Актуалізація -->
 <section class="stage" id="stage-1"><div class="card"><div class="inner">
-  <h3 class="title2">Актуалізація</h3>
   <div class="mbcap" id="acNo"></div>
+  <div id="acExp" class="eq hl"></div>
   <p class="q" id="acQ"></p>
   <div class="box white">
-    <div id="acExp" class="eq hl"></div>
     <div class="row" id="acRow"><span class="lbl">Відповідь:</span><input class="num" type="number" id="acAns" onkeydown="if(event.key==='Enter')acCheck()"></div>
     <div class="opts" id="acOpts" hidden></div>
   </div>
@@ -228,89 +236,103 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
   <div id="acEnd" class="end" hidden>Усі завдання виконано правильно!</div>
 </div></div></section>
 
+<!-- 2. Табличка множення -->
 <section class="stage" id="stage-2"><div class="card"><div class="inner wide">
+  <h3 class="title2">Табличка множення</h3>
+  <div class="tiles" id="tiles"></div>
+  <button class="btn b" onclick="genTiles()">Нова дошка</button>
+</div></div></section>
+
+<section class="stage" id="stage-3"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t419Title">Порядок дій</h3>
   <div class="cond" id="t419Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t419F" onclick="firstShow('t419')" hidden>Показати першу дію</button>
   <div class="stack" id="t419Steps"></div>
   <div id="t419Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t419')">Нова задача</button></div>
+  <button class="btn b" id="t419New" onclick="taskNew('t419')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t419Cb"></div><div id="t419Sol"></div></div></div>
   
 </div></div></section>
-<section class="stage" id="stage-3"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-4"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t421Title">Значення виразу</h3>
   <div class="cond" id="t421Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t421F" onclick="firstShow('t421')" hidden>Показати першу дію</button>
   <div class="stack" id="t421Steps"></div>
   <div id="t421Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t421')">Нова задача</button></div>
+  <button class="btn b" id="t421New" onclick="taskNew('t421')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t421Cb"></div><div id="t421Sol"></div></div></div>
   
 </div></div></section>
-<section class="stage" id="stage-4"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-5"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t424Title">Задача</h3>
   <div class="cond" id="t424Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t424F" onclick="firstShow('t424')" hidden>Показати першу дію</button>
   <div class="stack" id="t424Steps"></div>
   <div id="t424Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t424')">Нова задача</button></div>
+  <button class="btn b" id="t424New" onclick="taskNew('t424')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t424Cb"></div><div id="t424Sol"></div></div></div>
   
 </div></div></section>
-<section class="stage" id="stage-5"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-6"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t425Title">Задача</h3>
   <div class="cond" id="t425Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t425F" onclick="firstShow('t425')" hidden>Показати першу дію</button>
   <div class="stack" id="t425Steps"></div>
   <div id="t425Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t425')">Нова задача</button></div>
+  <button class="btn b" id="t425New" onclick="taskNew('t425')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t425Cb"></div><div id="t425Sol"></div></div></div>
-  <div id="bon450" class="box bonus" hidden><b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: № 450 (підручник)</b>
+  <div id="bon450" class="box bonus" hidden><b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: № 450 </b>
 <p class="q" style="font-size:1.1rem"><small>Василь Ледащенко списав із ГДЗ розв’язання задачі 426 (42 л молока по 96 коп. і 16 кг сиру по 2 грн): 42 · 96 + 16 · 2 = 4064 (грн). У чому помилка?</small></p>
 <div class="opts one" id="o450"></div><div id="fb450" class="fb" hidden></div></div>
 </div><button class="plus" onclick="$('bon450').hidden=!$('bon450').hidden" title="Додаткове завдання">+</button></div></section>
-<section class="stage" id="stage-6"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-7"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t427Title">Задача</h3>
   <div class="cond" id="t427Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t427F" onclick="firstShow('t427')" hidden>Показати першу дію</button>
   <div class="stack" id="t427Steps"></div>
   <div id="t427Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t427')">Нова задача</button></div>
+  <button class="btn b" id="t427New" onclick="taskNew('t427')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t427Cb"></div><div id="t427Sol"></div></div></div>
   
 </div></div></section>
-<section class="stage" id="stage-7"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-8"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t428Title">Задача</h3>
   <div class="cond" id="t428Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t428F" onclick="firstShow('t428')" hidden>Показати першу дію</button>
   <div class="stack" id="t428Steps"></div>
   <div id="t428Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t428')">Нова задача</button></div>
+  <button class="btn b" id="t428New" onclick="taskNew('t428')">Нова задача</button></div>
   <div class="side"><div class="cboxes" id="t428Cb"></div><div id="t428Sol"></div></div></div>
   
 </div></div></section>
-<section class="stage" id="stage-8"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-9"><div class="card"><div class="inner wide">
   <h3 class="title2" id="t434Title">Задача</h3>
   <div class="cond" id="t434Text"></div>
   <div class="work"><div class="wl">
+  <button class="btn g" id="t434Sch" onclick="schemeShow('t434')">Показати схему</button><button class="btn g" id="t434F" onclick="firstShow('t434')" hidden>Показати першу дію</button>
   <div class="stack" id="t434Steps"></div>
   <div id="t434Fb" class="fb" hidden></div>
-  <button class="btn b" onclick="taskNew('t434')">Нова задача</button></div>
+  <button class="btn b" id="t434New" onclick="taskNew('t434')">Нова задача</button></div>
   <div class="side"><div class="vis" id="t434VisBox" hidden><div id="t434Vis"></div></div><div class="cboxes" id="t434Cb"></div><div id="t434Sol"></div></div></div>
   
 </div></div></section>
 
 
 <!-- 9. Вправа 439 -->
-<section class="stage" id="stage-9"><div class="card"><div class="inner wide">
-  <h3 class="title2" id="mcTitle">№ 439 (підручник)</h3>
+<section class="stage" id="stage-10"><div class="card"><div class="inner wide">
+  <h3 class="title2" id="mcTitle">№ 439</h3>
   <div class="cond" id="mcText"></div>
   <div class="opts one" id="mcOpts"></div>
   <div id="mcFb" class="fb" hidden></div>
-  <button class="btn b" onclick="genMc()">Нова задача</button>
+  <button class="btn b" id="mcNew" onclick="genMc()" hidden>Нова задача</button>
   <div id="bon438" class="box bonus" hidden>
-    <b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: № 438 (підручник)</b>
+    <b class="lbl" style="font-size:1.1rem;color:var(--warntx)">Додаткове завдання: № 438</b>
     <p class="q" style="font-size:1.1rem"><small>Чи є правильним твердження? Оберіть «Так» або «Ні».</small></p>
     <div id="b438List" class="stack"></div>
     <button class="btn a" onclick="b438Check()">✓ Перевірити відповіді</button>
@@ -319,7 +341,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 </div><button class="plus" onclick="$('bon438').hidden=!$('bon438').hidden" title="Додаткове завдання">+</button></div></section>
 
 <!-- 10. Підсумок уроку -->
-<section class="stage" id="stage-10"><div class="card"><div class="inner wide">
+<section class="stage" id="stage-11"><div class="card"><div class="inner wide">
   <h3 class="title2">Підсумок уроку</h3>
   <div class="sum4">
     <div class="sumc closed" onclick="sumOpen(this)"><small>Добуток</small><div><i class="o1">a</i> · <i class="o2">b</i> = <i class="hl">c</i></div></div>
@@ -335,7 +357,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 </div></div></section>
 
 <!-- 11. Рефлексія «Світлофор» -->
-<section class="stage" id="stage-11"><div class="card"><div class="inner">
+<section class="stage" id="stage-12"><div class="card"><div class="inner">
   <div id="tlVote" style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
     <p class="q">Картка самоперевірки. Оцініть свою роботу</p>
     <div class="tlv">
@@ -368,21 +390,22 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 
 <div id="teacherModal" class="modal" hidden onclick="if(event.target===this)toggleModal()"><div class="mbox">
   <button class="x" onclick="toggleModal()" title="Закрити">&times;</button>
-  <h3><span class="gemsvg" style="width:1.6rem;height:1.6rem;display:inline-flex"></span>Методична картка та зміст уроку 16 (2)</h3>
+  <h3><span class="gemsvg" style="width:1.6rem;height:1.6rem;display:inline-flex"></span>Методична картка та зміст уроку</h3>
   <div class="mcard"><h4>Мета уроку</h4><p>Закріпити поняття добутку та переставну властивість множення (п. 16 підручника Мерзляка та ін., 5 клас); удосконалити вміння множити натуральні числа, обчислювати значення виразів, розв’язувати текстові задачі на ціну, масу й рух (№ 419–439); дослідити, як змінюється добуток зі зміною множників.</p></div>
   <div class="mcard"><h4>Ключові компетентності</h4><p>Математична компетентність, уміння вчитися впродовж життя, критичне мислення (перевірка міркувань на прикладах).</p></div>
   <div class="mcard"><h4>Перебіг уроку (натисніть, щоб перейти)</h4><ul>
 <li onclick="goTo(1);toggleModal()"><span>1. Актуалізація: що ми вивчили на першому уроці</span><span class="m">5 хв</span></li>
-<li onclick="goTo(2);toggleModal()"><span>2. Порядок дій у виразах</span><span class="m">5,5 хв</span></li>
-<li onclick="goTo(3);toggleModal()"><span>3. Значення виразу зі змінною</span><span class="m">4 хв</span></li>
-<li onclick="goTo(4);toggleModal()"><span>4. № 424 (підручник)</span><span class="m">3,5 хв</span></li>
-<li onclick="goTo(5);toggleModal()"><span>5. № 425 (підручник); додатково № 450</span><span class="m">4 хв</span></li>
-<li onclick="goTo(6);toggleModal()"><span>6. № 427 (підручник)</span><span class="m">3,5 хв</span></li>
-<li onclick="goTo(7);toggleModal()"><span>7. № 428, 429 (підручник)</span><span class="m">4 хв</span></li>
-<li onclick="goTo(8);toggleModal()"><span>8. № 434, 436, 432 (підручник)</span><span class="m">5,5 хв</span></li>
-<li onclick="goTo(9);toggleModal()"><span>9. № 439 (підручник); додатково № 438</span><span class="m">4 хв</span></li>
-<li onclick="goTo(10);toggleModal()"><span>10. Підсумок уроку</span><span class="m">2,5 хв</span></li>
-<li onclick="goTo(11);toggleModal()"><span>11. Рефлексія «Світлофор»</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(2);toggleModal()"><span>2. Табличка множення: усні приклади</span><span class="m">2,5 хв</span></li>
+<li onclick="goTo(3);toggleModal()"><span>3. Порядок дій у виразах</span><span class="m">5 хв</span></li>
+<li onclick="goTo(4);toggleModal()"><span>4. Значення виразу зі змінною</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(5);toggleModal()"><span>5. № 424</span><span class="m">3 хв</span></li>
+<li onclick="goTo(6);toggleModal()"><span>6. № 425; додатково № 450</span><span class="m">4 хв</span></li>
+<li onclick="goTo(7);toggleModal()"><span>7. № 427</span><span class="m">3 хв</span></li>
+<li onclick="goTo(8);toggleModal()"><span>8. № 428, 429</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(9);toggleModal()"><span>9. № 434, 436, 432</span><span class="m">5 хв</span></li>
+<li onclick="goTo(10);toggleModal()"><span>10. № 439; додатково № 438</span><span class="m">3,5 хв</span></li>
+<li onclick="goTo(11);toggleModal()"><span>11. Підсумок уроку</span><span class="m">2,5 хв</span></li>
+<li onclick="goTo(12);toggleModal()"><span>12. Рефлексія «Світлофор»</span><span class="m">3 хв</span></li>
   </ul></div>
 </div></div>
 
@@ -482,9 +505,9 @@ function startCore(){
 }
 
 /* ===== дані уроку ===== */
-var DUR = [0, 300, 330, 240, 210, 240, 210, 240, 330, 240, 150, 210];
+var DUR = [0, 300, 150, 300, 210, 180, 240, 180, 210, 300, 210, 150, 180];
 var TL_MSG = { green: 'Чудова робота! Ви добре засвоїли матеріал.', yellow: 'Добре! Трохи практики, і помилок не буде.', red: 'Не здавайтеся! Ми обов’язково розберемо цю тему детальніше.' };
-var END_TEXT = 'Урок 16 (2) завершено!';
+var END_TEXT = 'Урок завершено!';
 var LET = ['А', 'Б', 'В', 'Г'];
 var KEYS = ['t419', 't421', 't424', 't425', 't427', 't428', 't434'];
 
@@ -496,12 +519,17 @@ function raz(n){ return plural(n, 'раз', 'рази', 'разів'); }
 
 /* ---------- етап 1: актуалізація (з першого уроку теми) ---------- */
 function pair(){ var a = rnd(3, 9), b; do { b = rnd(3, 9); } while (b === a); return [a, b]; }
+function uniq4(ans, extra){
+  var list = [String(ans)];
+  extra.forEach(function(x){ x = String(x); if (list.length < 4 && list.indexOf(x) < 0) list.push(x); });
+  return list;
+}
 function acNames(){
   var p = pair(), a = p[0], b = p[1], c = a * b, two = rnd(0, 1);
-  var all = ['множниками', 'добутком', 'доданками', 'сумою'];
+  var all = ['множниками', 'добутком', 'доданками', 'сумою'], eq = a + ' · ' + b + ' = ' + c;
   return two
-    ? { type: 'opts', q: 'Як називають число ' + c + ' та запис ' + a + ' · ' + b + ' у рівності ' + a + ' · ' + b + ' = ' + c + '?', exp: '', opts: all, ans: 'добутком' }
-    : { type: 'opts', q: 'Як називають числа ' + a + ' і ' + b + ' у рівності ' + a + ' · ' + b + ' = ' + c + '?', exp: '', opts: all, ans: 'множниками' };
+    ? { type: 'opts', q: 'Як називають число ' + c + ' та запис ' + a + ' · ' + b + '?', exp: eq, opts: all, ans: 'добутком' }
+    : { type: 'opts', q: 'Як називають числа ' + a + ' і ' + b + '?', exp: eq, opts: all, ans: 'множниками' };
 }
 function acSum(){
   var p = pair(), v = p[0], n = p[1];
@@ -510,12 +538,13 @@ function acSum(){
 }
 function acPerm(){
   var a = rnd(12, 99), b = rnd(3, 9);
-  return { type: 'num', q: 'Скористайтеся переставною властивістю множення. Впишіть пропущене число.', exp: a + ' · ' + b + ' = ' + b + ' · <span class="hl">□</span>', ans: a };
+  return { type: 'opts', q: 'Скористайтеся переставною властивістю множення. Яке число треба поставити замість □?', exp: a + ' · ' + b + ' = ' + b + ' · <span class="hl">□</span>', opts: uniq4(a, [b, a + b, a * b]), ans: String(a) };
 }
 function ac01(){
-  var n = rnd(12, 999), k = rnd(0, 4), e;
-  if (k === 0) e = n + ' · 1'; else if (k === 1) e = '1 · ' + n; else if (k === 2) e = n + ' · 0'; else if (k === 3) e = '0 · ' + n; else e = '0 · 0';
-  return { type: 'num', q: 'Знайдіть добуток.', exp: e + ' =', ans: (k < 2) ? n : 0 };
+  var n = rnd(12, 999), k = rnd(0, 4), e, ans;
+  if (k === 0){ e = n + ' · 1'; ans = n; } else if (k === 1){ e = '1 · ' + n; ans = n; } else if (k === 2){ e = n + ' · 0'; ans = 0; } else if (k === 3){ e = '0 · ' + n; ans = 0; } else { e = '0 · 0'; ans = 0; }
+  var o = uniq4(ans, [0, 1, n, n + 1, 2, 3]);
+  return { type: 'opts', q: 'Знайдіть добуток.', exp: e + ' = □', opts: o, ans: String(ans) };
 }
 function acTF(){
   var p = pair(), a = p[0], b = p[1], n = rnd(12, 98);
@@ -526,28 +555,31 @@ function acTF(){
   var it = list[rnd(0, list.length - 1)];
   return { type: 'opts', q: 'Чи правильна рівність?', exp: it[0], opts: ['Так', 'Ні'], ans: it[1] ? 'Так' : 'Ні' };
 }
-var AC = [acNames, acSum, acPerm, ac01, acTF], ac = { k: 0, done: false };
+function acTrue(first, pool){
+  var it = first ? pool[0] : pool[rnd(0, pool.length - 1)];
+  return { type: 'opts', q: it[0], exp: '', opts: ['Так', 'Ні'], ans: it[1] ? 'Так' : 'Ні' };
+}
+function acT6(first){ return acTrue(first, [
+  ['Чи правда, що від перестановки множників добуток не змінюється?', true],
+  ['Чи правда, що від перестановки множників добуток збільшується?', false]]); }
+function acT7(first){ return acTrue(first, [
+  ['Чи правда, що переставна властивість множення дозволяє переставляти множники місцями, і від цього добуток не змінюється?', true],
+  ['Чи правда, що за переставною властивістю множення можна міняти місцями числа в різниці, і від цього значення не змінюється?', false]]); }
+var AC = [acNames, acSum, acPerm, ac01, acTF, acT6, acT7], ac = { k: 0, done: false, seen: {} };
 function acGen(){
-  var g = AC[ac.k](); ac.g = g; ac.done = false;
+  var g = AC[ac.k](!ac.seen[ac.k]); ac.seen[ac.k] = true; ac.g = g; ac.done = false;
   $('acNo').textContent = 'Запитання ' + (ac.k + 1) + ' з ' + AC.length;
-  $('acQ').textContent = g.q; put('acExp', g.exp || '');
-  hide('acFb'); plain('acAns'); $('acNext').hidden = true; $('acEnd').hidden = true;
-  $('acRow').hidden = g.type !== 'num'; $('acCheckBtn').hidden = g.type !== 'num'; $('acOpts').hidden = g.type === 'num';
-  if (g.type === 'opts'){
-    var list = (g.opts.length > 2) ? shuffle(g.opts.slice()) : g.opts.slice(), h = '';
-    ac.o = list;
-    list.forEach(function(t, i){ h += '<button class="opt" id="acO' + i + '" onclick="acPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
-    put('acOpts', h);
-  }
-  setTimeout(function(){ if (cur === 1 && g.type === 'num') $('acAns').focus(); }, 50);
+  $('acQ').textContent = g.q; put('acExp', g.exp || ''); $('acExp').hidden = !g.exp;
+  hide('acFb'); $('acNext').hidden = true; $('acEnd').hidden = true;
+  $('acRow').hidden = true; $('acCheckBtn').hidden = true; $('acOpts').hidden = false;
+  var list = (g.opts.length > 2) ? shuffle(g.opts.slice()) : g.opts.slice(), h = '';
+  ac.o = list;
+  list.forEach(function(t, i){ h += '<button class="opt" id="acO' + i + '" onclick="acPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
+  put('acOpts', h);
+  $('acOpts').className = (g.opts.length === 2 && g.q.length > 50) ? 'opts' : 'opts';
 }
 function acOk(){ ac.done = true; show('acFb', 'ok', '✓ Правильно!'); addScore(5); confetti(20); $('acNext').hidden = false; }
-function acCheck(){
-  if (ac.done || ac.g.type !== 'num') return;
-  var raw = $('acAns').value.trim(); if (raw === '') return;
-  if (parseInt(raw, 10) === ac.g.ans){ mark('acAns', true); acOk(); }
-  else { mark('acAns', false); show('acFb', 'bad', '✗ Неправильно. Спробуйте ще раз.'); }
-}
+function acCheck(){}
 function acPick(i){
   if (ac.done) return;
   var b = $('acO' + i);
@@ -557,16 +589,43 @@ function acPick(i){
 function acNextQ(){
   ac.k++;
   if (ac.k >= AC.length){
-    ['acQ', 'acNo', 'acExp'].forEach(function(i){ put(i, ''); }); $('acRow').hidden = true; $('acOpts').hidden = true; $('acCheckBtn').hidden = true;
+    ['acQ', 'acNo', 'acExp'].forEach(function(i){ put(i, ''); }); $('acExp').hidden = true; $('acOpts').hidden = true;
     $('acNext').hidden = true; hide('acFb'); $('acEnd').hidden = false; ac.k = AC.length - 1; return;
   }
   acGen();
 }
 
+/* ---------- табличка множення: дошка ---------- */
+function genTiles(){
+  var seen = {}, items = [], tries = 0;
+  while (items.length < 8 && tries++ < 500){
+    var a = rnd(2, 9), b = rnd(2, 9), p = a * b, key = Math.min(a, b) + 'x' + Math.max(a, b);
+    if (p < 16 || seen[key]) continue; seen[key] = 1;
+    items.push(Math.random() < .5 ? [a, b, false] : [b, a, false]);
+  }
+  var big = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30, 40, 50], ms = {}, m = 0;
+  while (m < 4 && tries++ < 900){
+    var x = big[rnd(0, big.length - 1)], y = rnd(3, 9), k2 = x + 'x' + y;
+    if (ms[k2]) continue; ms[k2] = 1; m++;
+    items.push(Math.random() < .5 ? [x, y, true] : [y, x, true]);
+  }
+  shuffle(items);
+  var h = '';
+  items.forEach(function(it, i){
+    h += '<button class="tile' + (it[2] ? ' mental' : '') + '" id="tile' + i + '" data-a="' + it[0] + '" data-b="' + it[1] + '" onclick="tileTap(' + i + ')">' + it[0] + ' · ' + it[1] + '</button>';
+  });
+  put('tiles', h);
+}
+function tileTap(i){
+  var e = $('tile' + i), a = +e.dataset.a, b = +e.dataset.b;
+  if (e.classList.contains('open')){ e.classList.remove('open'); e.textContent = a + ' · ' + b; }
+  else { e.classList.add('open'); e.innerHTML = a + ' · ' + b + ' = <span class="r">' + (a * b) + '</span>'; }
+}
+
 /* ---------- кроки розв'язання (спільний рушій етапів 2–8) ---------- */
 var GEN = {}, T = {};
 var TITLES = { t419: 'Порядок дій', t421: 'Значення виразу', t424: 'Задача', t425: 'Задача', t427: 'Задача', t428: 'Задача', t434: 'Задача' };
-function isOn(k){ return cur === KEYS.indexOf(k) + 2; }
+function isOn(k){ return cur === KEYS.indexOf(k) + 3; }
 function dg(n){ return String(n).replace(/ /g, ''); }
 function padL(s, w){ return ' '.repeat(Math.max(0, w - s.length)) + s; }
 function colCalc(t, res){
@@ -590,16 +649,28 @@ function colCalc(t, res){
   }
   return '<div class="cmono">' + rows.join('\n') + '</div>';
 }
+function sentLines(h){
+  return h.split(/(?<=[.?!])\s+(?=[А-ЯІЇЄҐ<])/).map(function(p){ return '<div class="sl">' + p + '</div>'; }).join('');
+}
+function holdOf(k){ return k !== 't419' && k !== 't421'; }
+function firstShow(k){
+  $(k + 'F').hidden = true; $(k + 'S0').hidden = false;
+  var a = $(k + 'A0'); if (a) a.focus();
+}
+function schemeShow(k){
+  $(k + 'VisBox').hidden = false; $(k + 'Sch').hidden = true; $(k + 'F').hidden = false;
+}
 function taskNew(k){
   var st = T[k] || (T[k] = { n: 0 });
   var g = GEN[k](st.n); st.n++; st.g = g; st.done = false;
   $(k + 'Title').textContent = g.cap || TITLES[k];
-  put(k + 'Text', g.text);
-  var vb = $(k + 'VisBox'); if (vb){ vb.hidden = !g.vis; if (g.vis) put(k + 'Vis', g.vis); }
+  put(k + 'Text', sentLines(g.text));
+  var hold = holdOf(k), sb = $(k + 'Sch');
+  var vb = $(k + 'VisBox'); if (vb){ vb.hidden = !g.vis || !!sb; if (g.vis) put(k + 'Vis', g.vis); }
   var h = '', cb = '';
   g.steps.forEach(function(s, i){
-    h += '<div class="stp" id="' + k + 'S' + i + '"' + (i ? ' hidden' : '') + '>' +
-      '<div class="step"><span class="n">' + (i + 1) + '</span><span class="t">' + s.t + '</span><b>=</b>' +
+    h += '<div class="stp" id="' + k + 'S' + i + '"' + ((i || hold) ? ' hidden' : '') + '>' +
+      '<div class="step"><span class="n">' + (i + 1) + '</span><span class="t ' + (s.col || '') + '">' + s.t + '</span><b>=</b>' +
       '<input class="num sm" type="number" inputmode="numeric" id="' + k + 'A' + i + '" oninput="taskIn(\'' + k + '\',' + i + ')">' +
       '<span class="u">' + (s.u || '') + '</span></div>' +
       '<div class="note" id="' + k + 'N' + i + '" hidden></div>';
@@ -609,6 +680,9 @@ function taskNew(k){
       '<div class="ceq">' + s.t + ' = ' + fmt(s.a) + '</div></div>';
   });
   put(k + 'Steps', h); put(k + 'Cb', cb); put(k + 'Sol', ''); hide(k + 'Fb');
+  var F = $(k + 'F'); if (F) F.hidden = !hold || !!sb;
+  if (sb) sb.hidden = false;
+  var nb = $(k + 'New'); if (nb) nb.hidden = hold;
   setTimeout(function(){ var a = $(k + 'A0'); if (a && isOn(k)) a.focus(); }, 60);
 }
 function solHTML(g){
@@ -629,7 +703,7 @@ function taskIn(k, i){
     if (s.note){ var n = $(k + 'N' + i); n.innerHTML = s.note; n.hidden = false; }
     $(k + 'C' + i).hidden = false;
     if (i < g.steps.length - 1) $(k + 'G' + i).hidden = false;
-    else { st.done = true; put(k + 'Sol', solHTML(g)); var vb2 = $(k + 'VisBox'); if (vb2) vb2.hidden = true; show(k + 'Fb', 'ok', '✓ Правильно! Порівняйте зі своїм розв’язанням праворуч.'); addScore(10); confetti(35); }
+    else { st.done = true; put(k + 'Sol', solHTML(g)); var vb2 = $(k + 'VisBox'); if (vb2) vb2.hidden = true; var nb2 = $(k + 'New'); if (nb2) nb2.hidden = false; show(k + 'Fb', 'ok', '✓ Правильно! Порівняйте зі своїм розв’язанням праворуч.'); addScore(10); confetti(35); }
   } else if (raw.length >= as.length){
     el.classList.add('wrong'); show(k + 'Fb', 'bad', '✗ Неправильно. ' + (s.hint || 'Спробуйте ще раз.'));
   }
@@ -698,7 +772,7 @@ GEN.t421 = function(n){
 /* ---------- вправа 424 ---------- */
 GEN.t424 = function(n){
   if (n === 0){
-    return { cap: '№ 424 (підручник)',
+    return { cap: '№ 424',
       text: 'Для нормального функціонування організму людина щодня має отримувати <b>90 мг</b> вітаміну С. Куріння однієї цигарки руйнує <b>5 мг</b> вітаміну С. Скільки міліграмів цього вітаміну краде в себе той, хто викурює <b>12 цигарок</b> на день? Скільки міліграмів вітаміну С надходитиме до організму того, хто курить, якщо він споживатиме вітамін за нормою?',
       steps: [{ t: '5 · 12', a: 60, u: 'мг', d: 'руйнується вітаміну С', hint: 'Кожна цигарка руйнує 5 мг, а цигарок 12.', note: swapNote(5, 12) },
               { t: '90 − 60', a: 30, u: 'мг', d: 'надійде до організму', hint: 'Від норми віднімаємо те, що зруйновано.' }],
@@ -715,7 +789,7 @@ GEN.t424 = function(n){
 var BUYERS = [['Оленка', 'купила', 'вона'], ['Марко', 'купив', 'він'], ['Дарина', 'купила', 'вона'], ['Тарас', 'купив', 'він']];
 GEN.t425 = function(n){
   if (n === 0){
-    return { cap: '№ 425 (підручник)',
+    return { cap: '№ 425',
       text: 'Готуючись до школи, Буратіно купив <b>34 зошити по 12 сольдо</b> та <b>18 зошитів по 16 сольдо</b>. Скільки сольдо заплатив Буратіно за всі зошити?',
       steps: [{ t: '34 · 12', a: 408, u: 'сольдо', d: 'вартість перших зошитів', hint: 'Кількість зошитів помножте на ціну одного: 34 · 12.', note: swapNote(34, 12) },
               { t: '18 · 16', a: 288, u: 'сольдо', d: 'вартість других зошитів', hint: 'Другі зошити: 18 · 16.' },
@@ -733,17 +807,17 @@ GEN.t425 = function(n){
 /* ---------- вправа 427 ---------- */
 GEN.t427 = function(n){
   if (n === 0){
-    return { cap: '№ 427 (підручник)',
-      text: 'За п’ять місяців (з травня по вересень) одна тополя поглинає <b>44 кг</b> вуглекислого газу, а один дуб — <b>28 кг</b>. На скільки більше кілограмів вуглекислого газу поглинають за цей період <b>40 тополь</b>, ніж <b>40 дубів</b>?',
-      steps: [{ t: '44 · 40', a: 1760, u: 'кг', d: 'поглинають 40 тополь', hint: 'Скільки поглинають 40 тополь: 44 · 40.', note: swapNote(44, 40) },
-              { t: '28 · 40', a: 1120, u: 'кг', d: 'поглинають 40 дубів', hint: 'Скільки поглинають 40 дубів: 28 · 40.' },
+    return { cap: '№ 427',
+      text: 'За п’ять місяців (з травня по вересень) <b class="o1">одна тополя поглинає 44 кг</b> вуглекислого газу, а <b class="o2">один дуб — 28 кг</b>. На скільки більше кілограмів вуглекислого газу поглинають за цей період <b class="o1">40 тополь</b>, ніж <b class="o2">40 дубів</b>?',
+      steps: [{ t: '44 · 40', col: 'o1', a: 1760, u: 'кг', d: 'поглинають 40 тополь', hint: 'Скільки поглинають 40 тополь: 44 · 40.', note: swapNote(44, 40) },
+              { t: '28 · 40', col: 'o2', a: 1120, u: 'кг', d: 'поглинають 40 дубів', hint: 'Скільки поглинають 40 дубів: 28 · 40.' },
               { t: '1760 − 1120', a: 640, u: 'кг', d: 'на скільки більше', hint: '«На скільки більше» — знаходимо різницю.' }],
       ans: 'Відповідь: на 640 кг.' };
   }
   var a = rnd(35, 60), b = rnd(20, a - 8), m = rnd(20, 50), A = a * m, B = b * m;
-  return { text: 'З однієї яблуні за сезон збирають <b>' + a + ' кг</b> яблук, а з однієї груші — <b>' + b + ' кг</b> груш. У саду ростуть <b>' + m + ' ' + plural(m, 'яблуня', 'яблуні', 'яблунь') + '</b> і <b>' + m + ' ' + plural(m, 'груша', 'груші', 'груш') + '</b>. На скільки кілограмів більше яблук, ніж груш, збирають у цьому саду за сезон?',
-    steps: [{ t: a + ' · ' + m, a: A, u: 'кг', d: 'урожай яблук', hint: 'Урожай яблук: ' + a + ' · ' + m + '.', note: swapNote(a, m) },
-            { t: b + ' · ' + m, a: B, u: 'кг', d: 'урожай груш', hint: 'Урожай груш: ' + b + ' · ' + m + '.' },
+  return { text: 'З однієї яблуні за сезон збирають <b class="o1">' + a + ' кг</b> яблук, а з однієї груші — <b class="o2">' + b + ' кг</b> груш. У саду ростуть <b class="o1">' + m + ' ' + plural(m, 'яблуня', 'яблуні', 'яблунь') + '</b> і <b class="o2">' + m + ' ' + plural(m, 'груша', 'груші', 'груш') + '</b>. На скільки кілограмів більше яблук, ніж груш, збирають у цьому саду за сезон?',
+    steps: [{ t: a + ' · ' + m, col: 'o1', a: A, u: 'кг', d: 'урожай яблук', hint: 'Урожай яблук: ' + a + ' · ' + m + '.', note: swapNote(a, m) },
+            { t: b + ' · ' + m, col: 'o2', a: B, u: 'кг', d: 'урожай груш', hint: 'Урожай груш: ' + b + ' · ' + m + '.' },
             { t: fmt(A) + ' − ' + fmt(B), a: A - B, u: 'кг', d: 'на скільки більше', hint: '«На скільки більше» — знаходимо різницю.' }],
     ans: 'Відповідь: на ' + (A - B) + ' кг.' };
 };
@@ -752,20 +826,20 @@ GEN.t427 = function(n){
 GEN.t428 = function(n){
   var tx, v1, t1, v2, t2, c1, c2, cap = '', note = true;
   if (n === 0){
-    cap = '№ 428 (підручник)'; v1 = 8; t1 = 14; v2 = 4; t2 = 23; c1 = 'Річкою'; c2 = 'Суходолом';
-    tx = 'Вирушивши в похід, туристка <b>14 год</b> пливла річкою на човні зі швидкістю <b>8 км/год</b> і йшла пішки <b>23 год</b> зі швидкістю <b>4 км/год</b>. Який шлях, річкою чи суходолом, вона подолала більший і на скільки кілометрів?';
+    cap = '№ 428'; v1 = 8; t1 = 14; v2 = 4; t2 = 23; c1 = 'Річкою'; c2 = 'Суходолом';
+    tx = 'Вирушивши в похід, туристка <b class="o1">14 год пливла річкою на човні зі швидкістю 8 км/год</b> і <b class="o2">йшла пішки 23 год зі швидкістю 4 км/год</b>. Який шлях, річкою чи суходолом, вона подолала більший і на скільки кілометрів?';
   } else if (n === 1){
-    cap = '№ 429 (підручник)'; v1 = 27; t1 = 5; v2 = 21; t2 = 7; c1 = 'Річкою'; c2 = 'Озером';
-    tx = 'Івасик-Телесик плив на моторному човні <b>5 год</b> річкою зі швидкістю <b>27 км/год</b>, потім <b>7 год</b> озером зі швидкістю <b>21 км/год</b>. Який шлях, річкою чи озером, був довшим і на скільки кілометрів?';
+    cap = '№ 429'; v1 = 27; t1 = 5; v2 = 21; t2 = 7; c1 = 'Річкою'; c2 = 'Озером';
+    tx = 'Івасик-Телесик плив на моторному човні <b class="o1">5 год річкою зі швидкістю 27 км/год</b>, потім <b class="o2">7 год озером зі швидкістю 21 км/год</b>. Який шлях, річкою чи озером, був довшим і на скільки кілометрів?';
   } else {
     do { v1 = rnd(10, 16); t1 = rnd(2, 5); v2 = rnd(4, 6); t2 = rnd(3, 6); } while (v1 * t1 === v2 * t2);
     c1 = 'На велосипеді'; c2 = 'Пішки';
-    tx = 'Дарина їхала <b>' + t1 + ' год</b> на велосипеді зі швидкістю <b>' + v1 + ' км/год</b> і йшла пішки <b>' + t2 + ' год</b> зі швидкістю <b>' + v2 + ' км/год</b>. Який шлях, на велосипеді чи пішки, вона подолала більший і на скільки кілометрів?';
+    tx = 'Дарина їхала <b class="o1">' + t1 + ' год на велосипеді зі швидкістю ' + v1 + ' км/год</b> і <b class="o2">йшла пішки ' + t2 + ' год зі швидкістю ' + v2 + ' км/год</b>. Який шлях, на велосипеді чи пішки, вона подолала більший і на скільки кілометрів?';
   }
   var s1 = v1 * t1, s2 = v2 * t2, big = Math.max(s1, s2), small = Math.min(s1, s2), who = s1 > s2 ? c1 : c2;
   return { cap: cap, text: tx,
-    steps: [{ t: v1 + ' · ' + t1, a: s1, u: 'км', d: 'перший шлях', hint: 'Шлях дорівнює добутку швидкості й часу: s = v · t.', note: swapNote(v1, t1) },
-            { t: v2 + ' · ' + t2, a: s2, u: 'км', d: 'другий шлях', hint: 'Знову s = v · t.' },
+    steps: [{ t: v1 + ' · ' + t1, col: 'o1', a: s1, u: 'км', d: 'перший шлях', hint: 'Шлях дорівнює добутку швидкості й часу: s = v · t.', note: swapNote(v1, t1) },
+            { t: v2 + ' · ' + t2, col: 'o2', a: s2, u: 'км', d: 'другий шлях', hint: 'Знову s = v · t.' },
             { t: big + ' − ' + small, a: big - small, u: 'км', d: 'різниця шляхів', hint: 'Від більшого шляху віднімаємо менший.' }],
     ans: 'Відповідь: ' + who.toLowerCase() + ' шлях більший на ' + (big - small) + ' км.' };
 };
@@ -798,7 +872,7 @@ function schemeSVG(type, l1, l2, q){
 }
 GEN.t434 = function(n){
   if (n === 0){
-    return { cap: '№ 434 (підручник)',
+    return { cap: '№ 434',
       text: 'З однієї станції в протилежних напрямках одночасно відійшли два поїзди. Один із них рухався зі швидкістю <b>64 км/год</b>, а другий — зі швидкістю <b>57 км/год</b>. Якою буде відстань між ними через <b>9 год</b> після початку руху?',
       vis: schemeSVG('opp', '64 км/год', '57 км/год', '? км'),
       steps: [{ t: '64 + 57', a: 121, u: 'км/год', d: 'швидкість віддалення', hint: 'Поїзди їдуть у протилежних напрямках: швидкості додаємо.', note: 'На стільки кілометрів щогодини збільшується відстань між поїздами.' },
@@ -806,7 +880,7 @@ GEN.t434 = function(n){
       ans: 'Відповідь: 1089 км.' };
   }
   if (n === 1){
-    return { cap: '№ 436 (підручник)',
+    return { cap: '№ 436',
       text: 'Із міст Конотоп і Сміла одночасно назустріч один одному виїхали велосипедист і легковий автомобіль. Велосипедист їхав зі швидкістю <b>11 км/год</b>, автомобіль — у <b>7 разів</b> швидше. Знайдіть відстань між цими містами, якщо велосипедист і автомобіль зустрілися через <b>4 год</b> після початку руху.',
       vis: schemeSVG('meet', '11 км/год', 'у 7 разів швидше', '? км'),
       steps: [{ t: '11 · 7', a: 77, u: 'км/год', d: 'швидкість автомобіля', hint: 'Автомобіль їхав у 7 разів швидше: 11 · 7.', note: swapNote(11, 7) },
@@ -815,7 +889,7 @@ GEN.t434 = function(n){
       ans: 'Відповідь: 352 км.' };
   }
   if (n === 2){
-    return { cap: '№ 432 (підручник)',
+    return { cap: '№ 432',
       text: 'З одного порту в інший одночасно відійшли теплохід і катер. Швидкість теплохода — <b>28 км/год</b>, а швидкість катера — <b>36 км/год</b>. Якою буде відстань між ними через <b>5 год</b> після початку руху?',
       vis: schemeSVG('same', '28 км/год', '36 км/год', '? км'),
       steps: [{ t: '36 − 28', a: 8, u: 'км/год', d: 'швидкість віддалення', hint: 'Рухаються в одному напрямку: від більшої швидкості віднімаємо меншу.', note: 'На стільки кілометрів щогодини збільшується відстань між ними.' },
@@ -905,16 +979,16 @@ function genMc(){
   var P = a * b, NP = na * nb;
   var ex = '<b>Перевірка:</b> ' + a + ' · ' + b + ' = ' + P + '; ' + na + ' · ' + nb + ' = ' + NP + '; ' + (inc ? NP + ' : ' + P : P + ' : ' + NP) + ' = ' + ratio + '.';
   mc = { right: right, list: shuffle([right].concat(wrong)), ex: ex, done: false };
-  $('mcTitle').textContent = n < 5 ? '№ 439 (підручник)' : 'Як зміниться добуток';
+  $('mcTitle').textContent = n < 5 ? '№ 439' : 'Як зміниться добуток';
   put('mcText', 'Як зміниться добуток двох натуральних чисел, якщо <b class="hl">' + cond + '</b>?');
   var h = '';
   mc.list.forEach(function(t, i){ h += '<button class="opt" id="mcO' + i + '" onclick="mcPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
-  put('mcOpts', h); hide('mcFb');
+  put('mcOpts', h); hide('mcFb'); $('mcNew').hidden = true;
 }
 function mcPick(i){
   if (mc.done) return;
   var b = $('mcO' + i);
-  if (mc.list[i] === mc.right){ b.classList.add('good'); mc.done = true; show('mcFb', 'ok', '✓ Правильно! Добуток ' + mc.right + '.<br>' + mc.ex); addScore(10); confetti(30); }
+  if (mc.list[i] === mc.right){ b.classList.add('good'); mc.done = true; $('mcNew').hidden = false; show('mcFb', 'ok', '✓ Правильно! Добуток ' + mc.right + '.<br>' + mc.ex); addScore(10); confetti(30); }
   else { b.classList.add('wrong'); b.disabled = true; show('mcFb', 'bad', '✗ Неправильно. Перевірте на невеликих числах.'); }
 }
 
@@ -965,21 +1039,21 @@ function resetEnds(){
   put('endList', h);
 }
 function sumReset(){
-  var c = document.querySelectorAll('#stage-10 .sumc'); for (var i = 0; i < c.length; i++) c[i].classList.add('closed');
+  var c = document.querySelectorAll('#stage-11 .sumc'); for (var i = 0; i < c.length; i++) c[i].classList.add('closed');
   $('selfBox').hidden = true;
 }
 function sumOpen(el){
   el.classList.remove('closed');
-  if (!document.querySelector('#stage-10 .sumc.closed')) $('selfBox').hidden = false;
+  if (!document.querySelector('#stage-11 .sumc.closed')) $('selfBox').hidden = false;
 }
 function endShow(i){ $('endB' + i).hidden = true; $('endA' + i).hidden = false; }
 
 function onStage(n){
   if (n === 1 && !$('acRow').hidden) $('acAns').focus();
-  if (n >= 2 && n <= 8){ var a = $(KEYS[n - 2] + 'A0'); if (a && !a.readOnly) a.focus(); }
+  if (n >= 3 && n <= 4){ var a = $(KEYS[n - 3] + 'A0'); if (a && !a.readOnly) a.focus(); }
 }
 function resetAll(){
-  ac.k = 0; acGen(); T = {}; KEYS.forEach(function(k){ taskNew(k); });
+  ac.k = 0; ac.seen = {}; acGen(); genTiles(); T = {}; KEYS.forEach(function(k){ taskNew(k); });
   mcN = 0; genMc(); build450(); build438(); $('bon438').hidden = true; $('bon450').hidden = true; resetEnds(); sumReset();
 }
 
