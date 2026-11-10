@@ -130,6 +130,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .btn.sm{font-size:.95rem}
 .ask .kk{font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-right:.8rem;opacity:.85}
 .callbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;min-height:3rem;margin:0}
+.who[hidden],.callbar [hidden]{display:none!important}
 .who{display:flex;align-items:center;gap:.8rem;background:#FFF1CC;border:2.5px solid #E0A82E;border-radius:.9rem;padding:.25rem 1.1rem;color:#6B4200}
 .who .wl{font-weight:800;font-size:1rem;letter-spacing:.06em;text-transform:uppercase}
 .who .wn{font-weight:900;font-size:2rem;line-height:1.1}
@@ -141,6 +142,12 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .headrow{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .tick{display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;padding:.2rem;cursor:pointer}
 .tick:disabled{opacity:.35;cursor:default}
+.prbox{display:flex;flex-direction:column;gap:.35rem;margin:.3rem 0}
+.prrow{display:grid;grid-template-columns:9.5rem minmax(0,1fr);align-items:center;gap:.6rem;border:1.5px solid var(--tb);border-radius:.8rem;padding:.2rem .7rem;background:#fff}
+.prl{font-weight:800;font-size:.95rem;color:var(--tc);line-height:1.15}
+.prrow .wans{min-height:2.4rem}
+.sfxt{font-size:1.45rem;font-weight:700;margin-left:.3rem}
+.task .btn.cur{box-shadow:0 0 0 3px var(--tb)}
 /* розминка */
 .lvl{font-weight:900;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);margin:.35rem 0 .2rem}
 .wlist{display:flex;flex-direction:column;gap:.6rem;margin:.4rem 0}
@@ -455,6 +462,29 @@ function genWarmSet(level, n) {
   return out;
 }
 
+/* ===================== ВІДПОВІДЬ УЧНЯ ПО ЧАСТИНАХ (картки «?») ===================== */
+/* рядки: {l: підпис, t: [члени] або a: [html відповіді], sfx: хвіст рядка} */
+function partsRows(T) {
+  const rows = [];
+  if (T.kind === 'mul') {
+    const F = T.f.map(parsePoly); let cur = F[0], U = null;
+    for (let i = 1; i < F.length; i++) { U = mulPoly(cur, F[i]); cur = reduceP(U); }
+    rows.push({ l: 'Розкриваємо дужки', t: U });
+    if (!sameList(U, cur)) rows.push({ l: 'Зводимо подібні', t: cur });
+    return rows;
+  }
+  const lists = T.parts.map(partList); let flat = [];
+  T.parts.forEach((p, i) => { flat = flat.concat(p.s < 0 ? negP(lists[i]) : lists[i]); });
+  const R = reduceP(flat), sfx = T.kind === 'eq' ? ' = ' + num(T.rhs) : '';
+  rows.push({ l: 'Розкриваємо дужки', t: flat, sfx });
+  if (!sameList(flat, R)) rows.push({ l: 'Зводимо подібні', t: R, sfx });
+  const b = buildSteps(T);
+  if (T.kind === 'value') rows.push({ l: 'Значення виразу', a: [frStr(b.answer)] });
+  if (T.kind === 'eq') { const lt = R.find(t => t.v.length), ct = R.find(t => !t.v.length); rows.push({ l: 'Переносимо число', a: [listH([lt]) + ' = ' + num(T.rhs - (ct ? ct.c : 0))] }); }
+  if (T.kind === 'eq') rows.push({ l: 'Відповідь', a: ['<i>' + T.parts[0].f[0].match(/[a-z]/)[0] + '</i> = ' + frStr(b.answer)] });
+  return rows;
+}
+
 /* ===================== ІНТЕРФЕЙС ===================== */
 const $ = (s, r) => (r || document).querySelector(s);
 function el(t, c, h) { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
@@ -562,18 +592,46 @@ function tabs(defs) {
 }
 
 /* ---------- завдання з підручника ---------- */
+/* відповідь учня по частинах: рядки карток «?», наступний рядок відкривається після попереднього */
+function partsBox(T) {
+  const box = el('div', 'prbox'); let prevRow = [];
+  partsRows(T).forEach((r, ri) => {
+    const row = el('div', 'prrow'), chips = [], above = prevRow;
+    row.appendChild(el('div', 'prl', r.l));
+    const line = el('div', 'wans');
+    (r.t || []).forEach((t, k) => {
+      const neg = t.c < 0, sg = k === 0 ? (neg ? MINUS : '') : (neg ? MINUS : '+'), c = el('button', 'chip', '?');
+      c.dataset.h = (sg ? '<span class="sg">' + sg + '</span>' : '') + termH(t); chips.push(c);
+    });
+    (r.a || []).forEach(h => { const c = el('button', 'chip', '?'); c.dataset.h = h; chips.push(c); });
+    chips.forEach(c => {
+      c.onclick = () => {
+        const open = c.classList.contains('open');
+        if (!open && above.length && !above.every(x => x.classList.contains('open'))) { const ln = above[0].parentNode; ln.classList.remove('nudge'); void ln.offsetWidth; ln.classList.add('nudge'); return; }
+        c.classList.toggle('open', !open); c.innerHTML = open ? '?' : c.dataset.h;
+      };
+      line.appendChild(c);
+    });
+    if (r.sfx) line.appendChild(el('span', 'sfxt', r.sfx));
+    row.appendChild(line); box.appendChild(row);
+    prevRow = chips;
+  });
+  return box;
+}
 function taskPane(T, idx) {
   const root = el('div', 'task'); qColor(root, idx);
   const C = makeCaller();
   root.appendChild(C.bar);
   root.appendChild(el('div', 'ask', '<span class="kk">№' + T.n + ' · завдання ' + T.i + '</span>' + askOf(T)));
   const er = el('div', 'exprrow'); er.append(el('div', 'expr', exprH(T)), C.mkTick()); root.appendChild(er);
-  const row = el('div', 'tools'), bar = el('div', 'bar'), bAns = el('button', 'btn light', 'Відповідь'), bSt = el('button', 'btn', 'Показати кроки');
-  bar.append(bAns, bSt); row.append(bar, timerWidget(T.sec));
-  const box = el('div', 'svs');
+  const row = el('div', 'tools'), bar = el('div', 'bar'), bPt = el('button', 'btn light', 'Відповідь по частинах'), bAns = el('button', 'btn light', 'Відповідь'), bSt = el('button', 'btn', 'Показати кроки');
+  bar.append(bPt, bAns, bSt); row.append(bar, timerWidget(T.sec));
+  const box = el('div', 'svs'), cache = {};
   let b = null; const built = () => b || (b = buildSteps(T));
-  bAns.onclick = () => { box.innerHTML = ''; box.appendChild(el('div', 'step only', '<div class="sexp">' + built().steps[built().steps.length - 1] + '</div>')); bAns.style.display = 'none'; };
-  bSt.onclick = () => { box.innerHTML = ''; box.appendChild(stepper(built().steps)); bSt.style.display = 'none'; bAns.style.display = 'none'; };
+  const put = (k, make, btn) => () => { if (!cache[k]) cache[k] = make(); box.replaceChildren(cache[k]); [bPt, bAns, bSt].forEach(x => x.classList.toggle('cur', x === btn)); };
+  bPt.onclick = put('p', () => partsBox(T), bPt);
+  bAns.onclick = put('a', () => el('div', 'step only', '<div class="sexp">' + built().steps[built().steps.length - 1] + '</div>'), bAns);
+  bSt.onclick = put('s', () => stepper(built().steps), bSt);
   root.append(row, box);
   return root;
 }
