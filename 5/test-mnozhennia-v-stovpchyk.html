@@ -122,7 +122,7 @@ i{font-family:"Times New Roman",Georgia,serif;font-size:1.12em}
 .who{font-weight:800;color:var(--muted);font-size:1.1rem}
 .big{font-size:clamp(2.4rem,8vw,3.4rem);font-weight:900;margin:4px 0;color:var(--acc);line-height:1.1}
 .cardchips{margin:16px 0 18px}
-.shot{margin:14px auto 0;max-width:30rem;padding:10px 14px;border:2px dashed var(--acc2);border-radius:14px;background:var(--soft2);font-weight:800;color:var(--acc)}
+.shot{margin:14px auto 0;max-width:32rem;padding:14px 16px;border:3px solid var(--acc);border-radius:16px;background:var(--accL);font-weight:900;font-size:1.25rem;line-height:1.35;color:var(--acc)}
 .rbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
 /* екранна клавіатура (сенсорні екрани) */
@@ -304,7 +304,7 @@ function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return 
 function digitsNo01(n){let s='';for(let i=0;i<n;i++)s+=rnd(2,9);return +s}
 
 /* ===================== Заготовки завдань ===================== */
-function cq(t,qplain,pts){return {kind:'cells',t:t,qplain:qplain,pts:pts,exp:[],groups:[],sep:' | ',rows:[],hint:'Цифри вписуйте справа наліво, як під час письмового множення.'}}
+function cq(t,qplain,pts){return {kind:'cells',t:t,qplain:qplain,pts:pts,exp:[],groups:[],sep:' | ',rows:[],partG:[],hint:'Цифри вписуйте справа наліво, як під час письмового множення.'}}
 /* додає клітинки для рядка цифр; rtl — клітинки заповнюються справа наліво */
 function addCells(q,str,rtl){
   const start=q.exp.length, idx=new Array(str.length);
@@ -333,12 +333,14 @@ function colQuestion(a,b,pts){
   if(parts.length){
     parts.forEach((p,i)=>{
       const items=slotRow(cellRow(p.s),p.shift,i===1?'+':null);
+      q.partG.push(q.groups.length-1);
       for(let s=0;s<p.shift;s++)items[W-1-s]={ph:1};
       lines.push({k:'slots',items:items});
     });
     lines.push({k:'rule'});
   }
   lines.push({k:'slots',items:slotRow(cellRow(fin),0)});
+  q.finG=q.groups.length-1;
   q.rows=[{k:'col',lines:lines}];
   q.corrText=(parts.length?'неповні добутки: '+parts.map(p=>p.s).join(', ')+'; ':'')+'добуток: '+fin;
   return q;
@@ -350,12 +352,12 @@ function genQuestions(){
   const Q=[];
 
   /* 1–6. множення в стовпчик, від легкого до складного */
-  Q.push(colQuestion(rnd(12,99),rnd(3,9),5));            // двоцифрове · одноцифрове
-  Q.push(colQuestion(rnd(12,99),digitsNo01(2),6));       // двоцифрове · двоцифрове
+  Q.push(colQuestion(rnd(12,99),rnd(3,9),3));            // двоцифрове · одноцифрове
+  Q.push(colQuestion(rnd(12,99),digitsNo01(2),7));       // двоцифрове · двоцифрове
   Q.push(colQuestion(rnd(112,987),rnd(3,9),6));          // трицифрове · одноцифрове
-  Q.push(colQuestion(rnd(112,987),digitsNo01(2),8));     // трицифрове · двоцифрове
-  Q.push(colQuestion(rnd(112,987),digitsNo01(3),10));    // трицифрове · трицифрове
-  Q.push(colQuestion(rnd(1112,9876),digitsNo01(2),10));  // чотирицифрове · двоцифрове
+  Q.push(colQuestion(rnd(112,987),digitsNo01(2),10));     // трицифрове · двоцифрове
+  Q.push(colQuestion(rnd(112,987),digitsNo01(3),14));    // трицифрове · трицифрове
+  Q.push(colQuestion(rnd(1112,9876),digitsNo01(2),12));  // чотирицифрове · двоцифрове
 
   /* 7. a · b − c */
   {
@@ -384,54 +386,28 @@ function genQuestions(){
     const a=rnd(12,48)*100, b=rnd(3,9)*10;
     Q.push(numQ('Знайдіть добуток.',fmt(a)+' · '+b+' =',a*b,'Знайдіть добуток '+a+' · '+b,4));
   }
-  /* 12. перший неповний добуток */
-  {
-    const a=rnd(112,987), u=rnd(2,9), t=rnd(2,9), b=t*10+u;
-    Q.push(numQ('Ви множите '+I(a)+' на '+I(b)+' у стовпчик. Спочатку число '+I(a)+' множать на цифру одиниць числа '+I(b)+'. Знайдіть цей неповний добуток.',a+' · '+u+' =',a*u,'Перший неповний добуток у множенні '+a+' · '+b+' ('+a+' · '+u+')',4));
-  }
-  /* 13. Так / Ні */
-  {
-    const n=rnd(12,98);
-    const T=[
-      {t:'Множення в стовпчик починають з розряду одиниць.',ok:true},
-      {t:'Другий неповний добуток записують зі зсувом на один розряд ліворуч.',ok:true},
-      {t:'Числа записують так, щоб одиниці стояли під одиницями.',ok:true},
-      {t:n+' · 100 = '+fmt(n*100),ok:true},
-      {t:'Якщо один із множників дорівнює нулю, то добуток дорівнює нулю.',ok:true}];
-    const F=[
-      {t:'Другий неповний добуток записують під першим без зсуву.',ok:false},
-      {t:'Добуток двоцифрового числа на одноцифрове завжди двоцифровий.',ok:false},
-      {t:n+' · 100 = '+fmt(n*10),ok:false},
-      {t:'Множення в стовпчик починають з вищого розряду.',ok:false},
-      {t:'Добуток трицифрового числа на двоцифрове завжди чотирицифровий.',ok:false}];
-    const nf=rnd(2,3);
-    const items=shuffle(shuffle(F).slice(0,nf).concat(shuffle(T).slice(0,5-nf)));
-    Q.push({kind:'tf',t:'Для кожного твердження оберіть «Так» (правильно) або «Ні» (неправильно).',items:items,pts:5,
-      qplain:'Так чи ні? '+items.map((it,i)=>(i+1)+') '+it.t).join(' ')});
-  }
-  /* 14. задача про телефон */
+  /* 12. задача про екранний час */
   {
     const d=rnd(15,24)*10, ex=d-120;
-    Q.push({kind:'multi',pts:12,
-      t:'Фахівці радять школярам проводити за розважальними екранами (телефон, планшет, телевізор) не більше 2 годин на день. Один учень щодня сидить у телефоні по '+I(d)+' хв. Заповніть клітинки.',
+    Q.push({kind:'multi',pts:13,
+      t:'Лікарі радять дітям шкільного віку проводити за розважальними екранами (телефон, планшет, телевізор) не більше 2 годин на день, не рахуючи навчання. Один учень щодня сидить у телефоні по '+I(d)+' хв. Заповніть клітинки.',
       parts:[
         {lbl:'Норма: 2 години — це',unit:'хв',ans:120,pts:2},
         {lbl:'На скільки хвилин за день учень перевищує норму?',unit:'хв',ans:ex,pts:3},
-        {lbl:'Скільки хвилин понад норму набігає за 30 днів?',unit:'хв',ans:ex*30,pts:3},
+        {lbl:'Скільки хвилин понад норму набігає за 30 днів?',unit:'хв',ans:ex*30,pts:4,ft:v=>Number(v[1])*30},
         {lbl:'Скільки хвилин він сидить у телефоні за 30 днів?',unit:'хв',ans:d*30,pts:4}],
       qplain:'Норма екрана 2 год на день, учень сидить у телефоні по '+d+' хв щодня. (1) норма у хв (2) перевищення за день (3) перевищення за 30 днів (4) усього за 30 днів у телефоні'});
   }
-  /* 15. задача про сон */
+  /* 13. задача про сон */
   {
     const s=rnd(26,32)*15, h=Math.floor(s/60), m=s%60, def=540-s;
-    Q.push({kind:'multi',pts:10,
-      t:'Фахівці радять дітям віком 5–13 років спати щоночі від 9 до 11 годин. Один учень спить по '+I(s)+' хв за ніч ('+h+' год'+(m?' '+m+' хв':'')+'). Заповніть клітинки.',
+    Q.push({kind:'multi',pts:11,
+      t:'Лікарі радять дітям віком 6–12 років спати від 9 до 12 годин на добу. Один учень спить по '+I(s)+' хв за ніч ('+h+' год'+(m?' '+m+' хв':'')+'). Заповніть клітинки.',
       parts:[
-        {lbl:'Мінімальна норма сну, 9 годин, — це',unit:'хв',ans:540,pts:2},
-        {lbl:'Скільки хвилин сну не вистачає за одну ніч?',unit:'хв',ans:def,pts:2},
-        {lbl:'Скільки хвилин сну не вистачає за 30 ночей?',unit:'хв',ans:def*30,pts:3},
-        {lbl:'Скільки хвилин він спить за 30 ночей?',unit:'хв',ans:s*30,pts:3}],
-      qplain:'Норма сну від 9 год за ніч, учень спить по '+s+' хв. (1) 9 год у хв (2) не вистачає за ніч (3) не вистачає за 30 ночей (4) спить за 30 ночей'});
+        {lbl:'Мінімальна норма сну, 9 годин, — це',unit:'хв',ans:540,pts:3},
+        {lbl:'Скільки хвилин сну не вистачає за одну ніч?',unit:'хв',ans:def,pts:4},
+        {lbl:'Скільки хвилин сну не вистачає за 30 ночей?',unit:'хв',ans:def*30,pts:4,ft:v=>Number(v[1])*30}],
+      qplain:'Норма сну від 9 год, учень спить по '+s+' хв за ніч. (1) 9 год у хв (2) не вистачає за ніч (3) не вистачає за 30 ночей'});
   }
   return Q;
 }
@@ -442,14 +418,55 @@ function isFilled(q,v){
   if(q.kind==='tf')return v.every(x=>x!==null);
   return String(v).trim()!=='';
 }
+const half=x=>Math.round(x*2)/2;
+/* клітинка правильна, якщо збігається з відповіддю; цифри остаточного добутку теж, якщо вони відповідають
+   сумі неповних добутків, які записав сам учень (одну помилку не карають двічі) */
+function cellOk(q,v,k){
+  if(v[k]==='')return false;
+  if(v[k]===q.exp[k])return true;
+  if(q.partG&&q.partG.length&&q.finG!==undefined){
+    const g=q.groups[q.finG];
+    if(k>=g.s&&k<g.s+g.n){
+      let sum=0;
+      for(let i=0;i<q.partG.length;i++){
+        const pg=q.groups[q.partG[i]], t=v.slice(pg.s,pg.s+pg.n);
+        if(t.some(x=>x===''))return false;
+        sum+=Number(t.slice().reverse().join(''))*Math.pow(10,i);
+      }
+      const fs=String(sum), d=fs[fs.length-1-(k-g.s)];
+      return d!==undefined&&v[k]===d;
+    }
+  }
+  return false;
+}
+function partOk(q,v,k){
+  const p=q.parts[k];
+  if(String(v[k]).trim()==='')return false;
+  const n=Number(v[k]);
+  if(n===p.ans)return true;
+  if(p.ft){const e=p.ft(v);return Number.isFinite(e)&&n===e}
+  return false;
+}
+function oneSlip(a,b){
+  a=String(a);b=String(b);
+  if(a.length!==b.length||a===b)return false;
+  let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++;
+  return d===1;
+}
 function earned(q,v){
-  if(q.kind==='multi')return q.parts.reduce((s,p,k)=>s+((String(v[k]).trim()!==''&&Number(v[k])===p.ans)?p.pts:0),0);
+  if(q.kind==='multi')return q.parts.reduce((s,p,k)=>s+(partOk(q,v,k)?p.pts:0),0);
+  if(q.kind==='cells'){
+    const n=q.exp.length;let ok=0;
+    for(let k=0;k<n;k++)if(cellOk(q,v,k))ok++;
+    if(ok===n)return q.pts;
+    return Math.min(q.pts-0.5,half(q.pts*ok/n));
+  }
   if(!isFilled(q,v))return 0;
-  let ok;
-  if(q.kind==='cells')ok=v.every((x,k)=>x===q.exp[k]);
-  else if(q.kind==='tf')ok=v.every((x,i)=>x===q.items[i].ok);
-  else ok=Number(v)===q.ans;
-  return ok?q.pts:0;
+  if(q.kind==='tf')return v.every((x,i)=>x===q.items[i].ok)?q.pts:0;
+  const n=Number(v);
+  if(n===q.ans)return q.pts;
+  if(oneSlip(String(n),q.ans))return Math.min(q.pts-0.5,half(q.pts/2));  /* помилка в одній цифрі: половина балів */
+  return 0;
 }
 function cellsText(q,arr){
   return q.groups.map(g=>{
@@ -508,7 +525,7 @@ function build(first){
   cur=0;warnedEmpty=false;act=null;
 }
 const earnedAt=i=>earned(QUESTIONS[i],state.val[i]);
-const ptsWord=n=>plural(n,'бал','бали','балів');
+const ptsWord=n=>Number.isInteger(n)?plural(n,'бал','бали','балів'):'бала';
 
 /* екрани */
 const screens=['sStart','sPlay','sReview','sResult'];
@@ -529,7 +546,7 @@ function chipsHtml(opts){
 const inm=touch?'inputmode="none"':'inputmode="numeric"';
 function cellHtml(qi,k,v,done,q){
   let c='cell';
-  if(done)c+=(v!==''&&v===q.exp[k])?' good':' bad';
+  if(done)c+=cellOk(q,state.val[qi],k)?' good':' bad';
   return `<input class="${c}" data-q="${qi}" data-k="${k}" maxlength="1" ${inm} autocomplete="off" aria-label="цифра" value="${esc(v)}"${done?' readonly':''}>`;
 }
 function qHtml(q,qi){
@@ -553,7 +570,7 @@ function qHtml(q,qi){
   }else if(q.kind==='multi'){
     h+=`<div class="mrows">`+q.parts.map((p,k)=>{
       let c='numin';
-      if(done)c+=(String(v[k]).trim()!==''&&Number(v[k])===p.ans)?' good':' bad';
+      if(done)c+=partOk(q,v,k)?' good':' bad';
       return `<div class="mr"><span class="ml">${p.lbl}</span><span class="mi"><input class="${c}" data-q="${qi}" data-k="${k}" ${inm} autocomplete="off" aria-label="Відповідь" value="${esc(v[k])}"${done?' readonly':''}><span>${p.unit}</span></span></div>`;
     }).join('')+`</div>`;
   }else{
@@ -574,8 +591,8 @@ function qHtml(q,qi){
     if(!done&&q.hint)h+=`<div class="hint">${q.hint}</div>`;
   }
   if(done){
-    if(full)h+=`<div class="corr">Правильно. ${e} з ${q.pts} ${ptsWord(q.pts)}</div>`;
-    else h+=`<div class="corr ${e>0?'pp':'no'}">${isFilled(q,v)?`Ваша відповідь: ${esc(answerText(q,v))}. `:'Не всі відповіді введено. '}Правильно: ${esc(correctText(q))}. Ви отримали ${e} з ${q.pts} ${ptsWord(q.pts)}</div>`;
+    if(full)h+=`<div class="corr">Правильно. ${comma(e)} з ${q.pts} ${ptsWord(q.pts)}</div>`;
+    else h+=`<div class="corr ${e>0?'pp':'no'}">${isFilled(q,v)?`Ваша відповідь: ${esc(answerText(q,v))}. `:'Не всі відповіді введено. '}Правильно: ${esc(correctText(q))}. Ви отримали ${comma(e)} з ${q.pts} ${ptsWord(q.pts)}</div>`;
   }
   return h;
 }
@@ -749,9 +766,9 @@ function showResult(){
   showScreen('sResult');
   const score=totalScore();
   $('#result').innerHTML=`<div class="who">${esc(student.sur)} ${esc(student.nam)}</div>
-    <div class="big">${score} з ${MAX}</div>
+    <div class="big">${comma(score)} з ${MAX}</div>
     <div style="font-weight:800;color:var(--muted)">${ptsWord(MAX)}</div>
-    <div class="shot">Зробіть скріншот результату та надішліть його вчителю</div>
+    <div class="shot">Зробіть скриншот результату та надішліть його вчителю</div>
     <div class="chips cardchips">${chipsHtml({big:true})}</div>
     <div class="rbtns"><button class="btn ghost" id="errBtn">Дивитись помилки</button><button class="btn" id="againBtn">Пройти ще раз</button></div>`;
   $('#errBtn').addEventListener('click',()=>{const f=QUESTIONS.findIndex((q,i)=>earnedAt(i)<q.pts);showTask(f<0?0:f)});
@@ -831,11 +848,11 @@ async function showJournal(){
     const quick=r.durationSec!==undefined&&r.durationSec<120;
     const many=r.leaves!==undefined&&r.leaves>=3;
     const main=`<tr><td>${k+1}</td><td class="nm" data-k="${k}" title="Показати відповіді">${esc(r.name||'')}</td><td>${fmtDate(r.ts)}</td><td${quick?' class="red" title="Дуже швидко"':''}>${fmtDur(r.durationSec)}</td><td${many?' class="red"':''}>${r.leaves===undefined?'—':r.leaves}</td><td>${fmtDur(r.awaySec)}</td><td><b>${comma(r.score)}/${r.max||MAX}</b></td>${
-      idx.map(i=>{const m=(r.tasks||[])[i];const tip=(r.pts&&r.ptsMax)?` title="${r.pts[i]} з ${r.ptsMax[i]}"`:'';return m===undefined?'<td>—</td>':(m===1?`<td class="y"${tip}>✓</td>`:(m>0?`<td class="h"${tip}>½</td>`:`<td class="n"${tip}>✗</td>`))}).join('')}</tr>`;
+      idx.map(i=>{const m=(r.tasks||[])[i];const tip=(r.pts&&r.ptsMax)?` title="${comma(r.pts[i])} з ${r.ptsMax[i]}"`:'';return m===undefined?'<td>—</td>':(m===1?`<td class="y"${tip}>✓</td>`:(m>0?`<td class="h"${tip}>½</td>`:`<td class="n"${tip}>✗</td>`))}).join('')}</tr>`;
     let det='';
     if(r.qtext){
       det=`<table><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th><th>Бали</th></tr>${
-        r.qtext.map((t,i)=>`<tr><td>${i+1}</td><td class="w">${esc(t)}</td><td class="w">${esc((r.answers||[])[i]||'—')}</td><td class="w">${esc((r.correct||[])[i]||'')}</td><td>${r.pts?r.pts[i]+' з '+r.ptsMax[i]:'—'}</td></tr>`).join('')}</table>`;
+        r.qtext.map((t,i)=>`<tr><td>${i+1}</td><td class="w">${esc(t)}</td><td class="w">${esc((r.answers||[])[i]||'—')}</td><td class="w">${esc((r.correct||[])[i]||'')}</td><td>${r.pts?comma(r.pts[i])+' з '+r.ptsMax[i]:'—'}</td></tr>`).join('')}</table>`;
       if(r.variant!==undefined)det+=`<div style="margin-top:6px;color:var(--muted)">Варіант № ${r.variant}. Щоб відкрити цей варіант, додайте до адреси тесту ?v=${r.variant}</div>`;
     }else det='<span style="color:var(--muted)">Для цього запису деталей немає.</span>';
     return main+`<tr class="det" id="det${k}" hidden><td colspan="${7+cols}">${det}</td></tr>`;
