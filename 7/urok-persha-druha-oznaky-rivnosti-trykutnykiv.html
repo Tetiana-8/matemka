@@ -82,6 +82,8 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 @media (max-width:820px){.cols{grid-template-columns:1fr}}
 .figbox{background:var(--soft2);border:1.5px solid var(--line);border-radius:1rem;padding:.4rem;display:flex;align-items:center;justify-content:center}
 .task .figbox{width:min(100%,34rem);margin:.3rem auto}
+.task .figbox.big{width:min(100%,56rem)}
+.task .figbox.big svg{max-height:42vh}
 .figbox svg{width:100%;height:auto;max-height:52vh;display:block}
 .vt{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:700;font-size:21px;fill:#173F5F;text-anchor:middle;dominant-baseline:central}
 .lt2{font-family:Nunito,Arial,sans-serif;font-weight:800;font-size:16px;fill:#173F5F;text-anchor:middle;dominant-baseline:central}
@@ -260,7 +262,7 @@ function drawTri(P,o){o=o||{};const c=cen3(P);
   for(let i=0;i<3;i++){const m=o.am&&o.am[i];if(m)s+=arcs(P[(i+2)%3],P[i],P[(i+1)%3],m[0],m[1],o.ar||19,m[2]);}
   for(let i=0;i<3;i++){if(o.sl&&o.sl[i]){const a=P[i],b=P[(i+1)%3],m=mid(a,b),u=vun(vsub(b,a));let n=[-u[1],u[0]];if((m[0]-c[0])*n[0]+(m[1]-c[1])*n[1]<0)n=[-n[0],-n[1]];
       s+=txt(vadd(m,vmul(n,(o.slr||20))),o.sl[i],'lt2'+(o.slc&&o.slc[i]?' '+o.slc[i]:''));}}
-  for(let i=0;i<3;i++){if(o.at&&o.at[i])s+=angTxt(P,i,(o.atr||40),o.at[i],'lt2'+(o.atc&&o.atc[i]?' '+o.atc[i]:''));}
+  for(let i=0;i<3;i++){if(o.at&&o.at[i]){let r=o.atr||40;if(r==='auto'){const g=angDeg(P[(i+2)%3],P[i],P[(i+1)%3]);r=Math.max(40,Math.min(70,24/Math.sin(g*D2R/2)+12));const Lm=Math.min(vlen(vsub(P[i],P[(i+1)%3])),vlen(vsub(P[i],P[(i+2)%3])));r=Math.min(r,Math.max(34,Lm*.55));}s+=angTxt(P,i,r,o.at[i],'lt2'+(o.atc&&o.atc[i]?' '+o.atc[i]:''));}}
   if(o.lab)for(let i=0;i<3;i++){const d=vun(vsub(P[i],c));s+=txt(vadd(P[i],vmul(d,o.lr||19)),o.lab[i],'vt');}
   return s;}
 const svgWrap=(vb,inner,extra)=>'<svg viewBox="'+vb+'" xmlns="http://www.w3.org/2000/svg" role="img"'+(extra||'')+'>'+inner+'</svg>';
@@ -283,39 +285,54 @@ function critSVG(kind,level,opts){opts=opts||{};const d=CRIT[kind],Q=d.Q();
 
 /* ---------- генератор для вправи «За якою ознакою рівні?» ---------- */
 const cm=x=>dec(x.toFixed(1))+' см';
+const NAMESETS=[['A','B','C'],['K','L','M'],['D','E','F'],['P','Q','R'],['M','N','K'],['X','Y','Z'],['O','S','T']];
 function genPair(kind){
   const pairs=[];let QA,QB;
-  if(kind==='sas'){const ab=rnd(30,55)/10,bc=rnd(30,55)/10,B=rnd(45,105);QA=QB=triSAS(ab,bc,B);pairs.push({t:'s',i:0,v:cm(ab)},{t:'s',i:1,v:cm(bc)},{t:'a',i:1,v:B+'°'});}
-  else if(kind==='asa'){const ac=rnd(38,55)/10,A=rnd(42,75),C=rnd(42,75);QA=QB=triASA(ac,A,C);pairs.push({t:'s',i:2,v:cm(ac)},{t:'a',i:0,v:A+'°'},{t:'a',i:2,v:C+'°'});}
-  else if(kind==='ssa'){const Bd=rnd(30,42),c=rnd(55,62)/10,lo=c*Math.sin(Bd*D2R)+.55,b=Math.round((lo+(c-.5-lo)*Math.random())*10)/10;
-    QA=triSSA(c,b,Bd,false);QB=triSSA(c,b,Bd,true);pairs.push({t:'s',i:0,v:cm(c)},{t:'s',i:2,v:cm(b)},{t:'a',i:1,v:Bd+'°'});}
-  else if(kind==='aaa'){const ac=rnd(26,32)/10,A=rnd(45,70),C=rnd(45,70),q=triASA(ac,A,C);QA=q;QB=q.map(p=>[p[0]*1.55,p[1]*1.55]);pairs.push({t:'a',i:0,v:A+'°'},{t:'a',i:1,v:(180-A-C)+'°'},{t:'a',i:2,v:C+'°'});}
-  else {const ac=rnd(40,52)/10,A=rnd(45,65),C1=rnd(45,60);QA=triASA(ac,A,C1);QB=triASA(ac,A,C1+pick([-1,1])*rnd(18,24));pairs.push({t:'s',i:2,v:cm(ac)},{t:'a',i:0,v:A+'°'});}
-  const sh=rnd(0,2),flip=Math.random()<.5,num=Math.random()<.5;
-  const T1=xf(QA,{k:27,cx:140,cy:118,rot:rnd(-20,20)});
-  const T2=xf(QB,{k:27,cx:420,cy:118,rot:rnd(-70,70),flip});
+  const sd=(i,x)=>({t:'s',i,v:cm(x)}),an=(i,x)=>({t:'a',i,v:x+'°'});
+  if(kind==='sas'){const ab=rnd(25,60)/10,bc=rnd(25,60)/10,B=rnd(40,115);QA=QB=triSAS(ab,bc,B);pairs.push(sd(0,ab),sd(1,bc),an(1,B));}
+  else if(kind==='asa'){const ac=rnd(35,60)/10,A=rnd(38,78),C=rnd(38,78);QA=QB=triASA(ac,A,C);pairs.push(sd(2,ac),an(0,A),an(2,C));}
+  else if(kind==='ssa'){const Bd=rnd(38,48),c=rnd(55,65)/10,sb=Math.sin(Bd*D2R),b=Math.round(c*(sb+(1-sb)*(.35+Math.random()*.1))*10)/10;
+    QA=triSSA(c,b,Bd,false);QB=triSSA(c,b,Bd,true);pairs.push(sd(0,c),sd(2,b),an(1,Bd));}
+  else if(kind==='aaa'){const ac=rnd(34,42)/10,A=rnd(42,75),C=rnd(42,75),q=triASA(ac,A,C);QA=q;QB=q.map(p=>[p[0]*1.4,p[1]*1.4]);pairs.push(an(0,A),an(1,180-A-C),an(2,C));}
+  else if(kind==='ss'){const ab=rnd(30,60)/10,bc=rnd(30,60)/10,B1=rnd(45,70),B2=B1+pick([-1,1])*rnd(20,30);QA=triSAS(ab,bc,B1);QB=triSAS(ab,bc,B2);pairs.push(sd(0,ab),sd(1,bc));}
+  else {const ac=rnd(40,55)/10,A=rnd(42,68),C1=rnd(42,60);QA=triASA(ac,A,C1);QB=triASA(ac,A,C1+pick([-1,1])*rnd(16,24));pairs.push(sd(2,ac),an(0,A));}
+  /* циклічне перейменування вершин: кут «між» стоїть у різних вершинах */
+  const r=rnd(0,2),cyc=Q=>[Q[r],Q[(r+1)%3],Q[(r+2)%3]];
+  QA=cyc(QA);QB=cyc(QB);pairs.forEach(p=>p.i=(p.i-r+3)%3);
+  const sh=rnd(0,2),flip=Math.random()<.5;
+  const r1=rnd(-20,20),r2=rnd(-70,70);
+  const ext=P=>[Math.max(...P.map(p=>p[0]))-Math.min(...P.map(p=>p[0])),Math.max(...P.map(p=>p[1]))-Math.min(...P.map(p=>p[1]))];
+  const e1=ext(xf(QA,{k:1,rot:r1})),e2=ext(xf(QB,{k:1,rot:r2,flip}));
+  const k=Math.min(34,164/Math.max(e1[0],e2[0]),170/Math.max(e1[1],e2[1]));
+  const T1=xf(QA,{k,cx:140,cy:135,rot:r1}),T2=xf(QB,{k,cx:420,cy:135,rot:r2,flip});
   const R=[0,1,2].map(i=>T2[(i+sh)%3]);
-  let o1={lab:['A','B','C']},o2={lab:['M','N','K'],lr:21};
-  if(!num){const m=marksFor(pairs,pairs.length,sh);o1.sm=m.sm1;o1.am=m.am1;o2.sm=m.sm2;o2.am=m.am2;}
-  else{const sl1=[],sl2=[],at1=[],at2=[],am1=[0,0,0],am2=[0,0,0],G='#6b7f90';
-    pairs.forEach(p=>{const j=(p.i-sh+3)%3;if(p.t==='s'){sl1[p.i]=p.v;sl2[j]=p.v;}else{at1[p.i]=p.v;at2[j]=p.v;am1[p.i]=[1,G];am2[j]=[1,G];}});
-    Object.assign(o1,{sl:sl1,at:at1,am:am1,atr:44,slr:24});Object.assign(o2,{sl:sl2,at:at2,am:am2,atr:44,slr:24});}
-  const svg=svgWrap('0 0 560 235',drawTri(T1,o1)+drawTri(R,o2));
-  return {kind,num,svg};
+  /* стиль позначень: 0 — усе рисками й дугами, 1 — усе числами, 2 — сторони числами, кути дугами, 3 — сторони рисками, кути числами */
+  const style=rnd(0,3),sNum=style===1||style===2,aNum=style===1||style===3;
+  const sm1=[0,0,0],sm2=[0,0,0],am1=[0,0,0],am2=[0,0,0],sl1=[],sl2=[],at1=[],at2=[];let ns=0,na=0,pc=0;
+  const G='#2A6592';
+  pairs.forEach(p=>{const j=(p.i-sh+3)%3,col=PC[pc++%3];
+    if(p.t==='s'){if(sNum){sl1[p.i]=p.v;sl2[j]=p.v;}else{ns++;sm1[p.i]=[ns,col];sm2[j]=[ns,col];}}
+    else{if(aNum){at1[p.i]=p.v;at2[j]=p.v;am1[p.i]=[1,G];am2[j]=[1,G];}else{na++;am1[p.i]=[na,col];am2[j]=[na,col];}}});
+  const nm=Math.random()<.5?[['A','B','C'],['A₁','B₁','C₁']]:(()=>{const a=shuffle(NAMESETS);return [a[0],a[1]];})();
+  const base={atr:'auto',slr:24,lr:21,ar:21};
+  const svg=svgWrap('0 0 560 270',drawTri(T1,Object.assign({lab:nm[0],sm:sm1,am:am1,sl:sl1,at:at1},base))+drawTri(R,Object.assign({lab:nm[1],sm:sm2,am:am2,sl:sl2,at:at2},base)));
+  return {kind,num:sNum||aNum,style,svg};
 }
-const PAIR_ANS={sas:'first',asa:'second',ssa:'none',aaa:'none',sa:'none'};
+const PAIR_ANS={sas:'first',asa:'second',ssa:'none',aaa:'none',sa:'none',ss:'none'};
 const PAIR_WHY={
   sas:'Рівні дві сторони й кут між ними (він лежить між цими сторонами): перша ознака.',
   asa:'Рівні сторона й два прилеглі до неї кути: друга ознака.',
   ssa:'Рівні дві сторони, але кут не між ними. Така рівність не є ознакою: трикутники можуть бути різними.',
   aaa:'Рівні лише кути, жодної пари рівних сторін немає. Трикутники можуть мати різні розміри.',
-  sa:'Рівні лише одна сторона й один кут: цього недостатньо.'};
+  sa:'Рівні лише одна сторона й один кут: цього недостатньо.',
+  ss:'Рівні лише дві сторони, а кут між ними не рівний (або невідомий): цього недостатньо.'};
 const PAIR_HINT={
   sas:'Порахуйте, скільки пар рівних елементів. Де розташований кут відносно рівних сторін?',
   asa:'Подивіться, яка сторона має риски, і де розташовані рівні кути відносно неї.',
   ssa:'Де розташований рівний кут: між рівними сторонами чи ні?',
   aaa:'Чи є хоч одна пара рівних сторін?',
-  sa:'Скільки пар рівних елементів позначено? Чи достатньо їх для ознаки?'};
+  sa:'Скільки пар рівних елементів позначено? Чи достатньо їх для ознаки?',
+  ss:'Чи є рівний кут між цими сторонами?'};
 /* ===================== ВІДЖЕТИ ===================== */
 const QP=[{tc:'#1e7a52',tl:'#e6f4ec',tb:'#9bd0b4'},{tc:'#2A6592',tl:'#eaf2f7',tb:'#a8cadd'},{tc:'#7a7a1c',tl:'#f6f6df',tb:'#d5d58f'},{tc:'#4c4bb0',tl:'#ececfa',tb:'#b4b3e6'}];
 function qColor(e,i){const q=QP[i%QP.length];e.style.setProperty('--tc',q.tc);e.style.setProperty('--tl',q.tl);e.style.setProperty('--tb',q.tb);}
@@ -445,7 +462,7 @@ function addStage(id,title,dur,build){STAGES.push({id,title,dur,build,built:fals
 addStage('start','Старт',0,(c)=>{});
 
 /* 1. Актуалізація */
-addStage('act','Висота, медіана, бісектриса, перпендикуляр',4,c=>{c.innerHTML='<div class="inner"><div id="qz"></div></div>';quiz($('#qz',c),MAKERS1);});
+addStage('act','Висота, медіана, бісектриса, перпендикуляр',5,c=>{c.innerHTML='<div class="inner"><div id="qz"></div></div>';quiz($('#qz',c),MAKERS1);});
 
 /* 2. Як перевірити рівність */
 function overlayDemo(parent){
@@ -480,7 +497,7 @@ function sliderDemo(parent,cfg){
     if(eq&&!hit){hit=true;cfg.onHit&&cfg.onHit();}}
   inp.oninput=upd;upd();}
 
-addStage('how','Як перевірити рівність',4,c=>{
+addStage('how','Як перевірити рівність',5,c=>{
   c.innerHTML='<div class="inner"><h2 class="st">Як перевірити рівність трикутників?</h2><div id="h-t"></div></div>';
   tabs($('#h-t',c),[
    {name:'Накладання',build:overlayDemo},
@@ -591,7 +608,7 @@ addStage('mp','Серединний перпендикуляр',4,c=>{
 });
 
 /* 6. Активність: за якою ознакою? */
-addStage('act2','За якою ознакою рівні?',6,c=>{
+addStage('act2','За якою ознакою рівні?',10,c=>{
   c.innerHTML='<div class="inner"><h2 class="st">За якою ознакою рівні трикутники?</h2><div id="ab"></div></div>';
   tabs($('#ab',c),[
    {name:'Як читати рисунок',build:p=>{
@@ -611,10 +628,10 @@ addStage('act2','За якою ознакою рівні?',6,c=>{
    {name:'Завдання',build:p=>{
   const host=el('div');p.appendChild(host);let queue=[],okN=0,total=0;
   const stat=el('div','note','');
-  function next(){if(!queue.length)queue=shuffle(['sas','asa','ssa','aaa','sa','sas','asa']);return queue.pop();}
+  function next(){if(!queue.length)queue=shuffle(['sas','asa','ssa','aaa','sa','ss','sas','asa']);return queue.pop();}
   function show(){host.innerHTML='';const box=el('div','task');qColor(box,total);host.appendChild(box);
-    const g=genPair(next());box.appendChild(el('div','ask',g.num?'Рівні дані трикутники? Якщо так, то за якою ознакою? Довжини сторін і градусні міри кутів підписано: порівнюйте числа.':'Рівні дані трикутники? Якщо так, то за якою ознакою? Рівні елементи позначено однаковими рисками й дугами.'));
-    box.appendChild(el('div','figbox',g.svg));
+    const g=genPair(next());box.appendChild(el('div','ask','Рівні дані трикутники? Якщо так, то за якою ознакою? '+['Рівні елементи позначено однаковими рисками й дугами.','Довжини сторін і градусні міри кутів підписано: порівнюйте числа.','Довжини сторін підписано числами, а рівні кути позначено однаковими дугами.','Рівні сторони позначено однаковими рисками, а кути підписано градусами.'][g.style]));
+    box.appendChild(el('div','figbox big',g.svg));
     const bar=el('div','bar');const msg=el('div','msg');let done=false,mist=false;
     [['first','За першою ознакою'],['second','За другою ознакою'],['none','Рівність установити не можна']].forEach(([id,t])=>{
       const b=el('button','btn light',t);
@@ -649,7 +666,7 @@ function fig179a(l){const Q=triSAS(2,4,120),T1=xf(Q,{k:36,cx:150,cy:118,rot:0}),
 function fig179b(l){const T1=xf(triASA(3,40,75),{k:44,cx:150,cy:112,rot:0}),T2=xf(triASA(3,40,48),{k:44,cx:420,cy:112,rot:25});
   const pr=[{t:'s',i:2},{t:'a',i:0}],m=marksFor(pr,l,0),o={sl:['','','3 см'],at:['40°','',''],atr:44,lr:20};
   return svgWrap('0 0 570 235',drawTri(T1,Object.assign({lab:['A','B','C'],sm:m.sm1,am:m.am1},o))+drawTri(T2,Object.assign({lab:['A₁','B₁','C₁'],sm:m.sm2,am:m.am2},o)));}
-exStage('e179','Вправа 179',3,p=>{
+exStage('e179','Вправа 179',4,p=>{
   const cond='Чи є рівними трикутники, зображені на рисунку 142? У разі ствердної відповіді вкажіть, за якою ознакою рівності трикутників вони рівні.';
   tabs(p,[
    {name:'а',build:q=>exBody(q,{fig:fig179a,cond:'<b>179 (а).</b> '+cond,cap:'Вершини трикутників позначимо самі.',
@@ -672,7 +689,7 @@ function fig180(l){const C=[210,125],A=[100,65],D=[320,185],B=[115,195],E=[305,5
   if(l>=3)s+=arcs(A,C,B,1,PC[2],26)+arcs(D,C,E,1,PC[2],26);
   s+=dot(C,3.6)+outLab(A,C,'A')+outLab(B,C,'B')+outLab(D,C,'D')+outLab(E,C,'E')+txt([C[0]+2,C[1]-16],'C','vt');
   return svgWrap('0 0 420 250',s);}
-exStage('e180','Вправа 180',2,p=>exBody(p,{fig:fig180,cond:'<b>180.</b> На рисунку 143 <i>AC</i> = <i>DC</i>, <i>BC</i> = <i>EC</i>. Доведіть, що ∆<i>ABC</i> = ∆<i>DEC</i>.',
+exStage('e180','Вправа 180',3,p=>exBody(p,{fig:fig180,cond:'<b>180.</b> На рисунку 143 <i>AC</i> = <i>DC</i>, <i>BC</i> = <i>EC</i>. Доведіть, що ∆<i>ABC</i> = ∆<i>DEC</i>.',
   dado:[['Дано:','<i>AC</i> = <i>DC</i>, <i>BC</i> = <i>EC</i>'],['Довести:','∆<i>ABC</i> = ∆<i>DEC</i>']],ptitle:'Доведення',
   steps:[{h:'Розглянемо ∆<i>ABC</i> і ∆<i>DEC</i>.'},{h:'<i>AC</i> = <i>DC</i>'+WHY('за умовою'),lv:1},{h:'<i>BC</i> = <i>EC</i>'+WHY('за умовою'),lv:2},
    {h:'∠<i>ACB</i> = ∠<i>DCE</i>'+WHY('вертикальні'),lv:3},{h:'∆<i>ABC</i> = ∆<i>DEC</i> '+SAS_T,cls:'pl fin',lv:3}]}));
@@ -686,90 +703,10 @@ function fig181(l){const A=[70,125],B=[200,38],C=[350,125],D=[200,212];
   const o=[190,125];
   s+=outLab(A,o,'A',18)+outLab(B,o,'B')+outLab(C,o,'C',18)+outLab(D,o,'D');
   return svgWrap('0 0 420 250',s);}
-exStage('e181','Вправа 181',2,p=>exBody(p,{fig:fig181,cond:'<b>181.</b> На рисунку 144 <i>AB</i> = <i>AD</i>, ∠<i>BAC</i> = ∠<i>DAC</i>. Доведіть, що ∆<i>ABC</i> = ∆<i>ADC</i>.',
+exStage('e181','Вправа 181',3,p=>exBody(p,{fig:fig181,cond:'<b>181.</b> На рисунку 144 <i>AB</i> = <i>AD</i>, ∠<i>BAC</i> = ∠<i>DAC</i>. Доведіть, що ∆<i>ABC</i> = ∆<i>ADC</i>.',
   dado:[['Дано:','<i>AB</i> = <i>AD</i>, ∠<i>BAC</i> = ∠<i>DAC</i>'],['Довести:','∆<i>ABC</i> = ∆<i>ADC</i>']],ptitle:'Доведення',
   steps:[{h:'Розглянемо ∆<i>ABC</i> і ∆<i>ADC</i>.'},{h:'<i>AB</i> = <i>AD</i>'+WHY('за умовою'),lv:1},{h:'∠<i>BAC</i> = ∠<i>DAC</i>'+WHY('за умовою'),lv:2},
    {h:'<i>AC</i> — спільна сторона',lv:3},{h:'∆<i>ABC</i> = ∆<i>ADC</i> '+SAS_T,cls:'pl fin',lv:3}]}));
-
-/* 182 */
-function fig182(l){const A=[30,170],B=[240,170],D=[157.7,83.9],C=[367.7,83.9],BR='#8d5524';
-  let s='';
-  if(l>=4)s+='<polygon points="'+[A,B,D].map(P_).join(' ')+'" fill="rgba(232,89,12,.13)"/><polygon points="'+[C,D,B].map(P_).join(' ')+'" fill="rgba(112,72,232,.13)"/>';
-  s+='<polygon points="'+[A,B,C,D].map(P_).join(' ')+'" fill="none" stroke="#1F4E73" stroke-width="2.8" stroke-linejoin="round"/>'+seg(B,D);
-  if(l>=3)s+=seg(B,D,PC[2],4.5);
-  if(l>=1)s+=ticks(A,B,1,PC[0])+ticks(D,C,1,PC[0]);
-  const ac=l>=2?PC[1]:'#6b7f90';
-  s+=arcs(A,B,D,1,ac,30)+arcs(C,D,B,1,ac,30)+angLab(A,B,D,48,'1')+angLab(C,D,B,48,'2');
-  if(l>=6)s+=arcs(B,A,D,2,BR,26)+arcs(B,C,D,2,BR,26);
-  if(l>=5)s+=ticks(A,D,2,BR)+ticks(B,C,2,BR);
-  const o=[200,127];
-  s+=outLab(A,o,'A')+outLab(B,o,'B')+outLab(C,o,'C')+outLab(D,o,'D');
-  s+=txt([76,106],'7 см','lt2')+txt([365,128],'34°','lt2');
-  s+=txt([325,150],l>=5?'7 см':'?','lt2'+(l>=5?' c1f':''))+txt([92,150],l>=6?'34°':'?','lt2'+(l>=6?' c1f':''));
-  return svgWrap('0 -5 410 225',s);}
-exStage('e182','Вправа 182',3,p=>exBody(p,{fig:fig182,cond:'<b>182.</b> На рисунку 145 <i>AB</i> = <i>CD</i>, ∠1 = ∠2, <i>AD</i> = 7 см, ∠<i>C</i> = 34°. Знайдіть відрізок <i>BC</i> і кут <i>A</i>.',
-  dado:[['Дано:','<i>AB</i> = <i>CD</i>, ∠1 = ∠2, <i>AD</i> = 7 см, ∠<i>C</i> = 34°'],['Знайти:','<i>BC</i>, ∠<i>A</i>']],ptitle:'Розв’язання',
-  steps:[{h:'Розглянемо ∆<i>ABD</i> і ∆<i>CDB</i>.'},{h:'<i>AB</i> = <i>CD</i>'+WHY('за умовою'),lv:1},{h:'∠<i>ABD</i> = ∠<i>CDB</i>'+WHY('∠1 = ∠2 за умовою'),lv:2},
-   {h:'<i>BD</i> — спільна сторона',lv:3},{h:'∆<i>ABD</i> = ∆<i>CDB</i> '+SAS_T,lv:4},
-   {h:'<i>BC</i> = <i>AD</i> = 7 см'+WHY('сторони лежать проти рівних кутів ∠1 і ∠2 рівних трикутників'),lv:5},
-   {h:'∠<i>A</i> = ∠<i>C</i> = 34°'+WHY('кути лежать проти спільної сторони <i>BD</i>'),lv:6},
-   {h:'<b>Відповідь:</b> <i>BC</i> = 7 см, ∠<i>A</i> = 34°.',cls:'pl fin',lv:6}]}));
-
-/* 183 */
-function xfig(l,o){/* спільна «хрестова» фігура: o.pts={A,B,C,D}, O */
-  const O=[210,125];return O;}
-function fig183(l){const O=[210,125],A=[100,65],D=[320,185],B=[115,195],C=[305,55],BR='#8d5524';
-  let s='<polygon points="'+[A,B,O].map(P_).join(' ')+'" fill="rgba(232,89,12,.10)"/><polygon points="'+[D,C,O].map(P_).join(' ')+'" fill="rgba(112,72,232,.10)"/>'
-   +seg(A,D)+seg(B,C)+seg(A,B)+seg(D,C);
-  if(l>=1)s+=ticks(A,O,1,PC[0])+ticks(O,D,1,PC[0]);
-  if(l>=2)s+=ticks(B,O,2,PC[1])+ticks(O,C,2,PC[1]);
-  if(l>=3)s+=arcs(A,O,B,1,PC[2],26)+arcs(D,O,C,1,PC[2],26);
-  s+=arcs(O,B,A,1,l>=6?BR:'#6b7f90',24);
-  if(l>=6)s+=arcs(O,C,D,1,BR,24);
-  s+=dot(O,3.6)+outLab(A,O,'A')+outLab(B,O,'B')+outLab(C,O,'C')+outLab(D,O,'D')+txt([O[0]+2,O[1]-16],'O','vt');
-  s+=txt([84,138],'8 см','lt2')+txt([132,168],'43°','lt2');
-  s+=txt([336,112],l>=5?'8 см':'?','lt2'+(l>=5?' c1f':''))+txt([262,64],l>=6?'43°':'?','lt2'+(l>=6?' c1f':''));
-  return svgWrap('0 0 430 250',s);}
-exStage('e183','Вправа 183',2,p=>exBody(p,{fig:fig183,cond:'<b>183.</b> На рисунку 146 <i>AO</i> = <i>OD</i>, <i>BO</i> = <i>OC</i>. Знайдіть сторону <i>CD</i> і кут <i>OCD</i> трикутника <i>OCD</i>, якщо <i>AB</i> = 8 см, ∠<i>OBA</i> = 43°.',
-  dado:[['Дано:','<i>AO</i> = <i>OD</i>, <i>BO</i> = <i>OC</i>, <i>AB</i> = 8 см, ∠<i>OBA</i> = 43°'],['Знайти:','<i>CD</i>, ∠<i>OCD</i>']],ptitle:'Розв’язання',
-  steps:[{h:'Розглянемо ∆<i>AOB</i> і ∆<i>DOC</i>.'},{h:'<i>AO</i> = <i>OD</i>'+WHY('за умовою'),lv:1},{h:'<i>BO</i> = <i>OC</i>'+WHY('за умовою'),lv:2},
-   {h:'∠<i>AOB</i> = ∠<i>DOC</i>'+WHY('вертикальні'),lv:3},{h:'∆<i>AOB</i> = ∆<i>DOC</i> '+SAS_T,lv:4},
-   {h:'<i>CD</i> = <i>AB</i> = 8 см'+WHY('сторони лежать проти рівних кутів <i>AOB</i> і <i>DOC</i>'),lv:5},
-   {h:'∠<i>OCD</i> = ∠<i>OBA</i> = 43°'+WHY('кути лежать проти рівних сторін <i>AO</i> і <i>DO</i>'),lv:6},
-   {h:'<b>Відповідь:</b> <i>CD</i> = 8 см, ∠<i>OCD</i> = 43°.',cls:'pl fin',lv:6}]}));
-
-/* 184 */
-function fig184(l){const O=[210,125],A=[100,65],C=[320,185],D=[305,55],B=[115,195];
-  let s='<polygon points="'+[A,D,O].map(P_).join(' ')+'" fill="rgba(232,89,12,.10)"/><polygon points="'+[C,B,O].map(P_).join(' ')+'" fill="rgba(112,72,232,.10)"/>'
-   +seg(A,C)+seg(B,D)+seg(A,D)+seg(C,B);
-  if(l>=1)s+=ticks(A,O,1,PC[0])+ticks(O,C,1,PC[0]);
-  if(l>=2)s+=ticks(B,O,2,PC[1])+ticks(O,D,2,PC[1]);
-  if(l>=3)s+=arcs(A,O,D,1,PC[2],26)+arcs(C,O,B,1,PC[2],26);
-  if(l>=5)s+=arcs(O,A,D,2,'#8d5524',26)+arcs(O,C,B,2,'#8d5524',26);
-  s+=dot(O,3.6)+outLab(A,O,'A')+outLab(B,O,'B')+outLab(C,O,'C')+outLab(D,O,'D')+txt([O[0]+2,O[1]+18],'O','vt');
-  return svgWrap('0 0 430 250',s);}
-exStage('e184','Вправа 184',2,p=>exBody(p,{fig:fig184,cond:'<b>184.</b> Дано: <i>OA</i> = <i>OC</i>, <i>OB</i> = <i>OD</i> (рис. 147). Доведіть, що ∠<i>OAD</i> = ∠<i>OCB</i>.',
-  dado:[['Дано:','<i>OA</i> = <i>OC</i>, <i>OB</i> = <i>OD</i>'],['Довести:','∠<i>OAD</i> = ∠<i>OCB</i>']],ptitle:'Доведення',
-  steps:[{h:'Розглянемо ∆<i>OAD</i> і ∆<i>OCB</i>.'},{h:'<i>OA</i> = <i>OC</i>'+WHY('за умовою'),lv:1},{h:'<i>OD</i> = <i>OB</i>'+WHY('за умовою'),lv:2},
-   {h:'∠<i>AOD</i> = ∠<i>COB</i>'+WHY('вертикальні'),lv:3},{h:'∆<i>OAD</i> = ∆<i>OCB</i> '+SAS_T,lv:4},
-   {h:'∠<i>OAD</i> = ∠<i>OCB</i>'+WHY('кути лежать проти рівних сторін <i>OD</i> і <i>OB</i> рівних трикутників'),cls:'pl fin',lv:5}]}));
-
-/* 185 */
-function fig185(l){const A=[60,185],B=[300,185],C=[250,50],D=[110,50];
-  let s='<polygon points="'+[A,B,C,D].map(P_).join(' ')+'" fill="rgba(42,101,146,.06)" stroke="#1F4E73" stroke-width="2.8" stroke-linejoin="round"/>'+seg(A,C)+seg(B,D);
-  if(l>=4)s+='<polygon points="'+[A,B,C].map(P_).join(' ')+'" fill="rgba(232,89,12,.10)"/><polygon points="'+[B,A,D].map(P_).join(' ')+'" fill="rgba(112,72,232,.10)"/>'+seg(A,C)+seg(B,D)+seg(A,B)+seg(B,C)+seg(A,D);
-  if(l>=1)s+=ticks(A,C,1,PC[0])+ticks(B,D,1,PC[0]);
-  if(l>=2)s+=arcs(B,A,C,1,PC[1],30)+arcs(A,B,D,1,PC[1],30);
-  if(l>=3)s+=seg(A,B,PC[2],4.5);
-  if(l>=5)s+=ticks(B,C,2,'#8d5524')+ticks(A,D,2,'#8d5524');
-  const o=[180,118];
-  s+=outLab(A,o,'A')+outLab(B,o,'B')+outLab(C,o,'C')+outLab(D,o,'D');
-  return svgWrap('0 0 360 235',s);}
-exStage('e185','Вправа 185',2,p=>exBody(p,{fig:fig185,cond:'<b>185.</b> Дано: <i>AC</i> = <i>BD</i>, ∠<i>BAC</i> = ∠<i>ABD</i> (рис. 148). Доведіть, що <i>AD</i> = <i>BC</i>.',
-  dado:[['Дано:','<i>AC</i> = <i>BD</i>, ∠<i>BAC</i> = ∠<i>ABD</i>'],['Довести:','<i>AD</i> = <i>BC</i>']],ptitle:'Доведення',
-  steps:[{h:'Розглянемо ∆<i>ABC</i> і ∆<i>BAD</i>.'},{h:'<i>AC</i> = <i>BD</i>'+WHY('за умовою'),lv:1},{h:'∠<i>BAC</i> = ∠<i>ABD</i>'+WHY('за умовою'),lv:2},
-   {h:'<i>AB</i> — спільна сторона',lv:3},{h:'∆<i>ABC</i> = ∆<i>BAD</i> '+SAS_T,lv:4},
-   {h:'<i>BC</i> = <i>AD</i>'+WHY('сторони лежать проти рівних кутів <i>BAC</i> і <i>ABD</i> рівних трикутників'),cls:'pl fin',lv:5}]}));
 
 /* 11. Підсумок */
 addStage('sum','Підсумок уроку',3,c=>{
@@ -803,7 +740,7 @@ function finish(){
 addStage('refl','Рефлексія «Світлофор»',2,c=>{
   c.innerHTML='<div class="inner"><h2 class="st">Рефлексія «Світлофор»</h2><div class="note">Оцініть, як ви засвоїли тему.</div><div class="tl"><div class="votes" id="vt"></div><div class="lamp" id="lp"><u style="background:#e0464e;color:#e0464e"></u><u style="background:#f2b01e;color:#f2b01e"></u><u style="background:#1e9e62;color:#1e9e62"></u></div></div><div class="tlmsg" id="tm"></div><div class="bar"></div></div>';
   const cnt=[0,0,0],lamps=c.querySelectorAll('.lamp u'),tm=$('#tm',c);
-  const M=['Нічого страшного: пригляньтеся до ознак на малюнках ще раз і спитайте вчителя.','Є питання: перегляньте вправи 179–185 ще раз.','Чудово! Ознаки засвоєно.'];
+  const M=['Нічого страшного: пригляньтеся до ознак на малюнках ще раз і спитайте вчителя.','Є питання: перегляньте вправи 179–181 ще раз.','Чудово! Ознаки засвоєно.'];
   [['#e0464e','Потрібна допомога',0],['#f2b01e','Є питання',1],['#1e9e62','Усе зрозуміло',2]].forEach(v=>{
     const r=el('div','vote','<button class="dotc" style="background:'+v[0]+'" aria-label="'+v[1]+'"></button><span>'+v[1]+'</span><span class="cnt">0</span>');
     $('button',r).onclick=()=>{cnt[v[2]]++;$('.cnt',r).textContent=cnt[v[2]];const m=cnt.indexOf(Math.max(...cnt));lamps.forEach((u,k)=>u.classList.toggle('on',k===m));tm.textContent=M[m];};
@@ -815,7 +752,7 @@ addStage('refl','Рефлексія «Світлофор»',2,c=>{
 function openMeta(){
   const box=$('#metaBox');
   box.innerHTML='<button class="x" aria-label="Закрити">✕</button><h3>Методична картка</h3><p><b>Тема:</b> Перша та друга ознаки рівності трикутників (п. 8)</p>'
-   +'<h4>Мета</h4><p>Сформувати вміння встановлювати рівність трикутників за першою та другою ознаками; ввести означення серединного перпендикуляра й властивість його точок; навчити застосовувати ознаки у вправах підручника 179–185.</p>'
+   +'<h4>Мета</h4><p>Сформувати вміння встановлювати рівність трикутників за першою та другою ознаками; ввести означення серединного перпендикуляра й властивість його точок; навчити застосовувати ознаки у вправах підручника 179–181.</p>'
    +'<h4>Компетентності</h4><p>Предметна: розпізнавати рівні трикутники за ознаками, оформлювати розв’язання за схемою «Дано — Довести — Доведення». Ключові: уміння вчитися (самоперевірка), спілкування (пояснення міркувань), математична грамотність (відповідні елементи рівних трикутників). Рефлексія — «Світлофор».</p>'
    +'<h4>Перебіг уроку (натисніть, щоб перейти)</h4><div class="plan"></div>';
   const pl=$('.plan',box);
