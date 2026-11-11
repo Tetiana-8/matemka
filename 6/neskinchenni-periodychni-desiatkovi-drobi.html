@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Нескінченні періодичні десяткові дроби</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Кольори 6 класу (персиковий / помаранчевий): задано один раз */
+:root{
+  --bg:#FFF9F1; --head:#FFF1E3; --acc:#C2410C; --acch:#9A3412; --acc2:#EA580C;
+  --soft:#FFEDD5; --l1:#FED7AA; --l2:#FDBA74; --ink:#431407; --mut:#7c4a2d;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b;
+  --blue:#1d6fd0; --bluebg:#e8f1fc; --vio:#6d44d6; --viobg:#efeafc;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px);height:100%}
+body{margin:0;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Nunito',system-ui,'Segoe UI',Arial,sans-serif;font-weight:600}
+button{font-family:inherit;touch-action:manipulation}
+#app{display:flex;flex-direction:column;height:100dvh;width:100%}
+#main{flex:1;min-height:0;display:flex;flex-direction:column}
+.stage{display:none;flex:1;min-height:0;overflow:auto;padding:.8rem 1.6rem}
+.stage.cur{display:flex;flex-direction:column}
+.inner{margin:auto;width:100%;max-width:72rem}
+.stage h2{color:var(--acc);font-size:1.9rem;font-weight:900;margin:0 0 .8rem;text-align:center;line-height:1.2}
+.sub{font-size:1.2rem;color:var(--mut);text-align:center;margin:0 0 .9rem}
+
+/* стартовий екран */
+#s0{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;background:var(--head);text-align:center;padding:1rem;position:relative}
+#s0 .tag{font-size:1.2rem;color:var(--mut);font-weight:800;letter-spacing:.04em}
+#s0 h1{margin:0;font-size:3.2rem;line-height:1.15;color:var(--acc);font-weight:900;max-width:48rem}
+#s0 .demo{font-size:2rem;font-weight:800;color:var(--acc2)}
+#gem0{position:absolute;top:.8rem;right:1rem}
+
+/* кнопки */
+.btn{background:var(--acc);color:#fff;border:2px solid var(--acc);border-radius:999px;padding:.35rem 1.2rem;font-weight:800;font-size:1.05rem;cursor:pointer;min-height:44px;white-space:nowrap}
+.btn:hover{background:var(--acch);border-color:var(--acch)}
+.btn.light{background:var(--soft);color:var(--acc);border-color:var(--l2)}
+.btn.light:hover{background:var(--l1)}
+.btn.sm{font-size:.85rem;padding:.15rem .8rem;min-height:36px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.big{font-size:1.6rem;padding:.5rem 2.2rem}
+.gemb{background:transparent;border:0;cursor:pointer;padding:.2rem;display:flex}
+.gemb svg{width:2.3rem;height:2.3rem}
+
+/* ніжня панель */
+#nav{flex:none;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.25rem 1rem;background:var(--head);border-top:1px solid var(--l1)}
+#nav .mid{display:flex;align-items:center;gap:.9rem}
+#tm{width:.6rem;height:2.3rem;border-radius:.3rem;background:#fff;border:1.5px solid var(--l2);position:relative;overflow:hidden;cursor:pointer}
+#tmf{position:absolute;left:0;right:0;bottom:0;background:var(--acc2);height:100%;transition:height 1s linear}
+#cnt{font-size:.95rem;color:var(--mut);font-weight:800;min-width:3.2rem;text-align:center}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px;background:var(--head)}
+footer b{color:#374151}
+
+/* стрілка ↓ */
+#dwrap{flex:none;height:3.4rem;display:flex;justify-content:center;align-items:center}
+#down{width:2.9rem;height:2.9rem;border-radius:50%;border:0;background:var(--acc2);color:#fff;font-size:1.6rem;font-weight:900;cursor:pointer;box-shadow:0 3px 8px rgba(194,65,12,.35);animation:bob 1.2s ease-in-out infinite}
+#down:hover{background:var(--acch)}
+#down[hidden]{display:none}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(.25rem)}}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+
+/* картки, правила */
+.card{background:#fff;border:2px solid var(--l1);border-radius:1rem;padding:.9rem 1.2rem}
+.rule{background:var(--soft);border-left:.5rem solid var(--acc2);border-radius:.8rem;padding:.8rem 1.2rem;font-size:1.5rem;font-weight:800;line-height:1.35}
+.rule b,.hl{color:var(--acc)}
+.bl{color:var(--blue);font-weight:800}
+.rv{display:none}
+.rv.show{display:block;animation:pop .35s both}
+.mt{margin-top:.9rem}
+.c{text-align:center}
+.big-m{font-size:2.2rem;font-weight:800}
+
+/* дроби */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-weight:800}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .22em .04em}
+.fr>span:last-child{padding:.04em .22em 0}
+/* додатковий множник */
+.mf{display:inline-flex;align-items:stretch}
+.ad{display:inline-flex;align-items:flex-start;margin-left:.1em}
+.ad .sl{display:inline-block;align-self:flex-start;width:0;height:1.05em;border-left:2px solid var(--acc);transform:translateY(-.3em) rotate(-35deg);margin:.12em .3em 0 -.15em}
+.ad .fill{align-self:flex-start;font-size:.85em;color:var(--acc2);transform:translateY(-.4em);font-weight:900}
+
+/* ділення куточком */
+.ld{display:inline-flex;font-family:"Courier New",ui-monospace,Menlo,monospace;font-weight:700;font-size:1.75rem;line-height:1.55;color:var(--ink);text-align:left}
+.ld .L{white-space:pre;padding-right:.3rem}
+.ld .R{padding-left:.55rem}
+.ld .dv{border-left:3px solid var(--ink);border-bottom:3px solid var(--ink);padding:0 .7rem;color:var(--blue);height:1.55em;box-sizing:content-box}
+.ld .q{padding:.05rem .7rem 0;letter-spacing:.04em;min-height:1.55em;white-space:pre}
+.ld .rw{height:1.55em;white-space:pre}
+.ld .ul{background:linear-gradient(var(--ink),var(--ink)) left bottom/100% 3px no-repeat}
+.ld .cm{display:inline-block;width:0;position:relative;left:-.3ch}
+.ld .bd{color:var(--acc2)}
+.ld .rep{background:var(--l1);border-radius:.2em}
+.ld .per{color:var(--acc2)}
+.ld .po{text-decoration:overline;text-decoration-thickness:.1em}
+.ldwrap{display:flex;justify-content:center;min-height:6rem}
+.res{font-size:1.5rem;font-weight:800}
+
+/* етап 1 */
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.way{background:#fff;border:2px solid var(--l1);border-radius:1rem;min-height:15rem;cursor:pointer;position:relative;overflow:hidden}
+.way .cl{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:15rem;gap:.4rem;color:var(--acc)}
+.way .cl b{font-size:4rem;line-height:1;font-weight:900}
+.way .cl span{font-size:1.4rem;font-weight:800}
+.way .op{display:none;padding:.8rem 1rem}
+.way.opn .cl{display:none}
+.way.opn .op{display:block;animation:pop .35s both}
+.way h3{margin:0 0 .6rem;color:var(--acc);font-size:1.35rem;line-height:1.25}
+.way .eq{font-size:1.9rem;font-weight:800;line-height:1.5;display:flex;align-items:center;flex-wrap:wrap;gap:.45em;min-height:3.4em}
+.way .eq .sb{display:inline-flex;align-items:center;gap:.45em}
+.way .eq .hid{display:none}
+.way .eq .ad.hid{display:inline-flex;visibility:hidden}
+.way .nt.hid{visibility:hidden}
+.way .eq .rs{display:none}.way .eq .rs.show{display:inline-flex;align-items:center;gap:.45em}
+.way .nt{font-size:1.05rem;color:var(--mut);margin-top:.3rem}
+.way .ld{font-size:1rem}
+.way .ldwrap{min-height:4rem}
+
+/* етап 2 */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.4rem}
+.two .cell{text-align:center}
+.cellf{font-size:3rem;font-weight:800;color:var(--ink)}
+.two .cp{background:#fff;border:2px solid var(--l1);border-radius:.9rem;padding:.6rem .8rem;font-size:1.5rem;font-weight:800}
+.two .vd{border-radius:.9rem;padding:.6rem .8rem;font-size:1.3rem;font-weight:800}
+.vd.y{background:var(--soft);border:2px solid var(--l2)}
+.vd.n{background:#fff;border:2px dashed var(--acc2)}
+.span2{grid-column:1/3}
+
+/* етап 3 */
+.s3{display:grid;grid-template-columns:auto 1fr;gap:1.6rem;align-items:start}
+.s3 .rt{display:flex;flex-direction:column;gap:.8rem;min-width:0}
+.nt2{font-size:1.45rem;font-weight:800;line-height:1.35}
+
+/* вкладки */
+.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-bottom:.8rem}
+.tab{background:#fff;color:var(--acc);border:2px solid var(--l2);border-radius:999px;padding:.25rem 1.1rem;font-weight:800;font-size:1.05rem;cursor:pointer;min-height:42px}
+.tab:hover{background:var(--soft)}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tab[hidden]{display:none}
+.pane{display:none}
+.pane.on{display:block}
+
+/* порівняння розрядів */
+table.pv{border-collapse:collapse;margin:0 auto;font-size:2rem;font-weight:800}
+table.pv th{font-size:.95rem;color:var(--mut);padding:.2rem .7rem;font-weight:800;border-bottom:2px solid var(--l1)}
+table.pv td{padding:.35rem .9rem;text-align:center;border-bottom:1px solid var(--l1)}
+table.pv td.same{background:var(--soft)}
+table.pv td.diff{background:var(--l1);color:var(--acc);outline:3px solid var(--acc2);outline-offset:-3px}
+table.pv td.lb{font-size:1rem;color:var(--mut);text-align:right}
+
+/* три результати */
+.tri{max-width:62rem;margin:0 auto}
+.tri .top{text-align:center}
+.tri .top span{display:inline-block;background:var(--soft);border:2px solid var(--l2);border-radius:.9rem;padding:.4rem 1.6rem;font-size:2.2rem;font-weight:900;color:var(--acc)}
+.tri .top small{display:block;font-size:1rem;color:var(--mut);margin-top:.2rem}
+.tri svg{width:100%;height:auto;display:block}
+.tri .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem}
+.tri .bx3{border-radius:.9rem;padding:.6rem .7rem;text-align:center;border:2px solid;opacity:0;transform:translateY(8px);transition:all .35s}
+.tri .bx3.show{opacity:1;transform:none}
+.tri .bx3 h3{margin:0 0 .5rem;font-size:1.25rem;line-height:1.2}
+.tri .bx3 p{margin:.2rem 0;font-size:1.45rem;font-weight:800;color:var(--ink)}
+.tri .ar{opacity:0;transition:opacity .35s}
+.tri .ar.show{opacity:1}
+.b1{background:var(--bluebg);border-color:var(--blue)}.b1 h3{color:var(--blue)}
+.b2{background:var(--soft);border-color:var(--acc2)}.b2 h3{color:var(--acc)}
+.b3{background:var(--viobg);border-color:var(--vio)}.b3 h3{color:var(--vio)}
+
+/* вправи */
+.exh{font-size:1.3rem;font-weight:800;text-align:center;margin:0 0 .6rem;line-height:1.3}
+.exh b{color:var(--acc)}
+.bar{display:flex;justify-content:flex-end;margin-bottom:.4rem}
+.items{display:grid;gap:.7rem}
+.items.c5{grid-template-columns:repeat(5,1fr)}
+.items.c4{grid-template-columns:repeat(4,1fr)}
+.items.c3{grid-template-columns:repeat(3,1fr)}
+.items.c2{grid-template-columns:repeat(2,1fr)}
+.it{background:#fff;border:2px solid var(--l1);border-radius:.9rem;padding:.5rem .7rem;text-align:center;cursor:pointer;min-height:5.2rem;display:flex;flex-direction:column;justify-content:center;gap:.25rem}
+.it:hover{border-color:var(--l2)}
+.it .q{font-size:1.7rem;font-weight:800;color:var(--ink);line-height:1.5}
+.it .q .n{font-size:1rem;color:var(--acc);margin-right:.4rem;font-weight:900}
+.it .a{display:none;font-size:1.15rem;line-height:1.35;color:var(--ink);border-top:2px dashed var(--l2);padding-top:.3rem;margin-top:.2rem}
+.it.on .a{display:block;animation:pop .3s both}
+.it .a b{color:var(--acc2)}
+.it .a .rd{font-size:.95rem;color:var(--mut);font-weight:600}
+.it .dvb{display:none;margin-top:.3rem}
+.it.on .dvb{display:inline-block}
+.sgn{display:inline-block;min-width:2.2rem;border:2px dashed var(--l2);border-radius:.5rem;margin:0 .5rem;color:transparent;padding:0 .3rem}
+.it.on .sgn{border:2px solid var(--acc2);color:var(--acc);background:var(--soft)}
+.dvp{margin-top:.9rem;background:#fff;border:2px solid var(--l1);border-radius:1rem;padding:.7rem 1rem;display:none}
+.dvp.on{display:block}
+.dvp .tb{display:flex;gap:.6rem;justify-content:center;margin-bottom:.4rem;align-items:center;flex-wrap:wrap}
+.dvp .ld{font-size:1.5rem}
+
+/* перевір себе */
+.fin{display:grid;gap:.7rem;max-width:56rem;margin:0 auto}
+.fin .row{background:#fff;border:2px solid var(--l1);border-radius:.9rem;padding:.6rem 1rem;font-size:1.4rem;font-weight:800;line-height:1.4;cursor:pointer}
+.fin .row .ed{display:none;color:var(--acc);margin-top:.2rem}
+.fin .row .ed.show{display:block;animation:pop .35s both}
+.fin .row .hint{font-size:.9rem;color:var(--mut);font-weight:600}
+
+/* світлофор */
+.tl{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.tlrow{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap}
+.tlb{display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;border:0;background:transparent}
+.tlb i{width:5rem;height:5rem;border-radius:50%;display:block;border:4px solid rgba(0,0,0,.12)}
+.tlb span{font-size:1.1rem;font-weight:800;color:var(--ink)}
+.tlb b{font-size:1.8rem;color:var(--acc)}
+.tlb.g i{background:#43b978}.tlb.y i{background:#f5c842}.tlb.r i{background:#e5646b}
+.lamp{width:6rem;height:6rem;border-radius:50%;background:#e5e7eb;border:4px solid #d1d5db;transition:all .3s}
+.lamp.g{background:#43b978;border-color:#2e9a5f}.lamp.y{background:#f5c842;border-color:#d9a91a}.lamp.r{background:#e5646b;border-color:#c64a52}
+#tlmsg{font-size:1.4rem;font-weight:800;color:var(--acc);text-align:center;min-height:2rem}
+#conf{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2147483050}
+
+/* методична картка */
+#mc{position:fixed;inset:0;background:rgba(67,20,7,.35);display:none;align-items:center;justify-content:center;z-index:2147483000;padding:1rem}
+#mc.on{display:flex}
+#mc .box{background:#fff;border:3px solid var(--l2);border-radius:1.2rem;max-width:44rem;width:100%;max-height:92dvh;overflow:auto;padding:1.1rem 1.4rem}
+#mc h3{margin:0 0 .3rem;color:var(--acc);font-size:1.3rem}
+#mc p{margin:.1rem 0 .7rem;font-size:1.05rem;line-height:1.4}
+#mc .li{display:flex;justify-content:space-between;gap:1rem;width:100%;text-align:left;background:var(--soft);border:2px solid var(--l1);border-radius:.7rem;padding:.35rem .8rem;margin:.3rem 0;cursor:pointer;font-weight:800;font-size:1.05rem;color:var(--ink)}
+#mc .li:hover{background:var(--l1)}
+#mc .li i{font-style:normal;color:var(--acc)}
+
+@media (max-width:760px){
+  .stage{padding:.6rem .8rem}
+  .ways,.two,.s3,.tri .g3{grid-template-columns:1fr}
+  .span2{grid-column:auto}
+  .items.c5,.items.c4,.items.c3{grid-template-columns:1fr 1fr}
+  #s0 h1{font-size:2.3rem}
+  .ld{font-size:1.4rem}
+  .cellf{font-size:2.2rem}
+}
+@media (max-height:620px){ .stage h2{font-size:1.5rem;margin-bottom:.4rem} .ld{font-size:1.45rem} .way,.way .cl{min-height:11rem} }
+@media (prefers-reduced-motion:reduce){ #down{animation:none} .rv.show,.way.opn .op,.it.on .a{animation:none} }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- стартовий екран -->
+  <section id="s0">
+    <button class="gemb gem" id="gem0" title="Методична картка" aria-label="Методична картка"></button>
+    <div class="tag">Математика, 6 клас</div>
+    <h1>Нескінченні періодичні десяткові дроби</h1>
+    <div class="demo"><span class="fr"><span>5</span><span>11</span></span> = 0,(45)</div>
+    <button class="btn big" id="startBtn">Почати ▶</button>
+  </section>
+
+  <div id="main" style="display:none">
+
+    <!-- 1. Два способи -->
+    <section class="stage" data-dur="150" data-name="Два способи перетворення дробу">
+      <div class="inner">
+        <h2>Як звичайний дріб перетворити в десятковий?</h2>
+        <p class="sub">Назвіть два способи</p>
+        <div class="ways" id="ways">
+          <div class="way" data-i="0">
+            <div class="cl"><b>1</b><span>Спосіб</span></div>
+            <div class="op">
+              <h3>Звести до знаменника 10, 100, 1000 …</h3>
+              <div class="eq" id="w1eq"></div>
+              <div class="nt hid" id="w1n1">додатковий множник 2: 23 · 2 = 46, 50 · 2 = 100</div>
+              <div class="nt hid" id="w1n2">46 сотих — записуємо через кому</div>
+            </div>
+          </div>
+          <div class="way" data-i="1">
+            <div class="cl"><b>2</b><span>Спосіб</span></div>
+            <div class="op">
+              <h3>Чисельник поділити на знаменник</h3>
+              <div class="eq" id="w2eq"></div>
+              <div class="ldwrap" id="w2ld"></div>
+            </div>
+          </div>
+        </div>
+        <div class="rv rule c mt" id="s1q">А чи завжди можна перетворити звичайний дріб у десятковий?</div>
+      </div>
+    </section>
+
+    <!-- 2. Чи завжди можна -->
+    <section class="stage" data-dur="150" data-name="Розклад знаменника">
+      <div class="inner">
+        <h2>Розклад знаменника на прості множники</h2>
+        <div class="two">
+          <div class="cell"><div class="cellf" id="f340"></div></div>
+          <div class="cell"><div class="cellf" id="f511"></div></div>
+          <div class="cell rv"><div class="cp">40 = 2 · 2 · 2 · 5</div></div>
+          <div class="cell rv"><div class="cp">11 — просте число</div></div>
+          <div class="cell rv"><div class="vd y">Є лише 2 і 5 <br><span id="f340d"></span></div></div>
+          <div class="cell rv"><div class="vd n">Є число, відмінне від 2 і 5</div></div>
+          <div class="span2 rv"><div class="rule">Нескоротний дріб <span id="fab"></span> можна перетворити в десятковий лише тоді, коли розклад знаменника <i>b</i> на прості множники не містить чисел, відмінних від <b>2</b> і <b>5</b>.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Ділення 5 на 11 -->
+    <section class="stage" data-dur="240" data-name="Ділення 5 на 11 куточком">
+      <div class="inner">
+        <h2>Поділимо 5 на 11 куточком</h2>
+        <div class="s3">
+          <div class="ldwrap" id="ld3"></div>
+          <div class="rt">
+            <div class="nt2 rv" id="n3a">Ділення можна продовжувати <span class="hl">нескінченно</span>. Цифри <b class="hl">4</b> і <b class="hl">5</b> повторюються.</div>
+            <div class="rule rv" id="n3b">Число 0,454545… називають <b>нескінченним періодичним десятковим дробом</b>, або просто <b>періодичним дробом</b>.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Запис і читання -->
+    <section class="stage" data-dur="210" data-name="Період. Запис і читання">
+      <div class="inner">
+        <h2>Період дробу</h2>
+        <div class="c big-m" id="s4eq"></div>
+        <div class="mt">
+          <div class="rv rule" id="s4a">Групу цифр <b>(45)</b>, що повторюється, називають <b>періодом</b> дробу 0,(45).</div>
+          <div class="rv rule mt" id="s4b">Читають: «нуль цілих і сорок п’ять у періоді».</div>
+          <div class="rv rule mt" id="s4c">Дроби, у записі яких після коми скінченна кількість цифр, називають <b>скінченними десятковими дробами</b>.<div class="c mt big-m" style="font-weight:800">0,5 &nbsp; 2,25 &nbsp; 0,075</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Приклади -->
+    <section class="stage" data-dur="270" data-name="Приклади">
+      <div class="inner">
+        <div class="tabs" id="tabs5">
+          <button class="tab on" data-p="0">Перетворення</button>
+          <button class="tab" data-p="1">Порівняння</button>
+        </div>
+        <div class="pane on" id="p50">
+          <div class="exh">Перетворіть дріб <span id="p50f"></span> у періодичний дріб.</div>
+          <div class="ldwrap" id="ld5"></div>
+          <div class="rv c mt" id="p50r"><div class="res"><span id="p50e"></span></div><div class="nt2" style="font-weight:600;color:var(--mut)">Читають: «нуль цілих п’ятдесят вісім сотих і три в періоді»</div></div>
+        </div>
+        <div class="pane" id="p51">
+          <div class="exh">Порівняйте <span id="p51f"></span> і 0,273.</div>
+          <div class="rv c" id="p51a"><div class="res"><span id="p51e1"></span></div></div>
+          <div class="rv mt" id="p51b"><table class="pv" id="pv"></table></div>
+          <div class="rv rule c mt" id="p51c">У розряді тисячних: <b>2 &lt; 3</b></div>
+          <div class="rv c mt" id="p51d"><div class="res"><span id="p51e2"></span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Три результати -->
+    <section class="stage" data-dur="180" data-name="Три результати ділення">
+      <div class="inner">
+        <div class="tri">
+          <div class="top"><span>m : n</span><small>натуральне число поділили на натуральне</small></div>
+          <svg id="triSvg" viewBox="0 0 900 120" aria-hidden="true"></svg>
+          <div class="g3">
+            <div class="bx3 b1"><h3>натуральне число</h3><p>24 : 8 = 3</p><p>40 : 5 = 8</p></div>
+            <div class="bx3 b2"><h3>скінченний десятковий дріб</h3><p>3 : 16 = 0,1875</p><p>7 : 8 = 0,875</p></div>
+            <div class="bx3 b3"><h3>нескінченний періодичний десятковий дріб</h3><p>5 : 11 = 0,(45)</p><p>7 : 12 = 0,58(3)</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Вправи -->
+    <section class="stage" data-dur="1080" data-name="Вправи з підручника">
+      <div class="inner">
+        <div class="tabs" id="tabs7"></div>
+        <div id="panes7"></div>
+      </div>
+    </section>
+
+    <!-- 8. Перевірте себе -->
+    <section class="stage" data-dur="240" data-name="Закінчіть речення">
+      <div class="inner">
+        <h2>Закінчіть речення</h2>
+        <div class="fin" id="fin"></div>
+      </div>
+    </section>
+
+    <!-- 9. Світлофор -->
+    <section class="stage" data-dur="180" data-name="Рефлексія «Світлофор»">
+      <div class="inner">
+        <h2>Як ви засвоїли тему?</h2>
+        <div class="tl">
+          <div class="tlrow">
+            <button class="tlb g" data-c="g"><i></i><span>Усе зрозуміло</span><b>0</b></button>
+            <button class="tlb y" data-c="y"><i></i><span>Є запитання</span><b>0</b></button>
+            <button class="tlb r" data-c="r"><i></i><span>Потрібна допомога</span><b>0</b></button>
+          </div>
+          <div class="tlrow" style="align-items:center">
+            <button class="btn" id="tlok">ОК</button>
+            <button class="btn light" id="tlreset">Скинути</button>
+            <div class="lamp" id="lamp"></div>
+          </div>
+          <div id="tlmsg"></div>
+          <div class="tlrow">
+            <button class="btn" id="finish">Завершити урок</button>
+            <button class="btn light" id="restart">↻ Почати спочатку</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="dwrap"><button id="down" title="Далі" aria-label="Наступний крок" hidden>↓</button></div>
+  </div>
+
+  <nav id="nav" style="display:none">
+    <button class="btn light" id="back">← Назад</button>
+    <div class="mid">
+      <button class="gemb gem" id="gem1" title="Методична картка" aria-label="Методична картка"></button>
+      <div id="tm" title=""><div id="tmf"></div></div>
+      <span id="cnt"></span>
+    </div>
+    <button class="btn" id="next">Далі →</button>
+  </nav>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<div id="mc"><div class="box">
+  <h3>Мета уроку</h3>
+  <p>Ознайомитися з нескінченними періодичними десятковими дробами; навчитися перетворювати звичайний дріб у періодичний, називати період, порівнювати дроби.</p>
+  <h3>Ключові компетентності</h3>
+  <p>Математична компетентність; уміння вчитися впродовж життя; інформаційно-комунікаційна компетентність.</p>
+  <h3>Перебіг уроку</h3>
+  <div id="mcl"></div>
+  <div style="text-align:right;margin-top:.6rem"><button class="btn light sm" id="mcx">Закрити</button></div>
+</div></div>
+<canvas id="conf"></canvas>
+
+<script>
+'use strict';
+/* ---------- допоміжне ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const fr=(n,d,c='')=>`<span class="fr ${c}"><span>${n}</span><span>${d}</span></span>`;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const GEM=`<svg viewBox="0 0 48 48"><polygon points="12,6 36,6 44,18 24,44 4,18" fill="#FED7AA" stroke="#C2410C" stroke-width="2.5" stroke-linejoin="round"/><polygon points="4,18 44,18 24,44" fill="#FDBA74" stroke="#C2410C" stroke-width="2.5" stroke-linejoin="round"/><polygon points="12,6 18,18 24,6" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.5" stroke-linejoin="round"/><polygon points="24,6 30,18 36,6" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+$$('.gem').forEach(b=>b.innerHTML=GEM);
+
+/* ---------- модель ділення куточком ---------- */
+function mkModel(a,b,o={}){
+  const [ip,fp='']=String(a).split(',');
+  const dStr=ip+fp, dpos=ip.length, N=dStr.length, extra=o.extra||0;
+  const steps=[], seen=new Map(); let r=0,f=-1,s=-1,stopAt=null,finite=false;
+  for(let i=0;i<60;i++){
+    const dg=i<N?+dStr[i]:0, cur=r*10+dg, qd=Math.floor(cur/b), prod=qd*b, rem=cur-prod;
+    steps.push({i,rPrev:r,dg,cur,qd,prod,rem}); r=rem;
+    if(i>=N-1){
+      if(r===0){finite=true;break;}
+      if(f<0){ if(seen.has(r)){f=seen.get(r);s=i;stopAt=s+extra*(s-f);} else seen.set(r,i); }
+    }
+    if(stopAt!==null&&i>=stopAt)break;
+  }
+  const q=steps.map(x=>x.qd);
+  const startI=steps.findIndex(x=>x.qd>0);
+  const whole=q.slice(0,dpos).join('').replace(/^0+(?=\d)/,'');
+  let pre='',per='',text;
+  if(finite){ pre=q.slice(dpos).join(''); text=pre?whole+','+pre:whole; }
+  else { pre=q.slice(dpos,f+1).join(''); per=q.slice(f+1,s+1).join(''); text=whole+','+pre+'('+per+')'; }
+  return {steps,q,dStr,dpos,N,b,f,s,finite,startI,whole,pre,per,text};
+}
+const decOf=(n,d)=>mkModel(String(n),d).text;
+function expand(m){ if(m.finite) return m.text; return m.whole+','+m.pre+m.per.repeat(m.per.length===1?4:2)+'…'; }
+const sp=n=>' '.repeat(Math.max(0,n));
+
+function renderDiv(m,k,mark){
+  const S=m.steps.slice(0,k), N=m.N, dpos=m.dpos, nd=Math.max(N,k);
+  const dividendCase=mark&&m.f>=0&&m.f+1===m.startI;
+  let dr='';
+  for(let j=0;j<nd;j++){
+    let cls=j>=N?'bd':''; if(dividendCase&&j<=m.f)cls+=' rep';
+    dr+=`<span class="${cls}">${j<N?m.dStr[j]:'0'}</span>`;
+    if(j===dpos-1&&nd>dpos)dr+='<span class="cm">,</span>';
+  }
+  const rows=[]; let started=false;
+  const ul=(i,w,t)=>`<div class="rw">${sp(i-w+1)}<span class="ul">${String(t).padStart(w,' ')}</span></div>`;
+  S.forEach((s,i)=>{
+    if(!started){ if(s.qd===0)return; started=true; rows.push(ul(i,i+1,s.prod)); return; }
+    const rp=s.rPrev>0?String(s.rPrev):'', len=rp.length+1;
+    const rep=mark&&(i-1===m.f||i-1===m.s);
+    rows.push(`<div class="rw">${sp(i-len+1)}<span class="${rep?'rep':''}">${rp}</span><span class="bd">${s.dg}</span></div>`);
+    rows.push(ul(i,len,s.prod));
+  });
+  if(started&&S.length){ const L=S[S.length-1]; rows.push(`<div class="rw">${sp(L.i-String(L.rem).length+1)}<span>${L.rem}</span></div>`); }
+  /* частка */
+  let q='';
+  if(k>=dpos){
+    q=m.q.slice(0,dpos).join('').replace(/^0+(?=\d)/,'');
+    if(m.steps.length>dpos) q+=',';
+    let frac='';
+    for(let i=dpos;i<k;i++){
+      const d=m.q[i];
+      if(mark&&!m.finite&&i>m.f){ frac+=`<span class="per${i<=m.s?' po':''}">${d}</span>`; } else frac+=d;
+    }
+    q+=frac;
+    if(k===m.steps.length&&!m.finite) q+='…';
+  } else { q=m.q.slice(0,k).join('').replace(/^0+/,''); }
+  return `<div class="ld"><div class="L"><div class="rw">${dr}</div>${rows.join('')}</div><div class="R"><div class="dv">${m.b}</div><div class="q">${q}</div></div></div>`;
+}
+/* ступінчастий показ ділення; o.note / o.after — елементи, що з'являються пізніше */
+function makeDiv(host,m,o={}){
+  let j=0; const S=m.steps.length, hasPer=!m.finite;
+  const total=S+(hasPer?1:0)+(o.after?1:0);
+  function render(){
+    host.innerHTML=renderDiv(m,Math.min(j,S),hasPer&&j>=S+1);
+    if(o.note)o.note.classList.toggle('show',j>=S);
+    if(o.after)o.after.classList.toggle('show',j>=total);
+  }
+  render();
+  return {more:()=>j<total,next(){if(j<total){j++;render();}},all(){j=total;render();},reset(){j=0;render();}};
+}
+function staticDiv(host,a,b){ const m=mkModel(a,b,{extra:0}); host.innerHTML=renderDiv(m,m.steps.length,false); }
+
+/* ---------- каркас: етапи, кроки, навігація ---------- */
+const stages=$$('#main .stage');
+const DUR=stages.map(s=>+s.dataset.dur), NAMES=stages.map(s=>s.dataset.name);
+const ST=[]; let cur=0;
+const fmt=s=>String(s/60).replace('.',',')+' хв';
+
+function rvStepper(root){
+  const it=()=>$$('.rv',root);
+  return {more:()=>it().some(x=>!x.classList.contains('show')),
+          next(){const x=it().find(x=>!x.classList.contains('show'));if(x)x.classList.add('show');},
+          reset(){it().forEach(x=>x.classList.remove('show'));}};
+}
+function updDown(){ $('#down').hidden=!(cur>=0&&ST[cur]&&ST[cur].more()); }
+$('#down').onclick=()=>{ST[cur].next();updDown();};
+
+let left=0,tmr=null;
+function tmStart(){
+  clearInterval(tmr); left=DUR[cur]; paintTm();
+  tmr=setInterval(()=>{ if(left>0)left--; paintTm(); },1000);
+}
+function paintTm(){
+  $('#tmf').style.height=(DUR[cur]?100*left/DUR[cur]:0)+'%';
+  const m=Math.floor(left/60), s=String(left%60).padStart(2,'0');
+  $('#tm').title='Залишилось '+m+':'+s+' з '+fmt(DUR[cur]);
+}
+$('#tm').onclick=tmStart;
+
+function go(i){
+  cur=Math.max(0,Math.min(stages.length-1,i));
+  stages.forEach((s,k)=>s.classList.toggle('cur',k===cur));
+  $('#cnt').textContent=(cur+1)+' / '+stages.length;
+  $('#back').disabled=cur===0; $('#next').disabled=cur===stages.length-1;
+  stages[cur].scrollTop=0; tmStart(); updDown();
+}
+$('#startBtn').onclick=()=>{ $('#s0').style.display='none'; $('#main').style.display='flex'; $('#nav').style.display='flex'; go(0); };
+$('#back').onclick=()=>go(cur-1);
+$('#next').onclick=()=>go(cur+1);
+
+/* методична картка */
+const mcl=$('#mcl');
+mcl.innerHTML=NAMES.map((n,i)=>`<button class="li" data-i="${i}"><span>${n}</span><i>${fmt(DUR[i])}</i></button>`).join('');
+mcl.onclick=e=>{const b=e.target.closest('.li');if(!b)return;$('#mc').classList.remove('on');if($('#s0').style.display!=='none'){$('#startBtn').click();}go(+b.dataset.i);};
+$$('.gem').forEach(b=>b.onclick=()=>$('#mc').classList.add('on'));
+$('#mcx').onclick=()=>$('#mc').classList.remove('on');
+$('#mc').onclick=e=>{if(e.target.id==='mc')$('#mc').classList.remove('on');};
+
+/* ---------- етап 1 ---------- */
+$('#w1eq').innerHTML=`<span class="mf">${fr(23,50)}<span class="ad hid" id="w1ad"><span class="sl"></span><span class="fill">2</span></span></span><span class="sb hid" id="w1p3">= ${fr(46,100)}</span><span class="sb hid" id="w1p4">= 0,46</span>`;
+$('#w2eq').innerHTML=`${fr(3,20)} = 3 : 20<span class="rs" id="w2rs">&nbsp;= 0,15</span>`;
+(function(){
+  const cards=$$('#ways .way'), q=$('#s1q');
+  const w1={k:0,n:3,
+    ap(){const k=this.k;
+      $('#w1ad').classList.toggle('hid',k<1); $('#w1n1').classList.toggle('hid',k<1);
+      $('#w1p3').classList.toggle('hid',k<2); $('#w1n2').classList.toggle('hid',k<2);
+      $('#w1p4').classList.toggle('hid',k<3);},
+    more(){return this.k<this.n;}, next(){if(this.k<this.n){this.k++;this.ap();}}, reset(){this.k=0;this.ap();}};
+  const w2=makeDiv($('#w2ld'),mkModel('3',20,{extra:0}),{after:$('#w2rs')});
+  const subs=[w1,w2];
+  w1.ap();
+  const isOn=i=>cards[i].classList.contains('opn');
+  const upd=()=>{ if(typeof updDown==='function')updDown(); };
+  cards.forEach((c,i)=>c.onclick=()=>{ if(!isOn(i))c.classList.add('opn'); else if(subs[i].more())subs[i].next(); upd(); });
+  ST[0]={more:()=>cards.some((c,i)=>!isOn(i)||subs[i].more())||!q.classList.contains('show'),
+         next(){
+           const oi=cards.findIndex((c,i)=>isOn(i)&&subs[i].more());
+           if(oi>=0){subs[oi].next();return;}
+           const ui=cards.findIndex((c,i)=>!isOn(i));
+           if(ui>=0){cards[ui].classList.add('opn');return;}
+           q.classList.add('show');},
+         reset(){cards.forEach(c=>c.classList.remove('opn'));q.classList.remove('show');subs.forEach(x=>x.reset());}};
+})();
+
+/* ---------- етап 2 ---------- */
+$('#f340').innerHTML=fr(3,40); $('#f511').innerHTML=fr(5,11);
+$('#f340d').innerHTML=fr(3,40)+' = 0,075'; $('#fab').innerHTML=fr('<i>a</i>','<i>b</i>');
+ST[1]=rvStepper(stages[1]);
+
+/* ---------- етап 3 ---------- */
+(function(){
+  const m=mkModel('5',11,{extra:1});
+  ST[2]=makeDiv($('#ld3'),m,{note:$('#n3a'),after:$('#n3b')});
+  const base=ST[2]; ST[2]={...base,reset(){base.reset();}};
+})();
+
+/* ---------- етап 4 ---------- */
+$('#s4eq').innerHTML=`${fr(5,11)} = 0,454545… = 0,<span class="hl" style="text-decoration:overline;text-decoration-thickness:.1em">(45)</span>`;
+ST[3]=rvStepper(stages[3]);
+
+/* ---------- етап 5 ---------- */
+(function(){
+  $('#p50f').innerHTML=fr(7,12);
+  const m7=mkModel('7',12,{extra:1});
+  $('#p50e').innerHTML=`${fr(7,12)} = 0,58333… = 0,58(3)`;
+  const d=makeDiv($('#ld5'),m7,{after:$('#p50r')});
+  $('#p51f').innerHTML=fr(3,11);
+  $('#p51e1').innerHTML=`${fr(3,11)} = 3 : 11 = 0,272727…`;
+  $('#p51e2').innerHTML=`0,272727… &lt; 0,273, тобто ${fr(3,11)} &lt; 0,273`;
+  const cell=(t,c)=>`<td class="${c||''}">${t}</td>`;
+  $('#pv').innerHTML=`<tr><th></th><th>одиниці</th><th></th><th>десяті</th><th>соті</th><th>тисячні</th><th>…</th></tr>
+   <tr><td class="lb">0,272727…</td>${cell(0,'same')}${cell(',')}${cell(2,'same')}${cell(7,'same')}${cell(2,'diff')}${cell('7…')}</tr>
+   <tr><td class="lb">0,273</td>${cell(0,'same')}${cell(',')}${cell(2,'same')}${cell(7,'same')}${cell(3,'diff')}${cell('')}</tr>`;
+  const r2=rvStepper($('#p51'));
+  let tab=0;
+  const sub=()=>tab===0?d:r2;
+  $$('#tabs5 .tab').forEach(b=>b.onclick=()=>{
+    tab=+b.dataset.p;
+    $$('#tabs5 .tab').forEach(x=>x.classList.toggle('on',x===b));
+    $('#p50').classList.toggle('on',tab===0); $('#p51').classList.toggle('on',tab===1); updDown();
+  });
+  ST[4]={more:()=>sub().more(),next(){sub().next();},reset(){d.reset();r2.reset();}};
+})();
+
+/* ---------- етап 6 ---------- */
+(function(){
+  const svg=$('#triSvg'); const cols=['#1d6fd0','#EA580C','#6d44d6'], xs=[150,450,750];
+  svg.innerHTML=xs.map((x,i)=>{
+    const x1=450,y1=4,x2=x,y2=112, L=Math.hypot(x2-x1,y2-y1), ux=(x2-x1)/L, uy=(y2-y1)/L, nx=-uy, ny=ux;
+    const bx=x2-22*ux, by=y2-22*uy;
+    return `<g class="ar" data-i="${i}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${cols[i]}" stroke-width="6" stroke-linecap="round"/><polygon points="${x2},${y2} ${bx+11*nx},${by+11*ny} ${bx-11*nx},${by-11*ny}" fill="${cols[i]}"/></g>`;
+  }).join('');
+  const ar=$$('.ar',svg), bx=$$('.bx3',stages[5]); let n=0;
+  const paint=()=>{ar.forEach((a,i)=>a.classList.toggle('show',i<n));bx.forEach((b,i)=>b.classList.toggle('show',i<n));};
+  ST[5]={more:()=>n<3,next(){n++;paint();},reset(){n=0;paint();}};
+})();
+
+/* ---------- етап 7: вправи ---------- */
+const ORAL=[[4,5],[9,4],[1,6],[14,28],[41,42],[13,20],[47,80],[9,75],[10,75],[1,200]];
+function oralAns(n,d){
+  const g=gcd(n,d), n1=n/g, d1=d/g; let x=d1; const f=[];
+  for(let p=2;p*p<=x;p++){ while(x%p===0){f.push(p);x/=p;} } if(x>1)f.push(x);
+  const ok=f.every(p=>p===2||p===5);
+  const red=g>1?`= ${fr(n1,d1)}; `:'';
+  const fac=f.length>1?`${d1} = ${f.join(' · ')}`:`${d1} — ${d1===1?'':'просте число'}`;
+  return `${red}${fac}<br>${ok?'є лише 2 і 5 → <b>скінченний</b>':'є інший множник → <b>періодичний</b>'}: ${decOf(n,d)}`;
+}
+const READ=[
+ ['0,(5)','','5','нуль цілих і п’ять у періоді'],
+ ['2,4(3)','','3','дві цілих чотири десятих і три в періоді'],
+ ['0,0(2)','','2','нуль цілих нуль десятих і два в періоді'],
+ ['0,(32)','','32','нуль цілих і тридцять два в періоді'],
+ ['1,(976)','','976','одна ціла і дев’ятсот сімдесят шість у періоді'],
+ ['9,0(45)','','45','дев’ять цілих нуль десятих і сорок п’ять у періоді'],
+ ['0,444…','0,(4)','4','нуль цілих і чотири в періоді'],
+ ['3,424242…','3,(42)','42','три цілих і сорок два в періоді'],
+ ['0,567567…','0,(567)','567','нуль цілих і п’ятсот шістдесят сім у періоді'],
+ ['0,137474…','0,13(74)','74','нуль цілих тринадцять сотих і сімдесят чотири в періоді'],
+ ['4,101010…','4,(10)','10','чотири цілих і десять у періоді'],
+ ['2,1231212…','2,123(12)','12','дві цілих сто двадцять три тисячних і дванадцять у періоді']
+];
+const QUOT=[['5','6'],['19','11'],['86','15'],['6,32','18']];
+const CONV=[[5,12],[11,15],[9,11],[19,36],[39,44]];
+const CMP=[
+ {l:[3,11],r:'0,269',rv:[269,1000]},
+ {l:[7,9],r:[77,100]},
+ {l:[11,12],r:[19,20]},
+ {l:[47,15],r:[119,36]}
+];
+const disp=x=>Array.isArray(x)?fr(x[0],x[1]):x;
+const val=(x,rv)=>rv||x;
+function perHtml(txt){ return txt.replace(/\(([0-9]+)\)/,'(<b>$1</b>)'); }
+const EXS=[
+ {tab:'Усно № 1',title:'Не виконуючи ділення, укажіть, які з дробів можна записати у вигляді скінченного десяткового дробу.',cls:'c5',
+  items:ORAL.map(([n,d])=>({q:fr(n,d),a:oralAns(n,d)}))},
+ {tab:'№ 505',title:'<b>№ 505.</b> Прочитайте періодичний дріб і назвіть його період.',cls:'c4',
+  items:READ.map((r,i)=>({q:`<span class="n">${i+1})</span>${r[0]}`,a:`${r[1]?'= '+perHtml(r[1])+'<br>':''}період: <b>${r[2]}</b><div class="rd">«${r[3]}»</div>`}))},
+ {tab:'№ 507',title:'<b>№ 507.</b> Запишіть у вигляді нескінченного періодичного десяткового дробу частку.',cls:'c4',
+  items:QUOT.map(([a,b],i)=>({q:`<span class="n">${i+1})</span>${a} : ${b}`,a:`= ${perHtml(mkModel(a,+b).text)}`,div:[a,b]}))},
+ {tab:'№ 509',title:'<b>№ 509.</b> Перетворіть звичайний дріб у нескінченний періодичний десятковий дріб і вкажіть його період.',cls:'c3',
+  items:CONV.map(([n,d],i)=>{const m=mkModel(String(n),d);return {q:`<span class="n">${i+1})</span>${fr(n,d)}`,a:`${fr(n,d)} = ${perHtml(m.text)}<br>період: <b>${m.per}</b>`,div:[String(n),String(d)]};})},
+ {tab:'№ 511',title:'<b>№ 511.</b> Порівняйте дроби, записавши попередньо звичайні дроби у вигляді скінченного десяткового дробу або нескінченного періодичного десяткового дробу.',cls:'c2',
+  items:CMP.map((c,i)=>{
+    const L=c.l, R=c.rv||c.r; const lv=L[0]/L[1], rvv=R[0]/R[1];
+    const cmpS=L[0]*R[1]===R[0]*L[1]?'=':(L[0]*R[1]>R[0]*L[1]?'&gt;':'&lt;');
+    const mL=mkModel(String(L[0]),L[1],{}), mR=Array.isArray(R)?mkModel(String(R[0]),R[1],{}):null;
+    const line=(x,m)=>Array.isArray(x)?`${fr(x[0],x[1])} = ${perHtml(m.text)}`+(m.finite?'':` = ${expand(m)}`):'';
+    const eL=expand(mL), eR=mR?expand(mR):c.r;
+    const l1=[line(L,mL),Array.isArray(R)?line(R,mR):''].filter(Boolean).join(' &nbsp; ');
+    return {q:`<span class="n">${i+1})</span>${disp(L)}<span class="sgn">${cmpS}</span>${Array.isArray(c.r)?disp(c.r):c.r}`,a:`${l1}<br>${eL} <b>${cmpS}</b> ${eR}`};
+  })}
+];
+(function(){
+  const tabs=$('#tabs7'), panes=$('#panes7'); let unlocked=1, active=0;
+  const divs=[];
+  EXS.forEach((ex,k)=>{
+    const t=document.createElement('button'); t.className='tab'+(k===0?' on':''); t.dataset.k=k; t.textContent=ex.tab; if(k>0)t.hidden=true; tabs.appendChild(t);
+    const p=document.createElement('div'); p.className='pane'+(k===0?' on':''); p.id='ex'+k;
+    p.innerHTML=`<div class="exh">${ex.title}</div><div class="bar"><button class="btn light sm allb">Показати всі відповіді</button></div>
+      <div class="items ${ex.cls}">${ex.items.map((it,i)=>`<div class="it" data-i="${i}"><div class="q">${it.q}</div><div class="a">${it.a}${it.div?`<br><button class="btn light sm dvb" data-a="${it.div[0]}" data-b="${it.div[1]}">Ділення куточком</button>`:''}</div></div>`).join('')}</div>
+      ${ex.items.some(i=>i.div)?'<div class="dvp"><div class="tb"><button class="btn sm stp">Крок</button><button class="btn light sm alls">Показати все</button></div><div class="ldwrap"></div><div class="res c mt dres"></div></div>':''}`;
+    panes.appendChild(p);
+  });
+  function show(k){
+    active=k; $$('.tab',tabs).forEach((b,i)=>b.classList.toggle('on',i===k)); $$('.pane',panes).forEach((p,i)=>p.classList.toggle('on',i===k)); updDown();
+  }
+  tabs.onclick=e=>{const b=e.target.closest('.tab');if(b)show(+b.dataset.k);};
+  panes.onclick=e=>{
+    const pane=e.target.closest('.pane'); if(!pane)return;
+    if(e.target.closest('.allb')){
+      const its=$$('.it',pane), all=its.every(x=>x.classList.contains('on'));
+      its.forEach(x=>x.classList.toggle('on',!all)); e.target.textContent=all?'Показати всі відповіді':'Сховати відповіді'; return;
+    }
+    const db=e.target.closest('.dvb');
+    if(db){
+      const dp=$('.dvp',pane); dp.classList.add('on');
+      const m=mkModel(db.dataset.a,+db.dataset.b,{extra:1}), res=$('.dres',dp); res.classList.remove('show');
+      res.innerHTML=`${db.dataset.a} : ${db.dataset.b} = ${perHtml(m.text)}`; res.style.display='none';
+      const d=makeDiv($('.ldwrap',dp),m,{});
+      dp._d=d; dp._res=res; dp._m=m; dp.scrollIntoView({block:'nearest',behavior:'smooth'}); return;
+    }
+    if(e.target.closest('.stp')||e.target.closest('.alls')){
+      const dp=e.target.closest('.dvp'); if(!dp._d)return;
+      if(e.target.closest('.stp'))dp._d.next(); else dp._d.all();
+      dp._res.style.display=dp._d.more()?'none':'block'; return;
+    }
+    const it=e.target.closest('.it'); if(it)it.classList.toggle('on');
+  };
+  ST[6]={more:()=>unlocked<EXS.length,
+         next(){ $$('.tab',tabs)[unlocked].hidden=false; show(unlocked); unlocked++; },
+         reset(){ unlocked=1; $$('.tab',tabs).forEach((b,i)=>b.hidden=i>0); $$('.it',panes).forEach(x=>x.classList.remove('on')); $$('.dvp',panes).forEach(x=>x.classList.remove('on')); $$('.allb',panes).forEach(b=>b.textContent='Показати всі відповіді'); show(0); }};
+})();
+
+/* ---------- етап 8: закінчіть речення ---------- */
+(function(){
+  const F=[
+   ['При діленні натурального числа на натуральне можна отримати …','натуральне число, скінченний десятковий дріб або нескінченний періодичний десятковий дріб'],
+   ['Групу цифр, що повторюється, називають …','періодом дробу'],
+   ['Дріб 0,(45) читають: …','«нуль цілих і сорок п’ять у періоді»'],
+   ['Нескоротний дріб можна перетворити в десятковий лише тоді, коли …','розклад знаменника на прості множники не містить чисел, відмінних від 2 і 5'],
+   ['Щоб перетворити звичайний дріб у десятковий, можна …','його чисельник поділити на знаменник']
+  ];
+  const root=$('#fin');
+  root.innerHTML=F.map(([a,b])=>`<div class="row"><div>${a}</div><div class="ed rv">${b}</div></div>`).join('');
+  root.onclick=e=>{const r=e.target.closest('.row');if(r){$('.ed',r).classList.add('show');updDown();}};
+  ST[7]=rvStepper(root);
+})();
+
+/* ---------- етап 9: світлофор ---------- */
+(function(){
+  const cnt={g:0,y:0,r:0}, lamp=$('#lamp'), msg=$('#tlmsg');
+  const MSG={g:'Чудово! Тема засвоєна.',y:'Є що уточнити — розберемо разом.',r:'Потрібна допомога — повернемося до теми.'};
+  $$('.tlb').forEach(b=>b.onclick=()=>{const c=b.dataset.c;cnt[c]++;$('b',b).textContent=cnt[c];});
+  $('#tlok').onclick=()=>{
+    const mx=Math.max(cnt.g,cnt.y,cnt.r); if(!mx){return;}
+    const w=cnt.r===mx?'r':(cnt.y===mx?'y':'g');
+    lamp.className='lamp '+w; msg.textContent=MSG[w];
+  };
+  function clr(){cnt.g=cnt.y=cnt.r=0;$$('.tlb b').forEach(b=>b.textContent='0');lamp.className='lamp';msg.textContent='';}
+  $('#tlreset').onclick=clr;
+  ST[8]={more:()=>false,next(){},reset:clr};
+  /* салют */
+  const cv=$('#conf'),cx=cv.getContext('2d'); let parts=[],raf=0;
+  function fire(){
+    cv.width=innerWidth;cv.height=innerHeight;
+    const cols=['#EA580C','#FDBA74','#C2410C','#1d6fd0','#6d44d6','#FED7AA'];
+    parts=Array.from({length:130},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.4,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,s:6+Math.random()*8,c:cols[(Math.random()*cols.length)|0],r:Math.random()*6,vr:(Math.random()-.5)*.3}));
+    cancelAnimationFrame(raf); let t=0;
+    (function loop(){
+      cx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.6);cx.restore();});
+      if(++t<220)raf=requestAnimationFrame(loop); else cx.clearRect(0,0,cv.width,cv.height);
+    })();
+  }
+  $('#finish').onclick=()=>{fire();msg.textContent='Дякуємо за роботу на уроці!';};
+  $('#restart').onclick=()=>{
+    ST.forEach(s=>s&&s.reset&&s.reset());
+    $$('#tabs5 .tab')[0].click();
+    go(0);
+  };
+})();
+
+/* ---------- старт ---------- */
+stages.forEach((s,i)=>{ if(!ST[i]) ST[i]=rvStepper(s); });
+window.__lesson={mkModel,decOf,go,ST,get cur(){return cur;},stages,EXS,renderDiv};
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
