@@ -145,7 +145,6 @@ body.tm .figrep{display:inline-block}
   <button id="gem" title="Методична картка"><svg viewBox="0 0 32 32"><polygon points="8,4 24,4 30,12 16,29 2,12" fill="#60a5fa" stroke="#1D4ED8" stroke-width="2" stroke-linejoin="round"/><polygon points="8,4 16,12 24,4" fill="#bfdbfe" stroke="#1D4ED8" stroke-width="1.5" stroke-linejoin="round"/><polyline points="2,12 30,12" stroke="#1D4ED8" stroke-width="1.5"/><polyline points="16,12 16,29" stroke="#1D4ED8" stroke-width="1.2"/></svg></button>
   <div id="tmw"><div id="tmr"><b></b></div><span class="tip" id="tip"></span></div>
   <span class="sp">Автор розробки <b>Ковтун Тетяна</b></span>
-  <button id="callb">🎲 Викликати</button>
   <button id="fwd">Далі →</button>
 </div>
 
@@ -158,92 +157,10 @@ body.tm .figrep{display:inline-block}
 <li>Нова тема: нулі, проміжки знакосталості, зростання й спадання — 15 хв</li>
 <li>Вправи підручника 8.1, 8.2, 8.4 — 8 хв</li>
 <li>Підсумок і «закінчіть речення» — 4 хв</li>
-<li>Світлофор — 3 хв</li></ul>
+</ul>
 <p style="color:#64748b;font-size:.75rem">Підручник: Мерзляк А. Г., Якір М. С. Алгебра, 9 клас, п. 8.</p></div></div>
 
-<div class="modal" id="jm"><div class="mbox" style="width:min(60rem,100%)"><button class="xb" data-close>✕</button>
-<h3>Журнал таємних оцінок</h3><div id="jt">…</div>
-<div class="row" style="justify-content:flex-start"><button id="jcsv">Завантажити CSV</button><button class="gh" id="jref">Оновити</button><button class="gh" id="jclr" style="border-color:#e0464e;color:#e0464e">Очистити</button></div></div></div>
-
-<div class="modal" id="lm"><div class="mbox" style="width:min(30rem,100%)"><button class="xb" data-close>✕</button>
-<h3>Список учнів</h3>
-<div id="lmpw"><input type="password" id="lpw" placeholder="Пароль вчителя" style="width:100%;font:inherit;padding:.25rem .5rem;border:1.5px solid var(--acc);border-radius:.5rem;margin-bottom:.4rem"></div>
-<input id="lcls" placeholder="Клас (наприклад, 9-А)" style="width:100%;font:inherit;padding:.25rem .5rem;border:1.5px solid var(--acc);border-radius:.5rem;margin-bottom:.4rem">
-<textarea id="lnames" placeholder="Кожен учень — з нового рядка" style="width:100%;height:14rem;font:inherit;padding:.3rem .5rem;border:1.5px solid var(--acc);border-radius:.5rem"></textarea>
-<div id="lerr" style="color:var(--bad);font-weight:800;min-height:1.2rem"></div>
-<div class="row" style="justify-content:flex-start"><button id="lsave">Зберегти й почати ▶</button></div>
-<div style="color:var(--mut);font-size:.8rem">Під час уроку кнопка «🎲 Викликати» знизу обирає учня навмання (поки всі не відповіли, ніхто не повторюється). Біля кожного пункту завдання з’являється непомітний гурток — клік ставить таємну ✓.</div></div></div>
-<div id="toast"></div>
-<button id="keyb" title="">🔑</button>
-<div id="tp">
-  <div id="tplock"><input type="password" id="tpw" placeholder="Пароль"><button id="tpok">Увійти</button></div>
-  <div id="tpmain" style="display:none">
-    <input id="tcls" placeholder="Клас (наприклад, 9-А)">
-    <textarea id="tnames" placeholder="Список учнів — кожен з нового рядка"></textarea>
-    <button id="trnd">🎲 Випадковий учень</button>
-    <select id="tsel"><option value="">— обрати вручну —</option></select>
-    <div class="cur" id="tcur">Учня не обрано</div>
-    <div class="st" id="tst"></div>
-    <button id="tjr">Журнал</button><button id="thide" style="background:#64748b">Сховати режим</button>
-  </div>
-</div>
-
 <script>
-/* ============ Firebase (збір таємних оцінок) ============ */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
-  authDomain: "math-5-892a5.firebaseapp.com",
-  projectId: "math-5-892a5",
-  storageBucket: "math-5-892a5.firebasestorage.app",
-  messagingSenderId: "163114803328",
-  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
-  measurementId: "G-E06VKZ2GP5"
-};
-const APP_ID = 'default-app-id';
-const COLLECTION = 'results_lesson_functions_9_dz';
-const TEACHER_PASSWORD = '8019';
-const FBV = '10.12.2';
-const TEST_NAME = 'Властивості функції (9 клас, ДЗ)';
-let fbPromise = null;
-function fb(){
-  if(!fbPromise){
-    fbPromise = (async()=>{
-      const [appM, authM, fs] = await Promise.all([
-        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
-        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
-        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
-      ]);
-      const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
-    })();
-    fbPromise.catch(() => { fbPromise = null; });
-  }
-  return fbPromise;
-}
-const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
-let fbOK = null;
-async function saveResult(rec){
-  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); fbOK = true; }
-  catch(e){ fbOK = false; console.warn('Save failed', e); }
-}
-async function deleteResult(id){
-  try { const { db, fs } = await fb(); await fs.deleteDoc(fs.doc(coll(db, fs), id)); fbOK = true; }
-  catch(e){ fbOK = false; console.warn('Delete failed', e); }
-}
-async function loadResults(){
-  const { db, fs } = await fb();
-  const snap = await fs.getDocs(coll(db, fs));
-  const out = []; snap.forEach(d => out.push(d.data()));
-  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
-}
-async function clearResults(){
-  const { db, fs } = await fb();
-  const snap = await fs.getDocs(coll(db, fs));
-  await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
-}
-fb().catch(() => {});
-
 /* ============ Допоміжне ============ */
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -323,7 +240,7 @@ function item(key,q,a,sol,neg){
   ALLKEYS.push(key);
   const c=['var(--c1)','var(--c2)','var(--c3)','var(--c4)'][(itemColor++)%4];
   const num=key.split('-')[1]||'';
-  return `<div class="it" data-key="${key}"><div class="q"><b class="nm" style="background:${c}">${num}</b><span class="qt">${m(q)}</span><button class="rv">Відповідь</button><button class="chk" data-key="${key}" title=""> ✓</button></div>
+  return `<div class="it" data-key="${key}"><div class="q"><b class="nm" style="background:${c}">${num}</b><span class="qt">${m(q)}</span><button class="rv">Відповідь</button></div>
 <div class="ab" hidden><span class="ans${neg?' neg':''}">${m(a)}</span>${sol?`<div><button class="rv2" style="margin-top:.3rem">Розв’язання</button></div><div class="sl" hidden>${sol}</div>`:''}</div></div>`;
 }
 const SOL=(...lines)=>lines.map((l,i)=>(i?`<div class="ar" style="color:${ARC[i%ARC.length]}">↓</div>`:'')+`<div class="ln">${m(l)}</div>`).join('');
@@ -333,7 +250,7 @@ const fig=(id,html,cap)=>`<div class="figwrap" data-fig="${id}"><div class="figb
 const SCR=[];
 const add=(g,tag,html,extra)=>SCR.push({g,tag,html,extra});
 
-add('start','',`<div class="start"><div class="n">Урок 8</div><h1>Властивості функції</h1><div class="n">Нулі функції · Проміжки знакосталості · Зростання й спадання</div><button class="go" id="go">Почати ▶</button><button class="lst" id="lstb">👥 Список учнів для викликання</button></div>`);
+add('start','',`<div class="start"><div class="n">Урок 8</div><h1>Властивості функції</h1><div class="n">Нулі функції · Проміжки знакосталості · Зростання й спадання</div><button class="go" id="go">Почати ▶</button></div>`);
 
 /* --- Актуалізація --- */
 add('act','','' +
@@ -479,15 +396,6 @@ add('sum','Підсумок',
 <div class="sent">Функція зростає на проміжку, якщо більшому значенню аргументу відповідає …<br><button class="rv" data-t="більше значення функції">Показати</button> <span class="fin" hidden></span></div>
 <div class="sent">Функція, яка спадає на всій області визначення, називається …<br><button class="rv" data-t="спадною">Показати</button> <span class="fin" hidden></span></div></div></div>`);
 
-/* --- Світлофор --- */
-add('svit','Світлофор',
-`<div class="card" style="text-align:center"><h2>Світлофор</h2>
-<div style="font-weight:700">Як ви засвоїли тему?</div>
-<div class="sv"><div><button class="g" data-c="g">0</button><div>Усе зрозуміло</div></div><div><button class="y" data-c="y">0</button><div>Є питання</div></div><div><button class="r" data-c="r">0</button><div>Потрібна допомога</div></div></div>
-<div class="lamp" id="lamp"></div>
-<div class="row"><button id="svok">ОК</button><button class="gh" id="svreset">Скинути</button><button id="svend">Завершити урок</button></div>
-<div id="svfin" style="display:none"><div class="fin" style="display:inline-block;font-size:1.2rem">Дякую за урок!</div><div class="row"><button id="restart" class="gh">↻ Почати спочатку</button></div></div></div>`);
-
 /* ============ Рендер ============ */
 const stage=$('#stage');
 SCR.forEach((s,i)=>{
@@ -509,7 +417,7 @@ stage.addEventListener('click',e=>{
   if(t.classList.contains('nx')&&sc){
     if(t.dataset.reveal){sc._s=sc._max}else sc._s=Math.min(sc._max,sc._s+1);
     applySteps(sc);
-    if(sc.id==='s'+(SCR.length-2)){ if(sc._s>=sc._max) $('#selfrow').style.display='flex'; }
+    if(sc.id==='s'+(SCR.length-1)){ if(sc._s>=sc._max) $('#selfrow').style.display='flex'; }
   }
   if(t.classList.contains('rv')){
     if(t.dataset.t){const fin=t.parentNode.querySelector('.fin');fin.textContent=t.dataset.t;fin.hidden=false;t.style.display='none';return}
@@ -523,17 +431,9 @@ stage.addEventListener('click',e=>{
     if(key==='8.16-1'){const p=$('.smp',itemEl.closest('.scr'));if(p)p.toggleAttribute('hidden',ab.hidden)}
   }
   if(t.classList.contains('rv2')){const sl=t.parentNode.nextElementSibling;sl.hidden=!sl.hidden}
-  if(t.classList.contains('chk')){toggleMark(t.dataset.key)}
 });
 /* підсумок */
 $('#selfgo').onclick=()=>{$('#sumA').style.display='none';$('#sumB').style.display='block'};
-/* світлофор */
-const cnt={g:0,y:0,r:0};
-$$('.sv button').forEach(b=>b.onclick=()=>{cnt[b.dataset.c]++;b.textContent=cnt[b.dataset.c]});
-$('#svreset').onclick=()=>{cnt.g=cnt.y=cnt.r=0;$$('.sv button').forEach(b=>b.textContent=0);$('#lamp').style.background='#e2e8f0'};
-$('#svok').onclick=()=>{const mx=Math.max(cnt.g,cnt.y,cnt.r);if(!mx)return;const c=cnt.g===mx?'#22c55e':(cnt.y===mx?'#f5b800':'#ef4444');$('#lamp').style.background=c;$('#lamp').style.boxShadow='0 0 1.5rem '+c};
-$('#svend').onclick=()=>{$('#svfin').style.display='block'};
-$('#restart').onclick=()=>{location.reload()};
 $('#go').onclick=()=>show(1);
 
 /* ============ Скріншоти замість малюнків ============ */
@@ -571,7 +471,7 @@ function show(i){
   const g=SCR[cur].g;
   if(g!==tmGrp){tmGrp=g;tmTot=GRP[g]*60;tmEnd=Date.now()+tmTot*1000;}
   $('#tmw').style.visibility=GRP[g]?'visible':'hidden';
-  refreshChecks();tick();
+  tick();
   const sc=$('#s'+cur);if(sc){const c=$('.card',sc);if(c)c.scrollTop=0}
 }
 function tick(){
@@ -592,86 +492,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1);
 });
 
-/* ============ Режим вчителя: випадковий учень і таємні ✓ ============ */
-let tm=lsGet('l8_tm',{cls:'',names:[],cur:'',queue:[]});
-let marks=lsGet('l8_marks',{});          // {учень: {ключ: id}}
-const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const slug=s=>String(s).trim().replace(/[\/\s.]+/g,'_');
-function persistTm(){lsSet('l8_tm',tm);lsSet('l8_marks',marks)}
-function setTmOn(on){document.body.classList.toggle('tm',on);$('#tplock').style.display=on?'none':'block';$('#tpmain').style.display=on?'block':'none';
-  try{sessionStorage.setItem('l8_on',on?'1':'')}catch(e){} if(on){fillTp()}}
-function fillTp(){
-  $('#tcls').value=tm.cls;$('#tnames').value=tm.names.join('\n');
-  const sel=$('#tsel');sel.innerHTML='<option value="">— обрати вручну —</option>'+tm.names.map(n=>`<option>${n}</option>`).join('');sel.value=tm.cur||'';
-  $('#tcur').textContent=tm.cur||'Учня не обрано';$('#curst').textContent=tm.cur?'👤 '+tm.cur:'';
-  $('#tst').textContent=(fbOK===false?'⚠ база недоступна, оцінки лише в цьому браузері. ':'')+'Оцінок у цього учня: '+Object.keys(marks[tm.cur]||{}).length;
-  refreshChecks();
-}
-$('#keyb').onclick=()=>{const p=$('#tp');p.classList.toggle('on');if(p.classList.contains('on')&&!$('#tpw').offsetParent&&!document.body.classList.contains('tm'))$('#tpw').focus()};
-$('#tpok').onclick=()=>{if($('#tpw').value===TEACHER_PASSWORD){$('#tpw').value='';setTmOn(true)}else{$('#tpw').value='';$('#tpw').placeholder='Невірний пароль'}};
-$('#tpw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#tpok').click()});
-$('#thide').onclick=()=>{setTmOn(false);$('#tp').classList.remove('on')};
-$('#tcls').onchange=()=>{tm.cls=$('#tcls').value.trim();persistTm()};
-$('#tnames').onchange=()=>{tm.names=$('#tnames').value.split('\n').map(s=>s.trim()).filter(Boolean);tm.queue=[];persistTm();fillTp()};
-$('#tsel').onchange=()=>{tm.cur=$('#tsel').value;persistTm();fillTp();$('#tp').classList.remove('on')};
-function callNext(){
-  if(!tm.names.length){$('#lm').classList.add('on');fillList();return}
-  if(!tm.queue.length){tm.queue=tm.names.slice();for(let i=tm.queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tm.queue[i],tm.queue[j]]=[tm.queue[j],tm.queue[i]]}}
-  tm.cur=tm.queue.pop();persistTm();fillTp();
-  const t=$('#toast');t.textContent='👤 '+tm.cur;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600);
-  $('#callb').textContent='🎲 Викликати ('+tm.queue.length+')';
-}
-$('#callb').onclick=callNext;
-function fillList(){$('#lcls').value=tm.cls;$('#lnames').value=tm.names.join('\n');$('#lmpw').style.display=document.body.classList.contains('tm')?'none':'block';$('#lerr').textContent=''}
-$('#lstb').onclick=()=>{$('#lm').classList.add('on');fillList()};
-$('#lsave').onclick=()=>{
-  if(!document.body.classList.contains('tm')){if($('#lpw').value!==TEACHER_PASSWORD){$('#lerr').textContent='Невірний пароль';return}$('#lpw').value='';setTmOn(true)}
-  tm.cls=$('#lcls').value.trim();tm.names=$('#lnames').value.split('\n').map(x=>x.trim()).filter(Boolean);tm.queue=[];tm.cur='';persistTm();fillTp();
-  $('#callb').textContent='🎲 Викликати';$('#lm').classList.remove('on');if(cur===0)show(1);
-};
-$('#trnd').onclick=()=>{
-  callNext();$('#tp').classList.remove('on');
-};
-function refreshChecks(){$$('.chk').forEach(b=>b.classList.toggle('on',!!(tm.cur&&marks[tm.cur]&&marks[tm.cur][b.dataset.key])))}
-function toggleMark(key){
-  if(!tm.cur){$('#tp').classList.add('on');$('#tcur').textContent='Спочатку оберіть учня!';return}
-  const s=tm.cur;marks[s]=marks[s]||{};
-  if(marks[s][key]){const id=marks[s][key];delete marks[s][key];deleteResult(id)}
-  else{
-    const date=today(),id=[date,slug(tm.cls||'клас'),slug(s),key].join('_');
-    marks[s][key]=id;
-    saveResult({id,test:TEST_NAME,date,cls:tm.cls||'',student:s,key,ok:true,ts:Date.now()});
-  }
-  persistTm();refreshChecks();$('#tst').textContent=(fbOK===false?'⚠ база недоступна, оцінки лише в цьому браузері. ':'')+'Оцінок у цього учня: '+Object.keys(marks[s]).length;
-}
-/* журнал */
-async function renderJournal(){
-  const box=$('#jt');box.textContent='Завантаження…';
-  let rows=[],note='';
-  try{rows=await loadResults()}catch(e){
-    note='⚠ База недоступна — показано оцінки, збережені лише в цьому браузері. ';
-    Object.keys(marks).forEach(s=>Object.keys(marks[s]).forEach(k=>rows.push({date:today(),cls:tm.cls,student:s,key:k})));
-  }
-  const groups={};rows.forEach(r=>{const g=r.date+'|'+(r.cls||'')+'|'+r.student;(groups[g]=groups[g]||{date:r.date,cls:r.cls||'',student:r.student,keys:{}}).keys[r.key]=1});
-  const list=Object.values(groups).sort((a,b)=>(b.date+a.cls).localeCompare(a.date+b.cls)||a.student.localeCompare(b.student,'uk'));
-  window._jl=list;
-  const keys=ALLKEYS.filter(k=>!k.startsWith('A'));
-  box.innerHTML=(note?`<div class="fin neg">${note}</div>`:'')+(list.length?`<table><tr><th>Учень</th><th>Дата</th><th>Клас</th>${keys.map(k=>`<th>${k.replace('-','.')}</th>`).join('')}<th>Разом</th></tr>`+
-   list.map(g=>`<tr><td>${g.student}</td><td>${g.date}</td><td>${g.cls}</td>${keys.map(k=>`<td>${g.keys[k]?'✓':''}</td>`).join('')}<td><b>${keys.filter(k=>g.keys[k]).length}</b></td></tr>`).join('')+'</table>':'Поки що немає записів.');
-}
-$('#tjr').onclick=()=>{$('#jm').classList.add('on');renderJournal()};
-$('#jref').onclick=renderJournal;
-$('#jcsv').onclick=()=>{
-  const keys=ALLKEYS.filter(k=>!k.startsWith('A')),l=window._jl||[];
-  const csv=['Учень;Дата;Клас;'+keys.map(k=>k.replace('-','.')).join(';')+';Разом'].concat(l.map(g=>[g.student,g.date,g.cls].concat(keys.map(k=>g.keys[k]?'1':''),[keys.filter(k=>g.keys[k]).length]).join(';'))).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));a.download='оцінки_властивості_функції.csv';a.click();
-};
-$('#jclr').onclick=async()=>{
-  if(!confirm('Видалити ВСІ записи журналу? Це не можна скасувати.'))return;
-  try{await clearResults()}catch(e){}
-  marks={};persistTm();refreshChecks();renderJournal();
-};
-try{ if(sessionStorage.getItem('l8_on')==='1')setTmOn(true) }catch(e){}
 show(0);
 </script>
 <!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
