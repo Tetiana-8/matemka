@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Геометрія 8 клас. Розв’язування задач. Трапеція</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=STIX+Two+Text:ital,wght@1,500;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14301f;--muted:#5b7565;--acc:#0d5c3a;--acc2:#2f9e6a;--accL:#dcf7e4;--soft:#eef7e8;--soft2:#f8f7e5;--line:#bfe0c6;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --o1:#0f766e;--o2:#7c3aed;
+}
+*{box-sizing:border-box}
+html{font-size:20px}
+body{margin:0;height:100dvh;overflow:hidden;font-family:Nunito,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#eef7e8 0%,#e4f4da 45%,#d7efca 100%) fixed;color-scheme:light}
+button{font-family:inherit;touch-action:manipulation}
+.m{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:700;font-size:1.08em;letter-spacing:.02em}
+[hidden]{display:none!important}
+
+/* ---------- старт ---------- */
+#start{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:.7rem;overflow:auto}
+.scard{width:min(40rem,100%);background:#fff;border:2px solid var(--line);border-radius:1.2rem;padding:1.3rem 1.5rem;box-shadow:0 .4rem 1.4rem rgba(13,92,58,.12)}
+.scard h1{margin:0;font-size:1.7rem;color:var(--acc);font-weight:900}
+.scard h2{margin:.15rem 0 1rem;font-size:1.05rem;color:var(--muted);font-weight:700}
+.scard label{display:block;font-weight:800;margin-bottom:.35rem}
+.scard textarea{width:100%;height:11rem;resize:vertical;border:2px solid var(--line);border-radius:.8rem;padding:.6rem .8rem;font:inherit;font-size:1rem;background:var(--soft2);color:var(--ink)}
+.scard textarea:focus{outline:3px solid var(--accL);border-color:var(--acc2)}
+.srow{display:flex;gap:.6rem;align-items:center;margin-top:.8rem;flex-wrap:wrap}
+.cnt{color:var(--muted);font-weight:700;font-size:.9rem;margin-left:auto}
+.big{font-size:1.15rem;padding:.65rem 1.6rem}
+
+/* ---------- кнопки ---------- */
+.btn{border:2px solid var(--line);background:#fff;color:var(--acc);font-weight:800;font-size:.95rem;padding:.45rem .9rem;border-radius:.8rem;cursor:pointer;min-height:2.4rem;transition:.12s}
+.btn:hover{background:var(--accL)}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.pri:hover{background:#0a4a2e}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+/* ---------- урок ---------- */
+#lesson{height:100dvh;display:flex;flex-direction:column;padding:.55rem .8rem 0;gap:.45rem}
+.tabs{flex:none;display:flex;gap:.35rem;overflow-x:auto;padding:.1rem .1rem .3rem;scrollbar-width:thin}
+.tab{flex:none;min-width:2.8rem;border:2px solid var(--line);background:#fff;color:var(--acc);font-weight:900;font-size:.85rem;padding:.3rem .55rem;border-radius:.7rem;cursor:pointer;white-space:nowrap}
+.tab.sv::before{content:"✎ ";opacity:.55}
+.tab.act{background:var(--acc);border-color:var(--acc);color:#fff}
+.tab.done{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.tab.done::after{content:" ✓"}
+.tab.act.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.card{flex:1;min-height:0;display:flex;flex-direction:column;background:#fff;border:2px solid var(--line);border-radius:1.1rem;box-shadow:0 .3rem 1.1rem rgba(13,92,58,.10);overflow:hidden}
+.bodyw{flex:1;min-height:0;overflow:auto;padding:.9rem 1.1rem}
+.cols{display:grid;grid-template-columns:1fr;gap:1.1rem;align-items:start}
+.cols.showfig{grid-template-columns:1.08fr 1fr}
+.figcol{display:none;flex-direction:column;align-items:center;position:sticky;top:0}
+.cols.showfig .figcol{display:flex}
+.figbox{width:100%;background:var(--soft2);border:2px solid var(--line);border-radius:1rem;padding:.4rem}
+.fig{display:block;width:100%;height:auto;max-height:56vh}
+.thead{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;flex-wrap:wrap}
+.badge{background:var(--acc);color:#fff;font-weight:900;font-size:1.05rem;padding:.2rem .75rem;border-radius:.7rem}
+.kind{font-size:.8rem;font-weight:800;padding:.2rem .6rem;border-radius:2rem}
+.kind.qk{background:var(--accL);color:var(--oktx)}
+.kind.sv{background:var(--warnbg);color:var(--warntx);border:1px solid var(--warnln)}
+.cond{font-size:1.25rem;font-weight:700;line-height:1.4;margin-bottom:.7rem}
+.btnrow{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem}
+.dgpanel{background:var(--accL);border:2px solid var(--line);border-radius:.9rem;padding:.55rem .9rem;margin-bottom:.7rem;font-size:1.1rem;font-weight:700;line-height:1.5}
+.dgpanel .k{display:inline-block;min-width:5.2rem;color:var(--acc);font-weight:900}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem}
+.cols.showfig .opts{grid-template-columns:repeat(2,1fr)}
+.opts.multi,.cols.showfig .opts.multi{grid-template-columns:1fr}
+.opt{display:flex;align-items:center;gap:.5rem;text-align:left;padding:.45rem .6rem;border:2px solid var(--line);border-radius:.85rem;background:#fff;color:var(--ink);font-size:1.05rem;font-weight:700;cursor:pointer;min-height:3rem}
+.opt:hover{background:var(--soft)}
+.opt .l{flex:none;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--accL);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem}
+.opt.sel{border-color:var(--acc2);background:var(--accL)}
+.opt.ok{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.opt.ok .l{background:var(--ok);color:#fff}
+.opt.bad{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.opt.bad .l{background:var(--bad);color:#fff}
+.opt.dis{pointer-events:none}
+.opt.dis:not(.ok):not(.bad){opacity:.55}
+.exp{margin-top:.7rem;padding:.55rem .85rem;border-radius:.85rem;font-size:1.05rem;font-weight:700;line-height:1.45}
+.exp.ok{background:var(--okbg);color:var(--oktx);border:2px solid var(--okln)}
+.exp.bad{background:var(--badbg);color:var(--badtx);border:2px solid var(--badln)}
+.chk{margin-top:.7rem}
+.workbox{border:2.5px dashed var(--line);border-radius:1rem;padding:.55rem .7rem;background:var(--soft2)}
+.ynw{width:min(100%,calc(40vh*3.3));margin:.9rem auto 0}
+.yngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:.7rem}
+.yncell{display:flex;align-items:center;justify-content:center;gap:.5rem;font-weight:800;font-size:1.15rem}
+.yncell select{font:inherit;font-weight:800;font-size:1.05rem;padding:.35rem .6rem;border:2.5px solid var(--line);border-radius:.8rem;background:#fff;color:var(--ink);min-width:6rem}
+.yncell select:focus{outline:3px solid var(--accL);border-color:var(--acc2)}
+.yncell select{min-width:0}
+@media(max-width:700px){.yncell{flex-direction:column;gap:.2rem}.yncell select{min-width:4.2rem;padding:.3rem .4rem}}
+.yncell select.bad{border-color:var(--badln);background:var(--badbg);color:var(--badtx)}
+.yncell select.ok{border-color:var(--okln);background:var(--okbg);color:var(--oktx)}
+.rosterEd{width:100%;height:8rem;margin-top:.5rem;border:2px solid var(--line);border-radius:.8rem;padding:.5rem .7rem;font:inherit;font-size:1rem;background:var(--soft2);color:var(--ink)}
+.step{display:flex;gap:.6rem;align-items:baseline;padding:.4rem .75rem;border-left:5px solid var(--acc2);background:#fff;border-radius:.7rem;margin:.35rem 0;font-size:1.12rem;font-weight:700;line-height:1.45;animation:pop .25s ease}
+.step .n{flex:none;color:var(--acc2);font-weight:900}
+.step.ans{border-color:var(--ok);background:var(--okbg);color:var(--oktx);font-weight:900}
+.step.hid{display:none}
+@keyframes pop{from{opacity:0;transform:translateY(-.3rem)}to{opacity:1;transform:none}}
+.arrow{display:flex;margin:.3rem auto 0;width:2.8rem;height:2.8rem;border-radius:50%;border:0;background:var(--acc2);color:#fff;font-size:1.5rem;font-weight:900;cursor:pointer;align-items:center;justify-content:center;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(.25rem)}}
+.foot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.45rem .9rem;border-top:2px solid var(--line);background:#fbfdf8}
+.callbox{display:flex;align-items:center;gap:.5rem;min-width:0}
+.who{font-weight:900;font-size:1.35rem;color:var(--acc);min-width:6rem}
+.nav{display:flex;gap:.5rem}
+.tickw{flex:none;display:flex;align-items:center;padding:.3rem}
+.tickw input{appearance:none;-webkit-appearance:none;width:1.5rem;height:1.5rem;border:2px solid #a7bdb0;border-radius:.4rem;background:transparent;opacity:.32;cursor:pointer;margin:0;position:relative}
+.tickw input:checked{opacity:.6;background:#cfe3d6}
+.tickw input:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5d7a6a;font-weight:900;font-size:1rem}
+.tickw input:disabled{opacity:.15;cursor:default}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:3px 0 5px}
+
+/* вимірювання найвищого стану (для автопідбору розміру тексту) */
+.measure .step.hid{display:flex!important}
+.measure .dgpanel[hidden]{display:block!important}
+.measure .cols{grid-template-columns:1.08fr 1fr!important}
+.measure .figcol{display:flex!important}
+.measure .arrow{animation:none}
+
+/* ---------- ключ учителя ---------- */
+#key{position:fixed;left:6px;bottom:2px;z-index:2147483000;width:1.8rem;height:1.8rem;border:0;border-radius:50%;background:rgba(255,255,255,.35);color:#4b5f54;opacity:.28;cursor:pointer;font-size:.95rem;padding:0;display:flex;align-items:center;justify-content:center}
+#key:hover{opacity:.7}
+.modal{position:fixed;inset:0;z-index:2147483000;background:rgba(20,48,31,.35);display:none;align-items:center;justify-content:center;padding:1rem}
+.modal.on{display:flex}
+.mbox{background:#fff;border:2px solid var(--line);border-radius:1.1rem;padding:1rem 1.2rem;width:min(34rem,100%);max-height:88dvh;overflow:auto;box-shadow:0 .6rem 2rem rgba(0,0,0,.25)}
+.mbox h3{margin:.1rem 0 .6rem;color:var(--acc);font-size:1.25rem;font-weight:900}
+.mbox input[type=password]{font:inherit;font-size:1.2rem;border:2px solid var(--line);border-radius:.7rem;padding:.4rem .7rem;width:9rem;letter-spacing:.3em}
+.err{color:var(--badtx);font-weight:800;margin:.4rem 0 0;min-height:1.2rem;font-size:.9rem}
+table.res{width:100%;border-collapse:collapse;font-size:.95rem;margin:.4rem 0}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:.3rem .4rem;text-align:left;vertical-align:top}
+table.res th{color:var(--acc);font-weight:900}
+table.res td.k{font-weight:900;color:var(--acc);text-align:center;width:3rem}
+.small{font-size:.85rem;color:var(--muted);font-weight:700;margin:.4rem 0}
+
+@media (max-width:860px){
+  .cols.showfig{grid-template-columns:1fr}
+  .opts,.cols.showfig .opts{grid-template-columns:repeat(2,1fr)}
+  .figcol{position:static}
+  .foot{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= СТАРТ ================= -->
+<div id="start">
+  <div class="scard">
+    <h1>Геометрія · 8 клас</h1>
+    <h2>Розв’язування задач. Трапеція (п. 8)</h2>
+    <label for="names">Список учнів (кожне ім’я з нового рядка)</label>
+    <textarea id="names" spellcheck="false" autofocus></textarea>
+    <div class="srow">
+      <button class="btn pri big" id="goBtn">Почати ▶</button>
+      <button class="btn big" id="contBtn" hidden>Продовжити збережений урок</button>
+      <span class="cnt" id="cnt">0 учнів</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= УРОК ================= -->
+<div id="lesson" hidden>
+  <div class="tabs" id="tabs"></div>
+  <div class="card" id="card">
+    <div class="bodyw" id="bodyw"></div>
+    <div class="foot">
+      <div class="callbox">
+        <button class="btn pri" id="callBtn">🎲 Викликати</button>
+        <span class="who" id="who"></span>
+        <button class="btn" id="skipBtn" title="Інший учень (цей не може відповісти)" hidden>↻</button>
+      </div>
+      <div class="nav">
+        <button class="btn" id="prevBtn">← Назад</button>
+        <button class="btn pri" id="nextBtn">Наступне завдання →</button>
+      </div>
+      <label class="tickw" title="Зарахувати відповідь"><input type="checkbox" id="tick" aria-label="Зарахувати відповідь"></label>
+    </div>
+  </div>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<!-- ================= КЛЮЧ ВЧИТЕЛЯ ================= -->
+<button id="key" title="">🔑</button>
+<div class="modal" id="codeModal">
+  <div class="mbox" style="width:min(20rem,100%)">
+    <h3>Код вчителя</h3>
+    <input type="password" id="codeIn" inputmode="numeric" autocomplete="off" maxlength="8">
+    <div class="err" id="codeErr"></div>
+    <div class="srow"><button class="btn pri" id="codeOk">ОК</button><button class="btn" id="codeCancel">Закрити</button></div>
+  </div>
+</div>
+<div class="modal" id="resModal">
+  <div class="mbox">
+    <h3>Результати уроку</h3>
+    <div id="resBody"></div>
+    <div class="small" style="margin-top:.8rem"><b>Список учнів</b> (кожне ім’я з нового рядка; можна змінювати й видаляти)</div>
+    <textarea class="rosterEd" id="rosterEd" spellcheck="false"></textarea>
+    <div class="srow">
+      <button class="btn" id="saveRoster">Зберегти список</button>
+      <span class="small" id="rosterMsg"></span>
+    </div>
+    <div class="srow">
+      <button class="btn" id="newRound">Нове коло викликів</button>
+      <button class="btn" id="wipe">Очистити все</button>
+      <button class="btn pri" id="resClose" style="margin-left:auto">Закрити</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   МАЛЮНКИ (SVG)
+   ===================================================================== */
+const SERIF='"STIX Two Text","Times New Roman",serif',SANS='Nunito,system-ui,sans-serif';
+const INK='#1b3a2a',FILL='#e8f6df',RED='#dc2626',VIO='#7c3aed',GRY='#5f7a6b';
+const rad=d=>d*Math.PI/180;
+const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const len=v=>Math.hypot(v[0],v[1]);
+const unit=v=>{const l=len(v)||1;return[v[0]/l,v[1]/l]};
+const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
+const r1=n=>Math.round(n*10)/10;
+const pt=p=>r1(p[0])+','+r1(p[1]);
+function LN(a,b,o={}){return `<line x1="${r1(a[0])}" y1="${r1(a[1])}" x2="${r1(b[0])}" y2="${r1(b[1])}" stroke="${o.c||INK}" stroke-width="${o.w||3}"${o.d?` stroke-dasharray="${o.d}"`:''} stroke-linecap="round"/>`}
+function TX(x,y,s,o={}){return `<text x="${r1(x)}" y="${r1(y)}" font-size="${o.s||24}" fill="${o.c||INK}" text-anchor="${o.a||'middle'}" font-family='${o.f||SANS}' font-weight="${o.b?800:700}"${o.i?' font-style="italic"':''} dominant-baseline="central">${s}</text>`}
+function PG(pts,fill=FILL){return `<polygon points="${pts.map(pt).join(' ')}" fill="${fill}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`}
+/* підпис сторони: зовні від центра фігури */
+function SL(a,b,s,c,o={}){const m=mid(a,b);let n=unit([-(b[1]-a[1]),b[0]-a[0]]);const w=sub(m,c);if(n[0]*w[0]+n[1]*w[1]<0)n=[-n[0],-n[1]];const off=o.off||24;return TX(m[0]+n[0]*off,m[1]+n[1]*off,s,{s:o.s||24,c:o.c||INK,b:1})}
+/* риски рівних відрізків */
+function TK(a,b,n){const m=mid(a,b),u=unit(sub(b,a)),v=[-u[1],u[0]];let s='';for(let i=0;i<n;i++){const k=(i-(n-1)/2)*8,p=[m[0]+u[0]*k,m[1]+u[1]*k];s+=LN([p[0]-v[0]*8,p[1]-v[1]*8],[p[0]+v[0]*8,p[1]+v[1]*8],{w:2.6})}return s}
+/* стрілочки паралельності */
+function AR(a,b,n){const m=mid(a,b),u=unit(sub(b,a)),v=[-u[1],u[0]];let s='';for(let i=0;i<n;i++){const k=(i-(n-1)/2)*10,p=[m[0]+u[0]*k,m[1]+u[1]*k];const q1=[p[0]-u[0]*6+v[0]*7,p[1]-u[1]*6+v[1]*7],q2=[p[0]+u[0]*6,p[1]+u[1]*6],q3=[p[0]-u[0]*6-v[0]*7,p[1]-u[1]*6-v[1]*7];s+=`<polyline points="${pt(q1)} ${pt(q2)} ${pt(q3)}" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`}return s}
+/* дуга кута між променями V→p1 і V→p2 */
+function ANG(V,p1,p2,r,lab,o={}){const a1=Math.atan2(p1[1]-V[1],p1[0]-V[0]),a2=Math.atan2(p2[1]-V[1],p2[0]-V[0]);let d=a2-a1;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+  const s=[V[0]+r*Math.cos(a1),V[1]+r*Math.sin(a1)],e=[V[0]+r*Math.cos(a2),V[1]+r*Math.sin(a2)];
+  let out=`<path d="M${pt(s)} A${r} ${r} 0 0 ${d>0?1:0} ${pt(e)}" fill="none" stroke="${o.c||INK}" stroke-width="2.6"/>`;
+  if(lab){const mm=a1+d/2,rr=r+(o.lr||20);out+=TX(V[0]+rr*Math.cos(mm),V[1]+rr*Math.sin(mm),lab,{s:o.s||20,c:o.tc||o.c||INK,b:1})}return out}
+/* позначка прямого кута */
+function RT(V,p1,p2,s=14){const u=unit(sub(p1,V)),v=unit(sub(p2,V));const a=[V[0]+u[0]*s,V[1]+u[1]*s],b=[a[0]+v[0]*s,a[1]+v[1]*s],c=[V[0]+v[0]*s,V[1]+v[1]*s];return `<path d="M${pt(a)} L${pt(b)} L${pt(c)}" fill="none" stroke="${INK}" stroke-width="2.3"/>`}
+const SV=(inner,vb='0 0 440 270')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" class="fig" role="img">${inner}</svg>`;
+const trap=(x0,yb,AD,BC,h,dx)=>({A:[x0,yb],B:[x0+dx,yb-h],C:[x0+dx+BC,yb-h],D:[x0+AD,yb]});
+const byAng=(a,d,h,L,x0,yb)=>trap(x0,yb,L,L-h/Math.tan(rad(a))-h/Math.tan(rad(d)),h,h/Math.tan(rad(a)));
+const body=t=>PG([t.A,t.B,t.C,t.D]);
+const cT=t=>cen([t.A,t.B,t.C,t.D]);
+const par=t=>AR(t.B,t.C,1)+AR(t.A,t.D,1);
+function VL(t,ex={}){const c=cT(t);return['A','B','C','D'].map(n=>{const p=t[n],u=unit(sub(p,c)),o=ex[n]||22;return TX(p[0]+u[0]*o,p[1]+u[1]*o,n,{f:SERIF,i:1,b:1,s:27})}).join('')}
+const foot=(p,t)=>[p[0],t.A[1]];            /* основа перпендикуляра з точки p на AD */
+const DASH={w:2.5,d:'7 6'};
+
+const FIG={};
+FIG.f220=st=>{
+  const lab=(p,n,c,o=15)=>{const u=unit(sub(p,c));return TX(p[0]+u[0]*o,p[1]+u[1]*o,n,{f:SERIF,i:1,b:1,s:19})};
+  /* а: паралелограм */
+  const a=[[22,150],[62,62],[152,62],[112,150]],ca=cen(a);
+  let s='<g transform="translate(23,0)">'+PG(a)+AR(a[1],a[2],1)+AR(a[0],a[3],1)+AR(a[0],a[1],2)+AR(a[3],a[2],2)+['A','B','C','D'].map((n,i)=>lab(a[i],n,ca)).join('')+'</g>';
+  /* б: чотирикутник із кутами 70°, 105°, 60° (четвертий — 125°), збільшений */
+  const U=d=>[Math.cos(rad(d)),Math.sin(rad(d))];
+  const l0=135,l1=88,u0=U(0),u1=U(75),u2=U(195),u3=U(250);
+  const rx=-(l0*u0[0]+l1*u1[0]),ry=-(l0*u0[1]+l1*u1[1]);
+  const det=u2[0]*u3[1]-u3[0]*u2[1],l2=(rx*u3[1]-u3[0]*ry)/det,l3=(u2[0]*ry-rx*u2[1])/det;
+  const mp=[[0,0],[l0*u0[0],l0*u0[1]],[l0*u0[0]+l1*u1[0],l0*u0[1]+l1*u1[1]]];mp.push([mp[2][0]+l2*u2[0],mp[2][1]+l2*u2[1]]);
+  const kb=1.15,b=mp.map(p=>[236+p[0]*kb,150-p[1]*kb]),cb=cen(b);
+  s+=PG(b)+['A','B','C','D'].map((n,i)=>lab(b[i],n,cb,17)).join('')
+    +ANG(b[0],b[1],b[3],24,'70°',{s:15,lr:24})+ANG(b[1],b[2],b[0],24,'105°',{s:15,lr:28})+ANG(b[2],b[3],b[1],20,'60°',{s:15,lr:24});
+  /* в: рівнобічна трапеція */
+  const v=trap(312,146,126,60,80,33),cv=cT(v);
+  s+='<g transform="translate(175,0)">'+PG([v.A,v.B,v.C,v.D])+AR(v.B,v.C,1)+AR(v.A,v.D,1)+TK(v.A,v.B,1)+TK(v.C,v.D,1)+['A','B','C','D'].map(n=>lab(v[n],n,cv)).join('')+'</g>';
+  const cap=(x,t,ans)=>TX(x,188,st?`${t} — <tspan fill="${RED}">${ans}</tspan>`:t,{s:22,c:INK,b:1});
+  s+=cap(110,'а','ні')+cap(330,'б','ні')+cap(550,'в','так');
+  return SV(s,'0 0 660 200');
+};
+FIG.f221=st=>{const t=trap(62,215,315,195,120,60),c=cT(t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+SL(t.B,t.C,'13',c)+SL(t.A,t.D,'21',c)
+   +(st?SL(t.A,t.B,'9',c,{c:RED})+SL(t.C,t.D,'9',c,{c:RED}):SL(t.A,t.B,'?',c,{c:VIO}))+VL(t)+TX(220,20,'P = 52 см',{s:22,c:GRY}))};
+FIG.f222=st=>{const t=trap(45,205,344,226,85,27),c=cT(t);
+  return SV(body(t)+par(t)+SL(t.A,t.B,'5,6',c)+SL(t.C,t.D,'7,8',c)
+   +SL(t.B,t.C,st?'14,1':'?',c,{c:st?RED:VIO})+SL(t.A,t.D,st?'21,5':'?',c,{c:st?RED:VIO})+VL(t)+TX(220,20,'P = 49 см',{s:22,c:GRY}))};
+FIG.f224a=st=>{const t=byAng(48,24,70,300,70,215),c=cT(t);
+  return SV(body(t)+par(t)+ANG(t.B,t.A,t.C,30,'132°',{lr:24,s:19})+ANG(t.D,t.C,t.A,38,'24°',{lr:30,s:18})
+   +ANG(t.A,t.B,t.D,34,st?'48°':'?',{c:st?RED:VIO,lr:26,s:19})+ANG(t.C,t.D,t.B,28,st?'156°':'?',{c:st?RED:VIO,lr:26,s:19})+VL(t))};
+FIG.f224b=st=>{const t=byAng(71,60,130,300,70,215),c=cT(t);
+  return SV(body(t)+par(t)+ANG(t.A,t.B,t.D,34,st?'71°':'?',{c:st?RED:VIO,lr:26,s:19})+ANG(t.B,t.A,t.C,30,st?'109°':'?',{c:st?RED:VIO,lr:28,s:19})+VL(t))};
+FIG.f225=st=>{const t=byAng(70,84,150,300,70,215),c=cT(t);
+  return SV(body(t)+par(t)+ANG(t.C,t.B,t.D,30,st?'96°':'?',{c:st?RED:VIO,lr:26,s:19})+ANG(t.D,t.C,t.A,34,st?'84°':'?',{c:st?RED:VIO,lr:26,s:19})+VL(t))};
+FIG.f226=st=>{const t=byAng(46,46,120,330,55,215),c=cT(t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+ANG(t.A,t.B,t.D,38,'46°',{lr:30,s:19})
+   +ANG(t.D,t.C,t.A,38,st?'46°':'?',{c:st?RED:VIO,lr:30,s:19})+ANG(t.B,t.A,t.C,30,st?'134°':'?',{c:st?RED:VIO,lr:30,s:19})+ANG(t.C,t.D,t.B,30,st?'134°':'?',{c:st?RED:VIO,lr:30,s:19})+VL(t))};
+FIG.f227=st=>{const t=byAng(80,80,140,300,70,215),c=cT(t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)
+   +ANG(t.A,t.B,t.D,34,st?'80°':'?',{c:st?RED:VIO,lr:26,s:19})+ANG(t.C,t.D,t.B,30,st?'100°':'?',{c:st?RED:VIO,lr:28,s:19})
+   +(st?ANG(t.D,t.C,t.A,34,'80°',{c:RED,lr:26,s:19})+ANG(t.B,t.A,t.C,30,'100°',{c:RED,lr:28,s:19}):'')+VL(t))};
+FIG.f228=st=>{const t=byAng(67,67,130,300,70,215),c=cT(t),H=foot(t.B,t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+LN(t.B,H,DASH)+RT(H,t.B,t.A,14)
+   +ANG(t.B,t.A,H,46,'23°',{lr:22,s:19})+TX(H[0],H[1]+22,'H',{f:SERIF,i:1,b:1,s:25})
+   +(st>=1?ANG(t.A,t.B,t.D,34,'67°',{c:RED,lr:26,s:18}):'')+(st>=2?ANG(t.D,t.C,t.A,34,'67°',{c:RED,lr:26,s:18}):'')
+   +(st>=3?ANG(t.B,t.A,t.C,28,'113°',{c:RED,lr:30,s:18}):'')+(st>=4?ANG(t.C,t.D,t.B,28,'113°',{c:RED,lr:30,s:18}):'')+VL(t,{A:26}))};
+FIG.f229=()=>{const t=trap(50,205,340,170,125,70);return SV(body(t)+par(t)+ANG(t.A,t.B,t.D,32,'',{})+ANG(t.B,t.A,t.C,28,'',{})+ANG(t.C,t.B,t.D,28,'',{})+ANG(t.D,t.C,t.A,32,'',{})+VL(t,{A:24,D:24}))};
+FIG.f230=()=>{const t=trap(50,205,340,170,125,70);
+  /* точка перетину діагоналей AC і BD */
+  const x1=t.A,x2=t.C,y1=t.B,y2=t.D,d=(x1[0]-x2[0])*(y1[1]-y2[1])-(x1[1]-x2[1])*(y1[0]-y2[0]);
+  const a=x1[0]*x2[1]-x1[1]*x2[0],b=y1[0]*y2[1]-y1[1]*y2[0];
+  const P=[(a*(y1[0]-y2[0])-(x1[0]-x2[0])*b)/d,(a*(y1[1]-y2[1])-(x1[1]-x2[1])*b)/d];
+  return SV(body(t)+par(t)+LN(t.A,t.C,{w:2.6})+LN(t.B,t.D,{w:2.6})+TX(P[0],P[1]+18,'O',{f:SERIF,i:1,b:1,s:25})+VL(t))};
+FIG.f234=st=>{const s=18,t=trap(70,185,16*s,4*s,110,6*s),c=cT(t),H=foot(t.C,t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+LN(t.C,H,DASH)+RT(H,t.C,t.D,14)+TX(H[0],H[1]+22,'H',{f:SERIF,i:1,b:1,s:25})
+   +TX((t.A[0]+H[0])/2,t.A[1]+36,'10',{s:23,b:1})+TX((H[0]+t.D[0])/2,t.A[1]+36,'6',{s:23,b:1})
+   +SL(t.B,t.C,st>=4?'4':'?',c,{c:st>=4?RED:VIO})+TX((t.A[0]+t.D[0])/2,t.A[1]+68,st>=3?'AD = 16':'AD = ?',{s:23,c:st>=3?RED:VIO,b:1})+VL(t,{A:24,D:24}))};
+FIG.f235=st=>{const s=9,t=trap(65,205,34*s,16*s,9*Math.sqrt(3)*s,9*s),c=cT(t),K=foot(t.B,t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+SL(t.A,t.B,'18',c)+ANG(t.A,t.B,t.D,38,'60°',{lr:28,s:19})
+   +(st>=1?LN(t.B,K,DASH)+RT(K,t.B,t.D,13)+TX(K[0],K[1]+22,'K',{f:SERIF,i:1,b:1,s:25})+ANG(t.B,t.A,K,34,st>=1?'30°':'',{c:RED,lr:24,s:17}):'')
+   +(st>=2?TX((t.A[0]+K[0])/2,t.A[1]+42,'AK = 9',{s:22,c:RED,b:1}):'')
+   +SL(t.B,t.C,st>=5?'16':'?',c,{c:st>=5?RED:VIO})+SL(t.A,t.D,st>=4?'34':'?',c,{c:st>=4?RED:VIO,off:50})
+   +VL(t)+TX(220,20,'BC + AD = 50 см',{s:21,c:GRY}))};
+FIG.f236=st=>{const s=11,t=trap(80,200,24*s,10*s,14*s,0),c=cT(t),H=[t.C[0],t.A[1]];
+  return SV(body(t)+par(t)+RT(t.A,t.B,t.D)+RT(t.B,t.A,t.C)+SL(t.B,t.C,'10',c)+SL(t.A,t.D,'24',c,{off:52})+ANG(t.D,t.C,t.A,40,'45°',{lr:26,s:19})
+   +(st>=1?LN(t.C,H,DASH)+RT(H,t.C,t.D,13)+TX(H[0],H[1]+22,'H',{f:SERIF,i:1,b:1,s:25}):'')
+   +(st>=2?TX((H[0]+t.D[0])/2,t.A[1]-18,'HD = 14',{s:21,c:RED,b:1}):'')
+   +SL(t.A,t.B,st>=4?'14':'?',c,{c:st>=4?RED:VIO})+VL(t,{A:22}))};
+FIG.f237=st=>{const s=11,t=trap(130,200,15*s,7*s,8*Math.sqrt(3)*s,0),c=cT(t),H=[t.C[0],t.A[1]];
+  return SV(body(t)+par(t)+RT(t.A,t.B,t.D)+RT(t.B,t.A,t.C)+SL(t.B,t.C,'7',c)+SL(t.A,t.D,'15',c,{off:52})+ANG(t.D,t.C,t.A,38,'60°',{lr:30,s:19})
+   +(st>=1?LN(t.C,H,DASH)+RT(H,t.C,t.D,13)+TX(H[0],H[1]+22,'H',{f:SERIF,i:1,b:1,s:25}):'')
+   +(st>=2?TX((H[0]+t.D[0])/2,t.A[1]-18,'HD = 8',{s:20,c:RED,b:1}):'')
+   +SL(t.C,t.D,st>=4?'16':'?',c,{c:st>=4?RED:VIO})+VL(t,{A:22}))};
+FIG.f239=st=>{const t=trap(70,205,242,110,100,40),c=cT(t),M=mid(t.A,t.B),N=mid(t.D,t.C);
+  return SV(body(t)+par(t)+LN(M,N,{w:3})+TX(M[0]-14,M[1],'M',{f:SERIF,i:1,b:1,s:24})+TX(N[0]+16,N[1],'N',{f:SERIF,i:1,b:1,s:24})
+   +TX((M[0]+N[0])/2,M[1]-17,'8',{s:24,b:1})+SL(t.B,t.C,'5',c)+SL(t.A,t.D,st?'11':'?',c,{c:st?RED:VIO})+VL(t))};
+FIG.f240=st=>{const t=trap(55,205,315,195,110,40),c=cT(t),M=mid(t.A,t.B),N=mid(t.D,t.C);
+  return SV(body(t)+par(t)+LN(M,N,{w:3})+TX(M[0]-14,M[1],'M',{f:SERIF,i:1,b:1,s:24})+TX(N[0]+16,N[1],'N',{f:SERIF,i:1,b:1,s:24})
+   +TX((M[0]+N[0])/2,M[1]-17,'17',{s:24,b:1})+SL(t.B,t.C,st?'13':'x',c,{c:st?RED:VIO})+SL(t.A,t.D,st?'21':'x + 8',c,{c:st?RED:VIO})+VL(t))};
+FIG.f242=st=>{const s=24,t=trap(60,205,12*s,7*s,110,0),c=cT(t),H=[t.C[0],t.A[1]],M=mid(t.A,t.B),N=mid(t.D,t.C);
+  return SV(body(t)+par(t)+RT(t.A,t.B,t.D)+RT(t.B,t.A,t.C)+LN(t.C,H,DASH)+RT(H,t.C,t.D,13)+TX(H[0],H[1]+22,'H',{f:SERIF,i:1,b:1,s:25})
+   +TX((t.A[0]+H[0])/2,t.A[1]+42,'7',{s:23,b:1})+TX((H[0]+t.D[0])/2,t.A[1]+42,'5',{s:23,b:1})
+   +(st>=1?SL(t.B,t.C,'7',c,{c:RED}):'')+(st>=2?SL(t.A,t.D,'12',c,{c:RED,off:50}):'')
+   +(st>=3?LN(M,N,{c:RED,w:3.5})+TX((M[0]+N[0])/2,M[1]-17,'9,5',{s:23,c:RED,b:1}):'')+VL(t,{A:22}))};
+FIG.f244=st=>{const L=210,h=L/(1/Math.tan(rad(50))+1/Math.tan(rad(70))),t=byAng(70,70,h,L,115,225),c=cT(t);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+LN(t.A,t.C,{w:2.6})
+   +ANG(t.A,t.B,t.C,64,'20°',{lr:22,s:18})+ANG(t.A,t.C,t.D,44,'50°',{lr:24,s:18})
+   +(st>=2?ANG(t.D,t.C,t.A,32,'70°',{c:RED,lr:24,s:17}):'')
+   +ANG(t.C,t.B,t.A,30,st>=3?'50°':'?',{c:st>=3?RED:VIO,lr:22,s:17})+ANG(t.C,t.A,t.D,24,st>=4?'60°':'?',{c:st>=4?RED:VIO,lr:30,s:17})+VL(t))};
+FIG.f255=st=>{const s=30,t=trap(60,215,10*s,4*s,3*Math.sqrt(3)*s,3*s),c=cT(t),K=foot(t.B,t),M=mid(t.A,t.B),N=mid(t.D,t.C);
+  return SV(body(t)+par(t)+TK(t.A,t.B,1)+TK(t.C,t.D,1)+SL(t.A,t.B,'6',c)+SL(t.A,t.D,'10',c)+ANG(t.A,t.B,t.D,40,'60°',{lr:28,s:19})
+   +(st>=1?LN(t.B,K,DASH)+RT(K,t.B,t.D,13)+TX(K[0],K[1]+22,'K',{f:SERIF,i:1,b:1,s:25}):'')
+   +(st>=2?TX((t.A[0]+K[0])/2,t.A[1]+40,'AK = 3',{s:22,c:RED,b:1}):'')
+   +(st>=3?SL(t.B,t.C,'4',c,{c:RED}):'')
+   +(st>=4?LN(M,N,{c:RED,w:3.5})+TX((M[0]+N[0])/2,M[1]-17,'7',{s:24,c:RED,b:1}):'')+VL(t))};
+
+/* =====================================================================
+   ЗАДАЧІ
+   kind: q — усно (вибір відповіді, ≥ 8 варіантів), s — з розв’язанням
+   ===================================================================== */
+const LET=['А','Б','В','Г','Д','Е','Є','Ж'];
+function mk(correct,wrongs,pos){const a=wrongs.slice();a.splice(pos,0,correct);return a}
+const TASKS=[
+ {id:'220',num:'220',kind:'q',yn:['ні','ні','так'],fig:FIG.f220,figInit:true,
+  cond:'Чи є чотирикутник {ABCD}, зображений на рисунку, трапецією? У разі ствердної відповіді вкажіть основи та бічні сторони трапеції.',
+  exp:'а — паралелограм: обидві пари протилежних сторін паралельні, тому це не трапеція. б — паралельних сторін немає. в — {BC} ∥ {AD}: це основи, {AB} і {CD} — бічні сторони.'},
+ {id:'221',num:'221',kind:'q',fig:FIG.f221,
+  cond:'Периметр рівнобічної трапеції дорівнює 52 см, основи — 13 см і 21 см. Знайдіть бічну сторону трапеції.',
+  opts:mk('9 см',['4 см','7 см','8 см','10 см','11 см','12 см','18 см'],2),ok:2,
+  exp:'Бічні сторони рівні: (52 − 13 − 21) : 2 = 9 см.'},
+ {id:'222',num:'222',kind:'s',fig:FIG.f222,
+  cond:'Периметр трапеції дорівнює 49 см, бічні сторони — 5,6 см і 7,8 см. Знайдіть основи трапеції, якщо одна з них на 7,4 см більша за другу.',
+  dado:'{ABCD} — трапеція, {P} = 49 см, {AB} = 5,6 см, {CD} = 7,8 см, одна основа на 7,4 см більша за другу',find:'основи {BC} і {AD}',
+  steps:['Нехай менша основа дорівнює <i>x</i> см, тоді більша — (<i>x</i> + 7,4) см',
+         '{P} = {AB} + {CD} + {BC} + {AD}:<br>5,6 + 7,8 + <i>x</i> + (<i>x</i> + 7,4) = 49',
+         '2<i>x</i> + 20,8 = 49<br>2<i>x</i> = 28,2<br><i>x</i> = 14,1',
+         'Менша основа 14,1 см, більша 14,1 + 7,4 = 21,5 см.<br>Відповідь: 14,1 см і 21,5 см']},
+ {id:'224a',num:'224 (1)',kind:'q',fig:FIG.f224a,
+  cond:'Знайдіть кути {A} і {C} трапеції {ABCD} з основами {AD} і {BC}, якщо ∠{B} = 132°, ∠{D} = 24°.',
+  opts:mk('∠A = 48°, ∠C = 156°',['∠A = 132°, ∠C = 24°','∠A = 42°, ∠C = 156°','∠A = 48°, ∠C = 24°','∠A = 48°, ∠C = 132°','∠A = 24°, ∠C = 132°','∠A = 156°, ∠C = 48°','∠A = 132°, ∠C = 156°'],5),ok:5,
+  exp:'Кути при бічній стороні разом дають 180°: ∠{A} = 180° − 132° = 48°, ∠{C} = 180° − 24° = 156°.'},
+ {id:'224b',num:'224 (2)',kind:'q',fig:FIG.f224b,
+  cond:'Знайдіть кути трапеції {ABCD}, прилеглі до бічної сторони {AB}, якщо кут {A} менший від кута {B} на 38°.',
+  opts:mk('∠A = 71°, ∠B = 109°',['∠A = 109°, ∠B = 71°','∠A = 38°, ∠B = 142°','∠A = 90°, ∠B = 128°','∠A = 71°, ∠B = 147°','∠A = 52°, ∠B = 128°','∠A = 61°, ∠B = 119°','∠A = 80°, ∠B = 118°'],0),ok:0,
+  exp:'∠{A} + ∠{B} = 180° і ∠{B} − ∠{A} = 38°. Тоді ∠{B} = (180° + 38°) : 2 = 109°, ∠{A} = 71°.'},
+ {id:'225',num:'225',kind:'q',fig:FIG.f225,
+  cond:'Знайдіть кути трапеції {ABCD}, прилеглі до бічної сторони {CD}, якщо ∠{C} : ∠{D} = 8 : 7.',
+  opts:mk('∠C = 96°, ∠D = 84°',['∠C = 84°, ∠D = 96°','∠C = 100°, ∠D = 80°','∠C = 120°, ∠D = 105°','∠C = 90°, ∠D = 90°','∠C = 108°, ∠D = 72°','∠C = 96°, ∠D = 96°','∠C = 105°, ∠D = 75°'],3),ok:3,
+  exp:'8<i>x</i> + 7<i>x</i> = 180°, <i>x</i> = 12°. ∠{C} = 96°, ∠{D} = 84°.'},
+ {id:'226',num:'226',kind:'q',fig:FIG.f226,
+  cond:'Один із кутів рівнобічної трапеції дорівнює 46°. Знайдіть решту її кутів.',
+  opts:mk('46°, 46°, 134°, 134°',['46°, 46°, 44°, 44°','46°, 46°, 90°, 90°','46°, 46°, 46°, 46°','44°, 44°, 136°, 136°','46°, 46°, 67°, 67°','46°, 134°, 90°, 90°','46°, 46°, 128°, 140°'],7),ok:7,
+  exp:'Кути при основі рівні, тому два кути по 46°. Два інші: 180° − 46° = 134°.'},
+ {id:'227',num:'227',kind:'q',fig:FIG.f227,
+  cond:'Знайдіть кути рівнобічної трапеції, якщо різниця її протилежних кутів дорівнює 20°.',
+  opts:mk('80°, 80°, 100°, 100°',['70°, 70°, 110°, 110°','85°, 85°, 95°, 95°','60°, 60°, 120°, 120°','90°, 90°, 90°, 90°','75°, 75°, 105°, 105°','50°, 50°, 130°, 130°','80°, 80°, 80°, 80°'],1),ok:1,
+  exp:'Протилежні кути рівнобічної трапеції — гострий і тупий. Гострий <i>x</i>, тупий 180° − <i>x</i>: (180° − <i>x</i>) − <i>x</i> = 20°, <i>x</i> = 80°.'},
+ {id:'228',num:'228',kind:'s',fig:FIG.f228,
+  cond:'У рівнобічній трапеції кут між бічною стороною та висотою, проведеною з вершини тупого кута, дорівнює 23°. Знайдіть кути трапеції.',
+  dado:'{ABCD} — рівнобічна трапеція, {BH} — висота, ∠{ABH} = 23°',find:'кути трапеції',
+  steps:['△{ABH}: ∠{H} = 90°, тому<br>∠{A} = 90° − 23° = 67°',
+         'Трапеція рівнобічна: ∠{D} = ∠{A} = 67°',
+         '∠{B} + ∠{A} = 180°<br>∠{B} = 180° − 67° = 113°',
+         '∠{C} = ∠{B} = 113°.<br>Відповідь: 67°, 67°, 113°, 113°']},
+ {id:'229',num:'229',kind:'q',multi:true,fig:FIG.f229,
+  cond:'Чи можуть у трапеції бути: 1) три прямих кути; 2) три гострих кути; 3) два протилежних кути тупими; 4) два протилежних кути прямими; 5) два протилежних кути рівними? <span style="color:var(--muted)">Позначте все, що можливо.</span>',
+  opts:['три прямих кути','три гострих кути','два протилежних кути тупими','два протилежних кути прямими','два протилежних кути рівними','два прямих кути','два тупих кути','чотири гострих кути'],okm:[2,5,6],
+  exp:'Кути при бічній стороні разом дають 180°. Тому три прямі, два протилежні прямі чи два протилежні рівні кути — це вже паралелограм (прямокутник), а три чи чотири гострі кути неможливі. Можливі: два протилежних тупих, два прямих, два тупих.'},
+ {id:'230',num:'230',kind:'q',multi:true,fig:FIG.f230,
+  cond:'Чи можуть: 1) основи трапеції бути рівними; 2) діагоналі трапеції точкою перетину ділитися навпіл? <span style="color:var(--muted)">Позначте все, що можливо в трапеції.</span>',
+  opts:['основи рівні','діагоналі точкою перетину діляться навпіл','діагоналі рівні','основи відносяться як 1 : 2','середня лінія дорівнює висоті','бічні сторони рівні','бічні сторони паралельні','діагоналі перпендикулярні'],okm:[2,3,4,5,7],
+  exp:'Рівні основи або діагоналі, що діляться навпіл, — ознаки паралелограма, а не трапеції. Бічні сторони трапеції не паралельні за означенням. Усе інше можливо (рівні діагоналі — у рівнобічній трапеції).'},
+ {id:'234',num:'234',kind:'s',fig:FIG.f234,
+  cond:'Висота рівнобічної трапеції, проведена з кінця меншої основи, ділить більшу основу на відрізки завдовжки 6 см і 10 см. Знайдіть основи трапеції.',
+  dado:'{ABCD} — рівнобічна трапеція, {CH} — висота, {HD} = 6 см, {AH} = 10 см',find:'{BC} і {AD}',
+  steps:['Менший відрізок дорівнює піврізниці основ:<br>{HD} = ({AD} − {BC}) : 2 = 6, тому {AD} − {BC} = 12',
+         'Більший відрізок дорівнює півсумі основ:<br>{AH} = ({AD} + {BC}) : 2 = 10, тому {AD} + {BC} = 20',
+         '2{AD} = 32<br>{AD} = 16 см',
+         '{BC} = 20 − 16 = 4 см.<br>Відповідь: 4 см і 16 см']},
+ {id:'235',num:'235',kind:'s',fig:FIG.f235,
+  cond:'Один із кутів рівнобічної трапеції дорівнює 60°, бічна сторона — 18 см, а сума основ — 50 см. Знайдіть основи трапеції.',
+  dado:'{ABCD} — рівнобічна трапеція, ∠{A} = 60°, {AB} = 18 см, {BC} + {AD} = 50 см',find:'{BC} і {AD}',
+  steps:['Проведемо висоту {BK}. △{ABK}: ∠{K} = 90°, ∠{A} = 60°, тому ∠{ABK} = 30°',
+         'Катет проти кута 30° дорівнює половині гіпотенузи:<br>{AK} = {AB} : 2 = 9 см',
+         '{AK} = ({AD} − {BC}) : 2, тому {AD} − {BC} = 18',
+         '{AD} + {BC} = 50 і {AD} − {BC} = 18<br>2{AD} = 68, {AD} = 34 см',
+         '{BC} = 50 − 34 = 16 см.<br>Відповідь: 16 см і 34 см']},
+ {id:'236',num:'236',kind:'s',fig:FIG.f236,
+  cond:'Основи прямокутної трапеції дорівнюють 10 см і 24 см, а один із кутів — 45°. Знайдіть меншу бічну сторону трапеції.',
+  dado:'{ABCD} — прямокутна трапеція, ∠{A} = ∠{B} = 90°, {BC} = 10 см, {AD} = 24 см, ∠{D} = 45°',find:'{AB}',
+  steps:['Проведемо висоту {CH}. {ABCH} — прямокутник, тому {AH} = {BC} = 10 см, {CH} = {AB}',
+         '{HD} = {AD} − {AH} = 24 − 10 = 14 см',
+         '△{CHD}: ∠{H} = 90°, ∠{D} = 45°, тому ∠{HCD} = 45°.<br>Трикутник рівнобедрений: {CH} = {HD} = 14 см',
+         '{AB} = {CH} = 14 см.<br>Відповідь: 14 см']},
+ {id:'237',num:'237',kind:'s',fig:FIG.f237,
+  cond:'Основи прямокутної трапеції дорівнюють 7 см і 15 см, а один із кутів — 60°. Знайдіть більшу бічну сторону трапеції.',
+  dado:'{ABCD} — прямокутна трапеція, ∠{A} = ∠{B} = 90°, {BC} = 7 см, {AD} = 15 см, ∠{D} = 60°',find:'{CD}',
+  steps:['Проведемо висоту {CH}. {ABCH} — прямокутник, тому {AH} = {BC} = 7 см',
+         '{HD} = {AD} − {AH} = 15 − 7 = 8 см',
+         '△{CHD}: ∠{H} = 90°, ∠{D} = 60°, тому ∠{HCD} = 30°',
+         'Катет проти кута 30° — половина гіпотенузи:<br>{CD} = 2 · {HD} = 16 см.<br>Відповідь: 16 см']},
+ {id:'239',num:'239',kind:'q',fig:FIG.f239,
+  cond:'Середня лінія трапеції дорівнює 8 см, а одна з основ — 5 см. Знайдіть другу основу трапеції.',
+  opts:mk('11 см',['3 см','8 см','10 см','12 см','13 см','16 см','21 см'],4),ok:4,
+  exp:'Середня лінія — півсума основ: (5 + <i>x</i>) : 2 = 8, 5 + <i>x</i> = 16, <i>x</i> = 11 см.'},
+ {id:'240',num:'240',kind:'q',fig:FIG.f240,
+  cond:'Одна з основ трапеції на 8 см більша за другу, а середня лінія дорівнює 17 см. Знайдіть основи трапеції.',
+  opts:mk('13 см і 21 см',['17 см і 25 см','9 см і 17 см','8 см і 16 см','12 см і 20 см','14 см і 22 см','21 см і 29 см','13 см і 25 см'],6),ok:6,
+  exp:'Сума основ дорівнює 2 · 17 = 34 см. <i>x</i> + (<i>x</i> + 8) = 34, <i>x</i> = 13 см, друга основа 21 см.'},
+ {id:'242',num:'242',kind:'s',fig:FIG.f242,
+  cond:'Висота прямокутної трапеції, проведена з вершини тупого кута, ділить більшу основу на відрізки завдовжки 7 см і 5 см, рахуючи від вершини прямого кута. Знайдіть середню лінію трапеції.',
+  dado:'{ABCD} — прямокутна трапеція, ∠{A} = ∠{B} = 90°, {CH} — висота, {AH} = 7 см, {HD} = 5 см',find:'середню лінію {MN}',
+  steps:['{ABCH} — прямокутник, тому {BC} = {AH} = 7 см',
+         '{AD} = {AH} + {HD} = 7 + 5 = 12 см',
+         '{MN} = ({BC} + {AD}) : 2 = (7 + 12) : 2 = 9,5 см.<br>Відповідь: 9,5 см']},
+ {id:'244',num:'244',kind:'s',fig:FIG.f244,
+  cond:'У трапеції {ABCD} відомо, що {AB} = {CD}, ∠{BAC} = 20°, ∠{CAD} = 50°. Знайдіть кути {ACB} і {ACD}.',
+  dado:'{ABCD} — трапеція, {BC} ∥ {AD}, {AB} = {CD}, ∠{BAC} = 20°, ∠{CAD} = 50°',find:'∠{ACB}, ∠{ACD}',
+  steps:['∠{BAD} = ∠{BAC} + ∠{CAD} = 20° + 50° = 70°',
+         '{AB} = {CD}: трапеція рівнобічна, тому ∠{D} = ∠{BAD} = 70°',
+         '∠{ACB} = ∠{CAD} = 50° (різносторонні кути при {BC} ∥ {AD} і січній {AC})',
+         '△{ACD}: ∠{ACD} = 180° − 50° − 70° = 60°.<br>Відповідь: ∠{ACB} = 50°, ∠{ACD} = 60°']},
+ {id:'255',num:'255',kind:'s',fig:FIG.f255,
+  cond:'Бічна сторона рівнобічної трапеції дорівнює 6 см, більша основа — 10 см. Знайдіть середню лінію трапеції, якщо один з її кутів дорівнює 60°.',
+  dado:'{ABCD} — рівнобічна трапеція, {AB} = {CD} = 6 см, {AD} = 10 см, ∠{A} = 60°',find:'середню лінію {MN}',
+  steps:['Проведемо висоту {BK}. △{ABK}: ∠{K} = 90°, ∠{A} = 60°, тому ∠{ABK} = 30°',
+         '{AK} = {AB} : 2 = 3 см',
+         '{AK} = ({AD} − {BC}) : 2, тому {BC} = {AD} − 2 · {AK} = 10 − 6 = 4 см',
+         '{MN} = ({BC} + {AD}) : 2 = (4 + 10) : 2 = 7 см.<br>Відповідь: 7 см']}
+];
+
+/* =====================================================================
+   СТАН
+   ===================================================================== */
+const KEY='kt8_trapezia_v1';
+const S={students:[],pool:[],round:0,credits:[],called:{}};
+const DONE={};
+const TS={};
+let cur=0;
+const $=id=>document.getElementById(id);
+const fm=s=>s.replace(/\{([^}]+)\}/g,'<i class="m">$1</i>');
+function save(){try{localStorage.setItem(KEY,JSON.stringify({S,DONE}))}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function ts(t){return TS[t.id]||(TS[t.id]={ans:['','',''],yb:[],fig:!!t.figInit,dg:false,steps:0,solved:false,wrong:[],pick:[],bad:[],msg:''})}
+
+/* ---------- старт ---------- */
+const RKEY='kt8_roster_v1';
+const DEFAULT_ROSTER=['Нікіта Г','Дарина Д','Яся','Марк','Дарина П','Єва','Даня','Христя','Арсеній','Кирил','Нікіта Ш'];
+function loadRoster(){try{const r=JSON.parse(localStorage.getItem(RKEY));if(Array.isArray(r))return r}catch(e){}return DEFAULT_ROSTER.slice()}
+function saveRosterLS(a){try{localStorage.setItem(RKEY,JSON.stringify(a))}catch(e){}}
+function parseList(txt){const seen=new Set(),out=[];String(txt).split(/[\n;]+/).map(s=>s.trim()).filter(Boolean).forEach(n=>{if(!seen.has(n)){seen.add(n);out.push(n)}});return out}
+function parseNames(){return parseList($('names').value)}
+function updCnt(){const n=parseNames().length;$('cnt').textContent=n+(n%10===1&&n!==11?' учень':(n%10>=2&&n%10<=4&&(n<10||n>20)?' учні':' учнів'))}
+$('names').addEventListener('input',()=>{updCnt();saveRosterLS(parseNames())});
+function applyRoster(names){
+  const old=S.students.slice();
+  S.students=names;
+  S.pool=S.pool.filter(n=>names.includes(n));
+  if(S.round>0)names.forEach(n=>{if(!old.includes(n)&&!S.pool.includes(n)&&!Object.values(S.called).includes(n))S.pool.push(n)});
+  saveRosterLS(names);
+}
+function startLesson(keep){
+  const names=parseNames();
+  if(keep){const d=load();if(d){Object.assign(S,d.S);Object.assign(DONE,d.DONE||{})}applyRoster(names)}
+  else{S.students=names;S.pool=[];S.round=0;S.credits=[];S.called={};for(const k in DONE)delete DONE[k];saveRosterLS(names)}
+  save();$('start').hidden=true;$('lesson').hidden=false;cur=0;buildTabs();render();
+}
+$('goBtn').onclick=()=>startLesson(false);
+$('contBtn').onclick=()=>startLesson(true);
+(function init(){const d=load();if(d&&d.S&&(d.S.students.length||d.S.credits.length))$('contBtn').hidden=false;$('names').value=loadRoster().join('\n');updCnt();})();
+
+/* ---------- вкладки ---------- */
+function buildTabs(){$('tabs').innerHTML=TASKS.map((t,i)=>`<button class="tab${t.kind==='s'?' sv':''}" data-i="${i}">${t.num}</button>`).join('');
+  $('tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){cur=+b.dataset.i;render()}}}
+function markTabs(){[...$('tabs').children].forEach((b,i)=>{b.classList.toggle('act',i===cur);b.classList.toggle('done',!!DONE[TASKS[i].id])});
+  const a=$('tabs').children[cur];if(a&&a.scrollIntoView)a.scrollIntoView({block:'nearest',inline:'center'})}
+
+/* ---------- відображення завдання ---------- */
+function render(){
+  const t=TASKS[cur],s=ts(t),solve=t.kind==='s';
+  markTabs();
+  let h=`<div class="cols${s.fig?' showfig':''}"><div class="lcol">`;
+  h+=`<div class="thead"><span class="badge">№ ${t.num}</span><span class="kind ${solve?'sv':'qk'}">${solve?'З розв’язанням':'Усно · вибір відповіді'}</span></div>`;
+  h+=`<div class="cond">${fm(t.cond)}</div>`;
+  h+=`<div class="btnrow">`;
+  if(solve)h+=`<button class="btn" onclick="togDG()">Дано / Знайти</button>`;
+  h+=`<button class="btn" onclick="togFig()">${s.fig?'Сховати рисунок':'Показати рисунок'}</button>`;
+  if(solve&&s.steps===0)h+=`<button class="btn pri" onclick="nextStep()">Розв’язання</button>`;
+  h+=`</div>`;
+  if(solve){
+    h+=`<div class="dgpanel"${s.dg?'':' hidden'}><div><span class="k">Дано:</span>${fm(t.dado)}</div><div><span class="k">Знайти:</span>${fm(t.find)}</div></div>`;
+    if(s.steps)h+=`<div class="workbox">`;
+    t.steps.forEach((st,i)=>{h+=`<div class="step${i===t.steps.length-1?' ans':''}${i>=s.steps?' hid':''}"><span class="n">${i+1}</span><span>${fm(st)}</span></div>`});
+    if(s.steps&&s.steps<t.steps.length)h+=`<button class="arrow" onclick="nextStep()" aria-label="Наступний крок">↓</button>`;
+    if(s.steps)h+=`</div>`;
+  }else if(t.yn){
+    /* відповіді так / ні під рисунком */
+    h=`<div class="thead"><span class="badge">№ ${t.num}</span><span class="kind qk">Усно · так чи ні</span></div><div class="cond">${fm(t.cond)}</div>`;
+    h+=`<div class="ynw"><div class="figbox">${t.fig(s.solved?1:0)}</div><div class="yngrid">`;
+    ['а','б','в'].forEach((l,i)=>{
+      const cls=s.solved?'ok':(s.yb.includes(i)?'bad':'');
+      h+=`<div class="yncell"><span>${l})</span><select ${s.solved?'disabled':''} class="${cls}" onchange="setYn(${i},this.value)"><option value="">—</option><option value="так"${s.ans[i]==='так'?' selected':''}>так</option><option value="ні"${s.ans[i]==='ні'?' selected':''}>ні</option></select></div>`});
+    h+=`</div></div>`;
+    if(!s.solved)h+=`<div class="chk"><button class="btn pri" onclick="checkYn()">Перевірити</button></div>`;
+    if(s.solved)h+=`<div class="exp ok">Правильно! ${fm(t.exp)}</div>`;
+    else if(s.msg)h+=`<div class="exp bad">${s.msg}</div>`;
+    $('bodyw').innerHTML=h;$('bodyw').scrollTop=0;
+    $('prevBtn').disabled=cur===0;$('nextBtn').disabled=cur===TASKS.length-1;
+    updFoot();fit();return;
+  }else{
+    h+=`<div class="opts${t.multi?' multi':''}">`;
+    t.opts.forEach((o,i)=>{
+      let c='opt';
+      if(t.multi){
+        if(s.solved){c+=t.okm.includes(i)?' ok dis':' dis'}
+        else{if(s.pick.includes(i))c+=' sel';if(s.bad.includes(i))c+=' bad'}
+      }else{
+        if(s.solved){c+=i===t.ok?' ok dis':' dis'}
+        else if(s.wrong.includes(i))c+=' bad dis';
+      }
+      h+=`<button class="${c}" onclick="pick(${i})"><span class="l">${LET[i]}</span><span>${fm(o)}</span></button>`;
+    });
+    h+=`</div>`;
+    if(t.multi&&!s.solved)h+=`<div class="chk"><button class="btn pri" onclick="checkMulti()">Перевірити</button></div>`;
+    if(s.solved)h+=`<div class="exp ok">Правильно! ${fm(t.exp)}</div>`;
+    else if(s.msg)h+=`<div class="exp bad">${s.msg}</div>`;
+  }
+  h+=`</div><div class="figcol"><div class="figbox">${t.fig(solve?s.steps:(s.solved?1:0))}</div></div></div>`;
+  $('bodyw').innerHTML=h;
+  $('bodyw').scrollTop=0;
+  $('prevBtn').disabled=cur===0;$('nextBtn').disabled=cur===TASKS.length-1;
+  updFoot();fit();
+}
+function setYn(i,v){const s=ts(TASKS[cur]);s.ans[i]=v;s.yb=s.yb.filter(k=>k!==i);s.msg='';const sel=document.querySelectorAll('.yncell select')[i];if(sel)sel.classList.remove('bad')}
+function checkYn(){
+  const t=TASKS[cur],s=ts(t);
+  if(s.ans.some(a=>!a)){s.msg='Оберіть відповідь «так» або «ні» під кожним рисунком.';render();return}
+  const bad=[];s.ans.forEach((a,i)=>{if(a!==t.yn[i])bad.push(i)});
+  if(!bad.length){s.solved=true;s.msg='';s.yb=[];DONE[t.id]=1;save()}
+  else{s.yb=bad;s.msg='Неправильно. Спробуйте інший варіант.'}
+  render();
+}
+function togDG(){const s=ts(TASKS[cur]);s.dg=!s.dg;render()}
+function togFig(){const s=ts(TASKS[cur]);s.fig=!s.fig;render()}
+function nextStep(){const t=TASKS[cur],s=ts(t);if(s.steps<t.steps.length){s.steps++;s.fig=true;if(s.steps===t.steps.length){s.solved=true;DONE[t.id]=1;save()}render()}}
+function pick(i){
+  const t=TASKS[cur],s=ts(t);if(s.solved)return;
+  if(t.multi){const k=s.pick.indexOf(i);if(k>=0)s.pick.splice(k,1);else s.pick.push(i);s.bad=[];s.msg='';render();return}
+  if(i===t.ok){s.solved=true;s.msg='';DONE[t.id]=1;save()}
+  else{if(!s.wrong.includes(i))s.wrong.push(i);s.msg='Неправильно. Спробуйте інший варіант.'}
+  render();
+}
+function checkMulti(){
+  const t=TASKS[cur],s=ts(t);
+  const bad=s.pick.filter(i=>!t.okm.includes(i)),miss=t.okm.filter(i=>!s.pick.includes(i));
+  if(!bad.length&&!miss.length){s.solved=true;s.msg='';DONE[t.id]=1;save()}
+  else{s.bad=bad;s.pick=s.pick.filter(i=>!bad.includes(i));s.msg=bad.length?'Неправильно: червоні варіанти неможливі. Спробуйте ще.':'Не все. Є ще можливі варіанти.'}
+  render();
+}
+$('prevBtn').onclick=()=>{if(cur>0){cur--;render()}};
+$('nextBtn').onclick=()=>{if(cur<TASKS.length-1){cur++;render()}};
+
+/* ---------- підбір розміру тексту під екран ---------- */
+function fit(){
+  const root=document.documentElement,card=$('card'),b=$('bodyw');
+  card.classList.add('measure');
+  let px=Math.min(34,Math.max(16,Math.min(innerWidth*0.022,innerHeight*0.045)));
+  root.style.fontSize=px+'px';
+  let g=0;while(b.scrollHeight>b.clientHeight+1&&px>12&&g++<80){px-=0.5;root.style.fontSize=px+'px'}
+  card.classList.remove('measure');
+}
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(!$('lesson').hidden)fit()},120)});
+
+/* ---------- виклик учнів ---------- */
+let rollT;
+function curId(){return TASKS[cur].id}
+function callS(skip){
+  if(!S.students.length){$('who').textContent='Список порожній';return}
+  const id=curId();
+  if(!S.pool.length){S.pool=S.students.slice();S.round++}
+  const k=Math.floor(Math.random()*S.pool.length),name=S.pool.splice(k,1)[0];
+  S.called[id]=name;save();
+  const el=$('who');let n=0;clearInterval(rollT);
+  $('callBtn').disabled=true;$('skipBtn').disabled=true;
+  rollT=setInterval(()=>{el.textContent=S.students[Math.floor(Math.random()*S.students.length)];
+    if(++n>10){clearInterval(rollT);el.textContent=name;$('callBtn').disabled=false;$('skipBtn').disabled=false;updFoot()}},70);
+}
+$('callBtn').onclick=()=>callS();
+$('skipBtn').onclick=()=>{const id=curId(),prev=S.called[id];callS();if(prev&&prev!==S.called[id]&&!S.pool.includes(prev))S.pool.push(prev);save()};
+function updFoot(){
+  const id=curId(),n=S.called[id];
+  if(!$('callBtn').disabled)$('who').textContent=n||'';
+  $('skipBtn').hidden=!n;
+  const tk=$('tick');tk.disabled=!n;tk.checked=!!n&&S.credits.some(c=>c.t===id&&c.n===n);
+}
+$('tick').onchange=function(){
+  const id=curId(),n=S.called[id];if(!n){this.checked=false;return}
+  const i=S.credits.findIndex(c=>c.t===id&&c.n===n);
+  if(this.checked&&i<0)S.credits.push({t:id,n});
+  if(!this.checked&&i>=0)S.credits.splice(i,1);
+  save();
+};
+
+/* ---------- ключ вчителя (код 8019) ---------- */
+function openModal(id){$(id).classList.add('on')}
+function closeModal(id){$(id).classList.remove('on')}
+$('key').onclick=()=>{$('codeIn').value='';$('codeErr').textContent='';openModal('codeModal');setTimeout(()=>$('codeIn').focus(),50)};
+$('codeCancel').onclick=()=>closeModal('codeModal');
+function tryCode(){
+  if($('codeIn').value.trim()==='8019'){closeModal('codeModal');showRes()}
+  else{$('codeErr').textContent='Неправильний код';$('codeIn').value=''}
+}
+$('codeOk').onclick=tryCode;
+$('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')tryCode()});
+function labelOf(id){const t=TASKS.find(x=>x.id===id);return t?t.num:id}
+function showRes(){
+  let total=0;
+  const rows=S.students.map(n=>{const ids=S.credits.filter(c=>c.n===n).map(c=>c.t);total+=ids.length;return `<tr><td>${esc(n)}</td><td class="k">${ids.length}</td><td>${ids.map(labelOf).join(', ')||'—'}</td></tr>`}).join('');
+  const rest=S.pool.length?esc(S.pool.join(', ')):'—';
+  $('resBody').innerHTML=`<table class="res"><tr><th>Учень</th><th>Балів</th><th>Завдання</th></tr>${rows||'<tr><td colspan="3">Список учнів порожній</td></tr>'}</table>
+   <div class="small">Усього зараховано: <b>${total}</b>. Коло викликів: ${S.round||0}. Ще не викликані в цьому колі: ${rest}</div>`;
+  $('rosterEd').value=S.students.join('\n');$('rosterMsg').textContent='';
+  $('wipe').textContent='Очистити все';$('wipe').dataset.sure='';
+  openModal('resModal');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+$('saveRoster').onclick=()=>{applyRoster(parseList($('rosterEd').value));save();$('names').value=S.students.join('\n');updCnt();showRes();$('rosterMsg').textContent='Список збережено';updFoot()};
+$('resClose').onclick=()=>closeModal('resModal');
+$('newRound').onclick=()=>{S.pool=[];save();showRes()};
+$('wipe').onclick=function(){
+  if(!this.dataset.sure){this.dataset.sure='1';this.textContent='Точно очистити?';return}
+  try{localStorage.removeItem(KEY)}catch(e){}
+  S.students=[];S.pool=[];S.round=0;S.credits=[];S.called={};for(const k in DONE)delete DONE[k];for(const k in TS)delete TS[k];
+  closeModal('resModal');$('lesson').hidden=true;$('start').hidden=false;$('contBtn').hidden=true;$('names').value=loadRoster().join('\n');updCnt();
+};
+</script>
+
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; } 
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body>
+</html>
