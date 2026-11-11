@@ -90,6 +90,7 @@ button{font-family:inherit;cursor:pointer}
 .res{max-width:520px;margin:2vh auto 0;background:#fff;border:2px solid var(--line);border-radius:18px;padding:18px 16px;text-align:center}
 .res .nm{font-size:20px;font-weight:800;color:var(--acc);margin-bottom:8px}
 .res .big{font-size:clamp(28px,8vw,40px);font-weight:800;color:var(--acc);line-height:1.15}
+.res .lbl{font-size:15px;font-weight:700;color:var(--muted);margin-top:10px}
 .res .big2{font-size:clamp(28px,8vw,40px);font-weight:800;color:var(--accent);line-height:1.2;margin-bottom:12px}
 .shot{background:var(--plate);border:2px dashed var(--line2);border-radius:12px;padding:10px 12px;font-weight:700;margin-bottom:14px}
 .btns{display:flex;gap:10px;flex-wrap:wrap}
@@ -169,6 +170,7 @@ const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
 const pick=arr=>arr[Math.floor(rnd()*arr.length)];
 function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const gcd=(a,b)=>b?gcd(b,a%b):a;
+const grade100=(score,max)=>Math.round(score/max*100);   // оцінка за 100-бальною шкалою
 function primes(n){const r=[];for(let p=2;p*p<=n;p++){while(n%p===0){r.push(p);n/=p}}if(n>1)r.push(n);return r}
 function coprime(q,lo,hi){for(let t=0;t<500;t++){const a=ri(lo,hi);if(gcd(a,q)===1)return a}return 1}
 function pl(n,f){const m=n%100,d=n%10;if(m>=11&&m<=14)return f[2];if(d===1)return f[0];if(d>=2&&d<=4)return f[1];return f[2]}
@@ -373,8 +375,8 @@ function screenPre(){
     (miss?'<div class="warn">Ви не завершили '+miss+' '+pl(miss,['завдання','завдання','завдань'])+'. Натисніть на номер, щоб до нього повернутися.</div>':'')+'</div>';
 }
 function screenResult(){
-  const pct=Math.round(S.score/N*100);
-  return '<div class="res"><div class="nm">'+esc(sur+' '+nam)+'</div><div class="big">'+fmtNum(S.score)+' з '+N+' балів</div><div class="big2">'+pct+' %</div>'+
+  const g=grade100(S.score,N);
+  return '<div class="res"><div class="nm">'+esc(sur+' '+nam)+'</div><div class="big">'+fmtNum(S.score)+' з '+N+' правильних відповідей</div><div class="lbl">Оцінка за 100-бальною шкалою</div><div class="big2">'+g+' з 100</div>'+
     '<div class="shot">Зробіть скріншот результату та надішліть його вчителю</div>'+
     '<div class="btns"><button type="button" class="btn" data-act="errors">Дивитись помилки</button><button type="button" class="btn sec" data-act="again">Пройти ще раз</button></div></div>';
 }
@@ -461,7 +463,7 @@ function finish(){
     id:now+'_'+Math.random().toString(36).slice(2,8),
     name:sur+' '+nam,surname:sur,firstName:nam,
     ts:now,date:new Date(now).toISOString(),
-    score:S.score,max:N,percent:Math.round(S.score/N*100),tasks:S.marks.slice(),
+    score:S.score,max:N,percent:Math.round(S.score/N*100),grade100:grade100(S.score,N),tasks:S.marks.slice(),
     qtext:S.tasks.map(t=>t.qtext),
     answers:S.tasks.map((t,k)=>ansLabel(t,S.ans[k])),
     correct:S.tasks.map(t=>t.show),
@@ -503,6 +505,7 @@ document.addEventListener('keydown',e=>{
 /* ===================== Журнал учителя ===================== */
 const jr=$('jr');let JR=[];
 const mmss=s=>(s==null||isNaN(s))?'—':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const g100=r=>r.grade100!=null?r.grade100:(r.max?grade100(r.score,r.max):null);   // у старих записів без поля рахуємо з балу
 function fdate(ts){if(!ts)return'—';const d=new Date(ts),p=x=>String(x).padStart(2,'0');return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes())}
 function openJournal(){
   jr.hidden=false;
@@ -522,16 +525,16 @@ async function jLoad(){
   try{JR=await loadResults()}catch(e){m.className='jmsg e';m.textContent='Не вдалося підключитися до бази результатів';return}
   m.textContent='Записів: '+JR.length;
   const mx=Math.max(0,...JR.map(r=>r.max||0));
-  let h='<table class="jt"><thead><tr><th>№</th><th>Прізвище та ім\'я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>';
+  let h='<table class="jt"><thead><tr><th>№</th><th>Прізвище та ім\'я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Оцінка (100)</th>';
   for(let k=1;k<=mx;k++)h+='<th>'+k+'</th>';
   h+='</tr></thead><tbody>';
   JR.forEach((r,i)=>{
     const fast=r.durationSec!=null&&r.durationSec<120,lv=r.leaves!=null?r.leaves:null;
     h+='<tr><td>'+(i+1)+'</td><td class="nm" data-d="'+i+'">'+esc(r.name||'')+'</td><td>'+fdate(r.ts)+'</td><td'+(fast?' class="r" title="Дуже швидко"':'')+'>'+mmss(r.durationSec)+'</td>'+
-      '<td'+(lv!=null&&lv>=3?' class="r"':'')+' title="'+(r.awaySec!=null?'Поза вікном: '+mmss(r.awaySec):'')+'">'+(lv==null?'—':lv)+'</td><td><b>'+fmtNum(r.score)+'/'+r.max+'</b></td>';
+      '<td'+(lv!=null&&lv>=3?' class="r"':'')+' title="'+(r.awaySec!=null?'Поза вікном: '+mmss(r.awaySec):'')+'">'+(lv==null?'—':lv)+'</td><td><b>'+fmtNum(r.score)+'/'+r.max+'</b></td><td><b>'+(g100(r)==null?'—':g100(r))+'</b></td>';
     for(let k=0;k<mx;k++){const v=r.tasks?r.tasks[k]:undefined;
       h+='<td'+(v===1?' class="g">✓':v===0.5?' class="h" title="Дріб не скорочено або не виділено цілу частину">½':v===0?' class="r">✗':'>—')+'</td>'}
-    h+='</tr><tr class="det" id="det'+i+'" hidden><td colspan="'+(6+mx)+'">'+(r.qtext||[]).map((q,k)=>'<div><b>'+(k+1)+'.</b> '+frText(q||'')+' — відповідь: <b>'+esc((r.answers&&r.answers[k])||'—')+'</b>; правильно: <b>'+esc((r.correct&&r.correct[k])||'—')+'</b></div>').join('')+'</td></tr>';
+    h+='</tr><tr class="det" id="det'+i+'" hidden><td colspan="'+(7+mx)+'">'+(r.qtext||[]).map((q,k)=>'<div><b>'+(k+1)+'.</b> '+frText(q||'')+' — відповідь: <b>'+esc((r.answers&&r.answers[k])||'—')+'</b>; правильно: <b>'+esc((r.correct&&r.correct[k])||'—')+'</b></div>').join('')+'</td></tr>';
   });
   h+='</tbody></table>';w.innerHTML=h;
   w.querySelectorAll('td.nm').forEach(td=>td.onclick=()=>{const d=$('det'+td.getAttribute('data-d'));d.hidden=!d.hidden});
@@ -539,11 +542,11 @@ async function jLoad(){
 function jCsv(){
   const mx=Math.max(0,...JR.map(r=>r.max||0));
   const q=s=>{s=String(s==null?'':s);return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-  const head=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал'];
+  const head=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка (100)'];
   for(let k=1;k<=mx;k++)head.push('Завд. '+k);
   const lines=[head.join(';')];
   JR.forEach(r=>{
-    const row=[r.name,fdate(r.ts),r.durationSec!=null?mmss(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?mmss(r.awaySec):'',fmtNum(r.score)+'/'+r.max];
+    const row=[r.name,fdate(r.ts),r.durationSec!=null?mmss(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?mmss(r.awaySec):'',fmtNum(r.score)+'/'+r.max,g100(r)==null?'':g100(r)];
     for(let k=0;k<mx;k++){const v=r.tasks?r.tasks[k]:undefined;row.push(v===1?'+':v===0.5?'0,5':v===0?'-':'')}
     lines.push(row.map(q).join(';'));
   });
