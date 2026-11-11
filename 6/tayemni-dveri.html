@@ -199,6 +199,46 @@ footer.sign{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"S
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}
 }
+
+/* ---------- ім'я учня на старті ---------- */
+.who{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;margin:.1rem 0 0}
+.who label{display:flex;flex-direction:column;gap:.15rem;text-align:left;font-weight:900;font-size:.9rem;color:var(--main)}
+.who input{width:12rem;max-width:42vw;min-width:9rem;border:2px solid var(--line2);border-radius:.7rem;background:#fff;color:var(--ink);font:800 max(16px,1.15rem) var(--font);padding:.35rem .7rem;min-height:max(2.6rem,44px)}
+.who input:focus{outline:3px solid var(--acc);outline-offset:1px;border-color:var(--acc)}
+.werr{min-height:1.2rem;font-weight:800;font-size:.95rem;color:var(--badtx)}
+.start form{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin:0}
+@media (max-height:700px){.start svg{width:4.4rem;height:5.3rem}.start{gap:.45rem}.start h1{font-size:2.4rem}}
+
+/* ---------- ключик учителя і журнал ---------- */
+#tkey{position:fixed;left:2px;bottom:2px;z-index:50;width:26px;height:26px;padding:0;border:0;border-radius:6px;background:transparent;font-size:15px;line-height:26px;cursor:pointer;opacity:.1}
+#tkey:hover,#tkey:focus-visible{opacity:.6}
+#jr{position:fixed;inset:0;z-index:2147483300;background:rgba(67,20,7,.45);display:flex;align-items:center;justify-content:center;padding:max(8px,env(safe-area-inset-top,0px)) 8px 8px}
+#jr .jbox{background:#fff;border:2px solid var(--line2);border-radius:1rem;width:min(100%,78rem);max-height:94%;display:flex;flex-direction:column;gap:.5rem;padding:.8rem 1rem;min-height:0}
+#jr h2{margin:0;font-size:1.4rem;font-weight:900;color:var(--main)}
+#jr .jbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+#jr .jbar .btn{min-height:max(2.2rem,40px);font-size:.95rem;padding:.2rem 1rem}
+#jr .jbar .sp{flex:1}
+#jr .jpass{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+#jr .jpass input{font:800 max(16px,1.1rem) var(--font);border:2px solid var(--line2);border-radius:.6rem;padding:.3rem .6rem;width:9rem;min-height:44px}
+#jr .jerr{color:var(--badtx);font-weight:800}
+#jr .jsum{font-weight:800;color:var(--muted);font-size:.95rem}
+#jr .jwrap{overflow:auto;min-height:0;border:1.5px solid var(--line);border-radius:.6rem}
+.jt{border-collapse:collapse;width:100%;font-size:.85rem;font-weight:700}
+.jt th,.jt td{border-bottom:1px solid var(--line);padding:.25rem .4rem;text-align:center;white-space:nowrap}
+.jt th{position:sticky;top:0;background:var(--hdr);color:var(--main);font-weight:900;z-index:1}
+.jt td.nm{text-align:left;cursor:pointer;font-weight:900;color:var(--main);text-decoration:underline dotted}
+.jt tr.part td{color:var(--muted)}
+.jt .rd{color:var(--badtx);font-weight:900}
+.jt .gd{color:var(--oktx);font-weight:900}
+.jt .nr{color:#c4a58f}
+.jt .er{display:inline-block;min-width:1.3em;border-radius:999px;background:var(--badbg);color:var(--badtx);border:1px solid var(--badln);font-weight:900;padding:0 .25em}
+.jt tr.det td{text-align:left;white-space:normal;background:var(--bg);padding:.5rem .8rem}
+.jt .dr{padding:.25rem 0;border-bottom:1px dashed var(--line)}
+.jt .dr:last-child{border-bottom:0}
+.jt .dr b{color:var(--main)}
+.jt .wa{color:var(--badtx);font-weight:900}
+.jt .ca{color:var(--oktx);font-weight:900}
+.jlegend{font-size:.8rem;color:var(--muted);font-weight:700}
 </style>
 </head>
 <body>
@@ -220,7 +260,14 @@ footer.sign{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"S
       <h1>Таємні двері</h1>
       <p>У лабіринті сховані двері, які ще ніхто не відчиняв. Розв’язуй завдання в кімнатах, збирай літери шифру й знайди ключ до центрального замка.</p>
       <div class="meta">12 кімнат · дроби, мішані числа, десяткові дроби, вирази · бажано з увімкненим звуком</div>
-      <button class="btn big" id="go" type="button">Увійти в лабіринт ▶</button>
+      <form id="who" autocomplete="off" novalidate>
+        <div class="who">
+          <label>Прізвище<input id="nmS" type="text" maxlength="40" autocomplete="off" autocapitalize="words" spellcheck="false" autofocus></label>
+          <label>Ім’я<input id="nmF" type="text" maxlength="40" autocomplete="off" autocapitalize="words" spellcheck="false"></label>
+        </div>
+        <div class="werr" id="werr" role="alert"></div>
+        <button class="btn big" id="go" type="submit">Увійти в лабіринт ▶</button>
+      </form>
     </div>
   </section>
 
@@ -288,6 +335,33 @@ footer.sign{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"S
   </section>
 
   <footer class="sign">Автор розробки <b>Ковтун Тетяна</b></footer>
+  <button id="tkey" type="button" aria-label="Журнал учителя" title="">🔑</button>
+  <div id="jr" hidden>
+    <div class="jbox" role="dialog" aria-label="Журнал учителя">
+      <div id="jpass" class="jpass">
+        <h2>Журнал учителя</h2>
+        <input id="jpw" type="password" inputmode="numeric" autocomplete="off" aria-label="Пароль">
+        <button class="btn" id="jok" type="button">Відкрити</button>
+        <button class="btn sec" id="jx1" type="button">Закрити</button>
+        <span class="jerr" id="jerr1"></span>
+      </div>
+      <div id="jmain" hidden style="display:flex;flex-direction:column;gap:.5rem;min-height:0">
+        <h2>Таємні двері — результати</h2>
+        <div class="jbar">
+          <button class="btn" id="jref" type="button">Оновити</button>
+          <button class="btn sec" id="jcsv" type="button">Завантажити CSV</button>
+          <button class="btn sec" id="jclr" type="button">Очистити</button>
+          <span id="jconf" hidden><span class="jerr">Видалити всі записи?</span>
+            <button class="btn" id="jyes" type="button">Так</button><button class="btn sec" id="jno" type="button">Ні</button></span>
+          <span class="sp"></span>
+          <button class="btn sec" id="jx2" type="button">Закрити</button>
+        </div>
+        <div class="jsum" id="jsum"></div>
+        <div class="jwrap" id="jtab"></div>
+        <div class="jlegend">У клітинках кімнат: ✓ — з першої спроби; червоне число — скільки було помилок до правильної відповіді; · — кімнату ще не пройдено. Натисніть на прізвище, щоб побачити, де саме помилявся.</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -571,6 +645,114 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
   var $=function(s){return document.querySelector(s)};
   var S,doorTimer=0,lastPh=-1,away=false;
 
+  /* ----- збір результатів: Firebase (проєкт math-5-892a5) ----- */
+  const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
+  const APP_ID='default-app-id', COLLECTION='results_tayemni_dveri_6', TEACHER_PASSWORD='8019', FBV='10.12.2', TEST_NAME='Таємні двері (6 клас)';
+  let fbPromise=null;
+  function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); await authM.signInAnonymously(authM.getAuth(app)); return {db:fs.getFirestore(app),fs}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+  const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+  async function saveResult(rec){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}catch(e){console.warn('Save failed',e)} }
+  async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
+  async function clearResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); await Promise.all(snap.docs.map(d=>fs.deleteDoc(d.ref))); }
+  fb().catch(()=>{});
+
+  var NAME={s:'',f:''},saveT=0,awayAt=0;
+  var CL={wrong:'неправильно',reduce:'не скорочено',whole:'не виділено цілу частину',half:'не заповнено чисельник чи знаменник',zero:'знаменник 0',intonly:'зайвий дріб біля цілого числа'};
+  function plain(h){return String(h).replace(/<span class="nu">(.*?)<\/span><span class="de">(.*?)<\/span>/g,' $1/$2 ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim()}
+  function fmtAns(v){var p=[];if(v.w)p.push(v.w);if(v.n||v.d)p.push((v.n||'?')+'/'+(v.d||'?'));return p.join(' ')||'—'}
+  function fmtOk(f){var m=toMixed(f);if(m.n===0)return String(m.w);return (m.w?m.w+' ':'')+m.n+'/'+m.d}
+  function record(){
+    var done=0,tasks=[];
+    S.log.forEach(function(g,i){
+      if(g.ok)done++;
+      tasks.push({r:i+1,q:g.q,ok:!!g.ok,att:g.att,wr:g.wr,hn:g.hn,sec:g.sec||0,correct:g.cor});
+    });
+    return {id:S.id,name:S.surname+' '+S.first,surname:S.surname,firstName:S.first,ts:S.t0,date:new Date(S.t0).toISOString(),upd:Date.now(),
+      finished:!!S.done,roomsDone:done,rooms:ROOMS,durationSec:S.done?S.dur:Math.round((Date.now()-S.t0)/1000),
+      leaves:S.leaves,awaySec:Math.round(S.awaySec),hints:S.hints,mistakes:S.mist,phrase:S.ph.w.join(' '),test:TEST_NAME,tasks:tasks};
+  }
+  function queueSave(now){
+    clearTimeout(saveT);
+    if(!S)return;
+    if(now)saveResult(record());else saveT=setTimeout(function(){if(S)saveResult(record())},700);
+  }
+
+  /* ----- журнал учителя (ключик, пароль 8019) ----- */
+  var JR=[];
+  function esc(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function z2(n){return ('0'+n).slice(-2)}
+  function fmtT(sec){sec=Math.max(0,Math.round(sec||0));return Math.floor(sec/60)+':'+z2(sec%60)}
+  function fmtD(ts){var d=new Date(ts);return z2(d.getDate())+'.'+z2(d.getMonth()+1)+'.'+d.getFullYear()+' '+z2(d.getHours())+':'+z2(d.getMinutes())}
+  function jrDetail(r){
+    var h='<div class="dr">Фраза: <b>'+esc(r.phrase||'—')+'</b> · поза вікном: '+fmtT(r.awaySec)+' · '+(r.finished?'гру пройдено до кінця':'гру не завершено')+'</div>';
+    var clean=[],T=r.tasks||[];
+    T.forEach(function(t){
+      if(!t.att&&!t.hn&&t.ok){clean.push(t.r);return}
+      h+='<div class="dr"><b>Кімната '+t.r+'</b> · '+(t.ok?'розв’язано':'не розв’язано')+' · спроб з помилкою: '+(t.att||0)+' · підказок: '+(t.hn||0)+' · час: '+fmtT(t.sec)+
+        '<br>Завдання: '+esc(t.q||'')+'<br>Правильно: <span class="ca">'+esc(t.correct||'')+'</span>';
+      if(t.wr&&t.wr.length)h+='<br>Відповіді учня: '+t.wr.map(function(w){return '<span class="wa">'+esc(w.a)+'</span>'+(w.c&&CL[w.c]?' <small>('+CL[w.c]+')</small>':'')}).join('; ');
+      h+='</div>';
+    });
+    if(clean.length)h+='<div class="dr">Без помилок і підказок: кімнати '+clean.join(', ')+'.</div>';
+    return h;
+  }
+  function jrRender(){
+    var fin=JR.filter(function(r){return r.finished}).length;
+    $('#jsum').textContent='Записів: '+JR.length+' · дійшли до кінця: '+fin;
+    if(!JR.length){$('#jtab').innerHTML='<p style="padding:.6rem;margin:0;font-weight:800;color:var(--muted)">Поки що записів немає.</p>';return}
+    var h='<table class="jt"><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Помилок</th><th>Підказок</th><th>Кімнат</th>';
+    for(var i=1;i<=ROOMS;i++)h+='<th>'+i+'</th>';
+    h+='</tr></thead><tbody>';
+    JR.forEach(function(r,ix){
+      var fast=r.finished&&r.durationSec<360,lv=(r.leaves||0)>=3;
+      h+='<tr class="'+(r.finished?'':'part')+'"><td>'+(ix+1)+'</td><td class="nm" data-i="'+ix+'">'+esc(r.name||'—')+'</td><td>'+fmtD(r.ts)+'</td>'+
+        '<td class="'+(fast?'rd':'')+'">'+fmtT(r.durationSec)+'</td><td class="'+(lv?'rd':'')+'">'+(r.leaves||0)+'</td><td>'+(r.mistakes||0)+'</td><td>'+(r.hints||0)+'</td><td>'+(r.roomsDone||0)+'/'+(r.rooms||ROOMS)+'</td>';
+      for(var k=0;k<ROOMS;k++){
+        var t=(r.tasks||[])[k];
+        if(!t||!t.ok&&!t.att)h+='<td class="nr">·</td>';
+        else if(t.att)h+='<td><span class="er" title="Помилок: '+t.att+'">'+t.att+'</span></td>';
+        else h+='<td class="gd">✓</td>';
+      }
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    $('#jtab').innerHTML=h;
+  }
+  function jrLoad(){
+    $('#jsum').textContent='Завантаження…';
+    loadResults().then(function(l){JR=l;jrRender()}).catch(function(){
+      $('#jsum').textContent='';$('#jtab').innerHTML='<p style="padding:.6rem;margin:0;font-weight:800;color:var(--badtx)">Не вдалося підключитися до бази результатів.</p>';
+    });
+  }
+  function csvCell(v){v=String(v==null?'':v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+  function jrCsv(){
+    var head=['№','Прізвище','Ім’я','Дата','Час (хв:с)','Виходів','Поза вікном (с)','Помилок','Підказок','Кімнат','Завершено','Фраза'];
+    for(var i=1;i<=ROOMS;i++)head.push('К'+i);
+    head.push('Де помилявся');
+    var rows=[head];
+    JR.forEach(function(r,ix){
+      var row=[ix+1,r.surname||'',r.firstName||'',fmtD(r.ts),fmtT(r.durationSec),r.leaves||0,r.awaySec||0,r.mistakes||0,r.hints||0,(r.roomsDone||0)+'/'+(r.rooms||ROOMS),r.finished?'так':'ні',r.phrase||''];
+      var det=[];
+      for(var k=0;k<ROOMS;k++){
+        var t=(r.tasks||[])[k];
+        if(!t||!t.ok&&!t.att)row.push('.');else if(t.att)row.push('-'+t.att);else row.push('+');
+        if(t&&t.att)det.push('К'+t.r+' ('+(t.q||'')+'; правильно '+(t.correct||'')+'): '+(t.wr||[]).map(function(w){return w.a+(w.c&&CL[w.c]?' ['+CL[w.c]+']':'')}).join(', '));
+      }
+      row.push(det.join(' | '));rows.push(row);
+    });
+    var txt='﻿'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv;charset=utf-8'}));
+    a.download='tayemni-dveri-rezultaty.csv';document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+  }
+  function jrOpen(){$('#jr').hidden=false;$('#jpass').hidden=false;$('#jmain').hidden=true;$('#jerr1').textContent='';$('#jpw').value='';setTimeout(function(){$('#jpw').focus()},30)}
+  function jrClose(){$('#jr').hidden=true;$('#jpw').value='';$('#jconf').hidden=true;$('#jclr').hidden=false}
+  function jrEnter(){
+    if($('#jpw').value.trim()===TEACHER_PASSWORD){$('#jpass').hidden=true;$('#jmain').hidden=false;jrLoad()}
+    else{$('#jerr1').textContent='Невірний пароль';$('#jpw').select()}
+  }
+
+
   /* ----- звук: коротка мелодія й «дзвіночок», створені прямо в сторінці ----- */
   var AC=null,muted=false,master=null;
   function initAudio(){
@@ -630,7 +812,10 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
     lastPh=i;
     S={i:0,mist:0,hints:0,leaves:0,t0:Date.now(),solved:false,hl:0,act:'w',v:{w:'',n:'',d:''},tasks:[],done:false,ph:PHRASES[i]};
     S.lets=lettersOf(S.ph);
-    for(var r=0;r<ROOMS;r++)S.tasks.push(makeTask(r));
+    S.id='td'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    S.surname=NAME.s;S.first=NAME.f;S.awaySec=0;S.dur=0;S.log=[];
+    for(var r=0;r<ROOMS;r++){var tk=makeTask(r);S.tasks.push(tk);
+      S.log.push({q:(plain(tk.title)+': '+plain(tk.html)).slice(0,300),cor:fmtOk(tk.ans),ok:false,att:0,wr:[],hn:0,sec:0,t0:0})}
     away=false;
   }
   function show(id){
@@ -722,6 +907,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
     $('#qtitle').textContent=t.title;
     $('#expr').innerHTML=t.html;
     S.v={w:'',n:'',d:''};S.act='w';S.solved=false;S.hl=0;
+    if(!S.log[S.i].t0)S.log[S.i].t0=Date.now();
     $('#fb').innerHTML='';
     $('#card').classList.remove('good');
     $('#checkBtn').textContent='Перевірити';
@@ -751,6 +937,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
     var t=S.tasks[S.i],r=check(t.ans,S.v.w,S.v.n,S.v.d);
     if(r.ok){
       S.solved=true;
+      var lg=S.log[S.i];lg.ok=true;lg.sec=Math.round((Date.now()-lg.t0)/1000);queueSave(true);
       $('#card').classList.add('good');
       var got=[];
       for(var i=0;i<S.lets.length;i++)if(revealRoom(i,S.lets.length)===S.i)got.push('«'+S.lets[i].ch+'»');
@@ -761,7 +948,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
       renderAns();updateMap();chime();
       if(S.i===ROOMS-1){clearTimeout(doorTimer);doorTimer=setTimeout(function(){if(S.solved&&!S.done)showFinale()},2200)}
     }else{
-      S.mist++;
+      if(r.code!=='empty'){S.mist++;var lw=S.log[S.i];lw.att++;if(lw.wr.length<10)lw.wr.push({a:fmtAns(S.v),c:r.code});queueSave()}
       var c=$('#card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
       var msg=BAD[r.code];
       if(r.code==='wrong'&&S.hl===0)msg+=' Можна скористатися підказкою.';
@@ -771,7 +958,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
   function onHint(){
     var t=S.tasks[S.i];
     if(S.solved||S.hl>=t.hints.length)return;
-    S.hl++;S.hints++;
+    S.hl++;S.hints++;S.log[S.i].hn++;queueSave();
     var last=S.hl>=t.hints.length;
     $('#hintBtn').textContent=last?'Підказок більше немає':'Підказка '+(S.hl+1);
     $('#hintBtn').disabled=last;
@@ -789,6 +976,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
     if(S.done)return;S.done=true;
     clearTimeout(doorTimer);
     var sec=Math.round((Date.now()-S.t0)/1000),m=Math.floor(sec/60),s=sec%60;
+    S.dur=sec;queueSave(true);
     var tm=m+' хв '+s+' с';
     var honest=S.leaves===0
       ?'Усі кімнати пройдено за '+tm+', і жодного разу не було виходу з гри. Це і є доброчесність, а вона знадобиться і в дорослому житті.'
@@ -816,17 +1004,43 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
   }
 
   /* ----- доброчесність: рахуємо виходи з вікна ----- */
-  function leave(){if(!S||S.done||$('#game').hidden)return;if(!away){away=true;S.leaves++}}
-  function comeBack(){away=false}
+  function leave(){if(!S||S.done||$('#game').hidden)return;if(!away){away=true;S.leaves++;awayAt=Date.now()}}
+  function comeBack(){if(away){away=false;if(S&&!S.done){S.awaySec+=(Date.now()-awayAt)/1000;queueSave()}}}
   document.addEventListener('visibilitychange',function(){if(document.hidden)leave();else comeBack()});
   window.addEventListener('blur',leave);
   window.addEventListener('focus',comeBack);
 
   /* ----- події ----- */
-  $('#go').addEventListener('click',function(){
+  $('#who').addEventListener('submit',function(e){
+    e.preventDefault();
+    var s=$('#nmS').value.replace(/\s+/g,' ').trim(),f=$('#nmF').value.replace(/\s+/g,' ').trim();
+    if(s.length<2){$('#werr').textContent='Впишіть прізвище.';$('#nmS').focus();return}
+    if(f.length<2){$('#werr').textContent='Впишіть ім’я.';$('#nmF').focus();return}
+    $('#werr').textContent='';NAME={s:s,f:f};
     initAudio();
-    newGame();buildCode();S.t0=Date.now();show('game');renderTask();
+    newGame();buildCode();S.t0=Date.now();show('game');renderTask();queueSave(true);
   });
+  $('#tkey').addEventListener('click',jrOpen);
+  $('#jok').addEventListener('click',jrEnter);
+  $('#jpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();jrEnter()}});
+  $('#jx1').addEventListener('click',jrClose);$('#jx2').addEventListener('click',jrClose);
+  $('#jref').addEventListener('click',jrLoad);
+  $('#jcsv').addEventListener('click',jrCsv);
+  $('#jclr').addEventListener('click',function(){$('#jclr').hidden=true;$('#jconf').hidden=false});
+  $('#jno').addEventListener('click',function(){$('#jconf').hidden=true;$('#jclr').hidden=false});
+  $('#jyes').addEventListener('click',function(){
+    clearResults().then(function(){JR=[];jrRender()}).catch(function(){$('#jsum').textContent='Не вдалося очистити базу.'});
+    $('#jconf').hidden=true;$('#jclr').hidden=false;
+  });
+  $('#jtab').addEventListener('click',function(e){
+    var td=e.target.closest('td.nm');if(!td)return;
+    var tr=td.parentNode,nx=tr.nextSibling;
+    if(nx&&nx.classList&&nx.classList.contains('det')){nx.remove();return}
+    var d=document.createElement('tr');d.className='det';
+    d.innerHTML='<td colspan="'+(8+ROOMS)+'">'+jrDetail(JR[+td.getAttribute('data-i')])+'</td>';
+    tr.parentNode.insertBefore(d,tr.nextSibling);
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#jr').hidden)jrClose()});
   $('#snd').addEventListener('click',function(){initAudio();setMute(!muted)});
   $('#pad').addEventListener('click',function(e){
     var b=e.target.closest('[data-k]');if(!b)return;
@@ -839,7 +1053,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
   $('#checkBtn').addEventListener('click',onCheck);
   $('#hintBtn').addEventListener('click',onHint);
   document.addEventListener('keydown',function(e){
-    if($('#game').hidden||e.ctrlKey||e.metaKey||e.altKey)return;
+    if($('#game').hidden||!$('#jr').hidden||e.ctrlKey||e.metaKey||e.altKey||(e.target&&e.target.tagName==='INPUT'))return;
     var k=e.key;
     if(/^[0-9]$/.test(k)){typeDigit(k);e.preventDefault()}
     else if(k==='Backspace'){back();e.preventDefault()}
