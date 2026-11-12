@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест. Правильні многокутники (9 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --acc:#1D4ED8;--acc2:#1e40af;--soft:#DBE5FF;--bg1:#EBF0FF;--bg2:#F6F8FF;--ink:#1e293b;--mut:#64748b;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warn:#f59e0b;--grid:#c9d4ea;--axis:#334155;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));overflow:hidden;font-size:17px}
+@media (min-width:1500px){body{font-size:20px}}
+i.v{font-family:'Times New Roman',Times,serif;font-style:italic;font-weight:500}
+#wrap{height:100dvh;display:flex;flex-direction:column;max-width:960px;margin:0 auto;padding:8px 12px 4px}
+#head{flex:none}
+#card{flex:1;min-height:0;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 3px 14px rgba(29,78,216,.12);padding:14px 16px}
+#nav{flex:none;display:flex;gap:10px;justify-content:space-between;padding:8px 0 4px}
+#kp{flex:none}
+#sign{flex:none;text-align:center;font-size:10px;letter-spacing:.05em;color:#94a3b8;padding:2px 0 2px}
+button{font-family:inherit;touch-action:manipulation}
+.btn{border:0;border-radius:12px;background:var(--acc);color:#fff;font-weight:800;font-size:1rem;min-height:46px;padding:0 22px;cursor:pointer}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.gh{background:#fff;color:var(--acc);border:2px solid var(--acc)}
+.btn.ok{background:var(--ok)}
+h1{font-size:1.5rem;color:var(--acc);margin:.2rem 0 .8rem;font-weight:900}
+.topbar{display:flex;align-items:center;gap:10px;margin:2px 0 6px;font-weight:800;color:var(--acc)}
+.cells{display:flex;flex-wrap:wrap;gap:5px}
+.cell{width:30px;height:30px;border-radius:8px;border:2px solid var(--soft);background:#fff;font-weight:800;font-size:.8rem;color:var(--mut);cursor:pointer;padding:0}
+.cell.ans{background:var(--acc);border-color:var(--acc);color:#fff}
+.cell.cur{border:3px solid var(--acc2);box-shadow:0 0 0 2px var(--soft)}
+.cell.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.cell.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.q{font-size:1.1rem;font-weight:700;margin:2px 0 8px;line-height:1.35}
+.math{font-size:1.2rem}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .1em}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em}
+.pw{display:inline-flex;align-items:stretch;vertical-align:middle}
+.pw .br{width:14px;min-height:56px;margin-right:6px;flex:none;overflow:visible}
+.pw .br path{fill:none;stroke:var(--acc);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.pw .rows{display:grid;grid-template-columns:auto auto;gap:2px 16px;align-items:center;text-align:left}
+.plane{width:100%;height:auto;max-height:34vh;display:block;margin:4px auto}
+.plane .gl{stroke:var(--grid);stroke-width:1}.plane .ax{stroke:var(--axis);stroke-width:1.8}
+.plane text{font-family:'Times New Roman',serif;fill:#334155}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--soft);background:#fff;border-radius:12px;min-height:46px;padding:6px 12px;text-align:left;font-weight:700;font-size:1rem;color:var(--ink);cursor:pointer}
+.opt b{color:var(--acc);margin-right:6px}
+.opt.sel{border-color:var(--acc);background:var(--soft)}
+.opt.right{border-color:var(--ok);background:var(--okbg)}.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.numrow{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.numrow input{font:inherit;font-size:1.3rem;font-weight:800;width:9em;padding:8px 12px;border:2px solid var(--soft);border-radius:12px;text-align:center}
+.numrow input:focus{outline:none;border-color:var(--acc)}
+.numrow input.right{border-color:var(--ok);background:var(--okbg)}.numrow input.wrong{border-color:var(--bad);background:var(--badbg)}
+.hint{color:var(--mut);font-size:.8rem}
+.fld{display:block;margin:8px 0}.fld span{display:block;font-weight:800;color:var(--acc);margin-bottom:3px}
+.fld input{font:inherit;font-size:1.1rem;width:100%;padding:10px 12px;border:2px solid var(--soft);border-radius:12px}
+.fld input:focus{outline:none;border-color:var(--acc)}.fld input.err{border-color:var(--bad);background:var(--badbg)}
+.msg{color:var(--bad);font-weight:800;min-height:1.3em}
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px 0}
+.kp button{min-height:46px;border:0;border-radius:10px;background:var(--soft);color:var(--acc2);font-size:1.3rem;font-weight:800;cursor:pointer;touch-action:none;user-select:none}
+.kp button:active{background:#c3d3ff}
+.match .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+.match .expr{font-size:1.15rem;min-width:9em}
+.dcell{min-width:150px;min-height:52px;border:2px dashed var(--acc);background:#F5F9FF;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:3px}
+.dcell.over{border-style:solid;background:var(--soft)}
+.dcell.right{border:2px solid var(--ok);background:var(--okbg)}.dcell.wrong{border:2px solid var(--bad);background:var(--badbg)}
+.pool{display:flex;flex-wrap:wrap;gap:8px;background:var(--soft);border:2px solid #b8c9f5;border-radius:12px;padding:10px;margin-top:10px;min-height:56px}
+.chipd{background:#fff;border:2px solid var(--acc);border-radius:10px;padding:8px 12px;font-weight:800;font-size:1.05rem;white-space:nowrap;touch-action:none;user-select:none;cursor:grab}
+.chipd.sel{box-shadow:0 0 0 3px var(--acc2)}.chipd.stat{cursor:default}
+.chipd.ghost{position:fixed;z-index:3000;pointer-events:none;opacity:.9;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.corr{color:var(--oktx);font-weight:800;font-size:.85rem;margin-top:2px}
+.corrbox{margin-top:10px;background:var(--okbg);border:2px solid var(--okln);color:var(--oktx);border-radius:10px;padding:6px 12px;font-weight:800}
+.badbox{margin-top:10px;background:var(--badbg);border:2px solid var(--badln);color:var(--badtx);border-radius:10px;padding:6px 12px;font-weight:800}
+.res{text-align:center}
+.res .nm{font-size:1.2rem;font-weight:800;color:var(--acc)}
+.res .big{font-size:2.6rem;font-weight:900;color:var(--acc);line-height:1.1;margin:6px 0 2px}
+.res .pc{font-size:2.6rem;font-weight:900;color:var(--ok);line-height:1.1;margin-bottom:10px}
+.res .shot{border:2px dashed var(--acc);background:#F5F9FF;border-radius:12px;padding:10px;margin:10px auto;max-width:30em;font-weight:800;color:var(--acc2)}
+.res .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.sumgrid{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.sumgrid .cell{width:44px;height:44px;font-size:1rem}
+.cell.empty{border-color:var(--warn);color:#b45309;background:#fff7e6}
+.row2{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+#keyb{position:fixed;top:4px;right:6px;z-index:2100;border:0;background:none;font-size:18px;opacity:.28;cursor:pointer;padding:4px 8px}
+#keyb:hover{opacity:.9}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:10px}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:16px;padding:14px 16px;width:min(980px,100%);max-height:92vh;overflow:auto}
+.mbox h3{margin:.1rem 0 .5rem;color:var(--acc)}
+.jt{border-collapse:collapse;font-size:.8rem;width:100%}
+.jt td,.jt th{border:1px solid #cbd5e1;padding:3px 6px;text-align:center;white-space:nowrap}
+.jt td.l,.jt th.l{text-align:left}.jt .nm{cursor:pointer;color:var(--acc);font-weight:800}
+.jt .r{color:var(--bad);font-weight:800}.jt .y{color:var(--ok);font-weight:800}.jt .n{color:var(--bad);font-weight:800}
+.det{text-align:left;white-space:normal;background:#f8fafc;font-size:.78rem}
+.det div{margin:2px 0}
+.opts.pics{grid-template-columns:1fr 1fr}
+.opt.pic{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px}
+.opt.pic b{align-self:flex-start;margin:0}
+.opt.pic svg{width:100%;height:auto;max-height:24vh;display:block}
+.opt .math{font-weight:700}
+sub{font-size:.7em}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="head"></div>
+  <div id="card"></div>
+  <div id="nav"></div>
+  <div id="kp"></div>
+  <div id="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+<button id="keyb" title="">🔑</button>
+<div class="modal" id="jm"><div class="mbox">
+  <h3>Журнал результатів</h3>
+  <div id="jlock"><input id="jpw" type="password" placeholder="Пароль" style="font:inherit;padding:8px 10px;border:2px solid var(--soft);border-radius:10px"> <button class="btn" id="jok" style="min-height:40px">Увійти</button> <span class="msg" id="jerr"></span></div>
+  <div id="jmain" style="display:none">
+    <div id="jtab">…</div>
+    <div class="row2"><button class="btn" id="jref" style="min-height:40px">Оновити</button><button class="btn" id="jcsv" style="min-height:40px">Завантажити CSV</button><button class="btn gh" id="jclr" style="min-height:40px;color:var(--bad);border-color:var(--bad)">Очистити</button><button class="btn gh" id="jx" style="min-height:40px">Закрити</button></div>
+    <div id="jconf" class="msg" style="margin-top:8px"></div>
+  </div>
+  <div class="row2" id="jxlock"><button class="btn gh" id="jx2" style="min-height:40px">Закрити</button></div>
+</div></div>
+
+<script>
+(function(){ "use strict";
+
+/* ================= Firebase (збір результатів) ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain: "math-5-892a5.firebaseapp.com",
+  projectId: "math-5-892a5",
+  storageBucket: "math-5-892a5.firebasestorage.app",
+  messagingSenderId: "163114803328",
+  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId: "G-E06VKZ2GP5"
+};
+const APP_ID = 'default-app-id';
+const COLLECTION = 'results_regular_polygons_9';
+const TEACHER_PASSWORD = '8019';
+const FBV = '10.12.2';
+const TEST_NAME = 'Правильні многокутники (9 клас)';
+
+let fbPromise = null;
+function fb(){
+  if(!fbPromise){
+    fbPromise = (async()=>{
+      const [appM, authM, fs] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return { db: fs.getFirestore(app), fs };
+    })();
+    fbPromise.catch(() => { fbPromise = null; });
+  }
+  return fbPromise;
+}
+const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+async function saveResult(rec){
+  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
+  catch(e){ console.warn('Save failed', e); }
+}
+async function loadResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+async function clearResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+}
+fb().catch(() => {});
+
+/* ================= Допоміжне ================= */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[].slice.call((r||document).querySelectorAll(s));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+const iv=s=>String(s).replace(/(<[^>]+>)|([a-z])/g,(m,t,l)=>t?t:'<i class="v">'+l+'</i>');
+const F=(a,b)=>'<span class="fr"><span>'+a+'</span><span>'+b+'</span></span>';
+const D='°';
+const NK='<i class="v">n</i>‑кутника';
+const intA=n=>(n-2)*180/n;            // кут правильного n‑кутника
+const CEN=[3,4,5,6,8,9,10,12,15,18,20,24,30,36];   // n, для яких 360/n ціле
+const INT=[3,4,5,6,8,9,10,12,15,18,20,24];          // n, для яких кут многокутника цілий
+const dec=x=>String(Math.round(x*100)/100).replace('.',',');
+
+/* ================= Рисунки: кути правильного многокутника ================= */
+const CX=100,CY=85,R0=46,EXT=34;
+const f1=p=>p[0].toFixed(1)+' '+p[1].toFixed(1);
+function wedge(P,u,v,r){
+  const lu=Math.hypot(u[0],u[1]),lv=Math.hypot(v[0],v[1]);
+  const a=[P[0]+r*u[0]/lu,P[1]+r*u[1]/lu],b=[P[0]+r*v[0]/lv,P[1]+r*v[1]/lv];
+  const sw=(u[0]*v[1]-u[1]*v[0])>0?1:0;
+  return 'M'+f1(P)+' L'+f1(a)+' A'+r+' '+r+' 0 0 '+sw+' '+f1(b)+' Z';
+}
+function polyGeom(n,kind){
+  const th0=-Math.PI/2+(rnd()-.5)*0.7,V=[];
+  for(let k=0;k<n;k++){const a=th0+2*Math.PI*k/n;V.push([CX+R0*Math.cos(a),CY+R0*Math.sin(a)])}
+  const O=[CX,CY],i=ri(0,n-1),P=V[i],nx=V[(i+1)%n],pv=V[(i-1+n)%n];
+  let vert,r1,r2,rad,lines='';
+  const L=(a,b,dash)=>'<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="#334155" stroke-width="1.8"'+(dash?' stroke-dasharray="5 4"':'')+' stroke-linecap="round"/>';
+  if(kind==='central'){vert=O;r1=P;r2=nx;rad=18;lines=L(O,P)+L(O,nx)}
+  else if(kind==='interior'){vert=P;r1=pv;r2=nx;rad=20}
+  else if(kind==='exterior'){
+    const w=[P[0]-pv[0],P[1]-pv[1]],lw=Math.hypot(w[0],w[1]);
+    vert=P;r1=nx;r2=[P[0]+w[0]*EXT/lw,P[1]+w[1]*EXT/lw];rad=22;lines=L(P,r2,true);
+  }else{vert=P;r1=O;r2=nx;rad=20;lines=L(P,O)}
+  const u=[r1[0]-vert[0],r1[1]-vert[1]],v=[r2[0]-vert[0],r2[1]-vert[1]];
+  const ang=Math.acos((u[0]*v[0]+u[1]*v[1])/(Math.hypot(u[0],u[1])*Math.hypot(v[0],v[1])))*180/Math.PI;
+  const svg='<svg viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<polygon points="'+V.map(f1).join(' ')+'" fill="#EBF0FF" stroke="#1D4ED8" stroke-width="2.4" stroke-linejoin="round"/>'+
+    lines+'<path d="'+wedge(vert,u,v,rad)+'" fill="rgba(245,158,11,.6)" stroke="#b45309" stroke-width="1.6"/>'+
+    '<circle cx="'+CX+'" cy="'+CY+'" r="2.8" fill="#334155"/><text x="'+(CX+5)+'" y="'+(CY-5)+'" font-family="Times New Roman,serif" font-style="italic" font-size="13" fill="#334155">O</text></svg>';
+  return {svg:svg,g:{kind:kind,n:n,i:i,V:V,O:O,vertex:vert,r1:r1,r2:r2,ang:ang}};
+}
+function classify(g){
+  const eq=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1])<1e-6,isV=p=>g.V.some(q=>eq(p,q));
+  if(eq(g.vertex,g.O))return isV(g.r1)&&isV(g.r2)?'central':'?';
+  if(!isV(g.vertex))return '?';
+  if(eq(g.r1,g.O)||eq(g.r2,g.O))return 'radside';
+  if(isV(g.r1)&&isV(g.r2))return 'interior';
+  if(isV(g.r1)&&!isV(g.r2)){
+    const pv=g.V[(g.i-1+g.n)%g.n],w=[g.vertex[0]-pv[0],g.vertex[1]-pv[1]],e=[g.r2[0]-g.vertex[0],g.r2[1]-g.vertex[1]];
+    return Math.abs(w[0]*e[1]-w[1]*e[0])<1e-6&&(w[0]*e[0]+w[1]*e[1])>0?'exterior':'?';
+  }
+  return '?';
+}
+const LETS=['А','Б','В','Г'];
+
+/* ================= Генератор завдань ================= */
+function finishChoice(t,cands){
+  const seen={},list=[];
+  cands.forEach(c=>{if(!seen[c.t]){seen[c.t]=1;list.push(c)}});
+  if(list.length!==4||list.filter(c=>c.holds).length!==1)return null;
+  const sh=shuffle(list);
+  t.options=sh.map(c=>c.t);t.plain=sh.map(c=>c.p||c.t);t.ci=sh.findIndex(c=>c.holds);
+  t.correctText=t.plain[t.ci];
+  t.verify=function(){return sh.filter(c=>c.holds).length===1&&sh[t.ci].holds};
+  return t;
+}
+const B={};
+
+/* Теорія */
+B.defRegular=function(){
+  const t={type:'choice',text:'Який многокутник називають правильним?',qtext:'Означення правильного многокутника'};
+  return finishChoice(t,[
+    {t:'Многокутник, у якого всі сторони рівні та всі кути рівні',holds:true},
+    {t:'Многокутник, у якого всі сторони рівні',holds:false},
+    {t:'Многокутник, у якого всі кути рівні',holds:false},
+    {t:'Многокутник, усі вершини якого лежать на одному колі',holds:false}]);
+};
+function picTask(target,text,qtext){
+  const n=pick([5,6,7,8,9,10]),kinds=['central','interior','exterior','radside'];
+  const cands=kinds.map(k=>{const r=polyGeom(n,k);return {t:r.svg,p:'',holds:k===target,g:r.g}});
+  const t={type:'choice',pic:true,text:text.replace('{n}',n),qtext:qtext.replace('{n}',n)};
+  const r=finishChoice(t,cands);if(!r)return null;
+  const gs=cands.slice();
+  // порядок після перемішування: знаходимо кандидата за svg
+  const byT={};cands.forEach(c=>byT[c.t]=c);
+  r.plain=r.options.map((o,k)=>'Рисунок '+LETS[k]);
+  r.correctText=r.plain[r.ci];
+  const exp={central:360/n,interior:intA(n),exterior:360/n,radside:intA(n)/2};
+  r.verify=function(){
+    let ok=true,cnt=0;
+    r.options.forEach(function(o,k){
+      const c=byT[o],cl=classify(c.g);
+      if(cl!==c.g.kind)ok=false;
+      if(Math.abs(c.g.ang-exp[c.g.kind])>1e-6)ok=false;
+      if(cl===target&&k===r.ci)cnt++;
+    });
+    return ok&&cnt===1;
+  };
+  return r;
+}
+B.centralPic=function(){return picTask('central','На якому рисунку позначено центральний кут правильного {n}‑кутника?','Рисунки А–Г: який показує центральний кут правильного {n}‑кутника')};
+B.interiorPic=function(){return picTask('interior','На якому рисунку позначено внутрішній кут правильного {n}‑кутника?','Рисунки А–Г: який показує внутрішній кут правильного {n}‑кутника')};
+B.exteriorPic=function(){return picTask('exterior','На якому рисунку позначено зовнішній кут правильного {n}‑кутника (кут, суміжний із внутрішнім)?','Рисунки А–Г: який показує зовнішній кут правильного {n}‑кутника')};
+
+B.formulaAngle=function(){
+  const fm=[
+    {h:F(iv('(n − 2)·180°'),iv('n')),p:'(n − 2)·180° / n',f:n=>(n-2)*180/n},
+    {h:F(iv('(n + 2)·180°'),iv('n')),p:'(n + 2)·180° / n',f:n=>(n+2)*180/n},
+    {h:F(iv('(n − 2)·360°'),iv('n')),p:'(n − 2)·360° / n',f:n=>(n-2)*360/n},
+    {h:F(iv('360°'),iv('n')),p:'360° / n',f:n=>360/n}];
+  const t={type:'choice',text:'За якою формулою обчислюють кут правильного '+NK+'?',qtext:'Формула кута правильного n‑кутника'};
+  const cands=fm.map(m=>({t:'<span class="math">'+iv('α<sub>n</sub> = ')+m.h+'</span>',p:'αₙ = '+m.p,holds:[5,6,7,8,9,10,11,12].every(n=>Math.abs(m.f(n)-intA(n))<1e-9)}));
+  return finishChoice(t,cands);
+};
+B.formulaSum=function(){
+  const fm=[
+    {s:'(n − 2)·180°',f:n=>(n-2)*180},{s:'(n + 2)·180°',f:n=>(n+2)*180},
+    {s:'n·180°',f:n=>n*180},{s:'(n − 2)·360°',f:n=>(n-2)*360}];
+  const t={type:'choice',text:'За якою формулою обчислюють суму кутів правильного '+NK+'?',qtext:'Формула суми кутів правильного n‑кутника'};
+  const cands=fm.map(m=>({t:'<span class="math">'+iv('S = '+m.s)+'</span>',p:'S = '+m.s,holds:[5,6,7,8,9,10,11,12].every(n=>m.f(n)===(n-2)*180)}));
+  return finishChoice(t,cands);
+};
+B.matchCentral=function(){
+  const ns=shuffle(CEN).slice(0,3);
+  const items=ns.map(n=>({expr:'правильний '+n+'‑кутник',res:(360/n)+D,n:n}));
+  const used={};items.forEach(i=>used[i.res]=1);
+  const dis=[intA(ns[0])+D,intA(ns[1])+D,intA(ns[2])+D,(180/ns[0])+D].filter(x=>!used[x]);
+  if(!dis.length)return null;
+  const pool=shuffle(items.map(i=>i.res).concat([dis[0]]));
+  const t={type:'match',text:'Перетягніть кожну відповідь у клітинку біля свого многокутника: це градусна міра центрального кута. Одна відповідь зайва.',items:items,pool:pool,
+    qtext:'Центральні кути правильних многокутників: '+items.map(i=>i.expr).join('; '),correctText:items.map(i=>i.res).join(' | ')};
+  t.verify=function(){return items.every(i=>i.res===(360/i.n)+D)&&pool.length===4&&new Set(pool).size===4&&pool.filter(x=>items.some(i=>i.res===x)).length===3};
+  return t;
+};
+
+/* Задачі */
+B.perimeter=function(){
+  const n=ri(3,12),a=ri(2,15);
+  const t={type:'num',hint:'Відповідь у сантиметрах',text:'Сторона правильного '+n+'‑кутника дорівнює '+a+' см. Знайдіть периметр многокутника.',correct:n*a,qtext:'Периметр правильного '+n+'‑кутника зі стороною '+a+' см',correctText:String(n*a)};
+  t.verify=function(){return n*a===a*n&&n>=3};return t;
+};
+B.sideFromP=function(){
+  const n=ri(3,12),a=ri(2,15),P=n*a;
+  const t={type:'num',hint:'Відповідь у сантиметрах',text:'Периметр правильного '+n+'‑кутника дорівнює '+P+' см. Знайдіть його сторону.',correct:a,qtext:'Сторона правильного '+n+'‑кутника з периметром '+P+' см',correctText:String(a)};
+  t.verify=function(){return a*n===P&&Number.isInteger(a)};return t;
+};
+B.centralAngleN=function(){
+  const n=pick(CEN),c=360/n;
+  const t={type:'num',hint:'Відповідь у градусах',text:'Яка градусна міра центрального кута правильного '+n+'‑кутника?',correct:c,qtext:'Центральний кут правильного '+n+'‑кутника',correctText:String(c)};
+  t.verify=function(){return Number.isInteger(c)&&c*n===360};return t;
+};
+B.sumAngles=function(){
+  const n=ri(5,16),s=(n-2)*180;
+  const t={type:'num',hint:'Відповідь у градусах',text:'Знайдіть суму кутів правильного '+n+'‑кутника.',correct:s,qtext:'Сума кутів правильного '+n+'‑кутника',correctText:String(s)};
+  t.verify=function(){return Math.abs(s-n*intA(n))<1e-9&&Number.isInteger(s)};return t;
+};
+B.angleFromN=function(){
+  const n=pick(INT),a=intA(n);
+  const t={type:'num',hint:'Відповідь у градусах',text:'Знайдіть кут правильного '+n+'‑кутника.',correct:a,qtext:'Кут правильного '+n+'‑кутника',correctText:String(a)};
+  t.verify=function(){return Number.isInteger(a)&&a*n===(n-2)*180};return t;
+};
+B.nFromCentral=function(){
+  const n=pick(CEN),c=360/n,arc=rnd()<.5;
+  const text=arc?'Сторона правильного многокутника стягує дугу описаного кола, градусна міра якої дорівнює '+c+'°. Скільки сторін має цей многокутник?'
+                :'Центральний кут правильного многокутника дорівнює '+c+'°. Скільки сторін має цей многокутник?';
+  const t={type:'num',hint:'Відповідь: кількість сторін',text:text,correct:n,qtext:(arc?'Дуга, яку стягує сторона: ':'Центральний кут: ')+c+'°, знайти кількість сторін',correctText:String(n)};
+  t.verify=function(){return Number.isInteger(c)&&360/c===n};return t;
+};
+B.nFromExterior=function(){
+  const n=pick(CEN),e=360/n;
+  const t={type:'num',hint:'Відповідь: кількість сторін',text:'Кут, суміжний із кутом правильного многокутника, дорівнює '+e+'°. Скільки сторін має цей многокутник?',correct:n,qtext:'Суміжний із кутом многокутника кут '+e+'°, знайти кількість сторін',correctText:String(n)};
+  t.verify=function(){return Number.isInteger(e)&&360/e===n&&(180-e)===intA(n)};return t;
+};
+B.nFromInterior=function(){
+  const n=pick(INT),a=intA(n);
+  const t={type:'num',hint:'Відповідь: кількість сторін',text:'Кут правильного многокутника дорівнює '+a+'°. Скільки сторін має цей многокутник?',correct:n,qtext:'Кут многокутника '+a+'°, знайти кількість сторін',correctText:String(n)};
+  t.verify=function(){return Number.isInteger(a)&&360/(180-a)===n&&intA(n)===a};return t;
+};
+B.nFromDiff=function(){
+  if(rnd()<.5){
+    const n=pick([5,6,8,9,10,12,15,18]),d=180-2*(360/n);
+    const t={type:'num',hint:'Відповідь: кількість сторін',text:'Кут правильного многокутника на '+d+'° більший за суміжний із ним кут. Скільки сторін має цей многокутник?',correct:n,qtext:'Кут на '+d+'° більший за суміжний, знайти кількість сторін',correctText:String(n)};
+    t.verify=function(){return intA(n)-360/n===d&&d>0};return t;
+  }
+  const k=pick([2,3,4,5]),n=2*(k+1);
+  const t={type:'num',hint:'Відповідь: кількість сторін',text:'Кут правильного многокутника у '+k+' '+(k<5?'рази':'разів')+' більший за суміжний із ним кут. Скільки сторін має цей многокутник?',correct:n,qtext:'Кут у '+k+' р. більший за суміжний, знайти кількість сторін',correctText:String(n)};
+  t.verify=function(){return Math.abs(intA(n)-k*(360/n))<1e-9};return t;
+};
+B.exists=function(){
+  const yes=rnd()<.5,X=yes?pick([108,120,135,140,144,150,156,160,162,165]):pick([100,110,115,125,130,138,142,145,148,152,155,158]);
+  const n=360/(180-X),exists=Number.isInteger(n)&&n>=3;
+  const expl=exists?'Правильний '+n+'‑кутник має кут '+X+'°':'n = 360 : (180 − '+X+') = '+dec(n)+', це не ціле число';
+  const t={type:'tf',text:'Чи існує правильний многокутник, кут якого дорівнює '+X+'°?',ci:exists?0:1,options:['Так','Ні'],qtext:'Чи існує правильний многокутник з кутом '+X+'°',correctText:exists?'Так':'Ні',expl:expl};
+  t.verify=function(){return exists===yes&&(exists?intA(n)===X:!Number.isInteger(n))};return t;
+};
+
+const ORDER=[['defRegular',5],['centralPic',8],['interiorPic',5],['exteriorPic',5],['formulaAngle',7],['formulaSum',5],['matchCentral',7],
+  ['perimeter',5],['sideFromP',5],['centralAngleN',5],['sumAngles',5],['angleFromN',6],['nFromCentral',6],['nFromExterior',6],['nFromInterior',6],['nFromDiff',8],['exists',6]];
+function buildTasks(seed){
+  rnd=mulberry32(seed);
+  return ORDER.map(function(o){
+    let t=null,g=0;
+    while(!t&&g++<300)t=B[o[0]]();
+    if(!t)throw new Error('gen '+o[0]);
+    t.w=o[1];t.id=o[0];return t;
+  });
+}
+
+/* ================= Стан ================= */
+let S={screen:'start',cur:0,ans:[],checked:false,tasks:[],seed:0,sur:'',nam:'',sel:null,marks:[],score:0,from:'result'};
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0}}
+function leave(){if(S.screen==='start'||S.checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0}
+document.addEventListener('visibilitychange',function(){document.hidden?leave():back()});
+window.addEventListener('blur',leave);window.addEventListener('focus',back);
+
+function newSeed(){const q=/[?&]v=(\d+)/.exec(location.search);if(q&&!S._used){S._used=1;return +q[1]}return Math.floor(Math.random()*2147483647)+1}
+function build(){
+  S.seed=newSeed();S.tasks=buildTasks(S.seed);S.ans=S.tasks.map(t=>t.type==='match'?[null,null,null]:(t.type==='num'?'':null));
+  S.cur=0;S.checked=false;S.sel=null;resetWatch();
+}
+const coarse=()=>window.matchMedia&&window.matchMedia('(pointer: coarse)').matches;
+function answered(i){const t=S.tasks[i],a=S.ans[i];if(t.type==='num')return String(a).trim()!=='';if(t.type==='match')return a.every(x=>x!==null);return a!==null}
+function isRight(i){
+  const t=S.tasks[i],a=S.ans[i];
+  if(t.type==='num'){const v=Number(String(a).trim().replace(/[−–—]/g,'-').replace(',','.'));return isFinite(v)&&String(a).trim()!==''&&Math.abs(v-t.correct)<1e-9}
+  if(t.type==='match')return t.items.every((it,k)=>a[k]!==null&&t.pool[a[k]]===it.res);
+  return a===t.ci;
+}
+function ansText(i){
+  const t=S.tasks[i],a=S.ans[i];
+  if(t.type==='num')return String(a).trim()===''?'—':String(a).trim();
+  if(t.type==='match')return a.map(x=>x===null?'—':t.pool[x]).join(' | ');
+  return a===null?'—':(t.plain?t.plain[a]:t.options[a]);
+}
+
+/* ================= Відображення ================= */
+const card=$('#card'),head=$('#head'),nav=$('#nav'),kp=$('#kp');
+const LET=['А','Б','В','Г'];
+function cellsRow(mode){
+  let h='<div class="cells">';
+  S.tasks.forEach(function(t,i){
+    let c='cell';
+    if(mode==='review')c+=S.marks[i]?' right':' wrong';else if(answered(i))c+=' ans';
+    if(i===S.cur&&S.screen!=='before'&&S.screen!=='result')c+=' cur';
+    h+='<button class="'+c+'" data-go="'+i+'">'+(i+1)+'</button>';
+  });
+  return h+'</div>';
+}
+function taskHTML(i,review){
+  const t=S.tasks[i],a=S.ans[i];
+  let h='<div class="q">'+t.text+'</div>'+(t.svg||'');
+  if(t.type==='num'){
+    const cls=review?(S.marks[i]?' right':' wrong'):'';
+    h+='<div class="numrow"><input id="ans" class="'+cls.trim()+'" autocomplete="off" autocapitalize="off" spellcheck="false" '+(coarse()?'inputmode="none"':'inputmode="text"')+' value="'+String(a).replace(/"/g,'&quot;')+'" '+(review?'readonly':'')+' placeholder="Відповідь"></div><div class="hint" style="margin-top:4px">'+(t.hint||'Введіть число')+'</div>';
+  }else if(t.type==='choice'||t.type==='tf'){
+    h+='<div class="opts'+(t.pic?' pics':'')+'">'+t.options.map(function(o,k){
+      let c='opt'+(t.pic?' pic':'');
+      if(review){if(k===t.ci)c+=' right';else if(k===a)c+=' wrong'}else if(k===a)c+=' sel';
+      return '<button class="'+c+'" data-opt="'+k+'">'+(t.type==='choice'?'<b>'+LET[k]+'</b>':'')+o+'</button>';
+    }).join('')+'</div>';
+  }else{
+    const used=a.filter(x=>x!==null);
+    h+='<div class="match">'+t.items.map(function(it,k){
+      let cc='dcell';if(review)cc+=(a[k]!==null&&t.pool[a[k]]===it.res)?' right':' wrong';
+      return '<div class="row"><div class="expr math">'+iv(it.expr)+'</div><div class="'+cc+'" data-cell="'+k+'">'+(a[k]!==null?'<div class="chipd'+(review?' stat':'')+(S.sel===a[k]?' sel':'')+'" data-idx="'+a[k]+'">'+t.pool[a[k]]+'</div>':'')+'</div></div>';
+    }).join('')+
+    '<div class="pool" id="pool">'+t.pool.map(function(p,idx){return used.indexOf(idx)>=0?'':'<div class="chipd'+(review?' stat':'')+(S.sel===idx?' sel':'')+'" data-idx="'+idx+'">'+p+'</div>'}).join('')+'</div></div>';
+  }
+  if(review){
+    const ok=S.marks[i];
+    h+=(ok?'<div class="corrbox">✓ Правильно</div>':'<div class="badbox">✗ Ваша відповідь: '+ansText(i)+'<br><span style="color:var(--oktx)">Правильно: '+t.correctText+'</span>'+(t.expl?'<br><span style="color:var(--mut);font-weight:600">'+t.expl+'</span>':'')+'</div>');
+  }
+  return h;
+}
+function render(){
+  kp.innerHTML='';
+  if(S.screen==='start'){
+    head.innerHTML='';
+    card.innerHTML='<h1>Тест. Правильні многокутники (9 клас)</h1>'+
+      '<label class="fld"><span>Прізвище</span><input id="sur" autocomplete="off" value="'+S.sur.replace(/"/g,'&quot;')+'"></label>'+
+      '<label class="fld"><span>Ім’я</span><input id="nam" autocomplete="off" value="'+S.nam.replace(/"/g,'&quot;')+'"></label>'+
+      '<div class="msg" id="smsg"></div>';
+    nav.innerHTML='<span></span><button class="btn" id="go">Почати</button>';
+    setTimeout(function(){const s=$('#sur');if(s&&!document.activeElement.id)s.focus()},50);
+  }else if(S.screen==='task'||S.screen==='review'){
+    const rv=S.screen==='review';
+    head.innerHTML='<div class="topbar"><span>Завдання '+(S.cur+1)+' з '+S.tasks.length+'</span></div>'+cellsRow(rv?'review':'')+'<div style="height:8px"></div>';
+    card.innerHTML=taskHTML(S.cur,rv);
+    if(rv){
+      nav.innerHTML='<button class="btn gh" id="prev"'+(S.cur===0?' disabled':'')+'>← Назад</button><button class="btn gh" id="toRes">До результату</button><button class="btn" id="next"'+(S.cur===S.tasks.length-1?' disabled':'')+'>Далі →</button>';
+    }else{
+      nav.innerHTML='<button class="btn gh" id="prev"'+(S.cur===0?' disabled':'')+'>← Назад</button><button class="btn" id="next">Далі →</button>';
+      if(S.tasks[S.cur].type==='num'&&coarse()){
+        kp.innerHTML='<div class="kp">'+['1','2','3','⌫','4','5','6','−','7','8','9',',','0'].map(function(k){return '<button data-k="'+k+'"'+(k==='0'?' style="grid-column:span 4"':'')+'>'+k+'</button>'}).join('')+'</div>';
+      }
+    }
+  }else if(S.screen==='before'){
+    const un=S.tasks.map((t,i)=>answered(i)?-1:i).filter(i=>i>=0);
+    head.innerHTML='';
+    card.innerHTML='<h1>Перед здачею</h1><div style="font-weight:800">Відповіли на '+(S.tasks.length-un.length)+' з '+S.tasks.length+'</div><div class="sumgrid">'+
+      S.tasks.map((t,i)=>'<button class="cell '+(answered(i)?'ans':'empty')+'" data-go="'+i+'">'+(i+1)+'</button>').join('')+'</div>'+
+      (un.length?'<div class="msg" style="color:#b45309">Ви не завершили '+un.length+' '+(un.length===1?'завдання':'завдань')+'. Натисніть на номер, щоб відкрити.</div>':'');
+    nav.innerHTML='<button class="btn gh" id="prev">← Назад</button><button class="btn '+(un.length?'gh':'ok')+'" id="check">'+(un.length?'Все одно перевірити':'Перевірити')+'</button>';
+  }else if(S.screen==='result'){
+    head.innerHTML='';
+    card.innerHTML='<div class="res"><h1>Результат</h1><div class="nm">'+S.sur+' '+S.nam+'</div><div class="big">'+S.score+' з 100 балів</div><div class="pc">'+S.score+' %</div>'+
+      '<div class="shot">Зробіть скріншот результату та надішліть його вчителю.</div>'+
+      '<div class="btns"><button class="btn gh" id="errs">Дивитись помилки</button><button class="btn" id="again">Пройти ще раз</button></div></div>';
+    nav.innerHTML='';
+  }
+  bindTask();
+}
+function bindTask(){
+  const inp=$('#ans');
+  if(inp&&S.screen==='task'){
+    inp.addEventListener('input',function(){S.ans[S.cur]=inp.value;updateCells()});
+    if(!coarse())inp.focus();
+  }
+}
+function updateCells(){const cs=$$('.cells .cell');cs.forEach(function(c,i){c.classList.toggle('ans',answered(i))})}
+function show(scr,cur){S.screen=scr;if(cur!==undefined)S.cur=cur;render();card.scrollTop=0}
+
+/* ================= Події ================= */
+document.addEventListener('click',function(e){
+  const t=e.target;
+  let b;
+  if((b=t.closest('[data-go]'))){const i=+b.dataset.go;if(S.screen==='before'){show('task',i)}else if(S.screen==='task'||S.screen==='review'){show(S.screen,i)}return}
+  if((b=t.closest('[data-opt]'))&&S.screen==='task'){S.ans[S.cur]=+b.dataset.opt;render();return}
+  if(t.id==='go'){
+    const s=$('#sur'),n=$('#nam');S.sur=s.value.trim();S.nam=n.value.trim();
+    s.classList.toggle('err',!S.sur);n.classList.toggle('err',!S.nam);
+    if(!S.sur||!S.nam){$('#smsg').textContent='Введіть прізвище та ім’я, щоб почати';return}
+    build();show('task',0);return;
+  }
+  if(t.id==='prev'){if(S.screen==='before')show('task',S.tasks.length-1);else show(S.screen,S.cur-1);return}
+  if(t.id==='next'){
+    if(S.screen==='task'){if(S.cur===S.tasks.length-1)show('before');else show('task',S.cur+1)}
+    else show('review',S.cur+1);return;
+  }
+  if(t.id==='check'){doCheck();return}
+  if(t.id==='errs'){const f=S.marks.findIndex(m=>!m);S.from='result';show('review',f<0?0:f);return}
+  if(t.id==='toRes'){show('result');return}
+  if(t.id==='again'){build();show('task',0);return}
+  if((b=t.closest('[data-k]'))){return}
+});
+/* екранна клавіатура: pointerdown, оновлює стан і поле */
+document.addEventListener('pointerdown',function(e){
+  const b=e.target.closest('[data-k]');if(!b||S.screen!=='task')return;
+  e.preventDefault();
+  const k=b.dataset.k;let v=String(S.ans[S.cur]);
+  if(k==='⌫')v=v.slice(0,-1);
+  else if(k==='−'){v=v.charAt(0)==='−'?v.slice(1):'−'+v}
+  else if(k===','){if(v.indexOf(',')<0&&v.replace('−','')!=='')v+=','}
+  else if(v.replace(/[−,]/g,'').length<6)v+=k;
+  S.ans[S.cur]=v;
+  const inp=$('#ans');if(inp){inp.value=v;inp.dispatchEvent(new Event('input',{bubbles:true}))}
+  updateCells();
+});
+/* перетягування */
+let drag=null;
+card.addEventListener('pointerdown',function(e){
+  if(S.screen!=='task')return;const c=e.target.closest('.chipd');if(!c||c.classList.contains('stat'))return;
+  e.preventDefault();drag={idx:+c.dataset.idx,sx:e.clientX,sy:e.clientY,moved:false,ghost:null,el:c};
+});
+window.addEventListener('pointermove',function(e){
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){
+    drag.moved=true;const g=drag.el.cloneNode(true);g.classList.add('ghost');g.style.width=drag.el.offsetWidth+'px';document.body.appendChild(g);drag.ghost=g;drag.el.style.opacity='.35';
+  }
+  if(drag.ghost){
+    drag.ghost.style.left=(e.clientX-drag.ghost.offsetWidth/2)+'px';drag.ghost.style.top=(e.clientY-20)+'px';
+    $$('.dcell').forEach(c=>c.classList.remove('over'));
+    drag.ghost.style.display='none';const u=document.elementFromPoint(e.clientX,e.clientY);drag.ghost.style.display='';
+    const cl=u&&u.closest('.dcell');if(cl)cl.classList.add('over');
+  }
+});
+function putChip(idx,k){
+  const a=S.ans[S.cur].slice(),p=a.indexOf(idx);if(p>=0)a[p]=null;if(k>=0)a[k]=idx;
+  S.ans[S.cur]=a;S.sel=null;render();
+}
+function endDrag(e){
+  if(!drag)return;const d=drag;drag=null;if(d.ghost)d.ghost.remove();
+  if(d.moved){
+    const u=document.elementFromPoint(e.clientX,e.clientY),cl=u&&u.closest('.dcell');
+    if(cl)putChip(d.idx,+cl.dataset.cell);else if(u&&u.closest('#pool'))putChip(d.idx,-1);else render();
+  }else if(d.el.parentNode.classList.contains('dcell'))putChip(d.idx,-1);
+  else{S.sel=(S.sel===d.idx?null:d.idx);render()}
+}
+window.addEventListener('pointerup',endDrag);window.addEventListener('pointercancel',endDrag);
+card.addEventListener('click',function(e){
+  if(S.screen!=='task')return;const cl=e.target.closest('.dcell');
+  if(cl&&S.sel!==null&&!e.target.closest('.chipd')){putChip(S.sel,+cl.dataset.cell)}
+});
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){
+    if(e.key==='Enter'&&S.screen==='task'&&e.target.id==='ans'&&String(S.ans[S.cur]).trim()!==''){$('#next').click()}
+    if(e.key==='Enter'&&S.screen==='start'&&$('#go'))$('#go').click();
+    return;
+  }
+  if(S.screen==='task'||S.screen==='review'){if(e.key==='ArrowRight'){const n=$('#next');n&&!n.disabled&&n.click()}if(e.key==='ArrowLeft'){const p=$('#prev');p&&!p.disabled&&p.click()}}
+});
+
+/* ================= Перевірка і запис ================= */
+function doCheck(){
+  back();
+  S.checked=true;
+  S.marks=S.tasks.map((t,i)=>isRight(i));
+  S.score=S.tasks.reduce((s,t,i)=>s+(S.marks[i]?t.w:0),0);
+  const now=Date.now();
+  saveResult({
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:S.sur+' '+S.nam,surname:S.sur,firstName:S.nam,
+    ts:now,date:new Date(now).toISOString(),
+    score:S.score,max:100,percent:S.score,
+    tasks:S.marks.map(m=>m?1:0),weights:S.tasks.map(t=>t.w),rightCount:S.marks.filter(Boolean).length,
+    qtext:S.tasks.map(t=>t.qtext),
+    answers:S.tasks.map((t,i)=>ansText(i)),
+    correct:S.tasks.map(t=>t.correctText),
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,
+    variant:S.seed,test:TEST_NAME
+  });
+  show('result');
+}
+
+/* ================= Журнал учителя ================= */
+let JROWS=[];
+function mmss(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function openJ(){$('#jm').classList.add('on')}
+function closeJ(){$('#jm').classList.remove('on')}
+$('#keyb').onclick=openJ;$('#jx').onclick=closeJ;$('#jx2').onclick=closeJ;
+$('#jm').addEventListener('click',function(e){if(e.target.id==='jm')closeJ()});
+function unlockJ(){
+  if($('#jpw').value===TEACHER_PASSWORD){$('#jlock').style.display='none';$('#jxlock').style.display='none';$('#jmain').style.display='block';$('#jpw').value='';refreshJ()}
+  else{$('#jerr').textContent='Невірний пароль'}
+}
+$('#jok').onclick=unlockJ;$('#jpw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockJ()});
+async function refreshJ(){
+  $('#jtab').textContent='Завантаження…';$('#jconf').textContent='';
+  try{JROWS=await loadResults()}catch(e){$('#jtab').innerHTML='<div class="msg">Не вдалося підключитися до бази результатів</div>';return}
+  drawJ();
+}
+function drawJ(){
+  if(!JROWS.length){$('#jtab').textContent='Поки що немає записів.';return}
+  const mx=Math.max.apply(null,JROWS.map(r=>(r.tasks||[]).length));
+  let h='<table class="jt"><tr><th>№</th><th class="l">Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>';
+  for(let i=1;i<=mx;i++)h+='<th>'+i+'</th>';h+='</tr>';
+  JROWS.forEach(function(r,k){
+    const d=r.date?new Date(r.date):null,ds=d?d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}):'—';
+    const hasT=typeof r.durationSec==='number',fast=hasT&&r.durationSec<120,hasL=typeof r.leaves==='number';
+    h+='<tr><td>'+(k+1)+'</td><td class="l nm" data-det="'+k+'">'+(r.name||'—')+'</td><td>'+ds+'</td><td'+(fast?' class="r" title="Дуже швидко"':'')+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+(hasL&&r.leaves>=3?' class="r"':'')+(hasL?' title="Поза вікном: '+mmss(r.awaySec||0)+'"':'')+'>'+(hasL?r.leaves:'—')+'</td><td><b>'+String(r.score).replace('.',',')+'</b></td>';
+    for(let i=0;i<mx;i++){const v=(r.tasks||[])[i];h+='<td class="'+(v===undefined?'':v>=1?'y':'n')+'">'+(v===undefined?'':v>=1?'✓':'✗')+'</td>'}
+    h+='</tr><tr id="det'+k+'" style="display:none"><td colspan="'+(6+mx)+'" class="det">'+
+      (r.qtext||[]).map(function(q,i){return '<div><b>'+(i+1)+'.</b> '+q+'<br>Відповідь: '+((r.answers||[])[i]||'—')+' · Правильно: '+((r.correct||[])[i]||'—')+'</div>'}).join('')+'</td></tr>';
+  });
+  $('#jtab').innerHTML=h+'</table>';
+}
+$('#jtab').addEventListener('click',function(e){const n=e.target.closest('[data-det]');if(n){const r=$('#det'+n.dataset.det);r.style.display=r.style.display==='none'?'table-row':'none'}});
+$('#jref').onclick=refreshJ;
+$('#jcsv').onclick=function(){
+  const mx=Math.max.apply(null,[0].concat(JROWS.map(r=>(r.tasks||[]).length)));
+  const hd=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал'];for(let i=1;i<=mx;i++)hd.push('завд. '+i);
+  const lines=[hd.join(';')].concat(JROWS.map(function(r){
+    const row=[r.name||'',r.date?new Date(r.date).toLocaleString('uk-UA'):'',typeof r.durationSec==='number'?mmss(r.durationSec):'',typeof r.leaves==='number'?r.leaves:'',typeof r.awaySec==='number'?mmss(r.awaySec):'',String(r.score).replace('.',',')];
+    for(let i=0;i<mx;i++){const v=(r.tasks||[])[i];row.push(v===undefined?'':v>=1?'+':'-')}
+    return row.join(';');
+  }));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.download='Правильні_многокутники_9клас_результати.csv';a.click();
+};
+$('#jclr').onclick=function(){
+  $('#jconf').innerHTML='Видалити всі записи ('+JROWS.length+')? <button class="btn" id="cy" style="min-height:36px;background:var(--bad)">Так, видалити</button> <button class="btn gh" id="cn" style="min-height:36px">Скасувати</button>';
+  $('#cn').onclick=function(){$('#jconf').textContent=''};
+  $('#cy').onclick=async function(){
+    try{await clearResults();JROWS=[];drawJ();$('#jconf').textContent=''}catch(e){$('#jconf').textContent='Не вдалося очистити записи. Перевірте правила бази Firebase'}
+  };
+};
+
+/* ================= Старт (і самоперевірка для розробника) ================= */
+if(/[?&]selftest/.test(location.search))window.__ST={buildTasks:buildTasks,B:B,ORDER:ORDER,get S(){return S}};
+render();
+})();
+</script>
+</body>
+</html>
