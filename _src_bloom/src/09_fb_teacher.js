@@ -50,12 +50,13 @@ function saveResult(res){
 /* запит пароля вчителя: символи ховаються (type=password) */
 function askPw(ok){
   var m=document.createElement("div");m.className="modal";
-  m.innerHTML='<div class="box" style="max-width:340px"><b style="color:#5a4b8a">Пароль вчителя</b><input id="pwi" type="password" autocomplete="off" inputmode="numeric" style="margin-top:10px" placeholder="••••"><div id="pwe" class="note" style="color:#b3261e;min-height:18px"></div><div class="act"><button class="btn sm soft" id="pwc">Скасувати</button><button class="btn sm" id="pwo">Увійти</button></div></div>';
+  m.innerHTML='<div class="box pwbox" id="pwb"><div class="pwk">🔑</div><span class="pwt">Пароль вчителя</span><div class="pws">Введіть пароль, щоб побачити результати</div><input id="pwi" type="password" autocomplete="off" inputmode="numeric" placeholder="••••"><div id="pwe" class="pwe"></div><div class="pwa"><button class="btn soft" id="pwc">Скасувати</button><button class="btn" id="pwo">Увійти</button></div></div>';
   document.body.appendChild(m);
   var i=document.getElementById("pwi");i.focus();
   function close(){if(m.parentNode)m.parentNode.removeChild(m);}
-  function go(){if(i.value===TEACHER_PASSWORD){close();ok();}else{document.getElementById("pwe").textContent="Невірний пароль";i.value="";i.focus();}}
+  function go(){if(i.value===TEACHER_PASSWORD){close();ok();}else{var b=document.getElementById("pwb");document.getElementById("pwe").textContent="Невірний пароль, спробуйте ще раз";i.value="";i.focus();b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");}}
   document.getElementById("pwo").onclick=go;document.getElementById("pwc").onclick=close;
+  m.onclick=function(e){if(e.target===m)close();};
   i.onkeydown=function(e){if(e.key==="Enter")go();else if(e.key==="Escape")close();};
 }
 function teacherPanel(){

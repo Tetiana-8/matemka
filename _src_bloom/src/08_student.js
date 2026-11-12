@@ -40,6 +40,8 @@ function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
   if(el){el.textContent=dur(left);el.className="tm"+(left<=300?" low":"");}
   if(left<=0)finish(true);}
 
+/* поле письмового пояснення: для змішаних завдань стоїть прямо під тим запитанням, яке треба пояснити (t.oAt) */
+function openHtml(t,A,inl){return '<div class="open'+(inl?' inl':'')+'"><div class="lb">'+esc(t.openLb||t.open||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';}
 function showQ(){
   var t=T[IX],A=ANS[IX],last=IX===T.length-1;
   var h='<div class="screen"><div class="card fill"><div class="top"><div>Завдання '+(IX+1)+' з '+T.length+'</div><div class="tm" id="tm">'+dur((END-Date.now())/1000)+'</div></div>';
@@ -48,12 +50,12 @@ function showQ(){
   if(t.k==="mc"){h+='<div class="opts" id="opts">'+t.o.map(function(o,i){return '<button class="opt'+(A.sel===i?" on":"")+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join("")+'</div>';}
   else if(t.k==="checks"){h+='<div class="opts" id="chk" style="grid-template-columns:1fr">'+t.items.map(function(it,j){return '<button class="opt'+(A.ms[j]?' on':'')+'" data-j="'+j+'">'+(A.ms[j]?'✓ ':'')+fmt(it[0])+'</button>';}).join('')+'</div>';}
   else if(t.k==="nums"){h+='<div id="nms">'+t.parts.map(function(p,j){var sp=wSpec(p[1],p[2],p[3]);return '<div class="nrow'+(sp?' nw':'')+'" data-j="'+j+'"><span>'+fmt(p[0])+'</span>'+(sp?wHtml(sp,A,j):'<input type="text" inputmode="'+(symsOf(p[1])?'text':'decimal')+'" autocomplete="off" data-j="'+j+'" value="'+esc(A.ps[j]||'')+'">'+symBar(symsOf(p[1])))+'</div>';}).join('')+'</div>';}
-  else if(t.k==="mix"){h+='<div id="mx">'+t.parts.map(function(p,j){return mixRow(p,j,A);}).join('')+'</div>';}
+  else if(t.k==="mix"){h+='<div id="mx">'+t.parts.map(function(p,j){return mixRow(p,j,A)+((t.open&&t.oAt===j)?openHtml(t,A,1):'');}).join('')+'</div>';}
   else if(t.k==="mcs"){h+='<div id="mcs">'+t.parts.map(function(p,j){return '<div class="mrow"><div class="ml">'+(j+1)+') '+fmt(p[0])+'</div><div class="mo">'+p[1].map(function(o,i){return '<button class="opt'+(A.ps[j]===i?' on':'')+'" data-j="'+j+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join('')+'</div></div>';}).join('')+'</div>';}
   else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
-  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||t.open||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
+  if(t.open&&!(t.k==="mix"&&t.oAt!=null))h+=openHtml(t,A,0);
   h+='</div><div class="act"><div>'+(IX?'<button class="link" id="bk">← Назад</button> ':'')+'<button class="link" id="dk">Не знаю</button></div><button class="btn" id="nx">'+(last?"Здати роботу":"Далі →")+'</button></div></div></div>';
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
