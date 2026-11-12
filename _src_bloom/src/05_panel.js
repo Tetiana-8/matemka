@@ -45,7 +45,7 @@ function teacherPanelM(){
     $("tb").textContent="Завантаження…";
     fbReady().then(function(db){return fbCol(db).get();}).then(function(snap){
       ROWS=[];snap.forEach(function(d){var x=d.data();x._id=d.id;ROWS.push(x);});
-      var ks={};ROWS.forEach(function(x){ks[key(x)]=String(x.title||"").replace(/\s*\(.*\)\s*$/,"")+" · "+x.yr;});
+      var ks={};ROWS.forEach(function(x){ks[key(x)]=String(x.title||"").replace(/\s*\([^()]*\)\s*$/,"")+" · "+x.yr;});
       var keys=Object.keys(ks);
       $("wk").innerHTML=keys.length?keys.map(function(k){return '<option value="'+esc(k)+'">'+esc(ks[k])+'</option>';}).join(""):'<option value="">Немає даних</option>';
       $("wk").onchange=render;render();
@@ -65,6 +65,7 @@ function teacherPanelM(){
     var cls=[0,1].map(function(pt){var o={n:0};LV.concat("all").forEach(function(L){o[L]=median(pc.map(function(v){return v[pt]?v[pt][L]:null;}));});o.n=pc.filter(function(v){return v[pt];}).length;return o;});
     var both=pc.filter(function(v){return v[0]&&v[1];}).length,nI=pc.filter(function(v){return v[2];}).length;
     var h='<div class="note">Учнів із вхідним зрізом: <b>'+cls[0].n+'</b> · з підсумковим: <b>'+cls[1].n+'</b> · з обома: <b>'+both+'</b>'+(nI?' · з проміжним: <b>'+nI+'</b>':'')+'. P — відсоток набраних балів на рівні; у профілі класу — <b>медіана</b>. Колір клітинки — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';
+    h+=tblBlock(st);
     h+='<h2>Профіль класу</h2><table><tr><th>Рівень</th><th>Вхідний P, %</th><th>Підсумковий P, %</th><th>Δ, в.п.</th><th>Середній g</th><th style="width:30%"></th></tr>';
     LV.forEach(function(L){var a=cls[0][L],b=cls[1][L],d=dlt(a,b);
       var gs=[];pc.forEach(function(v){if(v[0]&&v[1]){var o=gx(v[0][L],v[1][L]);if(o&&!o.hold)gs.push(o.g);}});
@@ -95,8 +96,33 @@ function teacherPanelM(){
     h+='</table></div><div class="note">g ≥ 0,5 — високий приріст; 0,3–0,49 — стійкий; 0,1–0,29 — слабкий; &lt; 0,1 — без зрушень або регрес (пороги робочі, після першого повного циклу їх варто уточнити). Для P на вході ≥ 90 % замість g — «утр.» (рівень утримано) або «↓». Підказка Δ — у спливаючому вікні клітинки.</div>';
     $("tb").innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var q=b.dataset.w.split("|");detail(st[+q[0]].p[+q[1]]);};});
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cut]"),function(b){b.onclick=function(){CUT=+b.dataset.cut;render();};});
+    if($("cpT")){$("cpT").onclick=function(){tblCopy(false);};$("cpN").onclick=function(){tblCopy(true);};}
     render.st=st;render.pc=pc;
   }
+
+  /* Таблиця для переносу в журнал: бали (не відсотки) за кожним рівнем, разом 0–24 і групи A, B, C по 0–8 */
+  var CUT=null;
+  var GRP=[["A",["Зн","Ро"]],["B",["Зс","Ан"]],["C",["Оц","Ст"]]];
+  function tblData(st,cut){return st.filter(function(s){return s.p[cut];}).map(function(s){var x=s.p[cut],S=summarize(x.tasks),pend={},v={};
+    LV.forEach(function(L){v[L]=S.lv[L].e;pend[L]=false;});x.tasks.forEach(function(r){if(isPending(r))pend[r.l]=true;});
+    var g=GRP.map(function(q){return q[1].reduce(function(a,L){return a+v[L];},0);});
+    return {name:s.name,v:v,pend:pend,tot:S.score,g:g,anyP:S.pending,max:S.max};});}
+  function tblBlock(st){
+    var has=[0,1,2].filter(function(c){return st.some(function(s){return s.p[c];});});
+    if(!has.length)return "";
+    if(CUT==null||has.indexOf(CUT)<0)CUT=has[0];
+    var D=tblData(st,CUT),th='style="background:#d9e2f3;text-align:center"',yl='background:#fff2cc;text-align:center',gr='background:#e2efda;text-align:center';
+    var o='<h2>Таблиця для переносу в журнал</h2><div class="qb" id="cutb">'+has.map(function(c){return '<button class="btn sm '+(c===CUT?'':'soft')+'" data-cut="'+c+'">'+["Вхідний зріз","Підсумковий зріз","Проміжний зріз"][c]+'</button>';}).join(" ")+'</div>';
+    o+='<div style="overflow-x:auto"><table style="width:auto"><tr><th rowspan="2" '+th+'>Учень</th><th colspan="6" '+th+'>Критерії</th><th '+th+'>Разом<br>(0–24)</th>'+GRP.map(function(q){return '<th '+th+'>'+q[0]+'<br>(0–8)</th>';}).join("")+'</tr><tr>'+LV.map(function(L){return '<th '+th+'>'+L+'</th>';}).join("")+'<th '+th+'></th><th '+th+'></th><th '+th+'></th><th '+th+'></th></tr>';
+    D.forEach(function(d){o+='<tr><td>'+esc(d.name)+'</td>'+LV.map(function(L){return '<td style="'+yl+'">'+d.v[L]+(d.pend[L]?'<span class="a" title="є відповідь, яку ще не оцінено вчителем">?</span>':'')+'</td>';}).join("")+'<td style="text-align:center;font-weight:700">'+d.tot+'</td>'+d.g.map(function(x){return '<td style="'+gr+'">'+x+'</td>';}).join("")+'</tr>';});
+    o+='</table></div><div class="act" style="justify-content:flex-start;gap:8px"><button class="btn sm" id="cpT">Копіювати цифри (без імен)</button><button class="btn sm soft" id="cpN">Копіювати з іменами</button><span class="note" id="cpM"></span></div>';
+    o+='<div class="note">Кожен рівень Блума — 0–4 бали. A = Зн + Ро, B = Зс + Ан, C = Оц + Ст (кожна група 0–8). Позначка <span class="a"><b>?</b></span> — є відповідь, яку ще не оцінено вручну (кнопка «вхід» / «підсумок» у списку «Учні»; після збереження оцінок таблиця оновиться). Вставляйте в таблицю як є: порядок стовпців — Зн, Ро, Зс, Ан, Оц, Ст, Разом, A, B, C.'+(CUT===2?' Проміжний зріз містить лише наскрізні (К1) завдання, тому бали менші.':'')+'</div>';
+    tblBlock.D=D;return o;}
+  function tblCopy(withNames){var D=tblBlock.D||[],L=D.map(function(d){return (withNames?[d.name]:[]).concat(LV.map(function(l){return d.v[l];}),[d.tot],d.g).join("\t");}).join("\n");
+    var m=$("cpM");function ok(){if(m)m.textContent="Скопійовано — вставте в таблицю (Ctrl+V).";}
+    function fb(){var t=document.createElement("textarea");t.value=L;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok();}catch(e){if(m)m.textContent="Не вдалося скопіювати.";}document.body.removeChild(t);}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(L).then(ok,fb);else fb();}
   /* Правила «дані → рішення» (розділ 9.2 ТЗ) */
   function brief(cls,st,pc){
     var t=[],hasA=cls[0].n>0,hasB=cls[1].n>0;

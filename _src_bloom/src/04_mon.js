@@ -7,10 +7,14 @@
    - вхідний (К1+К2), проміжний (лише К1, за рішенням) і підсумковий зрізи;
    - учні не отримують оцінок за зріз. */
 
-var MK={mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
+var MK={one:true,mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
 function defYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;var a=m>=8?y:y-1;return a+"/"+String(a+1).slice(2);}
 function monId(s,g,tp){return xmur(s+g+tp.slice().sort().join(","))().toString(36).slice(0,5);}
-function monTitle(){return "Моніторинг: "+SUBJ[MK.s]+", "+MK.g+" клас";}
+function monTitle(tp){var all=topicsOf(MK.s,MK.g).map(function(t){return t[0];}),sfx="";
+  if(tp&&tp.length){var own=tp.filter(function(x){return all.indexOf(x)>=0;});
+    if(tp.length===1){var f=topicsOf(MK.s,MK.g).concat(prevTopics(MK.s,MK.g)).filter(function(t){return t[0]===tp[0];})[0];sfx=f?" — "+String(f[3]).slice(0,48):"";}
+    else if(own.length===all.length)sfx=" — усі теми";else sfx=" — "+tp.length+" тем"+(tp.length<5?"и":"");}
+  return "Моніторинг: "+SUBJ[MK.s]+", "+MK.g+" клас"+sfx;}
 function monTime(g){return g<=6?40:45;}
 var PTN=["вхідний зріз","підсумковий зріз","проміжний зріз"];
 
@@ -41,13 +45,14 @@ function monReadyPrev(){return prevTopics(MK.s,MK.g).filter(function(t){return r
 
 function monDefaults(){
   var cur=monReady().map(function(t){return t[0];}),prev=monReadyPrev().map(function(t){return t[0];});
-  MK.ta=prev.length?prev:cur.slice(0,Math.min(3,cur.length));
-  MK.tb=cur.slice();
+  if(MK.one){MK.ta=cur.slice();MK.tb=cur.slice();}
+  else{MK.ta=prev.length?prev:cur.slice(0,Math.min(3,cur.length));MK.tb=cur.slice();}
   MK.m=monTime(MK.g);
 }
 
-function modeSeg(){return '<label>Джерело завдань</label><div class="seg" id="sMode"><button data-md="gen" class="'+(MK.mode==='kit'?'':'on')+'">Генератор (числа різні в учнів)</button><button data-md="kit" class="'+(MK.mode==='kit'?'on':'')+'">Комплекти адміністрації</button></div>';}
-function bindMode(){$("sMode").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.mode=b.dataset.md;MK.init=false;showConsM();};}
+function modeSeg(){return "";}
+function modeSegOld(){return '<label>Джерело завдань</label><div class="seg" id="sMode"><button data-md="gen" class="'+(MK.mode==='kit'?'':'on')+'">Генератор (числа різні в учнів)</button><button data-md="kit" class="'+(MK.mode==='kit'?'on':'')+'">Комплекти адміністрації</button></div>';}
+function bindMode(){if(!$("sMode"))return;$("sMode").onclick=function(e){var b=e.target.closest("button");if(!b)return;MK.mode=b.dataset.md;MK.init=false;showConsM();};}
 function showConsM(){
   if(MK.mode==="kit"){showKitCons();return;}
   if(!MK.yr)MK.yr=defYear();
@@ -62,18 +67,23 @@ function showConsM(){
   GR[MK.s].forEach(function(g){h+='<button data-g="'+g+'" class="'+(MK.g===g?"on":"")+'">'+g+'</button>';});
   h+='</div><div class="row2"><div><label>Навчальний рік</label><input type="text" id="yr" value="'+esc(MK.yr)+'"></div><div><label>Час, хвилин</label><input type="number" id="mn" min="15" max="60" value="'+MK.m+'"></div></div>';
   h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div><label>Коли підсумковий</label><input type="text" id="pb" value="'+esc(MK.pb)+'"></div></div>';
+  if(MK.one){
+    h+='<label>Теми, за якими буде зріз</label><div class="note" style="margin:0 0 6px">Позначте теми, які ви вже вивчили з класом: одну, кілька або всі. Завдання складаються з усіх позначених тем, у кожного учня числа різні, а складність і набір завдань однакові. Те саме посилання працює для вхідного, проміжного й підсумкового зрізів.</div>';
+    h+='<div class="qb"><button class="btn sm soft" data-q="all">Усі теми цього класу</button><button class="btn sm soft" data-q="none">Зняти все</button><button class="btn sm soft" data-q="adv">Розширено: різні теми для вхідного й підсумкового</button></div>';
+  }else{
   h+='<label>Змістові теми (компонент К2)</label><div class="note" style="margin:0 0 6px">У кожного зрізу змістова частина своя: вхідний перевіряє опорний зміст попереднього класу, підсумковий — зміст цього класу. Наскрізні завдання (К1: розуміння, аналіз, оцінювання, створення) беруться з тем вхідного зрізу, щоб змістового бар’єру не було в обох точках однаково. Відмітьте теми для кожного зрізу.</div>';
-  h+='<div class="qb"><button class="btn sm soft" data-q="pa">Вхідний: попередній клас</button><button class="btn sm soft" data-q="pb">Підсумковий: цей клас</button><button class="btn sm soft" data-q="none">Зняти все</button></div>';
+  h+='<div class="qb"><button class="btn sm soft" data-q="pa">Вхідний: попередній клас</button><button class="btn sm soft" data-q="pb">Підсумковий: цей клас</button><button class="btn sm soft" data-q="none">Зняти все</button><button class="btn sm soft" data-q="one">Назад до простого вибору</button></div>';}
   function rows(list,title){
     if(!list.length)return "";
     var o='<div class="note" style="margin:10px 0 4px"><b>'+title+'</b></div>';
-    o+='<div class="note" style="display:flex;gap:6px;margin:0 0 4px;justify-content:flex-end"><span style="width:62px;text-align:center">вхідний</span><span style="width:62px;text-align:center">підсумк.</span></div>';
+    if(!MK.one)o+='<div class="note" style="display:flex;gap:6px;margin:0 0 4px;justify-content:flex-end"><span style="width:62px;text-align:center">вхідний</span><span style="width:62px;text-align:center">підсумк.</span></div>';
     list.forEach(function(t){var ok=readyTopic(t[0]),a=MK.ta.indexOf(t[0])>=0,b=MK.tb.indexOf(t[0])>=0;
       o+='<div class="trow'+(ok?"":" off")+'" style="margin:0 0 6px;font-weight:400;cursor:default"><span style="flex:1"><span class="tn">'+esc(t[3])+'</span><br><span class="tr">'+esc(t[4])+'</span></span>'+
+        (MK.one?'<span style="width:40px;text-align:center"><input type="checkbox" data-tt="'+t[0]+'"'+(a?" checked":"")+(ok?"":" disabled")+'></span></div>':
         '<span style="width:62px;text-align:center"><input type="checkbox" data-ta="'+t[0]+'"'+(a?" checked":"")+(ok?"":" disabled")+'></span>'+
-        '<span style="width:62px;text-align:center"><input type="checkbox" data-tb="'+t[0]+'"'+(b?" checked":"")+(ok?"":" disabled")+'></span></div>';});
+        '<span style="width:62px;text-align:center"><input type="checkbox" data-tb="'+t[0]+'"'+(b?" checked":"")+(ok?"":" disabled")+'></span></div>');});
     return o;}
-  h+=rows(prev,"Попередній клас (опорний зміст)")+rows(cur,"Цей клас ("+MK.g+")");
+  h+=rows(cur,"Цей клас ("+MK.g+")")+rows(prev,"Попередній клас (опорний зміст, за потреби)");
   h+='<div class="note" id="eff"></div>';
   h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на зрізи</button></div><div id="lk"></div>';
   h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; завдання «аналіз», «оцінювання» і «створення» перевіряє вчитель за рубрикою 0–4 у панелі 🔑; два якірні завдання повторюються в усіх зрізах; проміжний зріз у грудні — лише наскрізні завдання К1 для учнів групи підтримки. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
@@ -88,13 +98,18 @@ function showConsM(){
   $("mn").oninput=function(){MK.m=Math.max(15,Math.min(60,+this.value||monTime(MK.g)));};
   Array.prototype.forEach.call(document.querySelectorAll("[data-q]"),function(b){b.onclick=function(){
     var q=b.dataset.q,pv=monReadyPrev().map(function(t){return t[0];}),cu=monReady().map(function(t){return t[0];});
-    if(q==="pa")MK.ta=pv.length?pv:cu.slice(0,Math.min(3,cu.length));
+    if(q==="all"){MK.ta=cu.slice();MK.tb=cu.slice();}
+    else if(q==="adv"){MK.one=false;}
+    else if(q==="one"){MK.one=true;MK.tb=MK.ta.slice();}
+    else if(q==="pa")MK.ta=pv.length?pv:cu.slice(0,Math.min(3,cu.length));
     else if(q==="pb")MK.tb=cu;
     else{MK.ta=[];MK.tb=[];}
     showConsM();};});
   function bindBox(attr,key){Array.prototype.forEach.call(document.querySelectorAll("input["+attr+"]"),function(c){c.onchange=function(){var id=c.getAttribute(attr),a=MK[key],i=a.indexOf(id);if(c.checked&&i<0)a.push(id);if(!c.checked&&i>=0)a.splice(i,1);$("lk").innerHTML="";effM();};});}
   bindBox("data-ta","ta");bindBox("data-tb","tb");
+  Array.prototype.forEach.call(document.querySelectorAll("input[data-tt]"),function(c){c.onchange=function(){var id=c.getAttribute("data-tt");[MK.ta,MK.tb].forEach(function(a){var i=a.indexOf(id);if(c.checked&&i<0)a.push(id);if(!c.checked&&i>=0)a.splice(i,1);});$("lk").innerHTML="";effM();};});
   $("mk").onclick=function(){
+    if(MK.one&&!MK.ta.length){$("err").textContent="Позначте хоча б одну тему.";return;}
     if(!MK.ta.length){$("err").textContent="Оберіть теми вхідного зрізу.";return;}
     if(!MK.tb.length){$("err").textContent="Оберіть теми підсумкового зрізу.";return;}
     $("err").textContent="";
@@ -102,7 +117,7 @@ function showConsM(){
     var ta=srt(MK.ta),tb=srt(MK.tb),id=monId(MK.s,MK.g,ta),yr=MK.yr.trim()||defYear();
     var base=location.href.split("#")[0].split("?")[0];
     var per=[MK.pa.trim(),MK.pb.trim(),MK.pc.trim()];
-    function lnk(pt){return base+"?c="+b64enc({v:2,ar:1,md:1,t:monTitle()+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
+    function lnk(pt){return base+"?c="+b64enc({v:2,ar:1,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
     var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","лише К1, "+monMax(2)+" балів; для учнів групи підтримки"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
     $("lk").innerHTML=L.map(function(u,i){return '<div class="linkbox"><b>'+names[i][0]+'</b> <span class="note">· '+names[i][1]+'</span><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" data-cp="'+i+'">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';}).join("")+'<div class="note">Підсумкове посилання відкладіть до кінця року. Якщо його загубите — створіть знову з тими самими класом, предметом, темами вхідного зрізу та навчальним роком: результати зіставляться автоматично.</div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){var inp=b.closest(".linkbox").querySelector("input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);b.textContent="Скопійовано";};});
@@ -112,6 +127,7 @@ function showConsM(){
 function effM(){
   var e=$("eff");if(!e)return;
   var bad=[];
+  if(MK.one&&!MK.ta.length){e.textContent="Позначте хоча б одну тему.";return;}
   if(!MK.ta.length)bad.push("вхідного");if(!MK.tb.length)bad.push("підсумкового");
   if(bad.length){e.textContent="Оберіть теми "+bad.join(" і ")+" зрізу.";return;}
   var need=function(tp,L){return poolOf({tp:tp},L).length;};
