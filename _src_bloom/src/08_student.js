@@ -53,7 +53,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
-  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
+  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||t.open||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
   h+='</div><div class="act"><div>'+(IX?'<button class="link" id="bk">← Назад</button> ':'')+'<button class="link" id="dk">Не знаю</button></div><button class="btn" id="nx">'+(last?"Здати роботу":"Далі →")+'</button></div></div></div>';
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
@@ -100,7 +100,7 @@ function wSpec(ans,kind,w){if(kind==="fac"||kind==="l")return null;var a=Array.i
 function wInp(sp,f,A,j,ph){var v=(A.pf[j]||[])[f];return '<input type="text" class="wi" autocomplete="off" inputmode="'+(sp.sym?'text':'decimal')+'" data-j="'+j+'" data-f="'+f+'" value="'+esc(v==null?'':v)+'"'+(ph?' placeholder="'+ph+'"':'')+'>';}
 function wHtml(sp,A,j){var v=(A.pf[j]||[]),h='<span class="wg">';
   if(sp.t==="sel")return '<select class="xsel" data-j="'+j+'" data-f="0"><option value="">— обери —</option>'+sp.o.map(function(o){return '<option value="'+esc(o)+'"'+(v[0]===o?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';
-  if(sp.t==="frac")h+='<span class="fr">'+wInp(sp,0,A,j,"чисельник")+'<span class="fb"></span>'+wInp(sp,1,A,j,"знаменник")+'</span>'+symBar(sp.sym);
+  if(sp.t==="frac")h+='<span class="wfr">'+wInp(sp,0,A,j,"чисельник")+'<span class="wfb"></span>'+wInp(sp,1,A,j,"знаменник")+'</span>'+symBar(sp.sym);
   else if(sp.t==="sci")h+=wInp({sym:""},0,A,j)+' · 10<sup>'+wInp({sym:""},1,A,j)+'</sup>';
   else if(sp.t==="dbl")h+=wInp({sym:""},0,A,j)+' &lt; <b>'+sp.v+'</b> &lt; '+wInp({sym:""},1,A,j);
   else if(sp.t==="pair")h+=wInp({sym:""},0,A,j)+' ; '+wInp({sym:""},1,A,j)+symBar("−");
@@ -187,7 +187,7 @@ function finish(auto){
       given=t.parts.map(function(p,j){return (j+1)+") "+mixText(p,a.ps[j])+(mixOk(p,a.ps[j])?" ✓":" ✗");}).join("; ");right=t.parts.map(function(p,j){return (j+1)+") "+mixRight(p);}).join("; ");}
     else if(t.k==="rub"){given="";}
     else if(/\d/.test(a.txt)){given=a.txt;ok=Math.abs(parseNum(a.txt)-t.a)<0.0005;}
-    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0};});
+    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,rubm:t.rubm,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0};});
   var S=summarize(recs),g=grade12(S.score);
   var res={recs:recs,S:S,g:g,start:T0,end:end,dur:(end-T0)/1000,exits:EXITS,away:Math.round(AWAY)};
   showResult(res);saveResult(res);

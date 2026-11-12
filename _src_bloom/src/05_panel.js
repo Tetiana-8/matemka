@@ -119,7 +119,7 @@ function teacherPanelM(){
     o+='<div style="overflow-x:auto"><table style="width:auto"><tr><th rowspan="2" '+th+'>Учень</th><th colspan="6" '+th+'>Критерії</th><th '+th+'>Разом<br>(0–24)</th>'+GRP.map(function(q){return '<th '+th+'>'+q[0]+'<br>(0–8)</th>';}).join("")+'</tr><tr>'+LV.map(function(L){return '<th '+th+'>'+L+'</th>';}).join("")+'<th '+th+'></th><th '+th+'></th><th '+th+'></th><th '+th+'></th></tr>';
     D.forEach(function(d){o+='<tr><td>'+esc(d.name)+'</td>'+LV.map(function(L){return '<td style="'+yl+'">'+d.v[L]+(d.pend[L]?'<span class="a" title="є відповідь, яку ще не оцінено вчителем">?</span>':'')+'</td>';}).join("")+'<td style="text-align:center;font-weight:700">'+d.tot+'</td>'+d.g.map(function(x){return '<td style="'+gr+'">'+x+'</td>';}).join("")+'</tr>';});
     o+='</table></div><div class="act" style="justify-content:flex-start;gap:8px"><button class="btn sm" id="cpT">Копіювати цифри (без імен)</button><button class="btn sm soft" id="cpN">Копіювати з іменами</button><span class="note" id="cpM"></span></div>';
-    o+='<div class="note">Кожен рівень Блума — 0–4 бали. A = Зн + Ро, B = Зс + Ан, C = Оц + Ст (кожна група 0–8). Позначка <span class="a"><b>?</b></span> — є відповідь, яку ще не оцінено вручну (кнопка «вхід» / «підсумок» у списку «Учні»; після збереження оцінок таблиця оновиться). Вставляйте в таблицю як є: порядок стовпців — Зн, Ро, Зс, Ан, Оц, Ст, Разом, A, B, C.'+(CUT===2?' Проміжний зріз містить лише наскрізні (К1) завдання, тому бали менші.':'')+'</div>';
+    o+='<div class="note">Кожен рівень Блума — 0–4 бали, разом 6 × 4 = 24. Рівні об’єднано в три блоки по два рівні (по 8 балів): <b>A — знання й розуміння</b> (Зн + Ро), <b>B — застосування й аналіз</b> (Зс + Ан), <b>C — оцінювання й створення</b> (Оц + Ст). Позначка <span class="a"><b>?</b></span> — є відповідь, яку ще не оцінено вручну (кнопка «відкрити» у списку робіт; після збереження оцінок таблиця оновиться). Вставляйте в таблицю як є: порядок стовпців — Зн, Ро, Зс, Ан, Оц, Ст, Разом, A, B, C.'+(CUT===2?' Проміжний зріз містить лише наскрізні (К1) завдання, тому бали менші.':'')+'</div>';
     tblBlock.D=D;return o;}
   function tblCopy(withNames){var D=tblBlock.D||[],L=D.map(function(d){return (withNames?[d.name]:[]).concat(LV.map(function(l){return d.v[l];}),[d.tot],d.g).join("\t");}).join("\n");
     var m=$("cpM");function ok(){if(m)m.textContent="Скопійовано — вставте в таблицю (Ctrl+V).";}
@@ -167,16 +167,19 @@ function teacherPanelM(){
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
-        h+='<br><i>Завдання відкритої частини:</i> '+esc(r.open)+'<br><i>Орієнтир для перевірки (однаковий в усіх зрізах):</i> '+esc(r.rub)+'<br><i>Відповідь учня:</i> '+(r.otext&&r.otext.trim()?'<span style="white-space:pre-wrap">'+esc(r.otext)+'</span>':(r.photos&&r.photos.length?"— (текст не писав(ла), є фото)":"— (порожньо)"))+'<br>'+photosHtml(r);
+        var has=(r.otext&&r.otext.trim())||(r.photos&&r.photos.length),M=r.rubm;
+        h+='<div class="gq"><b>Письмова частина (оцінюєте ви):</b> '+esc(r.open)+'</div>';
+        h+='<div class="gans"><div class="gh">✍️ Відповідь учня</div>'+(r.otext&&r.otext.trim()?'<div style="white-space:pre-wrap">'+esc(r.otext)+'</div>':'<i>— текст не написано'+(r.photos&&r.photos.length?', є фото нижче':'')+'</i>')+photosHtml(r)+'</div>';
+        h+='<div class="gkey"><div class="gh">✅ З чим порівнювати</div>'+esc(M?M.key:(r.rub||""))+'</div>';
         if(r.rb){
           var U=RUBU[r.l]||RUBU["Оц"];
-          h+='<div style="margin-top:6px"><b>Рубрика 0–4 (розділ 5.4 ТЗ):</b></div>';
-          for(var k=4;k>=0;k--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:12px"><input type="radio" name="rg'+i+'" value="'+k+'"'+(r.ograde===k?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k+'</b> — '+esc(U[4-k])+'</span></label>';
-        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)){
-          var D=r.opn===2?["Повне пояснення своїми словами, є обґрунтування, видно розуміння","Правильна ідея, але неповно або без обґрунтування","Немає спроби, «не знаю» або по суті хибно"]:r.opn===1?["Відповідь по суті","Немає або хибно"]:null;
-          h+='<div style="margin-top:6px"><b>Бали за письмову частину (0–'+r.opn+'):</b></div>';
-          for(var k2=r.opn;k2>=0;k2--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:13px"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k2+'</b> — '+esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково"))+'</span></label>';
-        }
+          h+='<div style="margin-top:8px"><b>Ваша оцінка (0–4):</b></div>';
+          for(var k=4;k>=0;k--)h+='<label class="gopt"><input type="radio" name="rg'+i+'" value="'+k+'"'+(r.ograde===k?" checked":"")+'><span><b>'+k+'</b> — '+esc(U[4-k])+'</span></label>';
+        }else if(has){
+          var D=M&&r.opn===2?[M.l2,M.l1,M.l0]:(r.opn===1?["Відповідь по суті","Немає або хибно"]:null);
+          h+='<div style="margin-top:8px"><b>Ваша оцінка (0–'+r.opn+'):</b></div>';
+          for(var k2=r.opn;k2>=0;k2--)h+='<label class="gopt"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+'><span><b>'+k2+' б</b> — '+esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково"))+'</span></label>';
+        }else h+='<div class="note" style="margin-top:6px">Відповіді немає — 0 балів.</div>';
       }
       h+='</div>';});
     h+='<div class="center"><button class="btn" id="sv">Зберегти бали</button></div></div>';

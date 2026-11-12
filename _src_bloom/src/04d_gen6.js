@@ -29,8 +29,26 @@ function pick4(pool,spec,n,id){
   return out;}
 function realPart(g,v,key,letter){
   var R=mkR(key+"|"+g.id+"|"+v),o=g.f(R),q=letter+" "+o.q;
-  if(o.k==="mc"){var ord=R.sh(o.o.map(function(_,i){return i;}));return {k:"s",q:q,o:ord.map(function(i){return o.o[i];}),a:ord.indexOf(o.a||0)};}
-  return {k:"n",q:q,a:o.a,tol:0.0005};}
+  if(o.k==="mc"){var ord=R.sh(o.o.map(function(_,i){return i;}));return {k:"s",q:q,o:ord.map(function(i){return o.o[i];}),a:ord.indexOf(o.a||0),why:o.why,tp:g.t};}
+  return {k:"n",q:q,a:o.a,tol:0.0005,sol:o.sol,tp:g.t};}
+function topName(id){var f=TOP.filter(function(t){return t[0]===id;})[0];return f?f[3]:"";}
+function plain(h){return String(h).replace(/<sup>(.*?)<\/sup>/g,"^$1").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();}
+/* зразок для вчителя: що має написати учень на 2 б / 1 б / 0 б — саме для цього завдання */
+function rubFor(sl,parts,LET){
+  var key=parts.map(function(p,i){return LET[i]+" "+(p.k==="s"?p.o[p.a]:fm(p.a));}).join("; ");
+  if(sl.L==="Ро"){
+    var p=parts[0],R=p.o?p.o[p.a]:fm(p.a),W=p.o?p.o.filter(function(x,i){return i!==p.a;})[0]:null,T=topName(p.tp);
+    var open="Поясни своїми словами, чому в запитанні (а) правильна відповідь саме «"+plain(R)+"»"+(W?", а не «"+plain(W)+"»":"")+".";
+    return {open:open,m:{key:"Правильні відповіді: "+key+".",
+      l2:"Називає правильну відповідь «"+plain(R)+"» і обґрунтовує її правилом, означенням чи властивістю з теми «"+T+"»"+(p.why?" — очікується думка: "+p.why:"")+(W?"; пояснює, чому «"+plain(W)+"» не підходить (причина, а не лише «бо неправильно»)":"")+".",
+      l1:"Відповідь «"+plain(R)+"» названо, але обґрунтування неповне: правило є, проте не прив'язане до цього випадку"+(W?", або не пояснено, чому «"+plain(W)+"» хибна":"")+".",
+      l0:"Немає спроби, «не знаю», лише повторено відповідь без пояснення, або пояснення по суті хибне."}};}
+  var p2=parts.filter(function(x){return x.k==="n";})[0]||parts[0],A=p2.k==="s"?p2.o[p2.a]:fm(p2.a);
+  return {open:"Запиши розв'язання пункту (а) по кроках і поясни, чому ти обрав(ла) саме такий спосіб; за потреби виконай рисунок (можна сфотографувати й додати фото).",
+    m:{key:"Правильні відповіді: "+key+"."+(p2.sol?" Зразок розв'язання пункту (а): "+p2.sol+".":""),
+      l2:"Хід розв'язання записано повністю, без пропусків у ключових кроках, і він веде до правильного результату "+plain(A)+"; названо властивість чи формулу, на яку учень спирався"+(p2.sol?" (очікується: "+p2.sol+")":"")+".",
+      l1:"Є правильна ідея й частина кроків, але помилка в обчисленнях, пропущено ключовий крок, немає кінцевого результату "+plain(A)+" або не названо властивість.",
+      l0:"Немає спроби, «не знаю», записано лише відповідь без ходу розв'язання, або розв'язання по суті хибне."}};}
 function slotPool(sl,cfg){
   var tp=(sl.an||sl.c===1)?cfg.tp:cfg.tk;
   var p=poolOf({tp:tp},sl.L);
@@ -45,15 +63,25 @@ function buildMon4(cfg,name){
     if(sl.rb){
       var g=pickGens(pool,spec,1,[])[0];
       t=mkTaskM(g,{L:sl.L,c:sl.c,p:4,rb:1,an:sl.an},sk);
+      var base=(t.rub||"").replace(/\s+$/,"");
+      if(sl.L==="Ст"){
+        t.k="rub";t.a=undefined;t.o=undefined;t.right="";
+        t.q="<b>Зразок задачі:</b> "+t.q+"<br><br><b>Завдання.</b> Тепер створи свою.";
+        if(!/перевір/.test(t.open||""))t.open=(t.open||"Створіть власну задачу.").replace(/\s+$/,"")+" Запишіть повне розв'язання та перевірку відповіді; рисунок чи розв'язання можна сфотографувати й додати фото з зошита.";
+        t.rubm={key:"Що має бути в роботі: "+base+(/перевір/.test(base)?"":" Є перевірка відповіді; умова оригінальна (не копія зразка).")};
+      }else{
+        t.open=(t.open||"Поясніть свою відповідь.").replace(/\s+$/,"")+(/рисун/.test(t.open||"")?"":" За потреби виконайте рисунок (можна сфотографувати й додати фото з зошита)")+" і запропонуйте, як перевірити відповідь іншим способом.";
+        t.rubm={key:"Що очікується: "+base+" Додатково: запропоновано спосіб перевірки (інший спосіб, оцінка, підстановка)."+(t.right?" Правильний варіант у вибірі: «"+plain(t.right)+"».":"")};
+      }
     }else{
       var pk=pick4(pool,spec,sl.n,cfg.id);
       var parts=pk.map(function(x,i){return realPart(x.g,x.v,sk,LET[i]);});
       var sh=pk[0]?pk[0].g.t:"";
       t={l:sl.L,t:sh,k:"mix",q:sl.q,pts:4,c:sl.c,aut:sl.ap,ap:sl.ap,opn:4-sl.ap,parts:parts,open:"",openLb:"",rub:"",right:""};
       if(sl.an)t.an=1;
-      if(sl.open){var key2=parts.map(function(p,i){return LET[i]+" "+(p.k==="s"?p.o[p.a]:fm(p.a));}).join("; ");
-        t.open=sl.open;t.openLb=sl.open;
-        t.rub="Правильні відповіді: "+key2+". Відповіді перевіряються автоматично ("+sl.ap+" з 4 б). Ви ставите 0–"+(4-sl.ap)+" б лише за письмове пояснення: 2 — повне, з обґрунтуванням, видно розуміння; 1 — правильна ідея, але неповно або без обґрунтування; 0 — немає спроби, «не знаю» або по суті хибно.";}
+      if(sl.open){var rf=rubFor(sl,parts,LET);
+        t.open=rf.open;t.openLb=rf.open;t.rubm=rf.m;
+        t.rub=rf.m.key+" Ви ставите 0–"+(4-sl.ap)+" б за письмове пояснення: 2 — "+rf.m.l2+" 1 — "+rf.m.l1+" 0 — "+rf.m.l0;}
     }
     t.blk=blk;out.push(t);});
   return out;}
