@@ -47,9 +47,20 @@ function saveResult(res){
   attempt();
 }
 
+/* запит пароля вчителя: символи ховаються (type=password) */
+function askPw(ok){
+  var m=document.createElement("div");m.className="modal";
+  m.innerHTML='<div class="box" style="max-width:340px"><b style="color:#5a4b8a">Пароль вчителя</b><input id="pwi" type="password" autocomplete="off" inputmode="numeric" style="margin-top:10px" placeholder="••••"><div id="pwe" class="note" style="color:#b3261e;min-height:18px"></div><div class="act"><button class="btn sm soft" id="pwc">Скасувати</button><button class="btn sm" id="pwo">Увійти</button></div></div>';
+  document.body.appendChild(m);
+  var i=document.getElementById("pwi");i.focus();
+  function close(){if(m.parentNode)m.parentNode.removeChild(m);}
+  function go(){if(i.value===TEACHER_PASSWORD){close();ok();}else{document.getElementById("pwe").textContent="Невірний пароль";i.value="";i.focus();}}
+  document.getElementById("pwo").onclick=go;document.getElementById("pwc").onclick=close;
+  i.onkeydown=function(e){if(e.key==="Enter")go();else if(e.key==="Escape")close();};
+}
 function teacherPanel(){
   if(MON){teacherPanelM();return;}
-  var p=prompt("Пароль вчителя:");if(p!==TEACHER_PASSWORD)return;
+  if(!window.__pwOk){askPw(function(){window.__pwOk=1;try{teacherPanel();}finally{window.__pwOk=0;}});return;}
   var m=document.createElement("div");m.className="modal";
   m.innerHTML='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">Результати учнів</b><span><select id="wk" style="width:auto;display:inline-block"></select> <button class="btn sm soft" id="csv">CSV</button> <button class="btn sm soft" id="clr">Очистити</button> <button class="btn sm" id="cls">Закрити</button></span></div><div id="tb">Завантаження…</div></div>';
   document.body.appendChild(m);

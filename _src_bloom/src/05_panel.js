@@ -30,11 +30,11 @@ var REC={"Зн":"повернутися до термінів, означень 
 /* Універсальна рубрика 0–4 (розділ 5.4 ТЗ) */
 var RUBU={
  "Ан":["Виділено всі суттєві елементи / ознаки, зв'язок названо і пояснено","Більшість елементів виділено, зв'язок названо без пояснення","Виділено частину елементів, зв'язок не встановлено","Один елемент або переказ замість аналізу","Немає відповіді або відповідь не стосується завдання"],
- "Оц":["Чітке судження, ≥ 2 доречні аргументи, опора на критерій або дані (7+ кл.: враховано контраргумент)","Судження + один повний аргумент","Судження з неповним або недоречним аргументом","Судження без аргументу («бо мені подобається»)","Немає відповіді або відповідь не стосується завдання"],
- "Ст":["Продукт виконує всі умови завдання, цілісний, має елемент оригінальності","Виконано всі умови, але продукт шаблонний","Виконано половину умов або продукт фрагментарний","Спроба є, умови переважно не виконані","Немає спроби"]};
+ "Оц":["Помилку знайдено й названо, записано правильний результат і правило, запропоновано спосіб перевірки (інший спосіб, оцінка, підстановка); де треба — є рисунок","Помилку знайдено, виправлено й пояснено, але немає способу перевірки","Помилку знайдено й виправлено, але пояснення неповне або не пов’язане з правилом","Помилку лише названо загально («неправильно») без виправлення, або виправлення містить помилку","Немає спроби або помилку не знайдено («помилки немає»)"],
+ "Ст":["Задача коректна (умова повна, є питання, дані реалістичні), нова, з повним правильним розв’язанням і перевіркою відповіді","Задача коректна й правильно розв’язана, але немає перевірки або рисунка (де він потрібний), або дрібна помилка","Задача коректна, але розв’язання неповне чи з суттєвою помилкою; або розв’язано правильно, проте задача майже копія зразка","Є спроба скласти задачу, але вона некоректна: бракує даних чи питання, умова суперечлива, або це не задача","Немає спроби або відповідь не за темою"]};
 
 function teacherPanelM(){
-  var p=prompt("Пароль вчителя:");if(p!==TEACHER_PASSWORD)return;
+  if(!window.__pwOk){askPw(function(){window.__pwOk=1;try{teacherPanelM();}finally{window.__pwOk=0;}});return;}
   var m=document.createElement("div");m.className="modal";
   m.innerHTML='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">Моніторинг: результати та динаміка</b><span><select id="wk" style="width:auto;display:inline-block;max-width:60vw"></select> <button class="btn sm soft" id="csv">CSV: таблиця балів</button> <button class="btn sm soft" id="csv2">CSV: динаміка</button> <button class="btn sm soft" id="clr">Очистити</button> <button class="btn sm" id="cls">Закрити</button></span></div><div id="tb">Завантаження…</div></div>';
   document.body.appendChild(m);
@@ -165,12 +165,16 @@ function teacherPanelM(){
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
     h+=phTop(x);h+='<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
-      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
-      if(r.opn){
-        var has=(r.otext&&r.otext.trim())||(r.photos&&r.photos.length),M=r.rubm;
-        h+='<div class="gq"><b>Письмова частина (оцінюєте ви):</b> '+esc(r.open)+'</div>';
+      if(!r.opn)return;
+      var M=r.rubm;
+      h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+esc(TOPN[r.t]||r.t)+' · письмова частина: '+(r.rb?'0–4 б':'0–'+r.opn+' б')+'<br>';
+      if(r.rb)h+='<div class="gq"><b>Завдання учня:</b><br>'+fmt(r.q)+'</div>';
+      else if(M&&M.qa)h+='<div class="gq"><b>Запитання, яке пояснював учень:</b><br>'+fmt(M.qa)+'</div>';
+      {
+        var has=(r.otext&&r.otext.trim())||(r.photos&&r.photos.length);
+        h+='<div class="gq"><b>Що мав написати учень:</b> '+esc(r.open)+'</div>';
         h+='<div class="gans"><div class="gh">✍️ Відповідь учня</div>'+(r.otext&&r.otext.trim()?'<div style="white-space:pre-wrap">'+esc(r.otext)+'</div>':'<i>— текст не написано'+(r.photos&&r.photos.length?', є фото нижче':'')+'</i>')+photosHtml(r)+'</div>';
-        h+='<div class="gkey"><div class="gh">✅ З чим порівнювати</div>'+esc(M?M.key:(r.rub||""))+'</div>';
+        h+='<div class="gkey"><div class="gh">✅ '+(r.rb?'Що має бути в роботі':'Зразок відповіді — з ним порівнюйте')+'</div>'+fmt(esc(M?(M.mod||M.key):(r.rub||"")))+'</div>';
         if(r.rb){
           var U=RUBU[r.l]||RUBU["Оц"];
           h+='<div style="margin-top:8px"><b>Ваша оцінка (0–4):</b></div>';
@@ -178,7 +182,7 @@ function teacherPanelM(){
         }else if(has){
           var D=M&&r.opn===2?[M.l2,M.l1,M.l0]:(r.opn===1?["Відповідь по суті","Немає або хибно"]:null);
           h+='<div style="margin-top:8px"><b>Ваша оцінка (0–'+r.opn+'):</b></div>';
-          for(var k2=r.opn;k2>=0;k2--)h+='<label class="gopt"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+'><span><b>'+k2+' б</b> — '+esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково"))+'</span></label>';
+          for(var k2=r.opn;k2>=0;k2--)h+='<label class="gopt"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+'><span><b>'+k2+' б</b> — '+fmt(esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково")))+'</span></label>';
         }else h+='<div class="note" style="margin-top:6px">Відповіді немає — 0 балів.</div>';
       }
       h+='</div>';});
