@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Тренажер: Множення в стовпчик (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;
+  --acc:#be185d;--acc2:#e5508a;--accL:#fce7f3;--soft:#fdeff5;--soft2:#fff7fa;--line:#f3cfe0;
+  --ok:#1e9e62;--okbg:#e6f7ee;--bad:#e0464e;--badbg:#fdecee;--warnbg:#fff6e5;
+  --cw:46px;--N:7;
+}
+*{box-sizing:border-box}
+html{background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+body{
+  margin:0;min-height:100vh;min-height:100dvh;color:var(--ink);
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.3;
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%);background-attachment:fixed;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit}
+button:focus{outline:none}
+button:focus-visible{outline:3px solid rgba(190,24,93,.55);outline-offset:2px}
+
+.wrap{max-width:560px;margin:0 auto;padding:10px 16px 0;display:flex;flex-direction:column;gap:10px;min-height:100vh;min-height:100dvh}
+.card{background:#fff;border:2px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(120,20,70,.14);padding:12px}
+
+/* ---------- шапка ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{margin:0;font-size:1.3rem;font-weight:900;line-height:1.15;color:transparent;background:linear-gradient(90deg,#be185d,#db2777);-webkit-background-clip:text;background-clip:text}
+.memoBtn{flex:none;height:42px;padding:0 14px;border:2px solid var(--acc2);border-radius:14px;background:var(--accL);color:var(--acc);font-weight:900;font-size:.95rem;cursor:pointer}
+.memoBtn:active{transform:scale(.96)}
+
+.score{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:8px 12px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
+.score b{font-size:1.05rem;font-weight:900}
+.score .num{color:var(--acc);font-size:1.2rem}
+.dots{display:flex;gap:4px;flex:1;min-width:80px}
+.dot{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--line)}
+.dot.ok{background:var(--ok);border-color:var(--ok)}
+.dot.no{background:var(--bad);border-color:var(--bad)}
+.reset{flex:none;border:0;background:none;color:var(--muted);font-weight:800;font-size:.8rem;text-decoration:underline;cursor:pointer;padding:6px 2px}
+
+.lvlrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+.lcap{font-weight:800;font-size:.85rem;color:var(--muted)}
+.lvls{display:flex;gap:6px}
+.lvl{width:42px;height:42px;padding:0;border:2px solid var(--line);border-radius:50%;background:var(--soft);color:#9d174d;font-weight:900;font-size:1.05rem;cursor:pointer;transition:.12s}
+.lvl.on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 2px 6px rgba(190,24,93,.3)}
+.ldesc{margin-top:6px;font-weight:700;font-size:.9rem;color:var(--ink)}
+.sw{display:flex;align-items:center;gap:10px;margin-top:8px;padding:6px 0;cursor:pointer;font-weight:800;font-size:.9rem;color:var(--muted);-webkit-user-select:none;user-select:none}
+.sw input{position:absolute;opacity:0;pointer-events:none}
+.sw i{position:relative;flex:none;width:46px;height:26px;border-radius:13px;background:#ddd;transition:.15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}
+.sw input:checked+i{background:var(--acc2)}
+.sw input:checked+i::after{left:23px}
+.sw input:focus-visible+i{outline:3px solid rgba(190,24,93,.55);outline-offset:2px}
+
+/* ---------- завдання й стовпчик ---------- */
+.task{text-align:center;font-weight:800;font-size:1rem;color:var(--muted)}
+.task b{display:block;font-size:1.7rem;font-weight:900;color:var(--ink);letter-spacing:.02em}
+.boardwrap{margin-top:6px;display:flex;justify-content:center;padding:8px 0}
+.board{display:grid;grid-template-columns:repeat(var(--N),var(--cw));gap:4px;justify-content:center;align-items:center;-webkit-user-select:none;user-select:none}
+.dg,.sg,.emp,.ph,.cell{width:var(--cw);height:calc(var(--cw)*1.05)}
+.dg,.sg,.cell{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(var(--cw)*.58)}
+.dg{background:#fff;border:2px solid var(--line);border-radius:calc(var(--cw)*.2);color:var(--ink)}
+.sg{color:var(--acc);font-size:calc(var(--cw)*.7)}
+.ph{border:2px dashed #ecd5e1;border-radius:calc(var(--cw)*.2);opacity:.6}
+.rule{grid-column:1/-1;height:4px;margin:2px 0;background:var(--ink);border-radius:9px}
+.cell{padding:0;background:#fff;border:2px solid var(--acc2);border-radius:calc(var(--cw)*.2);color:var(--ink);cursor:pointer;box-shadow:0 2px 4px rgba(190,24,93,.12)}
+.cell.carry,.cr{height:calc(var(--cw)*.62)}
+.cell.carry{width:calc(var(--cw)*.78);justify-self:center;font-size:calc(var(--cw)*.4);color:#9d174d;background:var(--accL);border:2px dashed var(--acc2);border-radius:calc(var(--cw)*.16)}
+.cell.active{border-color:var(--acc);background:var(--soft);box-shadow:0 0 0 3px rgba(190,24,93,.28)}
+.cell.carry.active{border-style:solid;background:#fff}
+.cell.good{border-color:var(--ok);background:var(--okbg);color:#14663f}
+.cell.bad{border-color:var(--bad);background:var(--badbg);color:#a3232b}
+.cell.hl{animation:hl .5s ease-in-out 4}
+@keyframes hl{50%{box-shadow:0 0 0 5px rgba(245,158,11,.65);border-color:#f59e0b}}
+.cell.st{cursor:default;opacity:1}
+.cell:disabled{opacity:1;cursor:default}
+
+.fb{min-height:56px;display:flex;align-items:center;justify-content:center;margin-top:4px}
+.fb span{display:block;max-width:100%;padding:8px 14px;border:2px solid;border-radius:14px;font-weight:800;font-size:1rem;line-height:1.25;text-align:center}
+.fb span:empty{display:none}
+.fb .ok{color:#14663f;background:var(--okbg);border-color:#8fd3b0}
+.fb .bad{color:#a3232b;background:var(--badbg);border-color:#efa3a8}
+.fb .warn{color:#8a5a00;background:var(--warnbg);border-color:#f3d9a4}
+.fb .hint{color:#7a2a62;background:var(--accL);border-color:#f0a3c8}
+
+.actions{display:flex;gap:8px;margin-top:6px}
+.btn{flex:1;height:50px;padding:0 8px;border:0;border-radius:14px;color:#fff;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 3px 8px rgba(190,24,93,.25);transition:transform .1s}
+.btn:active{transform:scale(.96)}
+.btn.h{background:#fff;color:var(--acc);border:2px solid var(--acc2);box-shadow:none;flex:.9}
+.btn.c{background:var(--acc);flex:1.3}
+.btn.n{background:var(--acc2);flex:1}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.pulse{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(229,80,138,.35)}}
+
+/* ---------- цифрова клавіатура (липне донизу екрана) ---------- */
+.padwrap{position:sticky;bottom:0;z-index:5;margin:auto -16px 0;padding:8px 16px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(253,239,245,.96);border-top:2px solid var(--line);backdrop-filter:blur(6px)}
+.pad{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.k{height:48px;padding:0;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:#9d174d;font-weight:900;font-size:1.35rem;cursor:pointer;box-shadow:0 2px 4px rgba(120,20,70,.07);transition:.08s}
+.k:active{background:#fde1ee;transform:scale(.94)}
+.k.f{background:#fde1ee;font-size:1.15rem}
+.k:disabled{opacity:.4}
+footer{text-align:center;font-size:10px;letter-spacing:.05em;color:#6b7280;line-height:1.5;padding:2px 0 4px}
+footer b{font-weight:700}
+.rule2{font-size:.78rem;color:var(--muted);font-weight:700;text-align:center;margin-top:2px}
+
+/* ---------- пам’ятка ---------- */
+.ov{position:fixed;inset:0;z-index:30;display:none;align-items:flex-start;justify-content:center;padding:12px;overflow:auto;background:rgba(60,15,45,.5)}
+.ov.on{display:flex}
+.modal{position:relative;background:#fff;border-radius:22px;padding:18px 16px 16px;width:100%;max-width:520px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal h2{margin:0 36px 10px 0;font-size:1.3rem;font-weight:900;color:var(--acc)}
+.modal .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;border-radius:50%;background:var(--accL);color:var(--acc);font-size:1.5rem;font-weight:900;line-height:1;cursor:pointer}
+.modal ol{margin:0;padding:0;list-style:none;counter-reset:m;display:flex;flex-direction:column;gap:8px}
+.modal li{counter-increment:m;position:relative;padding:8px 10px 8px 44px;background:var(--soft2);border:1px solid var(--line);border-radius:12px;font-weight:700;font-size:.95rem}
+.modal li::before{content:counter(m);position:absolute;left:8px;top:7px;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+.modal li em{font-style:normal;color:var(--acc);font-weight:900}
+.ex{margin-top:12px;padding:10px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
+.ex .exw{display:flex;justify-content:center;padding:6px 0}
+.ex p{margin:6px 0 0;font-weight:700;font-size:.9rem}
+.ex .leg{color:var(--muted);font-size:.82rem}
+.modal .go{width:100%;margin-top:12px;height:50px;border:0;border-radius:14px;color:#fff;font:inherit;font-weight:900;font-size:1rem;cursor:pointer;background:linear-gradient(135deg,#be185d,#ec4899);box-shadow:0 8px 20px rgba(190,24,93,.3)}
+
+/* ---------- салют ---------- */
+.conf{position:fixed;top:-30px;z-index:40;font-size:26px;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.conf{display:none}.cell.hl,.btn.pulse{animation:none}}
+
+@media (min-width:900px){
+  .wrap{max-width:1000px;display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto auto 1fr;gap:12px;align-items:start;min-height:0}
+  .wrap>.card:nth-child(1){grid-column:1;grid-row:1/3}
+  .wrap>.card:nth-child(2){grid-column:2;grid-row:1}
+  .padwrap{grid-column:2;grid-row:2;position:static;margin:0;padding:10px;border:2px solid var(--line);border-radius:18px;backdrop-filter:none}
+  .pad{max-width:none}
+  footer{grid-column:1/-1;grid-row:3}
+  .k{height:52px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="card">
+    <div class="top">
+      <h1>Множення в стовпчик</h1>
+      <button type="button" class="memoBtn" id="memoBtn">📌 Пам’ятка</button>
+    </div>
+
+    <div class="score" aria-live="polite">
+      <b>Правильно: <span class="num" id="sc">0 з 0</span></b>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+      <button type="button" class="reset" id="resetBtn">Скинути лік</button>
+    </div>
+
+    <div class="lvlrow">
+      <span class="lcap">Рівень</span>
+      <div class="lvls" id="lvls" role="group" aria-label="Рівень складності"></div>
+    </div>
+    <div class="ldesc" id="ldesc"></div>
+
+    <label class="sw">
+      <input type="checkbox" id="carryOn" checked>
+      <i></i>
+      <span>Позначки «запам’ятовуємо»</span>
+    </label>
+  </div>
+
+  <div class="card">
+    <div class="task" id="task"></div>
+    <div class="boardwrap" id="boardwrap"><div class="board" id="board"></div></div>
+    <div class="fb" aria-live="polite"><span id="fbText"></span></div>
+    <div class="actions">
+      <button type="button" class="btn h" id="hintBtn">💡 Підказка</button>
+      <button type="button" class="btn c" id="checkBtn">Перевірити</button>
+      <button type="button" class="btn n" id="newBtn">Новий приклад</button>
+    </div>
+    <div class="rule2">У залік іде приклад, який правильно з першої перевірки.</div>
+  </div>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+
+  <div class="padwrap">
+    <div class="pad" id="pad">
+      <button type="button" class="k" data-d="1">1</button>
+      <button type="button" class="k" data-d="2">2</button>
+      <button type="button" class="k" data-d="3">3</button>
+      <button type="button" class="k" data-d="4">4</button>
+      <button type="button" class="k" data-d="5">5</button>
+      <button type="button" class="k f" data-a="back" aria-label="Стерти">⌫</button>
+      <button type="button" class="k" data-d="6">6</button>
+      <button type="button" class="k" data-d="7">7</button>
+      <button type="button" class="k" data-d="8">8</button>
+      <button type="button" class="k" data-d="9">9</button>
+      <button type="button" class="k" data-d="0">0</button>
+      <button type="button" class="k f" data-a="skip" aria-label="Далі">→</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="memo" role="dialog" aria-modal="true" aria-labelledby="memoT">
+  <div class="modal">
+    <button type="button" class="x" id="memoX" aria-label="Закрити">×</button>
+    <h2 id="memoT">📌 Що запам’ятовуємо</h2>
+    <ol>
+      <li>Пишемо числа одне під одним: <em>одиниці під одиницями</em>, десятки під десятками.</li>
+      <li>Множимо перше число на кожну цифру другого — по черзі, <em>починаючи з одиниць</em>.</li>
+      <li>Множимо по цифрах справа наліво. Цифру одиниць результату <em>пишемо</em>, а десятки <em>запам’ятовуємо</em>: ставимо їх маленькою цифрою над наступним розрядом і додаємо до наступного добутку.</li>
+      <li>Кожний наступний неповний добуток починаємо писати <em>під тією цифрою</em>, на яку множимо: він зсувається на один розряд ліворуч.</li>
+      <li>Якщо в другому множнику є <em>нуль</em>, на нього не множимо, а наступний неповний добуток зсуваємо ще на один розряд ліворуч.</li>
+      <li>Додаємо неповні добутки — отримуємо добуток.</li>
+    </ol>
+    <div class="ex">
+      <b>Приклад: 47 · 23</b>
+      <div class="exw"><div class="board" id="exBoard"></div></div>
+      <p>7 · 3 = 21: пишемо 1, <em style="font-style:normal;color:var(--acc)">2 запам’ятовуємо</em>. 4 · 3 = 12, 12 + 2 = 14: пишемо 14.</p>
+      <p>7 · 2 = 14: пишемо 4 під десятками, 1 запам’ятовуємо. 4 · 2 = 8, 8 + 1 = 9: пишемо 9.</p>
+      <p>141 + 940 = 1081.</p>
+      <p class="leg">Маленька цифра в рамочці — те, що запам’ятовуємо.</p>
+    </div>
+    <button type="button" class="go" id="memoOk">Зрозуміло</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var rnd=function(a,b){return Math.floor(Math.random()*(b-a+1))+a};
+var el=function(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+
+/* ===================== рівні та генерація ===================== */
+var LEVELS=[
+  'двоцифрове на двоцифрове',
+  'трицифрове на двоцифрове',
+  'чотирицифрове на двоцифрове',
+  'трицифрове на трицифрове',
+  'з нулями в записі чисел'
+];
+/* число з len цифр: усі цифри від lo до 9, перша — від leadLo */
+function numDig(len,lo,leadLo){var s='';for(var i=0;i<len;i++)s+=rnd(i===0?(leadLo||lo):lo,9);return +s}
+function genTask(level){
+  var a,b;
+  if(level===1){a=numDig(2,1,2);b=numDig(2,2)}
+  else if(level===2){a=numDig(3,1,2);b=numDig(2,2)}
+  else if(level===3){a=numDig(4,1,2);b=numDig(2,2)}
+  else if(level===4){a=numDig(3,1,2);b=numDig(3,2)}
+  else if(Math.random()<.5){a=numDig(rnd(2,3),1,2);b=rnd(2,9)*100+rnd(2,9)}   /* нуль у множнику: 308 */
+  else{a=rnd(2,9)*100+rnd(2,9);b=numDig(2,2)}                                    /* нуль у першому множнику */
+  return {a:a,b:b};
+}
+
+/* ===================== модель розв’язання ===================== */
+function partSteps(a,d){
+  var A=String(a).split('').reverse().map(Number),st=[],carry=0;
+  A.forEach(function(ad,j){
+    var t=ad*d+carry,last=(j===A.length-1);
+    st.push({ad:ad,d:d,cin:carry,t:t,last:last,cout:last?0:Math.floor(t/10)});
+    carry=Math.floor(t/10);
+  });
+  return st;
+}
+function makeModel(a,b){
+  var sb=String(b).split('').reverse().map(Number),parts=[];
+  sb.forEach(function(d,p){if(d!==0)parts.push({d:d,p:p,P:String(a*d),steps:partSteps(a,d)})});
+  var prod=String(a*b),lenA=String(a).length;
+  var N=Math.max.apply(null,[lenA,String(b).length,prod.length].concat(parts.map(function(x){return x.P.length+x.p})))+1;
+  return {a:a,b:b,parts:parts,prod:prod,lenA:lenA,N:N};
+}
+
+/* ===================== побудова стовпчика ===================== */
+/* o: {carry:bool, interactive:bool, onPick:fn} */
+function buildBoard(host,m,o){
+  host.innerHTML='';
+  host.style.setProperty('--N',m.N);
+  var cells=[],map={},N=m.N;
+  function mk(type,part,q,exp){
+    var b=el('button','cell '+type);b.type='button';
+    var c={type:type,part:part,q:q,exp:exp,val:'',el:b,key:type+':'+part+':'+q};
+    b.dataset.k=c.key;
+    if(o.interactive){b.addEventListener('click',function(){o.onPick(c)})}
+    else{b.disabled=true;b.classList.add('st');c.val=(type==='carry'&&exp==='0')?'':exp;b.textContent=c.val}
+    cells.push(c);map[c.key]=c;return b;
+  }
+  function numRow(s,sign){
+    for(var c=0;c<N;c++){var q=N-1-c;
+      if(c===0&&sign)host.appendChild(el('div','sg',sign));
+      else if(q<s.length)host.appendChild(el('div','dg',s.charAt(s.length-1-q)));
+      else host.appendChild(el('div','emp'));}
+  }
+  numRow(String(m.a),'');
+  numRow(String(m.b),'×');
+  host.appendChild(el('div','rule'));
+  m.parts.forEach(function(pt,pi){
+    var c,q;
+    if(o.carry){
+      for(c=0;c<N;c++){q=N-1-c;
+        if(q>=pt.p+1&&q<=pt.p+m.lenA-1)host.appendChild(mk('carry',pi,q,String(pt.steps[q-pt.p-1].cout)));
+        else host.appendChild(el('div','emp cr'));}
+    }
+    for(c=0;c<N;c++){q=N-1-c;
+      if(c===0&&pi>0)host.appendChild(el('div','sg','+'));
+      else if(q>=pt.p&&q<pt.p+pt.P.length)host.appendChild(mk('res',pi,q,pt.P.charAt(pt.P.length-1-(q-pt.p))));
+      else if(q<pt.p)host.appendChild(el('div','ph'));
+      else host.appendChild(el('div','emp'));}
+  });
+  host.appendChild(el('div','rule'));
+  for(var c2=0;c2<N;c2++){var q2=N-1-c2;
+    if(q2<m.prod.length)host.appendChild(mk('ans',0,q2,m.prod.charAt(m.prod.length-1-q2)));
+    else host.appendChild(el('div','emp'));}
+  return {cells:cells,map:map};
+}
+function fit(host,N,m){
+  var w=host.parentElement.clientWidth-8;
+  var cw=Math.floor((w-(N-1)*4)/N);
+  cw=Math.max(28,Math.min(64,cw));
+  /* на широкому екрані клавіатура стоїть поруч: підганяємо клітинки під висоту вікна */
+  if(m&&window.innerWidth>=900){
+    var P=m.parts.length,rows=1.05*(3+P)+(carryOn?.62*P:0);
+    cw=Math.max(34,Math.min(cw,Math.floor((window.innerHeight-410)/rows)));
+  }
+  host.style.setProperty('--cw',cw+'px');
+}
+
+/* порядок введення: для кожного неповного добутку справа наліво (цифра, потім що запам’ятовуємо), потім відповідь */
+function buildOrder(m,map,carry){
+  var ord=[];
+  m.parts.forEach(function(pt,pi){
+    for(var j=0;j<pt.P.length;j++){
+      ord.push(map['res:'+pi+':'+(pt.p+j)]);
+      if(carry&&j<m.lenA-1)ord.push(map['carry:'+pi+':'+(pt.p+j+1)]);
+    }
+  });
+  for(var q=0;q<m.prod.length;q++)ord.push(map['ans:0:'+q]);
+  return ord;
+}
+/* кроки для підказки */
+function buildHints(m,map,carry){
+  var H=[];
+  m.parts.forEach(function(pt,pi){
+    pt.steps.forEach(function(s,j){
+      var cs=[map['res:'+pi+':'+(pt.p+j)]],txt,prod=s.ad*s.d;
+      if(s.last&&String(s.t).length===2)cs.push(map['res:'+pi+':'+(pt.p+j+1)]);
+      if(!s.last&&carry)cs.push(map['carry:'+pi+':'+(pt.p+j+1)]);
+      txt=s.ad+' · '+s.d+' = '+prod;
+      if(s.cin>0)txt+=', і ще '+s.cin+' запам’ятоване: '+prod+' + '+s.cin+' = '+s.t;
+      txt+='. ';
+      if(s.last)txt+='Пишемо '+s.t+'.';
+      else{txt+='Пишемо '+(s.t%10);txt+=s.cout>0?', '+s.cout+' запам’ятовуємо.':'.'}
+      if(pt.p>0&&j===0)txt='Цей неповний добуток зсуваємо на '+pt.p+' '+(pt.p===1?'розряд':'розряди')+' ліворуч. '+txt;
+      H.push({cells:cs,text:txt});
+    });
+  });
+  var carry2=0;
+  for(var q=0;q<m.prod.length;q++){
+    var ds=[];
+    m.parts.forEach(function(pt){var i=q-pt.p;if(i>=0&&i<pt.P.length)ds.push(+pt.P.charAt(pt.P.length-1-i))});
+    var sum=ds.reduce(function(x,y){return x+y},0)+carry2,t;
+    if(ds.length===1&&carry2===0)t='У цьому стовпчику одна цифра '+ds[0]+' — її й пишемо.';
+    else{
+      t='Додаємо цифри в цьому стовпчику: '+ds.join(' + ')+(carry2>0?' + '+carry2+' (запам’ятоване)':'')+' = '+sum+'. ';
+      t+=(q===m.prod.length-1)?'Пишемо '+sum+'.':'Пишемо '+(sum%10)+(sum>=10?', '+Math.floor(sum/10)+' запам’ятовуємо.':'.');
+    }
+    carry2=(q===m.prod.length-1)?0:Math.floor(sum/10);
+    H.push({cells:[map['ans:0:'+q]],text:t});
+  }
+  return H;
+}
+
+/* ===================== стан гри ===================== */
+var level=1,carryOn=true,model,cells,map,order,active=null,hints;
+var st={checked:false,solved:false};
+var right=0,total=0,streak=0,hist=[],lastPraise=-1,lastKey='';
+var board=$('#board');
+
+function isOk(c){return c.type==='carry'?(c.val===''?c.exp==='0':c.val===c.exp):c.val===c.exp}
+function msg(kind,text){var s=$('#fbText');s.className=kind;s.textContent=text}
+
+function setActive(c){
+  if(st.solved)return;
+  if(active)active.el.classList.remove('active');
+  active=c;if(c)c.el.classList.add('active');
+}
+function newTask(){
+  var t,key,guard=0;
+  do{t=genTask(level);key=t.a+'x'+t.b;guard++}while(key===lastKey&&guard<20);
+  lastKey=key;
+  model=makeModel(t.a,t.b);
+  var B=buildBoard(board,model,{carry:carryOn,interactive:true,onPick:setActive});
+  cells=B.cells;map=B.map;order=buildOrder(model,map,carryOn);hints=buildHints(model,map,carryOn);
+  st={checked:false,solved:false};active=null;
+  $('#task').innerHTML='Виконай множення в стовпчик<b></b>';
+  $('#task').querySelector('b').textContent=model.a+' · '+model.b;
+  msg('','');
+  setPad(true);
+  $('#checkBtn').disabled=false;$('#newBtn').classList.remove('pulse');
+  fit(board,model.N,model);
+  setActive(order[0]);
+}
+function setPad(on){var ks=document.querySelectorAll('#pad .k');for(var i=0;i<ks.length;i++)ks[i].disabled=!on}
+
+/* ---------- введення ---------- */
+function advance(){var i=order.indexOf(active);if(order[i+1])setActive(order[i+1])}
+function typeDigit(d){
+  if(st.solved||!active)return;
+  active.val=d;active.el.textContent=d;active.el.classList.remove('bad','good');
+  advance();
+}
+function backspace(){
+  if(st.solved||!active)return;
+  if(active.val!==''){active.val='';active.el.textContent='';active.el.classList.remove('bad','good');return}
+  var i=order.indexOf(active),p=order[i-1];
+  if(p){setActive(p);p.val='';p.el.textContent='';p.el.classList.remove('bad','good')}
+}
+function skip(){if(!st.solved&&active)advance()}
+
+/* ---------- підказка ---------- */
+function hint(){
+  if(st.solved)return;
+  for(var i=0;i<hints.length;i++){
+    var h=hints[i],bad=h.cells.filter(function(c){return !isOk(c)});
+    if(bad.length){
+      cells.forEach(function(c){c.el.classList.remove('hl')});
+      h.cells.forEach(function(c){c.el.classList.add('hl')});
+      setTimeout(function(){cells.forEach(function(c){c.el.classList.remove('hl')})},2200);
+      setActive(bad[0]);
+      msg('hint','💡 '+h.text);
+      return;
+    }
+  }
+  msg('hint','Усе заповнено правильно — натисни «Перевірити».');
+}
+
+/* ---------- перевірка ---------- */
+var PRAISE=['Молодець! 🎉','Чудово! ⭐','Блискуче! 🌟','Так тримати! 💪','Правильно! Відмінна робота! 👏','Супер! 🚀','Ось це результат! 🏆','Без жодної помилки! 👍'];
+function check(){
+  if(st.solved)return;
+  var empty=cells.filter(function(c){return c.type!=='carry'&&c.val===''});
+  if(empty.length){
+    msg('warn','Спочатку заповни всі клітинки з цифрами.');
+    var e0=order.filter(function(c){return c.type!=='carry'&&c.val===''})[0];
+    if(e0)setActive(e0);
+    return;
+  }
+  var first=!st.checked;
+  var bad=cells.filter(function(c){return !isOk(c)});
+  cells.forEach(function(c){
+    var ok=isOk(c);
+    c.el.classList.toggle('bad',!ok);
+    c.el.classList.toggle('good',ok&&!(c.type==='carry'&&c.val===''));
+  });
+  if(first){total++;st.checked=true}
+  if(!bad.length){
+    st.solved=true;
+    if(active){active.el.classList.remove('active');active=null}
+    cells.forEach(function(c){c.el.disabled=true});
+    setPad(false);$('#checkBtn').disabled=true;$('#newBtn').classList.add('pulse');
+    if(first){
+      right++;streak++;hist.push(1);
+      var i;do{i=rnd(0,PRAISE.length-1)}while(i===lastPraise);lastPraise=i;
+      var t=PRAISE[i];
+      if(streak>=3)t+=' Серія: '+streak+' поспіль! 🔥';
+      if(streak===5&&level<5)t+=' Може, час спробувати рівень '+(level+1)+'?';
+      msg('ok',t);confetti();
+    }else{
+      msg('ok','Тепер усе правильно — помилку виправлено! 👍');
+    }
+    drawScore();
+    return;
+  }
+  if(first){streak=0;hist.push(0);drawScore()}
+  var onlyAns=bad.every(function(c){return c.type==='ans'}),onlyCarry=bad.every(function(c){return c.type==='carry'});
+  var text;
+  if(onlyAns)text='Неповні добутки правильні, а в відповіді є помилка. Додай їх ще раз.';
+  else if(onlyCarry)text='Добутки правильні, але перевір, що запам’ятовуємо: маленькі цифри над розрядами.';
+  else text='Є помилка в клітинках, позначених червоним. Виправ і перевір ще раз. Допоможе «Підказка».';
+  msg('bad',text);
+  setActive(order.filter(function(c){return !isOk(c)})[0]);
+}
+
+/* ---------- лік ---------- */
+function drawScore(){
+  $('#sc').textContent=right+' з '+total;
+  var d=$('#dots');d.innerHTML='';
+  hist.slice(-10).forEach(function(v){d.appendChild(el('span','dot '+(v?'ok':'no')))});
+}
+function confetti(){
+  var em=['🎉','⭐','🌟','✨','🎊','💖'];
+  for(var i=0;i<16;i++){
+    var s=el('span','conf',em[rnd(0,em.length-1)]);
+    s.style.left=rnd(2,94)+'vw';s.style.animationDelay=(Math.random()*.4)+'s';
+    document.body.appendChild(s);
+    (function(x){setTimeout(function(){x.remove()},2200)})(s);
+  }
+}
+
+/* ---------- інтерфейс ---------- */
+function drawLevels(){
+  var box=$('#lvls');box.innerHTML='';
+  LEVELS.forEach(function(t,i){
+    var b=el('button','lvl'+(i+1===level?' on':''),String(i+1));b.type='button';
+    b.setAttribute('aria-label','Рівень '+(i+1)+': '+t);
+    b.addEventListener('click',function(){level=i+1;drawLevels();newTask()});
+    box.appendChild(b);
+  });
+  $('#ldesc').textContent=LEVELS[level-1].charAt(0).toUpperCase()+LEVELS[level-1].slice(1);
+}
+$('#pad').addEventListener('click',function(e){
+  var b=e.target.closest('.k');if(!b||b.disabled)return;
+  if(b.dataset.d!==undefined)typeDigit(b.dataset.d);
+  else if(b.dataset.a==='back')backspace();
+  else skip();
+});
+$('#checkBtn').addEventListener('click',check);
+$('#newBtn').addEventListener('click',newTask);
+$('#hintBtn').addEventListener('click',hint);
+$('#carryOn').addEventListener('change',function(){carryOn=this.checked;newTask()});
+$('#resetBtn').addEventListener('click',function(){right=0;total=0;streak=0;hist=[];drawScore()});
+
+/* пам’ятка */
+var exBuilt=false;
+function openMemo(){
+  $('#memo').classList.add('on');
+  var host=$('#exBoard');
+  if(!exBuilt){buildBoard(host,makeModel(47,23),{carry:true,interactive:false});exBuilt=true}
+  fit(host,makeModel(47,23).N);
+}
+function closeMemo(){$('#memo').classList.remove('on')}
+$('#memoBtn').addEventListener('click',openMemo);
+$('#memoX').addEventListener('click',closeMemo);
+$('#memoOk').addEventListener('click',closeMemo);
+$('#memo').addEventListener('click',function(e){if(e.target===this)closeMemo()});
+
+/* клавіатура комп’ютера */
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if($('#memo').classList.contains('on')){if(e.key==='Escape')closeMemo();return}
+  if(/^[0-9]$/.test(e.key)){typeDigit(e.key);e.preventDefault()}
+  else if(e.key==='Backspace'){backspace();e.preventDefault()}
+  else if(e.key==='ArrowRight'||e.key==='ArrowDown'){skip();e.preventDefault()}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){var i=order.indexOf(active);if(order[i-1])setActive(order[i-1]);e.preventDefault()}
+  else if(e.key==='Enter'&&e.target===document.body){st.solved?newTask():check();e.preventDefault()}
+});
+window.addEventListener('resize',function(){fit(board,model.N,model);if($('#memo').classList.contains('on'))fit($('#exBoard'),makeModel(47,23).N)});
+
+drawLevels();drawScore();newTask();
+})();
+</script>
+</body>
+</html>
