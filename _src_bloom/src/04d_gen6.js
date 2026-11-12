@@ -19,7 +19,7 @@ function allTopicIds(){return topicsOf(MK.s,MK.g).map(function(t){return t[0];})
 /* структурний прогон: які саме (шаблон, варіант) увійдуть у завдання — залежить лише від коду зрізу */
 function pick4(pool,spec,n,id){
   var by={};pool.forEach(function(g){(by[g.t]=by[g.t]||[]).push(g);});
-  var tops=spec.sh(Object.keys(by).sort());tops.forEach(function(t){by[t]=spec.sh(by[t].sort(function(a,b){return a.id<b.id?-1:1;}));});
+  var tops=spec.sh(Object.keys(by).sort());tops.forEach(function(t){by[t]=spec.sh(by[t].sort(function(a,b){return a.id<b.id?-1:1;}));by[t]=by[t].filter(function(g){return g.must;}).concat(by[t].filter(function(g){return !g.must;}));});
   var order=[],i=0;while(true){var moved=false;tops.forEach(function(t){if(by[t][i]){order.push(by[t][i]);moved=true;}});if(!moved)break;i++;}
   var out=[],seen={};
   for(var v=0;v<4&&out.length<n;v++){
