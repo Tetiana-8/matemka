@@ -187,10 +187,10 @@ function buildMon(cfg,name){
 }
 
 function showResultM(r){
-  var h='<div class="screen"><div class="card fill"><div class="scroll"><div class="center"><h1>Дякуємо, зріз виконано!</h1><div class="sub">'+esc(ST.sn+" "+ST.fn)+' · '+esc(CFG.t)+'</div>';
+  var h='<div class="screen"><div class="card fill"><div class="scroll"><div class="center"><h1>Дякую за виконані завдання!</h1><div class="sub">'+esc(ST.sn+" "+ST.fn)+' · '+esc(CFG.t)+'</div>';
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не збережено</div>';
   else h+='<div id="svst" class="note" style="margin:8px 0;font-weight:600"></div>';
-  h+='<div class="mis" style="border:none">Оцінок за цей зріз не виставляють. Твої відповіді допоможуть учителеві зрозуміти, що в тебе виходить найкраще, а над чим варто попрацювати.</div>';
+  h+='<div class="mis" style="border:none">Твої відповіді допоможуть учителю зрозуміти, що в тебе виходить найкраще, а над чим потрібно ще попрацювати.</div>';
   h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div></div></div></div></div></div>';
   $("app").innerHTML=h;
 }

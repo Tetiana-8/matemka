@@ -35,7 +35,7 @@ function saveResult(res){
     st("wait","⏳ Зберігаю результат… не закривайте сторінку.");
     fbReady().then(function(db){return fbCol(db).doc(SID).set(data);}).then(function(){
       try{localStorage.removeItem("bloom_unsent_"+SID);}catch(e){}
-      st("ok","✅ Результат збережено. Учитель його бачить.");
+      st("ok","✅ Результат збережено, учитель його побачить.");
     }).catch(function(err){
       n++;
       if(n<3){setTimeout(attempt,1500*n);return;}
