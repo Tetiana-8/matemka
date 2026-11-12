@@ -22,9 +22,29 @@ function pack(res){
     id:SID,test:CFG.t,ts:res.end,date:new Date(res.end).toISOString(),leaves:res.exits,durationSec:Math.round(res.dur),start:new Date(res.start).toISOString(),end:new Date(res.end).toISOString(),durSec:Math.round(res.dur),exits:res.exits,awaySec:res.away,
     score:S.score,grade12:res.g,pending:S.pending,lv:S.lv,tasks:res.recs,pt:CFG.pt||0,yr:CFG.yr||"",per:CFG.per||"",mon:MON?1:0};
 }
+/* Збереження результату: чистимо порожні поля (база їх не приймає), повторюємо спроби, показуємо учневі, чи збережено */
 function saveResult(res){
   if(PREV||!FIREBASE_CONFIG)return;
-  fbReady().then(function(db){return fbCol(db).doc(SID).set(pack(res));}).catch(function(){});
+  var data=null;
+  try{data=JSON.parse(JSON.stringify(pack(res)));}catch(e){}
+  function st(kind,msg){var e=$("svst");if(!e)return;e.style.color=kind==="ok"?"#1b7a3d":kind==="err"?"#b3261e":"#5a4b8a";e.innerHTML=msg;}
+  if(!data){st("err","⚠️ Не вдалося підготувати результат до збереження. Скажіть учителеві.");return;}
+  try{localStorage.setItem("bloom_unsent_"+SID,JSON.stringify(data));}catch(e){}
+  var n=0;
+  function attempt(){
+    st("wait","⏳ Зберігаю результат… не закривайте сторінку.");
+    fbReady().then(function(db){return fbCol(db).doc(SID).set(data);}).then(function(){
+      try{localStorage.removeItem("bloom_unsent_"+SID);}catch(e){}
+      st("ok","✅ Результат збережено. Учитель його бачить.");
+    }).catch(function(err){
+      n++;
+      if(n<3){setTimeout(attempt,1500*n);return;}
+      var why=String(err&&err.message||err||"").slice(0,90);
+      st("err",'⚠️ Результат НЕ збережено ('+esc(why)+'). Перевірте інтернет і натисніть: <button class="btn sm" id="svre">Спробувати ще раз</button>');
+      var b=$("svre");if(b)b.onclick=function(){n=0;attempt();};
+    });
+  }
+  attempt();
 }
 
 function teacherPanel(){

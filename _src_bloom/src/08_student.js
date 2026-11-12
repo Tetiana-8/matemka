@@ -196,6 +196,7 @@ function showResult(r){
   if(MON){showResultM(r);return;}
   var S=r.S,o=CFG.o,h='<div class="screen"><div class="card fill"><div class="scroll"><div class="center"><h1>Роботу здано</h1><div class="sub">'+esc(ST.sn+" "+ST.fn)+' · '+esc(CFG.t)+'</div>';
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не збережено</div>';
+  else h+='<div id="svst" class="note" style="margin:8px 0;font-weight:600"></div>';
   if(o.grade)h+='<span class="badge">Орієнтовна оцінка: '+(S.pending?"≈ ":"")+r.g+' з 12</span>'+(S.pending?'<div class="note">Частину відповідей ще перевірить учитель, тому оцінка може змінитися.</div>':"");
   else h+='<div class="note">Результат побачить учитель.</div>';
   h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div><div class="stat"><b>'+r.exits+'</b><span>виходів із вікна</span></div></div>';
