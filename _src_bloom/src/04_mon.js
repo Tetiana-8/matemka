@@ -30,8 +30,8 @@ var MSLOT=[
 /* Нові посилання (ar:1): «аналіз» — одне завдання на 4 бали з відповіддю й поясненням, оцінює вчитель за рубрикою 0–4 (як вимагає ТЗ). Старі посилання без ar працюють як раніше (два автоматичні завдання по 2 бали). */
 var MSLOT_AR=MSLOT.filter(function(s){return s.L!=="Ан";});MSLOT_AR.splice(6,0,{L:"Ан",c:1,p:4,rb:1,ar:1});
 function monSlots(pt,ar){return (ar===0?MSLOT:MSLOT_AR).filter(function(s){return pt!==2||s.c===1;});}
-function monCount(cfg){if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0,cfg.ar?1:0).length;}
-function monMax(pt){return monSlots(pt).reduce(function(a,s){return a+s.p;},0);}
+function monCount(cfg){if(cfg.v===4)return monSlots4(cfg.pt|0).length;if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0,cfg.ar?1:0).length;}
+function monMax(pt){return monMax4(pt);}
 
 /* Попередній клас того самого предмета (опорний зміст для К2 вхідного зрізу) */
 function prevTopics(s,g){
@@ -86,7 +86,7 @@ function showConsM(){
   h+=rows(cur,"Цей клас ("+MK.g+")")+rows(prev,"Попередній клас (опорний зміст, за потреби)");
   h+='<div class="note" id="eff"></div>';
   h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на зрізи</button></div><div id="lk"></div>';
-  h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; завдання «аналіз», «оцінювання» і «створення» перевіряє вчитель за рубрикою 0–4 у панелі 🔑; два якірні завдання повторюються в усіх зрізах; проміжний зріз у грудні — лише наскрізні завдання К1 для учнів групи підтримки. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
+  h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; письмові частини (пояснення, оцінювання, створення) перевіряє вчитель у панелі 🔑; два якірні завдання (розуміння й оцінювання) повторюються в усіх зрізах; проміжний зріз — лише аналіз, оцінювання й створення. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
   h+='</div></div></div>';
   $("app").innerHTML=h;
   $("keyBtn").onclick=teacherPanelM;bindMode();
@@ -117,8 +117,8 @@ function showConsM(){
     var ta=srt(MK.ta),tb=srt(MK.tb),id=monId(MK.s,MK.g,ta),yr=MK.yr.trim()||defYear();
     var base=location.href.split("#")[0].split("?")[0];
     var per=[MK.pa.trim(),MK.pb.trim(),MK.pc.trim()];
-    function lnk(pt){return base+"?c="+b64enc({v:2,ar:1,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
-    var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","лише К1, "+monMax(2)+" балів; для учнів групи підтримки"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
+    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
+    var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","3 завдання (аналіз, оцінювання, створення), "+monMax(2)+" балів"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
     $("lk").innerHTML=L.map(function(u,i){return '<div class="linkbox"><b>'+names[i][0]+'</b> <span class="note">· '+names[i][1]+'</span><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" data-cp="'+i+'">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';}).join("")+'<div class="note">Підсумкове посилання відкладіть до кінця року. Якщо його загубите — створіть знову з тими самими класом, предметом, темами вхідного зрізу та навчальним роком: результати зіставляться автоматично.</div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){var inp=b.closest(".linkbox").querySelector("input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);b.textContent="Скопійовано";};});
   };
@@ -126,15 +126,13 @@ function showConsM(){
 }
 function effM(){
   var e=$("eff");if(!e)return;
-  var bad=[];
   if(MK.one&&!MK.ta.length){e.textContent="Позначте хоча б одну тему.";return;}
+  var bad=[];
   if(!MK.ta.length)bad.push("вхідного");if(!MK.tb.length)bad.push("підсумкового");
   if(bad.length){e.textContent="Оберіть теми "+bad.join(" і ")+" зрізу.";return;}
-  var need=function(tp,L){return poolOf({tp:tp},L).length;};
-  var warn=[];
-  [["вхідного",MK.ta],["підсумкового",MK.tb]].forEach(function(p){["Зн","Ро","Зс"].forEach(function(L){if(need(p[1],L)<2)warn.push(p[0]+" зрізу: рівень «"+LVN[L]+"» — замало завдань у банку для вибраних тем");});});
-  ["Ро","Ан","Оц","Ст"].forEach(function(L){if(need(MK.ta,L)<1)warn.push("наскрізний рівень «"+LVN[L]+"» — замало завдань у темах вхідного зрізу");});
-  e.textContent="У повному зрізі 9 завдань і 24 бали: по 4 бали на кожен рівень; К1 — 14 балів (58 %), К2 — 10 балів (42 %); якірні — «розуміння» (К1) та «оцінювання»."+(warn.length?" Увага: "+warn.join("; ")+".":"");
+  var warn=[],NM={"Зн":"Знання","Ро":"Розуміння","Зс":"Застосування","Ан":"Аналіз"};
+  [["вхідного",MK.ta,MK.ta],["підсумкового",MK.ta,MK.tb]].forEach(function(p){struct4(p[1],p[2],0).forEach(function(r){if(r[1]<r[2])warn.push(p[0]+" зрізу, «"+NM[r[0]]+"»: у вибраних темах лише "+r[1]+" різних запитань із "+r[2]+" (бали розподіляться порівну між ними)");});});
+  e.innerHTML="Зріз: 6 завдань, 24 бали, по 4 бали на кожен рівень Блума (Зн, Ро, Зс, Ан, Оц, Ст), як у комплектах. Знання й застосування — за обраними темами; «розуміння» й «оцінювання» — якірні (однакові у всіх зрізах).<br>"+(warn.length?'<span style="color:#a33b4a">Порада: оберіть ще 1–2 теми, щоб було більше різних запитань. '+esc(Array.from(new Set(warn)).join("; "))+'.</span>':"Запитань у вибраних темах достатньо для повного зрізу.");
 }
 
 /* Вибір завдань: структура залежить лише від коду зрізу (клас, предмет, теми) і точки, а числа — від учня.
@@ -171,7 +169,8 @@ function buildMon2(cfg,name){
 
 /* Попередня версія (посилання v:1): по 2 завдання на рівень, однакові теми в обох точках */
 function buildMon(cfg,name){
-  if(cfg.v>=3)return buildKit(cfg);
+  if(cfg.v===4)return buildMon4(cfg,name);
+  if(cfg.v===3)return buildKit(cfg);
   if(cfg.v>=2)return buildMon2(cfg,name);
   var spec=mkR("mon|"+cfg.id),chosen=[],key="mon|"+name+"|"+cfg.id+"|"+cfg.pt;
   LV.forEach(function(L,li){

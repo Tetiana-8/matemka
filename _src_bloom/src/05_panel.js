@@ -64,8 +64,9 @@ function teacherPanelM(){
     var st=students(rows),pc=st.map(function(s){return [s.p[0]?lvPct(s.p[0]):null,s.p[1]?lvPct(s.p[1]):null,s.p[2]?lvPct(s.p[2]):null];});
     var cls=[0,1].map(function(pt){var o={n:0};LV.concat("all").forEach(function(L){o[L]=median(pc.map(function(v){return v[pt]?v[pt][L]:null;}));});o.n=pc.filter(function(v){return v[pt];}).length;return o;});
     var both=pc.filter(function(v){return v[0]&&v[1];}).length,nI=pc.filter(function(v){return v[2];}).length;
-    var h='<div class="note">Учнів із вхідним зрізом: <b>'+cls[0].n+'</b> · з підсумковим: <b>'+cls[1].n+'</b> · з обома: <b>'+both+'</b>'+(nI?' · з проміжним: <b>'+nI+'</b>':'')+'. P — відсоток набраних балів на рівні; у профілі класу — <b>медіана</b>. Колір клітинки — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';
-    h+=tblBlock(st);
+    var h='',hn='<div class="note">Учнів із вхідним зрізом: <b>'+cls[0].n+'</b> · з підсумковим: <b>'+cls[1].n+'</b> · з обома: <b>'+both+'</b>'+(nI?' · з проміжним: <b>'+nI+'</b>':'')+'. P — відсоток набраних балів на рівні; у профілі класу — <b>медіана</b>. Колір клітинки — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';
+    h+=tblBlock(st);h+=listBlock(st);
+    h+='<details style="margin-top:18px"><summary style="cursor:pointer;color:#5a4b8a;font-weight:700">Додаткова аналітика (динаміка, приріст, рішення) — за потреби</summary>'+hn;
     h+='<h2>Профіль класу</h2><table><tr><th>Рівень</th><th>Вхідний P, %</th><th>Підсумковий P, %</th><th>Δ, в.п.</th><th>Середній g</th><th style="width:30%"></th></tr>';
     LV.forEach(function(L){var a=cls[0][L],b=cls[1][L],d=dlt(a,b);
       var gs=[];pc.forEach(function(v){if(v[0]&&v[1]){var o=gx(v[0][L],v[1][L]);if(o&&!o.hold)gs.push(o.g);}});
@@ -94,6 +95,7 @@ function teacherPanelM(){
     st.forEach(function(s,i){var a=pc[i][0],b=pc[i][1],c=pc[i][2],pend=(a&&a.pending)||(b&&b.pending)||(c&&c.pending);
       h+='<tr><td>'+esc(s.name)+'</td>'+LV.map(function(L){return '<td'+flS(a?a[L]:null)+'>'+(a&&a[L]!=null?a[L]:"—")+'</td>';}).join("")+LV.map(function(L){return '<td'+flS(b?b[L]:null)+'>'+(b&&b[L]!=null?b[L]:"—")+'</td>';}).join("")+LV.map(function(L){var o=a&&b?gx(a[L],b[L]):null,d=a&&b?dlt(a[L],b[L]):null;return '<td class="'+gcls(o)+'" title="Δ = '+dtxt(d)+' в.п.'+(o&&!o.hold?', '+glab(o.g):'')+'">'+gtxt(o)+'</td>';}).join("")+'<td>'+(stgi(a)==null?"—":stgi(a))+' → '+(stgi(b)==null?"—":stgi(b))+'</td><td>'+(s.p[0]?'<button class="btn sm soft" data-w="'+i+'|0">вхід'+phMark(s.p[0])+'</button> ':"")+(s.p[2]?'<button class="btn sm soft" data-w="'+i+'|2">проміжний'+phMark(s.p[2])+'</button> ':"")+(s.p[1]?'<button class="btn sm soft" data-w="'+i+'|1">підсумок'+phMark(s.p[1])+'</button>':"")+(pend?' <span class="chip">перевірити</span>':"")+'</td></tr>';});
     h+='</table></div><div class="note">g ≥ 0,5 — високий приріст; 0,3–0,49 — стійкий; 0,1–0,29 — слабкий; &lt; 0,1 — без зрушень або регрес (пороги робочі, після першого повного циклу їх варто уточнити). Для P на вході ≥ 90 % замість g — «утр.» (рівень утримано) або «↓». Підказка Δ — у спливаючому вікні клітинки.</div>';
+    h+='</details>';
     $("tb").innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var q=b.dataset.w.split("|");detail(st[+q[0]].p[+q[1]]);};});
     Array.prototype.forEach.call(document.querySelectorAll("[data-cut]"),function(b){b.onclick=function(){CUT=+b.dataset.cut;render();};});
@@ -123,6 +125,11 @@ function teacherPanelM(){
     var m=$("cpM");function ok(){if(m)m.textContent="Скопійовано — вставте в таблицю (Ctrl+V).";}
     function fb(){var t=document.createElement("textarea");t.value=L;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok();}catch(e){if(m)m.textContent="Не вдалося скопіювати.";}document.body.removeChild(t);}
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(L).then(ok,fb);else fb();}
+
+  function listBlock(st){
+    var o='<h2>Роботи учнів: перевірити й оцінити</h2><div class="note">Відкрийте роботу, щоб побачити відповіді (і фото), та поставте бали за письмові частини — таблиця вище оновиться.</div><div style="overflow-x:auto"><table style="width:auto"><tr><th>Учень</th><th>Вхідний</th><th>Проміжний</th><th>Підсумковий</th></tr>';
+    st.forEach(function(s,i){o+='<tr><td>'+esc(s.name)+'</td>'+[0,2,1].map(function(c){var x=s.p[c];return '<td>'+(x?'<button class="btn sm soft" data-w="'+i+'|'+c+'">відкрити'+phMark(x)+(summarize(x.tasks).pending?' <span class="a" title="є неоцінені відповіді">●</span>':'')+'</button>':'<span class="note">—</span>')+'</td>';}).join("")+'</tr>';});
+    return o+'</table></div><div class="note"><span class="a">●</span> — є письмова відповідь, якої ще не оцінено.</div>';}
   /* Правила «дані → рішення» (розділ 9.2 ТЗ) */
   function brief(cls,st,pc){
     var t=[],hasA=cls[0].n>0,hasB=cls[1].n>0;
@@ -156,7 +163,7 @@ function teacherPanelM(){
     var d=document.createElement("div");d.className="modal";
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
-    h+=phTop(x);h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
+    h+=phTop(x);h+='<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
@@ -165,7 +172,11 @@ function teacherPanelM(){
           var U=RUBU[r.l]||RUBU["Оц"];
           h+='<div style="margin-top:6px"><b>Рубрика 0–4 (розділ 5.4 ТЗ):</b></div>';
           for(var k=4;k>=0;k--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:12px"><input type="radio" name="rg'+i+'" value="'+k+'"'+(r.ograde===k?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k+'</b> — '+esc(U[4-k])+'</span></label>';
-        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))h+='Бали за відкриту частину (0 — немає спроби або хибно, '+r.opn+' — повне пояснення): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">';
+        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)){
+          var D=r.opn===2?["Повне пояснення своїми словами, є обґрунтування, видно розуміння","Правильна ідея, але неповно або без обґрунтування","Немає спроби, «не знаю» або по суті хибно"]:r.opn===1?["Відповідь по суті","Немає або хибно"]:null;
+          h+='<div style="margin-top:6px"><b>Бали за письмову частину (0–'+r.opn+'):</b></div>';
+          for(var k2=r.opn;k2>=0;k2--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:13px"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k2+'</b> — '+esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково"))+'</span></label>';
+        }
       }
       h+='</div>';});
     h+='<div class="center"><button class="btn" id="sv">Зберегти бали</button></div></div>';
@@ -174,6 +185,7 @@ function teacherPanelM(){
     $("sv").onclick=function(){
       Array.prototype.forEach.call(d.querySelectorAll("input[data-r]"),function(inp){var r=x.tasks[+inp.dataset.r];r.ograde=inp.value===""?null:Math.max(0,Math.min(r.opn,+inp.value));});
       x.tasks.forEach(function(r,i){if(!r.rb)return;var c=d.querySelector('input[name="rg'+i+'"]:checked');if(c)r.ograde=+c.value;});
+      x.tasks.forEach(function(r,i){if(r.rb||!r.opn)return;var c=d.querySelector('input[name="og'+i+'"]:checked');if(c)r.ograde=+c.value;});
       var S2=summarize(x.tasks);x.score=S2.score;x.pending=S2.pending;x.lv=S2.lv;
       fbReady().then(function(db){return fbCol(db).doc(x._id).update({tasks:x.tasks,score:x.score,pending:x.pending,lv:x.lv});}).then(function(){document.body.removeChild(d);render();});
     };

@@ -99,6 +99,7 @@ table.kt{width:auto;margin:0 0 8px}
 .wg{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;vertical-align:middle}
 .wi{width:92px!important;min-width:0;text-align:center}.fr{display:inline-flex;flex-direction:column;align-items:center;gap:3px}.fr .wi{width:120px!important}.fb{display:block;height:2px;background:#5a4b8a;width:100%;border-radius:2px}
 .bsel{width:auto!important;font-size:20px;padding:6px 4px;border:1.5px solid #cdbff0;border-radius:8px;background:#fff}
+.hint{font-size:13px;color:#5a4b8a;background:#f3eefc;border-radius:8px;padding:6px 10px;margin:4px 0 6px}.gerr{color:#c0392b;font-weight:600;font-size:14px;margin:8px 0}
 .phs{margin-top:8px}.phb{display:inline-block;padding:9px 14px;border:1.5px dashed #8f7bd0;border-radius:12px;color:#5a4b8a;font-weight:600;font-size:14px;cursor:pointer;background:#faf7ff}.phn{font-size:12px;color:#7a6fa0;margin-left:8px}
 #pth{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.pt{position:relative}.pt img{height:84px;border-radius:8px;border:1px solid #cdbff0;display:block}.pt button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#c0392b;color:#fff;font-size:12px;line-height:22px;padding:0}
 .ptv{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.ptv img{max-height:140px;border-radius:8px;border:1px solid #cdbff0;cursor:zoom-in}
@@ -1561,8 +1562,8 @@ var MSLOT=[
 /* Нові посилання (ar:1): «аналіз» — одне завдання на 4 бали з відповіддю й поясненням, оцінює вчитель за рубрикою 0–4 (як вимагає ТЗ). Старі посилання без ar працюють як раніше (два автоматичні завдання по 2 бали). */
 var MSLOT_AR=MSLOT.filter(function(s){return s.L!=="Ан";});MSLOT_AR.splice(6,0,{L:"Ан",c:1,p:4,rb:1,ar:1});
 function monSlots(pt,ar){return (ar===0?MSLOT:MSLOT_AR).filter(function(s){return pt!==2||s.c===1;});}
-function monCount(cfg){if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0,cfg.ar?1:0).length;}
-function monMax(pt){return monSlots(pt).reduce(function(a,s){return a+s.p;},0);}
+function monCount(cfg){if(cfg.v===4)return monSlots4(cfg.pt|0).length;if(cfg.kit)return KITS[cfg.kit].tasks.length;return monSlots(cfg.pt|0,cfg.ar?1:0).length;}
+function monMax(pt){return monMax4(pt);}
 
 /* Попередній клас того самого предмета (опорний зміст для К2 вхідного зрізу) */
 function prevTopics(s,g){
@@ -1617,7 +1618,7 @@ function showConsM(){
   h+=rows(cur,"Цей клас ("+MK.g+")")+rows(prev,"Попередній клас (опорний зміст, за потреби)");
   h+='<div class="note" id="eff"></div>';
   h+='<div class="err" id="err"></div><div class="center"><button class="btn" id="mk">Створити посилання на зрізи</button></div><div id="lk"></div>';
-  h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; завдання «аналіз», «оцінювання» і «створення» перевіряє вчитель за рубрикою 0–4 у панелі 🔑; два якірні завдання повторюються в усіх зрізах; проміжний зріз у грудні — лише наскрізні завдання К1 для учнів групи підтримки. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
+  h+='<div class="note">Принципи: один рівень — один показник, на кожному рівні по 4 бали; письмові частини (пояснення, оцінювання, створення) перевіряє вчитель у панелі 🔑; два якірні завдання (розуміння й оцінювання) повторюються в усіх зрізах; проміжний зріз — лише аналіз, оцінювання й створення. Учні не отримують оцінок за зріз, а ви бачите профіль класу, приріст (Δ та індекс g), рівні сформованості й аналітичну довідку.</div>';
   h+='</div></div></div>';
   $("app").innerHTML=h;
   $("keyBtn").onclick=teacherPanelM;bindMode();
@@ -1648,8 +1649,8 @@ function showConsM(){
     var ta=srt(MK.ta),tb=srt(MK.tb),id=monId(MK.s,MK.g,ta),yr=MK.yr.trim()||defYear();
     var base=location.href.split("#")[0].split("?")[0];
     var per=[MK.pa.trim(),MK.pb.trim(),MK.pc.trim()];
-    function lnk(pt){return base+"?c="+b64enc({v:2,ar:1,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
-    var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","лише К1, "+monMax(2)+" балів; для учнів групи підтримки"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
+    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
+    var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","3 завдання (аналіз, оцінювання, створення), "+monMax(2)+" балів"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
     $("lk").innerHTML=L.map(function(u,i){return '<div class="linkbox"><b>'+names[i][0]+'</b> <span class="note">· '+names[i][1]+'</span><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" data-cp="'+i+'">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';}).join("")+'<div class="note">Підсумкове посилання відкладіть до кінця року. Якщо його загубите — створіть знову з тими самими класом, предметом, темами вхідного зрізу та навчальним роком: результати зіставляться автоматично.</div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){var inp=b.closest(".linkbox").querySelector("input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);b.textContent="Скопійовано";};});
   };
@@ -1657,15 +1658,13 @@ function showConsM(){
 }
 function effM(){
   var e=$("eff");if(!e)return;
-  var bad=[];
   if(MK.one&&!MK.ta.length){e.textContent="Позначте хоча б одну тему.";return;}
+  var bad=[];
   if(!MK.ta.length)bad.push("вхідного");if(!MK.tb.length)bad.push("підсумкового");
   if(bad.length){e.textContent="Оберіть теми "+bad.join(" і ")+" зрізу.";return;}
-  var need=function(tp,L){return poolOf({tp:tp},L).length;};
-  var warn=[];
-  [["вхідного",MK.ta],["підсумкового",MK.tb]].forEach(function(p){["Зн","Ро","Зс"].forEach(function(L){if(need(p[1],L)<2)warn.push(p[0]+" зрізу: рівень «"+LVN[L]+"» — замало завдань у банку для вибраних тем");});});
-  ["Ро","Ан","Оц","Ст"].forEach(function(L){if(need(MK.ta,L)<1)warn.push("наскрізний рівень «"+LVN[L]+"» — замало завдань у темах вхідного зрізу");});
-  e.textContent="У повному зрізі 9 завдань і 24 бали: по 4 бали на кожен рівень; К1 — 14 балів (58 %), К2 — 10 балів (42 %); якірні — «розуміння» (К1) та «оцінювання»."+(warn.length?" Увага: "+warn.join("; ")+".":"");
+  var warn=[],NM={"Зн":"Знання","Ро":"Розуміння","Зс":"Застосування","Ан":"Аналіз"};
+  [["вхідного",MK.ta,MK.ta],["підсумкового",MK.ta,MK.tb]].forEach(function(p){struct4(p[1],p[2],0).forEach(function(r){if(r[1]<r[2])warn.push(p[0]+" зрізу, «"+NM[r[0]]+"»: у вибраних темах лише "+r[1]+" різних запитань із "+r[2]+" (бали розподіляться порівну між ними)");});});
+  e.innerHTML="Зріз: 6 завдань, 24 бали, по 4 бали на кожен рівень Блума (Зн, Ро, Зс, Ан, Оц, Ст), як у комплектах. Знання й застосування — за обраними темами; «розуміння» й «оцінювання» — якірні (однакові у всіх зрізах).<br>"+(warn.length?'<span style="color:#a33b4a">Порада: оберіть ще 1–2 теми, щоб було більше різних запитань. '+esc(Array.from(new Set(warn)).join("; "))+'.</span>':"Запитань у вибраних темах достатньо для повного зрізу.");
 }
 
 /* Вибір завдань: структура залежить лише від коду зрізу (клас, предмет, теми) і точки, а числа — від учня.
@@ -1702,7 +1701,8 @@ function buildMon2(cfg,name){
 
 /* Попередня версія (посилання v:1): по 2 завдання на рівень, однакові теми в обох точках */
 function buildMon(cfg,name){
-  if(cfg.v>=3)return buildKit(cfg);
+  if(cfg.v===4)return buildMon4(cfg,name);
+  if(cfg.v===3)return buildKit(cfg);
   if(cfg.v>=2)return buildMon2(cfg,name);
   var spec=mkR("mon|"+cfg.id),chosen=[],key="mon|"+name+"|"+cfg.id+"|"+cfg.pt;
   LV.forEach(function(L,li){
@@ -2452,6 +2452,67 @@ function showKitCons(){
     "Обґрунтуй, що знайдена точка — максимум (знак похідної), і поясни помилку учня.","Дослідіть функцію V(x) = x(24 − 2x)².");
 })();
 
+/* ===== Моніторинг v:4: структура комплекту, наповнення — з банку за темами, що обрала вчителька =====
+   6 завдань, по одному на рівень, по 4 бали (як у комплектах адміністрації):
+   Зн — 4 запитання з вибором (по 1 б); Ро — 2 запитання (2 б) + пояснення вчителю (2 б); Зс — 4 числові відповіді (по 1 б);
+   Ан — 2 запитання (2 б) + пояснення вчителю (2 б); Оц і Ст — письмові, оцінює вчитель 0–4.
+   Структура залежить лише від кодів тем; числа — від учня. Якірні (Ро, Оц) однакові в усіх зрізах для одного учня. */
+var SL4=[
+ {L:"Зн",c:2,n:4,ap:4,q:"Оберіть правильну відповідь у кожному пункті."},
+ {L:"Ро",c:2,n:2,ap:2,an:1,q:"Дайте відповіді на запитання й поясніть свої міркування.",
+  open:"Поясни своїми словами, чому ти обрав(ла) саме такі відповіді: що означають ці поняття чи правила, як ти це розумієш."},
+ {L:"Зс",c:2,n:4,ap:4,q:"Виконайте завдання (відповідь запишіть числом)."},
+ {L:"Ан",c:1,n:2,ap:2,q:"Дайте відповіді на запитання й поясніть, як ви міркували.",
+  open:"Поясни, як ти знаходив(ла) відповіді: які кроки виконав(ла), що з чого випливає і чому."},
+ {L:"Оц",c:1,rb:1,an:1},
+ {L:"Ст",c:1,rb:1}
+];
+function monSlots4(pt){return SL4.filter(function(s){return pt!==2||s.c===1;});}
+function monMax4(pt){return monSlots4(pt).length*4;}
+function allTopicIds(){return topicsOf(MK.s,MK.g).map(function(t){return t[0];});}
+/* структурний прогон: які саме (шаблон, варіант) увійдуть у завдання — залежить лише від коду зрізу */
+function pick4(pool,spec,n,id){
+  var by={};pool.forEach(function(g){(by[g.t]=by[g.t]||[]).push(g);});
+  var tops=spec.sh(Object.keys(by).sort());tops.forEach(function(t){by[t]=spec.sh(by[t].sort(function(a,b){return a.id<b.id?-1:1;}));});
+  var order=[],i=0;while(true){var moved=false;tops.forEach(function(t){if(by[t][i]){order.push(by[t][i]);moved=true;}});if(!moved)break;i++;}
+  var out=[],seen={};
+  for(var v=0;v<4&&out.length<n;v++){
+    for(var j=0;j<order.length&&out.length<n;j++){
+      var g=order[j],o=g.f(mkR("struct|"+id+"|"+g.id+"|"+v)),q=String(o.q);
+      if(seen[q])continue;seen[q]=1;out.push({g:g,v:v});}}
+  return out;}
+function realPart(g,v,key,letter){
+  var R=mkR(key+"|"+g.id+"|"+v),o=g.f(R),q=letter+" "+o.q;
+  if(o.k==="mc"){var ord=R.sh(o.o.map(function(_,i){return i;}));return {k:"s",q:q,o:ord.map(function(i){return o.o[i];}),a:ord.indexOf(o.a||0)};}
+  return {k:"n",q:q,a:o.a,tol:0.0005};}
+function slotPool(sl,cfg){
+  var tp=(sl.an||sl.c===1)?cfg.tp:cfg.tk;
+  var p=poolOf({tp:tp},sl.L);
+  if(!p.length)p=poolOf({tp:allTopicIds()},sl.L);
+  return p;}
+function buildMon4(cfg,name){
+  var pt=cfg.pt|0,out=[],key="mon|"+name+"|"+cfg.id+"|"+pt,keyA="mon|"+name+"|"+cfg.id+"|anchor",LET=["(а)","(б)","(в)","(г)"];
+  monSlots4(pt).forEach(function(sl){
+    var pool=slotPool(sl,cfg),sk=sl.an?keyA:key;
+    var spec=mkR(sl.an?"mon4a|"+cfg.id+"|"+sl.L:(sl.c===1?"mon41|"+cfg.id+"|"+sl.L:"mon42|"+cfg.id+"|"+pt+"|"+sl.L));
+    var blk=BLK.filter(function(b){return b[1].indexOf(sl.L)>=0;})[0][0],t;
+    if(sl.rb){
+      var g=pickGens(pool,spec,1,[])[0];
+      t=mkTaskM(g,{L:sl.L,c:sl.c,p:4,rb:1,an:sl.an},sk);
+    }else{
+      var pk=pick4(pool,spec,sl.n,cfg.id);
+      var parts=pk.map(function(x,i){return realPart(x.g,x.v,sk,LET[i]);});
+      var sh=pk[0]?pk[0].g.t:"";
+      t={l:sl.L,t:sh,k:"mix",q:sl.q,pts:4,c:sl.c,aut:sl.ap,ap:sl.ap,opn:4-sl.ap,parts:parts,open:"",openLb:"",rub:"",right:""};
+      if(sl.an)t.an=1;
+      if(sl.open){var key2=parts.map(function(p,i){return LET[i]+" "+(p.k==="s"?p.o[p.a]:fm(p.a));}).join("; ");
+        t.open=sl.open;t.openLb=sl.open;
+        t.rub="Правильні відповіді: "+key2+". Відповіді перевіряються автоматично ("+sl.ap+" з 4 б). Ви ставите 0–"+(4-sl.ap)+" б лише за письмове пояснення: 2 — повне, з обґрунтуванням, видно розуміння; 1 — правильна ідея, але неповно або без обґрунтування; 0 — немає спроби, «не знаю» або по суті хибно.";}
+    }
+    t.blk=blk;out.push(t);});
+  return out;}
+function struct4(tpA,tpB,pt){var cfg={tp:tpA,tk:tpB},res=[];
+  monSlots4(pt).forEach(function(sl){if(sl.rb)return;var pool=slotPool(sl,cfg),got=pick4(pool,mkR("w|"+sl.L),sl.n,"w").length;res.push([sl.L,got,sl.n]);});return res;}
 /* ================= Панель вчителя (моніторинг) =================
    Показники за розділом 4 ТЗ: P = бали за рівень ÷ максимум рівня × 100 %;
    Δ = P2 − P1; g = (P2 − P1) ÷ (100 − P1); рівні сформованості 90 / 74 / 60 %;
@@ -2518,8 +2579,9 @@ function teacherPanelM(){
     var st=students(rows),pc=st.map(function(s){return [s.p[0]?lvPct(s.p[0]):null,s.p[1]?lvPct(s.p[1]):null,s.p[2]?lvPct(s.p[2]):null];});
     var cls=[0,1].map(function(pt){var o={n:0};LV.concat("all").forEach(function(L){o[L]=median(pc.map(function(v){return v[pt]?v[pt][L]:null;}));});o.n=pc.filter(function(v){return v[pt];}).length;return o;});
     var both=pc.filter(function(v){return v[0]&&v[1];}).length,nI=pc.filter(function(v){return v[2];}).length;
-    var h='<div class="note">Учнів із вхідним зрізом: <b>'+cls[0].n+'</b> · з підсумковим: <b>'+cls[1].n+'</b> · з обома: <b>'+both+'</b>'+(nI?' · з проміжним: <b>'+nI+'</b>':'')+'. P — відсоток набраних балів на рівні; у профілі класу — <b>медіана</b>. Колір клітинки — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';
-    h+=tblBlock(st);
+    var h='',hn='<div class="note">Учнів із вхідним зрізом: <b>'+cls[0].n+'</b> · з підсумковим: <b>'+cls[1].n+'</b> · з обома: <b>'+both+'</b>'+(nI?' · з проміжним: <b>'+nI+'</b>':'')+'. P — відсоток набраних балів на рівні; у профілі класу — <b>медіана</b>. Колір клітинки — рівень сформованості: <span class="chip" style="background:'+FLC[0]+'">початковий &lt; 60</span> <span class="chip" style="background:'+FLC[1]+'">середній 60–73</span> <span class="chip" style="background:'+FLC[2]+'">достатній 74–89</span> <span class="chip" style="background:'+FLC[3]+'">високий ≥ 90</span></div>';
+    h+=tblBlock(st);h+=listBlock(st);
+    h+='<details style="margin-top:18px"><summary style="cursor:pointer;color:#5a4b8a;font-weight:700">Додаткова аналітика (динаміка, приріст, рішення) — за потреби</summary>'+hn;
     h+='<h2>Профіль класу</h2><table><tr><th>Рівень</th><th>Вхідний P, %</th><th>Підсумковий P, %</th><th>Δ, в.п.</th><th>Середній g</th><th style="width:30%"></th></tr>';
     LV.forEach(function(L){var a=cls[0][L],b=cls[1][L],d=dlt(a,b);
       var gs=[];pc.forEach(function(v){if(v[0]&&v[1]){var o=gx(v[0][L],v[1][L]);if(o&&!o.hold)gs.push(o.g);}});
@@ -2548,6 +2610,7 @@ function teacherPanelM(){
     st.forEach(function(s,i){var a=pc[i][0],b=pc[i][1],c=pc[i][2],pend=(a&&a.pending)||(b&&b.pending)||(c&&c.pending);
       h+='<tr><td>'+esc(s.name)+'</td>'+LV.map(function(L){return '<td'+flS(a?a[L]:null)+'>'+(a&&a[L]!=null?a[L]:"—")+'</td>';}).join("")+LV.map(function(L){return '<td'+flS(b?b[L]:null)+'>'+(b&&b[L]!=null?b[L]:"—")+'</td>';}).join("")+LV.map(function(L){var o=a&&b?gx(a[L],b[L]):null,d=a&&b?dlt(a[L],b[L]):null;return '<td class="'+gcls(o)+'" title="Δ = '+dtxt(d)+' в.п.'+(o&&!o.hold?', '+glab(o.g):'')+'">'+gtxt(o)+'</td>';}).join("")+'<td>'+(stgi(a)==null?"—":stgi(a))+' → '+(stgi(b)==null?"—":stgi(b))+'</td><td>'+(s.p[0]?'<button class="btn sm soft" data-w="'+i+'|0">вхід'+phMark(s.p[0])+'</button> ':"")+(s.p[2]?'<button class="btn sm soft" data-w="'+i+'|2">проміжний'+phMark(s.p[2])+'</button> ':"")+(s.p[1]?'<button class="btn sm soft" data-w="'+i+'|1">підсумок'+phMark(s.p[1])+'</button>':"")+(pend?' <span class="chip">перевірити</span>':"")+'</td></tr>';});
     h+='</table></div><div class="note">g ≥ 0,5 — високий приріст; 0,3–0,49 — стійкий; 0,1–0,29 — слабкий; &lt; 0,1 — без зрушень або регрес (пороги робочі, після першого повного циклу їх варто уточнити). Для P на вході ≥ 90 % замість g — «утр.» (рівень утримано) або «↓». Підказка Δ — у спливаючому вікні клітинки.</div>';
+    h+='</details>';
     $("tb").innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var q=b.dataset.w.split("|");detail(st[+q[0]].p[+q[1]]);};});
     Array.prototype.forEach.call(document.querySelectorAll("[data-cut]"),function(b){b.onclick=function(){CUT=+b.dataset.cut;render();};});
@@ -2577,6 +2640,11 @@ function teacherPanelM(){
     var m=$("cpM");function ok(){if(m)m.textContent="Скопійовано — вставте в таблицю (Ctrl+V).";}
     function fb(){var t=document.createElement("textarea");t.value=L;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok();}catch(e){if(m)m.textContent="Не вдалося скопіювати.";}document.body.removeChild(t);}
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(L).then(ok,fb);else fb();}
+
+  function listBlock(st){
+    var o='<h2>Роботи учнів: перевірити й оцінити</h2><div class="note">Відкрийте роботу, щоб побачити відповіді (і фото), та поставте бали за письмові частини — таблиця вище оновиться.</div><div style="overflow-x:auto"><table style="width:auto"><tr><th>Учень</th><th>Вхідний</th><th>Проміжний</th><th>Підсумковий</th></tr>';
+    st.forEach(function(s,i){o+='<tr><td>'+esc(s.name)+'</td>'+[0,2,1].map(function(c){var x=s.p[c];return '<td>'+(x?'<button class="btn sm soft" data-w="'+i+'|'+c+'">відкрити'+phMark(x)+(summarize(x.tasks).pending?' <span class="a" title="є неоцінені відповіді">●</span>':'')+'</button>':'<span class="note">—</span>')+'</td>';}).join("")+'</tr>';});
+    return o+'</table></div><div class="note"><span class="a">●</span> — є письмова відповідь, якої ще не оцінено.</div>';}
   /* Правила «дані → рішення» (розділ 9.2 ТЗ) */
   function brief(cls,st,pc){
     var t=[],hasA=cls[0].n>0,hasB=cls[1].n>0;
@@ -2610,7 +2678,7 @@ function teacherPanelM(){
     var d=document.createElement("div");d.className="modal";
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
-    h+=phTop(x);h+='<h2>Профіль за рівнями Блума</h2>'+bars(S.lv)+'<h2>Завдання</h2>';
+    h+=phTop(x);h+='<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       h+='<div class="gtask"><b>'+(i+1)+'. '+LVN[r.l]+'</b> · '+(r.c?'К'+r.c+' · ':'')+(r.an?'⚓ якірне · ':'')+esc(TOPN[r.t]||r.t)+' · '+r.pts+' б<br>'+fmt(r.q)+'<br>Відповідь учня: '+(r.given?fmt(esc(r.given)):"—")+' · правильно: '+fmt(r.right)+' · '+(r.rb?'<span class="note">оцінку ставите за рубрикою</span>':(r.mix?'автоматично: <b>'+r.part+' з '+(r.pts-r.opn)+' б</b>, разом з поясненням: <b>'+gotOf(r)+' з '+r.pts+' б</b>':r.part!=null?'<b>'+r.part+' з '+r.pts+' б</b>':(r.ok?"✓ "+r.aut+" б":"✗ 0 б")));
       if(r.opn){
@@ -2619,7 +2687,11 @@ function teacherPanelM(){
           var U=RUBU[r.l]||RUBU["Оц"];
           h+='<div style="margin-top:6px"><b>Рубрика 0–4 (розділ 5.4 ТЗ):</b></div>';
           for(var k=4;k>=0;k--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:12px"><input type="radio" name="rg'+i+'" value="'+k+'"'+(r.ograde===k?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k+'</b> — '+esc(U[4-k])+'</span></label>';
-        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))h+='Бали за відкриту частину (0 — немає спроби або хибно, '+r.opn+' — повне пояснення): <input type="number" min="0" max="'+r.opn+'" data-r="'+i+'" value="'+(r.ograde==null?"":r.ograde)+'">';
+        }else if((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)){
+          var D=r.opn===2?["Повне пояснення своїми словами, є обґрунтування, видно розуміння","Правильна ідея, але неповно або без обґрунтування","Немає спроби, «не знаю» або по суті хибно"]:r.opn===1?["Відповідь по суті","Немає або хибно"]:null;
+          h+='<div style="margin-top:6px"><b>Бали за письмову частину (0–'+r.opn+'):</b></div>';
+          for(var k2=r.opn;k2>=0;k2--)h+='<label style="display:flex;gap:6px;margin:3px 0;font-weight:400;font-size:13px"><input type="radio" name="og'+i+'" value="'+k2+'"'+(r.ograde===k2?" checked":"")+' style="width:auto;margin-top:2px"><span><b>'+k2+'</b> — '+esc(D?D[r.opn-k2]:(k2===r.opn?"повна відповідь":k2===0?"немає або хибно":"частково"))+'</span></label>';
+        }
       }
       h+='</div>';});
     h+='<div class="center"><button class="btn" id="sv">Зберегти бали</button></div></div>';
@@ -2628,6 +2700,7 @@ function teacherPanelM(){
     $("sv").onclick=function(){
       Array.prototype.forEach.call(d.querySelectorAll("input[data-r]"),function(inp){var r=x.tasks[+inp.dataset.r];r.ograde=inp.value===""?null:Math.max(0,Math.min(r.opn,+inp.value));});
       x.tasks.forEach(function(r,i){if(!r.rb)return;var c=d.querySelector('input[name="rg'+i+'"]:checked');if(c)r.ograde=+c.value;});
+      x.tasks.forEach(function(r,i){if(r.rb||!r.opn)return;var c=d.querySelector('input[name="og'+i+'"]:checked');if(c)r.ograde=+c.value;});
       var S2=summarize(x.tasks);x.score=S2.score;x.pending=S2.pending;x.lv=S2.lv;
       fbReady().then(function(db){return fbCol(db).doc(x._id).update({tasks:x.tasks,score:x.score,pending:x.pending,lv:x.lv});}).then(function(){document.body.removeChild(d);render();});
     };
@@ -2755,7 +2828,7 @@ var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EX
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
   if(!c){if(MON)showConsM();else showCons();return;}
-  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
+  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v===3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
   catch(e){$("app").innerHTML='<div class="screen"><div class="card center">Посилання пошкоджене. Попросіть учителя надіслати його ще раз.</div></div>';return;}
   CFG.o=CFG.o||{};showStart();
 }
@@ -2804,7 +2877,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
-  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
+  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
   h+='</div><div class="act"><div>'+(IX?'<button class="link" id="bk">← Назад</button> ':'')+'<button class="link" id="dk">Не знаю</button></div><button class="btn" id="nx">'+(last?"Здати роботу":"Далі →")+'</button></div></div></div>';
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
@@ -2816,7 +2889,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else $("pad").onclick=function(e){var b=e.target.closest("button");if(b)typeKey(b.dataset.k);};
   if(t.open){$("ot").oninput=function(){A.otext=this.value;};phInit(A);}
-  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.ms=[];A.ps=[];A.pf={};A.skip=true;go(1);};
+  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){if(needOpen(IX)){gateMsg();return;}A.sel=null;A.txt="";A.ms=[];A.ps=[];A.pf={};A.skip=true;go(1);};
   if($("bk"))$("bk").onclick=function(){go(-1);};
 }
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".sy button");if(!b)return;var row=b.closest("[data-j]");if(!row)return;var inp=(LASTIN&&row.contains(LASTIN)&&LASTIN.type==="text")?LASTIN:row.querySelector("input[type=text]");if(!inp)return;
@@ -2894,7 +2967,10 @@ function mixOk(p,v){if(p.k==="s")return v!=null&&v===p.a;if(v==null||!String(v).
   var n=nrmEx(v);return p.a.some(function(a){var x=nrmEx(a);return x===n||(x.indexOf("/")>=0&&x.replace(/[()]/g,"")===n.replace(/[()]/g,""));});}
 function mixText(p,v){return p.k==="s"?(v==null?"—":p.o[v]):(String(v||"").trim()||"—");}
 function mixRight(p){return p.k==="s"?p.o[p.a]:(p.k==="n"?fm(p.a):(p.k==="l"?p.a.join(", "):p.a[0]));}
-function go(d){if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
+function needOpen(i){var t=T[i],a=ANS[i];return !!t.open&&!(a.otext&&a.otext.trim())&&!(a.photos&&a.photos.length);}
+function gateMsg(){var ot=$("ot");if(ot){ot.style.borderColor="#c0392b";ot.focus();}var e=$("gerr");if(!e){e=document.createElement("div");e.id="gerr";e.className="gerr";var ac=document.querySelector(".act");if(ac&&ac.parentNode)ac.parentNode.insertBefore(e,ac);}
+  e.textContent="Заповни відкриту частину: напиши хоча б кілька слів (або додай фото). Тоді можна рухатися далі.";if(e.scrollIntoView)e.scrollIntoView({block:"center"});}
+function go(d){if(d>0&&needOpen(IX)){gateMsg();return;}if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
 function typeKey(k){
   var A=ANS[IX],tx=A.txt;
   if(k==="⌫")tx=tx.slice(0,-1);

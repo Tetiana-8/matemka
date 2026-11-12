@@ -4,7 +4,7 @@ var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EX
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
   if(!c){if(MON)showConsM();else showCons();return;}
-  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v>=3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
+  try{CFG=b64dec(c);if(!CFG||!CFG.tp||!CFG.tp.length)throw 0;if(CFG.v===3){if(!CFG.kit||!KITS[CFG.kit])throw 0;}else if(CFG.v>=2){if(!CFG.tk||(!CFG.tk.length&&CFG.pt!==2))throw 0;}else if(!CFG.n||CFG.n.length!==6)throw 0;}
   catch(e){$("app").innerHTML='<div class="screen"><div class="card center">Посилання пошкоджене. Попросіть учителя надіслати його ще раз.</div></div>';return;}
   CFG.o=CFG.o||{};showStart();
 }
@@ -53,7 +53,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else{h+='<div class="disp"><span id="val">'+esc(A.txt)+'</span><span class="ph" id="ph" style="'+(A.txt?"display:none":"")+'">введи відповідь</span></div>';
     h+='<div class="pad" id="pad">'+["7","8","9","⌫","4","5","6","−","1","2","3",",","0"].map(function(k){return '<button data-k="'+k+'"'+(k==="0"?' style="grid-column:span 4"':"")+'>'+k+'</button>';}).join("")+'</div>';}
-  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
+  if(t.open)h+='<div class="open"><div class="lb">'+esc(t.openLb||"Запиши розв\'язання й обґрунтування (цю частину перевіряє вчитель)")+'</div><div class="hint">✍️ Напиши максимально все, що можеш, щоб обґрунтувати свою думку. Поки це поле порожнє, далі перейти не можна (якщо не знаєш — так і напиши).</div><textarea id="ot">'+esc(A.otext)+'</textarea><div class="phs"'+(needPh(t)?'':' style="display:none"')+'><label class="phb">📷 Додати фото з зошита<input type="file" accept="image/*" id="pf" multiple style="display:none"></label><span class="phn" id="phn"></span><div id="pth"></div></div></div>';
   h+='</div><div class="act"><div>'+(IX?'<button class="link" id="bk">← Назад</button> ':'')+'<button class="link" id="dk">Не знаю</button></div><button class="btn" id="nx">'+(last?"Здати роботу":"Далі →")+'</button></div></div></div>';
   $("app").innerHTML=h;
   $("dots").onclick=function(e){var s=e.target.closest("span");if(s){IX=+s.dataset.i;showQ();}};
@@ -65,7 +65,7 @@ function showQ(){
   else if(t.k==="rub"){}
   else $("pad").onclick=function(e){var b=e.target.closest("button");if(b)typeKey(b.dataset.k);};
   if(t.open){$("ot").oninput=function(){A.otext=this.value;};phInit(A);}
-  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){A.sel=null;A.txt="";A.ms=[];A.ps=[];A.pf={};A.skip=true;go(1);};
+  $("nx").onclick=function(){go(1);};$("dk").onclick=function(){if(needOpen(IX)){gateMsg();return;}A.sel=null;A.txt="";A.ms=[];A.ps=[];A.pf={};A.skip=true;go(1);};
   if($("bk"))$("bk").onclick=function(){go(-1);};
 }
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".sy button");if(!b)return;var row=b.closest("[data-j]");if(!row)return;var inp=(LASTIN&&row.contains(LASTIN)&&LASTIN.type==="text")?LASTIN:row.querySelector("input[type=text]");if(!inp)return;
@@ -143,7 +143,10 @@ function mixOk(p,v){if(p.k==="s")return v!=null&&v===p.a;if(v==null||!String(v).
   var n=nrmEx(v);return p.a.some(function(a){var x=nrmEx(a);return x===n||(x.indexOf("/")>=0&&x.replace(/[()]/g,"")===n.replace(/[()]/g,""));});}
 function mixText(p,v){return p.k==="s"?(v==null?"—":p.o[v]):(String(v||"").trim()||"—");}
 function mixRight(p){return p.k==="s"?p.o[p.a]:(p.k==="n"?fm(p.a):(p.k==="l"?p.a.join(", "):p.a[0]));}
-function go(d){if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
+function needOpen(i){var t=T[i],a=ANS[i];return !!t.open&&!(a.otext&&a.otext.trim())&&!(a.photos&&a.photos.length);}
+function gateMsg(){var ot=$("ot");if(ot){ot.style.borderColor="#c0392b";ot.focus();}var e=$("gerr");if(!e){e=document.createElement("div");e.id="gerr";e.className="gerr";var ac=document.querySelector(".act");if(ac&&ac.parentNode)ac.parentNode.insertBefore(e,ac);}
+  e.textContent="Заповни відкриту частину: напиши хоча б кілька слів (або додай фото). Тоді можна рухатися далі.";if(e.scrollIntoView)e.scrollIntoView({block:"center"});}
+function go(d){if(d>0&&needOpen(IX)){gateMsg();return;}if(d>0&&IX===T.length-1){finish(false);return;}IX=Math.max(0,Math.min(T.length-1,IX+d));showQ();}
 function typeKey(k){
   var A=ANS[IX],tx=A.txt;
   if(k==="⌫")tx=tx.slice(0,-1);
