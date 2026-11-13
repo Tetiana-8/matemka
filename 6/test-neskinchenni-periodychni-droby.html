@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Тест. Нескінченні періодичні десяткові дроби (6 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Кольори 6 класу (персиковий / помаранчевий) */
+:root{
+  --bg:#FFF9F1; --head:#FFF1E3; --acc:#C2410C; --acch:#9A3412; --acc2:#EA580C;
+  --soft:#FFEDD5; --l1:#FED7AA; --l2:#FDBA74; --ink:#431407; --mut:#7c4a2d;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b;
+  --blue:#1d6fd0; --bluebg:#e8f1fc; --vio:#6d44d6; --viobg:#efeafc;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(14px,2.1vh,21px);height:100%}
+body{margin:0;height:100dvh;overflow:hidden;color:var(--ink);font-family:'Nunito',system-ui,'Segoe UI',Arial,sans-serif;font-weight:600;
+  background:linear-gradient(165deg,#f2edff 0%,#fff4e8 48%,#e7f3ff 100%);-webkit-text-size-adjust:100%}
+button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none}
+#cosmos svg{width:100%;height:100%;display:block}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100dvh;width:100%;max-width:60rem;margin:0 auto}
+.scr{display:none;flex:1;min-height:0}
+.scr.on{display:flex;flex-direction:column}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+footer b{color:#374151}
+#keyBtn{position:fixed;top:6px;right:8px;z-index:2147483000;background:rgba(255,255,255,.55);border:0;border-radius:50%;width:34px;height:34px;font-size:17px;cursor:pointer;opacity:.45;padding:0}
+#keyBtn:hover{opacity:.95}
+
+/* кнопки */
+.btn{background:var(--acc);color:#fff;border:2px solid var(--acc);border-radius:999px;padding:.35rem 1.2rem;font-weight:800;font-size:1.05rem;cursor:pointer;min-height:46px;white-space:nowrap}
+.btn:hover{background:var(--acch);border-color:var(--acch)}
+.btn.light{background:var(--soft);color:var(--acc);border-color:var(--l2)}
+.btn.light:hover{background:var(--l1)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.big{font-size:1.35rem;padding:.5rem 2.2rem}
+.btn.sm{font-size:.9rem;min-height:38px;padding:.2rem .9rem}
+
+/* початок */
+#sStart{align-items:center;justify-content:center;padding:1rem}
+.start{background:rgba(255,241,227,.94);border:2px solid var(--l1);border-radius:1.4rem;padding:1.6rem 1.8rem;width:100%;max-width:34rem;text-align:center;box-shadow:0 8px 30px rgba(194,65,12,.12)}
+.start .tag{font-size:1rem;color:var(--mut);font-weight:800;letter-spacing:.04em}
+.start h1{margin:.3rem 0 .4rem;font-size:1.9rem;line-height:1.2;color:var(--acc);font-weight:900}
+.start .demo{font-size:1.5rem;font-weight:800;color:var(--acc2);margin-bottom:1rem}
+.start label{display:block;text-align:left;font-weight:800;font-size:.95rem;margin:.6rem 0 .2rem;color:var(--mut)}
+.start input{width:100%;font-size:1.2rem;font-weight:700;padding:.55rem .8rem;border:2px solid var(--l2);border-radius:.8rem;background:#fff;color:var(--ink);outline:none}
+.start input:focus{border-color:var(--acc)}
+.start input.err{border-color:var(--bad);background:var(--badbg)}
+.start .msg{min-height:1.4rem;color:var(--badtx);font-weight:800;font-size:.95rem;margin:.5rem 0}
+
+/* дроби */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-weight:800}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .22em .04em}
+.fr>span:last-child{padding:.04em .22em 0}
+.hl{color:var(--acc)}
+.per{color:var(--acc2);font-weight:900}
+
+/* ділення куточком */
+.ld{display:inline-flex;font-family:"Courier New",ui-monospace,Menlo,monospace;font-weight:700;font-size:1.6rem;line-height:1.55;color:var(--ink);text-align:left}
+.ld .L{white-space:pre;padding-right:.3rem}
+.ld .R{padding-left:.55rem}
+.ld .dv{border-left:3px solid var(--ink);border-bottom:3px solid var(--ink);padding:0 .7rem;color:var(--blue);height:1.55em;box-sizing:content-box}
+.ld .q{padding:.05rem .7rem 0;letter-spacing:.04em;min-height:1.55em;white-space:pre}
+.ld .rw{height:1.55em;white-space:pre}
+.ld .ul{background:linear-gradient(var(--ink),var(--ink)) left bottom/100% 3px no-repeat}
+.ld .cm{display:inline-block;width:0;position:relative;left:-.3ch}
+.ld .bd{color:var(--acc2)}
+.ld .rep{background:var(--l1);border-radius:.2em}
+.ld .per{color:var(--acc2)}
+.ld .po{text-decoration:overline;text-decoration-thickness:.1em}
+.ldwrap{display:flex;justify-content:center;min-height:6rem}
+
+/* пояснення */
+#sLesson{padding:.6rem .8rem 0}
+.lhead{flex:none;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.2rem 0 .5rem}
+.dot{width:.9rem;height:.9rem;border-radius:50%;background:#fff;border:2px solid var(--l2)}
+.dot.on{background:var(--acc2);border-color:var(--acc2)}
+.dot.cur{background:var(--acc);border-color:var(--acc);transform:scale(1.25)}
+#lbody{flex:1;min-height:0;overflow:auto;background:rgba(255,255,255,.9);border:2px solid var(--l1);border-radius:1.2rem;padding:.9rem 1.2rem}
+#lbody h2{color:var(--acc);font-size:1.7rem;font-weight:900;margin:.1rem 0 .7rem;text-align:center;line-height:1.2}
+.bigeq{font-size:2.3rem;font-weight:800;text-align:center;margin:.3rem 0 .9rem;line-height:1.5}
+.sub{font-size:1.2rem;color:var(--mut);text-align:center;margin:0 0 .8rem}
+.rv{display:none}
+.rv.show{display:block;animation:pop .35s both}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.rule{background:var(--soft);border-left:.5rem solid var(--acc2);border-radius:.8rem;padding:.7rem 1rem;font-size:1.3rem;font-weight:800;line-height:1.4;margin-top:.8rem}
+.rule b{color:var(--acc)}
+.note{background:#fff;border:2px dashed var(--l2);border-radius:.8rem;padding:.6rem 1rem;font-size:1.1rem;font-weight:700;line-height:1.4;margin-top:.8rem;color:var(--mut)}
+.note b{color:var(--acc)}
+.note2{font-size:1.25rem;font-weight:800;line-height:1.4}
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.way{display:flex;gap:.7rem;align-items:center;background:#fff;border:2px solid var(--l1);border-radius:1rem;padding:.7rem .9rem;font-size:1.2rem;font-weight:800}
+.way b{flex:none;width:2.2rem;height:2.2rem;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.s3{display:grid;grid-template-columns:auto 1fr;gap:1.4rem;align-items:start}
+.rt{display:flex;flex-direction:column;gap:.8rem;min-width:0}
+.tri{max-width:50rem;margin:0 auto}
+.tri .top{text-align:center}
+.tri .top span{display:inline-block;background:var(--soft);border:2px solid var(--l2);border-radius:.9rem;padding:.3rem 1.4rem;font-size:1.9rem;font-weight:900;color:var(--acc)}
+.tri .top small{display:block;font-size:.95rem;color:var(--mut);margin-top:.2rem}
+.tri svg{width:100%;height:auto;display:block}
+.tri .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+.bx3{border-radius:.9rem;padding:.6rem .6rem;text-align:center;border:2px solid;opacity:0;transform:translateY(8px);transition:all .35s}
+.bx3.show{opacity:1;transform:none}
+.bx3 h3{margin:0 0 .5rem;font-size:1.1rem;line-height:1.2}
+.bx3 p{margin:.2rem 0;font-size:1.4rem;font-weight:800;color:var(--ink)}
+.tri .ar{opacity:0;transition:opacity .35s}
+.tri .ar.show{opacity:1}
+.b1{background:var(--bluebg);border-color:var(--blue)}.b1 h3{color:var(--blue)}
+.b2{background:var(--soft);border-color:var(--acc2)}.b2 h3{color:var(--acc)}
+.b3{background:var(--viobg);border-color:var(--vio)}.b3 h3{color:var(--vio)}
+.final{text-align:center}
+.final .rocket{font-size:3.4rem;line-height:1}
+.final p{font-size:1.25rem;font-weight:700;margin:.5rem 0}
+.lnav{flex:none;display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.6rem 0 .3rem}
+
+/* тест */
+#sTest{padding:.4rem .6rem 0}
+.thead{flex:none;display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.2rem 0 .4rem}
+.trow{display:flex;align-items:center;gap:.8rem}
+#tcount{font-weight:900;color:var(--acc);font-size:1.15rem}
+#tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;max-width:44rem}
+.tile{width:2.1rem;height:2.1rem;min-width:30px;min-height:30px;border-radius:.5rem;border:2px solid var(--l2);background:#fff;color:var(--acc);font-weight:800;font-size:.9rem;cursor:pointer;padding:0}
+.tile.fill{background:var(--l1)}
+.tile.cur{border-color:var(--acc);border-width:3px}
+.tile.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.tile.half{background:var(--soft);border-color:var(--acc2);color:var(--acch)}
+.tile.bad{background:var(--badbg);border-color:var(--bad);color:var(--badtx)}
+#card{flex:1;min-height:0;overflow:auto;background:rgba(255,255,255,.93);border:2px solid var(--l1);border-radius:1.2rem;padding:.9rem 1.1rem}
+.ask{font-size:1.25rem;font-weight:800;line-height:1.35;margin:.1rem 0 .7rem;text-align:center}
+.bigf{font-size:2.4rem;font-weight:800;text-align:center;margin:.3rem 0 .9rem;line-height:1.5}
+.opts{display:grid;gap:.6rem;max-width:36rem;margin:0 auto}
+.opts.c1{grid-template-columns:1fr}
+.opts.c2{grid-template-columns:1fr 1fr}
+.opt{background:#fff;border:2px solid var(--l2);border-radius:1rem;padding:.7rem .8rem;font-size:1.25rem;font-weight:800;color:var(--ink);cursor:pointer;min-height:52px;line-height:1.25}
+.opt:hover{background:var(--soft)}
+.opt.sel{background:var(--soft);border-color:var(--acc);box-shadow:inset 0 0 0 2px var(--acc);color:var(--acch)}
+.opt.good{background:var(--okbg);border-color:var(--ok);box-shadow:none;color:var(--oktx)}
+.opt.wrong{background:var(--badbg);border-color:var(--bad);box-shadow:none;color:var(--badtx)}
+.opt:disabled{cursor:default}
+.eqrow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;font-size:2.1rem;font-weight:800;margin:.3rem 0 .6rem}
+.cell{width:4.2rem;height:3.2rem;font-size:1.6rem;font-weight:800;text-align:center;border:2px solid var(--l2);border-radius:.7rem;background:#fff;color:var(--ink);outline:none;padding:0}
+.cell.w{width:3.8rem}.cell.p{width:5.4rem}.cell.q{width:4.4rem}.cell.dec{width:10rem;text-align:left;padding:0 .7rem}
+.cell:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(234,88,12,.25)}
+.cell:read-only{cursor:pointer}
+.pbox{display:inline-flex;align-items:flex-start;gap:.35rem}
+.pc{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.pc small{font-size:.72rem;font-weight:700;color:var(--mut);text-align:center;max-width:6rem;line-height:1.1}
+.sep{font-size:2rem;line-height:3.2rem;font-weight:800}
+.hint{font-size:.95rem;color:var(--mut);font-weight:700;text-align:center;margin:.4rem auto;max-width:34rem;line-height:1.35}
+.sgrow{display:flex;justify-content:center;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:2rem;font-weight:800;margin:.5rem 0}
+.sg{width:3.4rem;height:3.4rem;border-radius:.8rem;border:2px solid var(--l2);background:#fff;font-size:1.8rem;font-weight:900;color:var(--acc);cursor:pointer;padding:0}
+.sg:hover{background:var(--soft)}
+.sg.sel{background:var(--acc);color:#fff;border-color:var(--acc)}
+.sg.good{background:var(--ok);border-color:var(--ok);color:#fff}
+.sg.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.sg:disabled{cursor:default}
+.how{text-align:center;margin-top:.7rem}
+.fb{margin-top:.8rem;border-radius:.9rem;padding:.7rem 1rem;font-size:1.05rem;line-height:1.45;font-weight:700}
+.fb.ok{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx)}
+.fb.half{background:var(--soft);border:2px solid var(--acc2);color:var(--acch)}
+.fb.bad{background:var(--badbg);border:2px solid var(--bad);color:var(--badtx)}
+.fb b.t{display:block;font-size:1.15rem;margin-bottom:.2rem}
+.fb .why{color:var(--ink);margin-top:.3rem;font-weight:600}
+.tnav{flex:none;display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.5rem 0 .3rem}
+#kb{flex:none;display:none;padding:.35rem;background:rgba(255,241,227,.97);border-top:2px solid var(--l1);border-radius:1rem 1rem 0 0}
+#kb.on{display:block}
+#kb .kr{display:flex;gap:.3rem;margin-bottom:.3rem}
+#kb .kr:last-child{margin-bottom:0}
+.key{flex:1;min-height:44px;border:2px solid var(--l2);border-radius:.7rem;background:#fff;color:var(--acc);font-size:1.35rem;font-weight:900;cursor:pointer;padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.key:active{background:var(--l1)}
+.key.fn{background:var(--soft);font-size:1.15rem}
+.key[hidden]{display:none}
+
+/* перед здачею, результат */
+#sPre,#sRes{padding:.6rem .8rem 0;align-items:center;justify-content:center}
+.box{background:rgba(255,255,255,.94);border:2px solid var(--l1);border-radius:1.3rem;padding:1.3rem 1.5rem;width:100%;max-width:36rem;text-align:center;max-height:100%;overflow:auto}
+.box h2{margin:0 0 .5rem;color:var(--acc);font-size:1.6rem;font-weight:900}
+.box .meta{font-size:1.1rem;font-weight:800;color:var(--mut);margin:.4rem 0}
+.box .warn{color:var(--acch);font-weight:800;background:var(--soft);border-radius:.7rem;padding:.4rem .8rem;margin:.6rem 0}
+.box .btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:.9rem}
+.res-name{font-size:1.4rem;font-weight:900;color:var(--ink)}
+.res-big{font-size:3rem;font-weight:900;color:var(--acc);line-height:1.1;margin:.2rem 0}
+.res-lbl{font-size:1rem;font-weight:800;color:var(--mut)}
+.res-sc{font-size:2.6rem;font-weight:900;color:var(--acch);line-height:1.1;margin:.1rem 0 .4rem}
+.res-fr{border:3px dashed var(--acc2);border-radius:1rem;padding:.6rem .9rem;margin:.9rem 0 .3rem;font-weight:800;background:var(--head);color:var(--acch)}
+
+/* вікна */
+.ov{position:fixed;inset:0;background:rgba(67,20,7,.38);display:none;align-items:center;justify-content:center;z-index:2147483100;padding:.8rem}
+.ov.on{display:flex}
+.ovb{background:#fff;border:3px solid var(--l2);border-radius:1.2rem;width:100%;max-width:44rem;max-height:94dvh;overflow-y:auto;overflow-x:hidden;padding:1rem 1.2rem}
+.ovb h3{margin:.1rem 0 .5rem;color:var(--acc);font-size:1.3rem}
+table.pv{border-collapse:collapse;margin:.6rem auto;font-size:1.6rem;font-weight:800}
+table.pv th{font-size:.8rem;color:var(--mut);padding:.2rem .6rem;font-weight:800;border-bottom:2px solid var(--l1)}
+table.pv td{padding:.3rem .7rem;text-align:center;border-bottom:1px solid var(--l1)}
+table.pv td.same{background:var(--soft)}
+table.pv td.diff{background:var(--l1);color:var(--acc);outline:3px solid var(--acc2);outline-offset:-3px}
+table.pv td.lb{font-size:.9rem;color:var(--mut);text-align:right}
+
+/* журнал */
+#jr .ovb{max-width:78rem}
+#jr table{border-collapse:collapse;font-size:.85rem;width:100%}
+#jr th,#jr td{border:1px solid var(--l1);padding:.25rem .4rem;text-align:center;white-space:nowrap}
+#jr th{background:var(--head);color:var(--acch)}
+#jr td.nm{text-align:left;cursor:pointer;color:var(--acc);font-weight:800;white-space:normal}
+#jr .tw{overflow:auto;max-height:62dvh}
+#jr .det td{text-align:left;white-space:normal}
+#jr .red{color:var(--badtx);font-weight:900}
+#jr .half{color:var(--acc2);font-weight:900}
+#jr .okc{color:var(--ok);font-weight:900}
+#jr .badc{color:var(--bad);font-weight:900}
+#jr .jb{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+#jr input.pw{font-size:1.1rem;padding:.4rem .7rem;border:2px solid var(--l2);border-radius:.6rem}
+#jr .err{color:var(--badtx);font-weight:800;margin:.4rem 0}
+
+@media (max-width:520px){
+  .eqrow{flex-wrap:nowrap;gap:.3rem;font-size:1.5rem}
+  .cell{height:2.8rem;font-size:1.4rem}
+  .cell.w{width:3rem}.cell.p{width:4.2rem}.cell.q{width:3.6rem}.cell.dec{width:8.5rem}
+  .sep{font-size:1.6rem;line-height:2.8rem}
+  .pbox{gap:.2rem}
+  .pc small{font-size:.65rem;max-width:4.4rem}
+  .sgrow{gap:.3rem;font-size:1.5rem;flex-wrap:nowrap}
+  .sg{width:2.7rem;height:2.7rem;font-size:1.5rem}
+  .hint{font-size:.85rem;margin:.25rem auto}
+  .how{margin-top:.4rem}
+  .ask{font-size:1.1rem;margin-bottom:.4rem}
+  #card{padding:.7rem .7rem}
+  table.pv{font-size:1.2rem}
+  table.pv th{font-size:.65rem;padding:.2rem .3rem}
+  table.pv td{padding:.25rem .4rem}
+  table.pv td.lb{font-size:.75rem}
+  .ovb{padding:.8rem .8rem}
+  .key{min-height:42px}
+}
+@media (max-width:760px){
+  .ways,.s3,.tri .g3{grid-template-columns:1fr}
+  .ld{font-size:1.3rem}
+  .bigeq{font-size:1.9rem}
+  .bigf{font-size:2rem}
+  #lbody h2{font-size:1.4rem}
+  .rule{font-size:1.15rem}
+  .opts.c2{grid-template-columns:1fr 1fr}
+  .opt{font-size:1.1rem}
+  .eqrow{font-size:1.7rem}
+  .start h1{font-size:1.6rem}
+}
+@media (max-height:620px){ .bigf{font-size:1.8rem;margin-bottom:.4rem} .ask{margin-bottom:.3rem} #lbody h2{font-size:1.3rem} }
+@media (prefers-reduced-motion:reduce){ .rv.show{animation:none} .bx3{transition:none} }
+</style>
+</head>
+<body>
+<div id="cosmos" aria-hidden="true"></div>
+<button id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+
+<div id="app">
+  <!-- початок -->
+  <section class="scr on" id="sStart">
+    <div class="start">
+      <div class="tag">Математика, 6 клас</div>
+      <h1>Тест. Нескінченні періодичні десяткові дроби (6 клас)</h1>
+      <div class="demo"><span class="fr"><span>5</span><span>12</span></span> = 0,41(6)</div>
+      <label for="inSur">Прізвище</label>
+      <input id="inSur" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="40">
+      <label for="inNam">Ім'я</label>
+      <input id="inNam" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="30">
+      <div class="msg" id="stMsg"></div>
+      <button class="btn big" id="startBtn">Почати ▶</button>
+    </div>
+  </section>
+
+  <!-- пояснення -->
+  <section class="scr" id="sLesson">
+    <div class="lhead" id="ldots"></div>
+    <div id="lbody"></div>
+    <div class="lnav">
+      <button class="btn light" id="lBack">← Назад</button>
+      <button class="btn" id="lNext">Далі ↓</button>
+    </div>
+  </section>
+
+  <!-- завдання -->
+  <section class="scr" id="sTest">
+    <div class="thead">
+      <div class="trow"><span id="tcount"></span><button class="btn light sm" id="toRes" hidden>← До результату</button></div>
+      <div id="tiles"></div>
+    </div>
+    <div id="card"></div>
+    <div class="tnav">
+      <button class="btn light" id="tBack">← Назад</button>
+      <button class="btn" id="tNext">Далі →</button>
+    </div>
+    <div id="kb">
+      <div class="kr"><button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button><button class="key" data-k="4">4</button><button class="key" data-k="5">5</button></div>
+      <div class="kr"><button class="key" data-k="6">6</button><button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key" data-k="0">0</button></div>
+      <div class="kr"><button class="key fn" data-k="," id="kComma" hidden>,</button><button class="key fn" data-k="bs" aria-label="Стерти">⌫</button><button class="key fn" data-k="next" aria-label="Наступна клітинка">→</button></div>
+    </div>
+  </section>
+
+  <!-- перед здачею -->
+  <section class="scr" id="sPre">
+    <div class="box">
+      <h2>Перед здачею</h2>
+      <div id="preTiles" style="display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.6rem 0"></div>
+      <div class="meta" id="preMeta"></div>
+      <div class="warn" id="preWarn" hidden></div>
+      <div class="btns">
+        <button class="btn light" id="preBack">← До завдань</button>
+        <button class="btn" id="preGo">Перевірити</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- результат -->
+  <section class="scr" id="sRes">
+    <div class="box">
+      <div class="res-name" id="rName"></div>
+      <div class="res-big" id="rBig"></div>
+      <div class="res-lbl">правильних відповідей</div>
+      <div class="res-lbl" style="margin-top:.8rem">Оцінка за 100-бальною шкалою</div>
+      <div class="res-sc" id="rSc"></div>
+      <div class="res-fr">Зробіть скріншот результату та надішліть його вчителю</div>
+      <div class="btns">
+        <button class="btn" id="rErr">Дивитись помилки</button>
+        <button class="btn light" id="rAgain">Пройти ще раз</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<!-- Показати, як це робити -->
+<div class="ov" id="how"><div class="ovb">
+  <div id="howBody"></div>
+  <div style="display:flex;justify-content:space-between;gap:.6rem;margin-top:.9rem">
+    <button class="btn light sm" id="howClose">Закрити</button>
+    <button class="btn sm" id="howNext">Далі ↓</button>
+  </div>
+</div></div>
+
+<!-- журнал -->
+<div class="ov" id="jr"><div class="ovb" id="jrBody"></div></div>
+
+<script>
+(function(){ "use strict";
+
+/* ================= Firebase (дослівно з інструкції) ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain: "math-5-892a5.firebaseapp.com",
+  projectId: "math-5-892a5",
+  storageBucket: "math-5-892a5.firebasestorage.app",
+  messagingSenderId: "163114803328",
+  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId: "G-E06VKZ2GP5"
+};
+const APP_ID = 'default-app-id';
+const COLLECTION = 'results_periodic_fractions_6';
+const TEACHER_PASSWORD = '8019';
+const FBV = '10.12.2';
+const TEST_NAME = 'Нескінченні періодичні десяткові дроби (6 клас)';
+
+let fbPromise = null;
+function fb(){
+  if(!fbPromise){
+    fbPromise = (async()=>{
+      const [appM, authM, fs] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      await authM.signInAnonymously(authM.getAuth(app));
+      return { db: fs.getFirestore(app), fs };
+    })();
+    fbPromise.catch(() => { fbPromise = null; }); // при збої — повторна спроба
+  }
+  return fbPromise;
+}
+const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+
+async function saveResult(rec){
+  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
+  catch(e){ console.warn('Save failed', e); }   // учням нічого не показувати
+}
+async function loadResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+async function clearResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+}
+fb().catch(() => {});   // підключення одразу при відкритті сторінки
+
+/* ================= допоміжне ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const fr=(n,d,c='')=>`<span class="fr ${c}"><span>${n}</span><span>${d}</span></span>`;
+const sp=n=>' '.repeat(Math.max(0,n));
+const comma=x=>String(x).replace('.',',');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const TOUCH=(function(){
+  try{
+    if(/[?&]kb=1/.test(location.search))return true;
+    if(window.matchMedia&&matchMedia('(pointer:coarse)').matches)return true;
+    return navigator.maxTouchPoints>0&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  }catch(e){return false;}
+})();
+
+/* ---- космічний фон (світлий) ---- */
+(function(){
+  const R=mulberry32(77); let s='';
+  const cols=['#FDBA74','#c9b8ff','#9cc8ff','#ffd9a8','#ffb98a'];
+  for(let i=0;i<90;i++){
+    const x=R()*1000,y=R()*700,r=.8+R()*1.8,c=cols[(R()*cols.length)|0],o=.35+R()*.5;
+    s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" opacity="${o.toFixed(2)}"/>`;
+  }
+  for(let i=0;i<16;i++){
+    const x=R()*1000,y=R()*700,z=5+R()*7,c=cols[(R()*cols.length)|0];
+    s+=`<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" d="M0 ${-z} Q0 0 ${z} 0 Q0 0 0 ${z} Q0 0 ${-z} 0 Q0 0 0 ${-z}Z" fill="${c}" opacity=".7"/>`;
+  }
+  const planets=`
+  <defs>
+    <radialGradient id="gS" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#FFEDD5"/><stop offset="1" stop-color="#FDBA74"/></radialGradient>
+    <radialGradient id="gL" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#f3eeff"/><stop offset="1" stop-color="#cdbdff"/></radialGradient>
+    <radialGradient id="gB" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#eaf4ff"/><stop offset="1" stop-color="#a9d0ff"/></radialGradient>
+  </defs>
+  <g opacity=".6">
+    <ellipse cx="880" cy="610" rx="118" ry="26" fill="none" stroke="#FDBA74" stroke-width="7" transform="rotate(-18 880 610)"/>
+    <circle cx="880" cy="610" r="62" fill="url(#gS)"/>
+    <path d="M826 624 Q880 650 936 626" fill="none" stroke="#fb9a4b" stroke-width="5" opacity=".5" transform="rotate(-18 880 610)"/>
+    <circle cx="82" cy="92" r="40" fill="url(#gL)"/>
+    <circle cx="68" cy="82" r="8" fill="#b6a2f2" opacity=".45"/><circle cx="96" cy="108" r="5" fill="#b6a2f2" opacity=".45"/>
+    <circle cx="930" cy="84" r="26" fill="url(#gB)"/>
+    <ellipse cx="930" cy="84" rx="44" ry="9" fill="none" stroke="#8fc0f5" stroke-width="3" transform="rotate(20 930 84)"/>
+    <path d="M118 600 a34 34 0 1 0 0.1 0 a26 26 0 1 1 -0.1 0z" fill="#ffe3bd" transform="translate(0 0)"/>
+    <g transform="translate(640 70) rotate(35)">
+      <path d="M0 -26 Q11 -10 9 10 L-9 10 Q-11 -10 0 -26Z" fill="#fff" stroke="#fdba74" stroke-width="2.5"/>
+      <circle cx="0" cy="-6" r="4.5" fill="#bfdcff" stroke="#fdba74" stroke-width="1.5"/>
+      <path d="M-9 4 L-17 15 L-9 11Z M9 4 L17 15 L9 11Z" fill="#fb9a4b"/>
+      <path d="M-4 12 Q0 26 4 12Z" fill="#ffd27a"/>
+    </g>
+  </g>`;
+  $('#cosmos').innerHTML=`<svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">${s}${planets}</svg>`;
+})();
+
+/* ================= математика ================= */
+function decParts(n,d){
+  const whole=Math.floor(n/d); let r=n%d; const seen={}, dg=[];
+  while(r!==0&&seen[r]===undefined){ seen[r]=dg.length; r*=10; dg.push(Math.floor(r/d)); r%=d; }
+  if(r===0) return {w:String(whole),p:dg.join(''),q:''};
+  const st=seen[r];
+  return {w:String(whole),p:dg.slice(0,st).join(''),q:dg.slice(st).join('')};
+}
+const fmtDec=o=>o.q?`${o.w},${o.p}(${o.q})`:(o.p?`${o.w},${o.p}`:o.w);
+function expandDec(o,rep){ // 0,41666…
+  if(!o.q) return fmtDec(o);
+  return `${o.w},${o.p}${o.q.repeat(rep||3)}…`;
+}
+function valOf(s){
+  const m=/^(\d+)(?:,(\d*)(?:\((\d+)\))?)?$/.exec(s); if(!m) return null;
+  const a=+m[1], b=m[2]||'', c=m[3]||'', tb=Math.pow(10,b.length);
+  if(!c) return [a*tb+(b?+b:0), tb];
+  const tc=Math.pow(10,c.length)-1;
+  return [(a*tb+(b?+b:0))*tc+(+c), tb*tc];
+}
+const eqV=(x,y)=>x[0]*y[1]===y[0]*x[1];
+const cmpV=(x,y)=>Math.sign(x[0]*y[1]-y[0]*x[1]);
+function kindOf(n,d){
+  const g=gcd(n,d); let x=d/g; if(x===1) return 'nat';
+  while(x%2===0)x/=2; while(x%5===0)x/=5;
+  return x===1?'fin':'per';
+}
+function factorStr(x){
+  const f=[]; let y=x;
+  for(let p=2;p*p<=y;p++) while(y%p===0){f.push(p);y/=p;}
+  if(y>1) f.push(y);
+  if(f.length===1) return `${x} — просте число`;
+  return `${x} = ${f.join(' · ')}`;
+}
+const stripZ=s=>s.replace(/^0+(?=\d)/,'');
+const SIGN={'-1':'<','0':'=','1':'>'};
+
+/* ================= завдання ================= */
+function mkTasks(seed){
+  const R=mulberry32(seed);
+  const ri=(a,b)=>a+Math.floor(R()*(b-a+1));
+  const pick=a=>a[Math.floor(R()*a.length)];
+  const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;};
+  const used=new Set(), BAN=new Set(['5/12','3/4','1/6']);   // дроби з пояснення й прикладу
+  function frac(dens,mixed){
+    for(let t=0;t<400;t++){
+      const d=pick(dens); let lo=1,hi=d-1;
+      if(mixed&&R()<.5){lo=d+1;hi=2*d-1;}
+      const n=ri(lo,hi); if(gcd(n,d)!==1) continue;
+      const key=n+'/'+d; if(used.has(key)||BAN.has(key)) continue;
+      used.add(key); return [n,d];
+    }
+    throw new Error('frac');
+  }
+  function natFrac(){
+    for(let t=0;t<200;t++){ const d=ri(2,9),q=ri(2,9),n=d*q,key=n+'/'+d; if(used.has(key))continue; used.add(key); return [n,d]; }
+    throw new Error('nat');
+  }
+  function pickOpts(n,d,kind){
+    const D=decParts(n,d), C=fmtDec(D), cv=valOf(C), pool=[];
+    if(kind==='nat'){
+      const q=+D.w; pool.push(String(q+1),`0,${q}`,`0,(${q})`,String(q-1));
+    }else if(kind==='fin'){
+      pool.push(`${D.w},(${D.p})`);
+      if(D.p.length>=2) pool.push(`${D.w},${D.p[0]}(${D.p.slice(1)})`);
+      pool.push(fmtDec(decParts(d,n)));
+      pool.push(`${D.w},${D.p.split('').reverse().join('')}`);
+      pool.push(`${D.w},0${D.p}`);
+      if(D.w==='0'&&D.p.length>=2) pool.push(`${D.p[0]},${D.p.slice(1)}`);
+    }else{
+      /* лише періодичні дроби з дужками: скінченні записи (0,833) не пропонуємо */
+      const w=D.w,p=D.p,q=D.q, rq=q.split('').reverse().join('');
+      pool.push(`${w},(${p}${q})`,`${w},(${q}${p})`,`${+w+1},${p}(${q})`);
+      if(p) pool.push(`${w},(${p})`);
+      if(q.length===1){
+        pool.push(`${w},${p}(${q==='9'?'8':+q+1})`,`${w},${p}(${q==='1'?'2':+q-1})`,`${w},(${q})`,`${w},${p}(${(+q+2)%10||1})`,`${w},${p}(${q}${(+q+1)%10})`);
+      }else{
+        pool.push(`${w},${p}(${rq})`,`${w},${p}(${q[0]})`,`${w},(${q})`);
+      }
+      const rv=decParts(d,n); if(rv.q) pool.push(fmtDec(rv));
+    }
+    const out=[];
+    shuffle(pool).forEach(s=>{
+      const v=valOf(s); if(!v||eqV(v,cv)) return;
+      if(out.some(o=>eqV(valOf(o),v))) return;
+      out.push(s);
+    });
+    if(out.length<3) throw new Error('opts '+n+'/'+d);
+    return shuffle([C].concat(out.slice(0,3)));
+  }
+  function nearFin(D){ // близьке скінченне число для скінченного дробу
+    const k=D.p.length, V=+(D.w+D.p), tk=Math.pow(10,k);
+    const deltas=R()<.3?[0]:(k>=2?[1,-1,10,-10,5,-5]:[1,-1]);
+    for(let t=0;t<20;t++){
+      const dl=pick(deltas), val=V+dl; if(val<=0) continue;
+      const w=Math.floor(val/tk); let f=String(val%tk).padStart(k,'0').replace(/0+$/,'');
+      return f?`${w},${f}`:String(w);
+    }
+    return fmtDec(D);
+  }
+  function nearPer(D){ // скінченний дріб, близький до періодичного
+    const digs=D.p+D.q.repeat(4), jmin=Math.max(1,D.p.length), j=ri(jmin,jmin+2), up=R()<.5;
+    let val=+(D.w+digs.slice(0,j))+(up?1:0), tk=Math.pow(10,j);
+    const w=Math.floor(val/tk); let f=String(val%tk).padStart(j,'0').replace(/0+$/,'');
+    return f?`${w},${f}`:String(w);
+  }
+
+  const T=[];
+  /* 1. Який результат: натуральне / скінченний / періодичний */
+  shuffle(['nat','fin','per']).forEach(k=>{
+    let n,d;
+    if(k==='nat') [n,d]=natFrac(); else if(k==='fin') [n,d]=frac([2,4,5,8,20,25]); else [n,d]=frac([3,6,9,11,12,15]);
+    T.push({type:'kind',n,d,kind:k});
+  });
+  /* 2. Перетворити в десятковий */
+  let nd=frac([2,4,5,20,25]); T.push({type:'dec',n:nd[0],d:nd[1]});
+  nd=frac([8,40],true); T.push({type:'dec',n:nd[0],d:nd[1]});
+  /* 3. Вибрати, чому дорівнює */
+  shuffle(['nat','fin','per','per']).forEach((k,i)=>{
+    let n,d;
+    if(k==='nat') [n,d]=natFrac();
+    else if(k==='fin') [n,d]=frac([4,5,8,20,25]);
+    else if(i%2===0) [n,d]=frac([3,9],true); else [n,d]=frac([11,6]);
+    const opts=pickOpts(n,d,k);
+    T.push({type:'pick',n,d,opts,sub:k});
+  });
+  /* 4. Перетворити в періодичний і вказати період */
+  nd=frac([3,9,11],true); T.push({type:'per',n:nd[0],d:nd[1]});
+  nd=frac([6,12,15]); T.push({type:'per',n:nd[0],d:nd[1]});
+  /* 5. Порівняти */
+  nd=frac([2,4,5,8,20,25]); T.push({type:'cmp',n:nd[0],d:nd[1],r:nearFin(decParts(nd[0],nd[1]))});
+  nd=frac([3,9,11]); T.push({type:'cmp',n:nd[0],d:nd[1],r:nearPer(decParts(nd[0],nd[1]))});
+  nd=frac([6,12,15]); T.push({type:'cmp',n:nd[0],d:nd[1],r:nearPer(decParts(nd[0],nd[1]))});
+
+  T.forEach(t=>{
+    t.D=decParts(t.n,t.d); t.C=fmtDec(t.D);
+    if(t.type==='cmp') t.sign=SIGN[cmpV(valOf(t.C),valOf(t.r))];
+  });
+  return T;
+}
+const emptyAns=t=>t.type==='per'?{w:'',p:'',q:''}:(t.type==='cmp'?{w:'',p:'',q:'',sg:''}:(t.type==='dec'?'':null));
+const KLAB={nat:'натуральне число',fin:'скінченний десятковий дріб',per:'нескінченний періодичний десятковий дріб'};
+
+function isAns(t,a){
+  switch(t.type){
+    case 'kind': case 'pick': return !!a;
+    case 'dec': return typeof a==='string'&&/\d/.test(a);
+    case 'per': return a.w!==''&&a.q!=='';
+    case 'cmp': return a.w!==''&&(a.p!==''||a.q!=='')&&a.sg!=='';
+  }
+  return false;
+}
+function convOk(t,a){
+  const D=t.D; if(a.w==='') return false;
+  if(stripZ(a.w)!==D.w) return false;
+  if(D.q) return a.p===D.p&&a.q===D.q;
+  return a.q===''&&a.p.replace(/0+$/,'')===D.p;
+}
+const fmtAns=a=>{ if(a.w===''&&a.p===''&&a.q==='') return '—'; return `${a.w===''?'?':a.w},${a.p}${a.q?'('+a.q+')':''}`; };
+function gradeTask(t,a){
+  let m=0, ans='—';
+  switch(t.type){
+    case 'kind': ans=a?KLAB[a]:'—'; m=a===t.kind?1:0; break;
+    case 'pick': ans=a||'—'; m=a===t.C?1:0; break;
+    case 'dec': { const s=(a||'').replace(/\./g,','); ans=s||'—'; const v=valOf(s); m=v&&eqV(v,valOf(t.C))?1:0; break; }
+    case 'per': ans=fmtAns(a); m=(a.w!==''&&stripZ(a.w)===t.D.w&&a.p===t.D.p&&a.q===t.D.q)?1:0; break;
+    case 'cmp': { const co=convOk(t,a), so=a.sg===t.sign; ans=`${fmtAns(a)} | ${a.sg||'—'}`; m=co&&so?1:(co?.5:0); break; }
+  }
+  return {m,ans};
+}
+function correctText(t){
+  switch(t.type){
+    case 'kind': return KLAB[t.kind];
+    case 'cmp': return `${t.C} | ${t.sign}`;
+    default: return t.C;
+  }
+}
+function qText(t){
+  const f=`${t.n}/${t.d}`;
+  switch(t.type){
+    case 'kind': return `Що отримаємо, перетворюючи ${f} у десятковий?`;
+    case 'dec': return `Перетворити ${f} у десятковий дріб`;
+    case 'pick': return `${f} = ? (${t.opts.join('; ')})`;
+    case 'per': return `Перетворити ${f} у періодичний дріб, указати період`;
+    case 'cmp': return `Порівняти ${f} і ${t.r}`;
+  }
+  return '';
+}
+function whyText(t){
+  const f=`${t.n} : ${t.d}`;
+  switch(t.type){
+    case 'kind': {
+      if(t.kind==='nat') return `${f} = ${t.n/t.d}: ділиться націло, отримуємо натуральне число.`;
+      const x=t.d/gcd(t.n,t.d);
+      if(t.kind==='fin') return `Знаменник ${factorStr(x)}: є лише множники 2 і 5, тому дріб можна звести до знаменника 10, 100, 1000 … Отримаємо скінченний десятковий дріб: ${t.C}.`;
+      return `Знаменник ${factorStr(x)}: є множник, відмінний від 2 і 5, тому дріб не можна звести до знаменника 10, 100, 1000 … Отримаємо нескінченний періодичний дріб: ${t.C}.`;
+    }
+    case 'dec': case 'pick': return `${f} = ${t.C}`;
+    case 'per': return `${f} = ${expandDec(t.D,3)} = ${t.C}. Період: ${t.D.q}.`;
+    case 'cmp': return `${t.n}/${t.d} = ${t.C}${t.D.q?' = '+expandDec(t.D,3):''}. Порівнюємо за розрядами: ${t.D.q?expandDec(t.D,3):t.C} ${t.sign} ${t.r}.`;
+  }
+  return '';
+}
+
+/* ================= ділення куточком (з розробки уроку) ================= */
+function mkModel(a,b,o={}){
+  const [ip,fp='']=String(a).split(',');
+  const dStr=ip+fp, dpos=ip.length, N=dStr.length, extra=o.extra||0;
+  const steps=[], seen=new Map(); let r=0,f=-1,s=-1,stopAt=null,finite=false;
+  for(let i=0;i<60;i++){
+    const dg=i<N?+dStr[i]:0, cur=r*10+dg, qd=Math.floor(cur/b), prod=qd*b, rem=cur-prod;
+    steps.push({i,rPrev:r,dg,cur,qd,prod,rem}); r=rem;
+    if(i>=N-1){
+      if(r===0){finite=true;break;}
+      if(f<0){ if(seen.has(r)){f=seen.get(r);s=i;stopAt=s+extra*(s-f);} else seen.set(r,i); }
+    }
+    if(stopAt!==null&&i>=stopAt)break;
+  }
+  const q=steps.map(x=>x.qd);
+  const startI=steps.findIndex(x=>x.qd>0);
+  const whole=q.slice(0,dpos).join('').replace(/^0+(?=\d)/,'');
+  let pre='',per='',text;
+  if(finite){ pre=q.slice(dpos).join(''); text=pre?whole+','+pre:whole; }
+  else { pre=q.slice(dpos,f+1).join(''); per=q.slice(f+1,s+1).join(''); text=whole+','+pre+'('+per+')'; }
+  return {steps,q,dStr,dpos,N,b,f,s,finite,startI,whole,pre,per,text};
+}
+function renderDiv(m,k,mark){
+  const S_=m.steps.slice(0,k), N=m.N, dpos=m.dpos, nd=Math.max(N,k);
+  const dividendCase=mark&&m.f>=0&&m.f+1===m.startI;
+  let dr='';
+  for(let j=0;j<nd;j++){
+    let cls=j>=N?'bd':''; if(dividendCase&&j<=m.f)cls+=' rep';
+    dr+=`<span class="${cls}">${j<N?m.dStr[j]:'0'}</span>`;
+    if(j===dpos-1&&nd>dpos)dr+='<span class="cm">,</span>';
+  }
+  const rows=[]; let started=false;
+  const ul=(i,w,t)=>`<div class="rw">${sp(i-w+1)}<span class="ul">${String(t).padStart(w,' ')}</span></div>`;
+  S_.forEach((s,i)=>{
+    if(!started){ if(s.qd===0)return; started=true; rows.push(ul(i,i+1,s.prod)); return; }
+    const rp=s.rPrev>0?String(s.rPrev):'', len=rp.length+1;
+    const rep=mark&&(i-1===m.f||i-1===m.s);
+    rows.push(`<div class="rw">${sp(i-len+1)}<span class="${rep?'rep':''}">${rp}</span><span class="bd">${s.dg}</span></div>`);
+    rows.push(ul(i,len,s.prod));
+  });
+  if(started&&S_.length){ const L=S_[S_.length-1]; rows.push(`<div class="rw">${sp(L.i-String(L.rem).length+1)}<span>${L.rem}</span></div>`); }
+  let q='';
+  if(k>=dpos){
+    q=m.q.slice(0,dpos).join('').replace(/^0+(?=\d)/,'');
+    if(m.steps.length>dpos) q+=',';
+    let frac='';
+    for(let i=dpos;i<k;i++){
+      const d=m.q[i];
+      if(mark&&!m.finite&&i>m.f){ frac+=`<span class="per${i<=m.s?' po':''}">${d}</span>`; } else frac+=d;
+    }
+    q+=frac;
+    if(k===m.steps.length&&!m.finite) q+='…';
+  } else { q=m.q.slice(0,k).join('').replace(/^0+/,''); }
+  return `<div class="ld"><div class="L"><div class="rw">${dr}</div>${rows.join('')}</div><div class="R"><div class="dv">${m.b}</div><div class="q">${q}</div></div></div>`;
+}
+function makeDiv(host,m,o={}){
+  let j=0; const S_=m.steps.length, hasPer=!m.finite;
+  const total=S_+(hasPer?1:0)+(o.after?1:0);
+  function render(){
+    host.innerHTML=renderDiv(m,Math.min(j,S_),hasPer&&j>=S_+1);
+    if(o.note)o.note.classList.toggle('show',j>=S_);
+    if(o.after)o.after.classList.toggle('show',j>=total);
+  }
+  render();
+  return {more:()=>j<total,next(){if(j<total){j++;render();}},all(){j=total;render();}};
+}
+function rvS(root){
+  const it=()=>$$('.rv',root);
+  return {more:()=>it().some(x=>!x.classList.contains('show')),
+          next(){const x=it().find(x=>!x.classList.contains('show'));if(x)x.classList.add('show');},
+          all(){it().forEach(x=>x.classList.add('show'));}};
+}
+function seq(list){
+  return {more:()=>list.some(s=>s.more()),
+          next(){const s=list.find(s=>s.more());if(s)s.next();},
+          all(){list.forEach(s=>s.all());}};
+}
+
+/* ================= стан ================= */
+const S={sur:'',nam:'',phase:'start',seed:0,tasks:[],ans:[],idx:0,checked:false,review:false,marks:[],
+         helps:0,tLearn0:0,tTask0:0,learnSec:0,focusEl:null,rec:null};
+let W={leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){ W={leaves:0,awaySec:0,awayAt:0}; }
+function leave(){ if(S.phase==='start'||S.checked||W.awayAt) return; W.awayAt=Date.now(); W.leaves++; }
+function back(){ if(!W.awayAt) return; W.awaySec+=Math.round((Date.now()-W.awayAt)/1000); W.awayAt=0; }
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+function showScr(id){ $$('.scr').forEach(s=>s.classList.toggle('on',s.id===id)); }
+
+/* ================= початок ================= */
+$('#inSur').focus();
+$('#startBtn').onclick=()=>{
+  const a=$('#inSur'), b=$('#inNam'), sur=a.value.trim(), nam=b.value.trim();
+  a.classList.toggle('err',!sur); b.classList.toggle('err',!nam);
+  if(!sur||!nam){ $('#stMsg').textContent='Введіть прізвище та ім\'я, щоб почати'; (sur?b:a).focus(); return; }
+  $('#stMsg').textContent='';
+  S.sur=sur; S.nam=nam; resetWatch();
+  const qv=/[?&]v=(\d+)/.exec(location.search);
+  S.seed=qv?+qv[1]:((Math.random()*4294967296)>>>0);
+  S.phase='lesson'; S.tLearn0=Date.now();
+  goL(0);
+};
+['#inSur','#inNam'].forEach(id=>$(id).addEventListener('input',e=>{e.target.classList.remove('err');$('#stMsg').textContent='';}));
+$('#inSur').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#inNam').focus();}});
+$('#inNam').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#startBtn').click();}});
+
+/* ================= пояснення ================= */
+const LN=10; let LS={i:0,sub:null};
+const NOOP={more:()=>false,next(){},all(){}};
+function L1(h){
+  h.innerHTML=`<h2>Нескінченні періодичні десяткові дроби</h2>
+  <div class="bigeq">${fr(5,12)} = ?</div>
+  <div class="sub">Як звичайний дріб перетворити в десятковий?</div>
+  <div class="ways"><div class="way"><b>1</b><span>Звести до знаменника 10, 100, 1000 …</span></div><div class="way"><b>2</b><span>Поділити чисельник на знаменник</span></div></div>`;
+  return NOOP;
+}
+function L2(h){
+  h.innerHTML=`<h2>Чи можна звести до знаменника 10, 100, 1000 …?</h2>
+  <div class="bigeq">${fr(5,12)}</div>
+  <div class="rvs">
+    <div class="rv rule">Розкладемо знаменник на прості множники: <b>12 = 2 · 2 · 3</b></div>
+    <div class="rv rule">У розкладі є множник <b>3</b>, тому знаменник <b>не можна</b> звести до 10, 100, 1000 …<br>Отже, дріб ${fr(5,12)} буде <b>нескінченним періодичним</b> десятковим дробом.</div>
+    <div class="rv note">Нескоротний дріб можна записати скінченним десятковим дробом лише тоді, коли в розкладі його знаменника є тільки множники <b>2</b> і <b>5</b>.</div>
+  </div>`;
+  return rvS($('.rvs',h));
+}
+function L3(h){
+  h.innerHTML=`<h2>Поділимо 5 на 12 куточком</h2>
+  <div class="s3"><div class="ldwrap" id="ldA"></div>
+    <div class="rt"><div class="note2 rv" id="nA">Остача <b class="hl">8</b> повторилася, тому цифра <b class="hl">6</b> у частці повторюватиметься нескінченно. Ділення можна продовжувати без кінця.</div>
+    <div class="rule rv" id="nB" style="margin-top:0">Цифра <b>6</b> повторюється: вона є <b>періодом</b> дробу.</div></div></div>`;
+  return makeDiv($('#ldA',h),mkModel('5',12,{extra:1}),{note:$('#nA',h),after:$('#nB',h)});
+}
+function L4(h){
+  h.innerHTML=`<h2>Період і запис дробу</h2>
+  <div class="bigeq">${fr(5,12)} = 0,41666… = 0,41(<span class="per">6</span>)</div>
+  <div class="rvs">
+    <div class="rv rule">Цифру, що повторюється, називають <b>періодом</b> дробу. У дробу 0,41(6) період дорівнює <b>6</b>.</div>
+    <div class="rv rule">Читають: «нуль цілих сорок одна сота і шість у періоді».</div>
+  </div>`;
+  return rvS($('.rvs',h));
+}
+function L5(h){
+  h.innerHTML=`<h2>Як називається такий дріб</h2>
+  <div class="bigeq">${fr(5,12)} = 0,41(<span class="per">6</span>)</div>
+  <div class="rvs">
+    <div class="rv rule">Цифри після коми повторюються <b>без кінця</b>, тому такий дріб називають <b>нескінченним періодичним десятковим дробом</b>.</div>
+    <div class="rv rule">Період записують у <b>дужках</b>: 0,41(6).</div>
+  </div>`;
+  return rvS($('.rvs',h));
+}
+function L6(h){
+  h.innerHTML=`<h2>Три крапки мають значення</h2>
+  <div class="rvs">
+    <div class="rv rule" style="margin-top:0"><b>0,4166</b> — <b>скінченний</b> десятковий дріб: після коми чотири цифри, і на цьому все.</div>
+    <div class="rv rule"><b>0,4166…</b> — три крапки показують, що цифри <b>повторюються без кінця</b>. Це нескінченний періодичний дріб <b>0,41(6)</b>.</div>
+    <div class="rv rule">Тому 0,4166 і 0,4166… — <b>різні числа</b>: одне скінченне, друге нескінченне.</div>
+    <div class="rv note">Нескінченний періодичний дріб записують із дужками. У тесті його варіанти теж записано з дужками.</div>
+  </div>`;
+  return rvS($('.rvs',h));
+}
+function L7(h){
+  h.innerHTML=`<h2>А якщо поділити 3 на 4?</h2>
+  <div class="s3"><div class="ldwrap" id="ldB"></div>
+    <div class="rt"><div class="rule rv" id="nC" style="margin-top:0">Ділення закінчилось: остача <b>0</b>. ${fr(3,4)} = 0,75. Після коми <b>скінченна</b> кількість цифр, тож це <b>скінченний десятковий дріб</b>.</div></div></div>`;
+  return makeDiv($('#ldB',h),mkModel('3',4,{}),{after:$('#nC',h)});
+}
+function L8(h){
+  h.innerHTML=`<h2>Чому ${fr(3,4)} — скінченний дріб</h2>
+  <div class="rvs">
+    <div class="rv rule" style="margin-top:0">Знаменник <b>4 = 2 · 2</b>: є лише множник 2. Тому дріб можна звести до знаменника 100: ${fr(3,4)} = ${fr(75,100)} = 0,75</div>
+    <div class="rv rule">Якщо в розкладі знаменника <b>лише 2 і 5</b> — дріб скінченний. Якщо є <b>інший множник</b> (як 3 у числа 12) — дріб нескінченний періодичний.</div>
+  </div>`;
+  return rvS($('.rvs',h));
+}
+function L9(h){
+  h.innerHTML=`<h2>Що можна отримати при діленні</h2>
+  <div class="tri">
+    <div class="top"><span>m : n</span><small>натуральне число поділили на натуральне</small></div>
+    <svg id="triSvg" viewBox="0 0 900 110" aria-hidden="true"></svg>
+    <div class="g3">
+      <div class="bx3 b1"><h3>натуральне число</h3><p>12 : 4 = 3</p></div>
+      <div class="bx3 b2"><h3>скінченний десятковий дріб</h3><p>3 : 4 = 0,75</p></div>
+      <div class="bx3 b3"><h3>нескінченний періодичний десятковий дріб</h3><p>5 : 12 = 0,41(6)</p></div>
+    </div></div>`;
+  const svg=$('#triSvg',h), cols=['#1d6fd0','#EA580C','#6d44d6'], xs=[150,450,750];
+  svg.innerHTML=xs.map((x,i)=>{
+    const x1=450,y1=4,x2=x,y2=104, L=Math.hypot(x2-x1,y2-y1), ux=(x2-x1)/L, uy=(y2-y1)/L, nx=-uy, ny=ux;
+    const bx=x2-22*ux, by=y2-22*uy;
+    return `<g class="ar" data-i="${i}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${cols[i]}" stroke-width="6" stroke-linecap="round"/><polygon points="${x2},${y2} ${bx+11*nx},${by+11*ny} ${bx-11*nx},${by-11*ny}" fill="${cols[i]}"/></g>`;
+  }).join('');
+  const ar=$$('.ar',svg), bx=$$('.bx3',h); let n=0;
+  const paint=()=>{ar.forEach((a,i)=>a.classList.toggle('show',i<n));bx.forEach((b,i)=>b.classList.toggle('show',i<n));};
+  paint();
+  return {more:()=>n<3,next(){n++;paint();},all(){n=3;paint();}};
+}
+function L10(h){
+  h.innerHTML=`<div class="final"><div class="rocket">🚀</div><h2>Чи все зрозуміло?</h2>
+  <p>При діленні натурального числа на натуральне можна отримати:<br><b class="hl">натуральне число</b>, <b class="hl">скінченний десятковий дріб</b> або <b class="hl">нескінченний періодичний десятковий дріб</b>.</p>
+  <p>У тесті 14 завдань. Відповіді можна змінювати до перевірки, а результат ви побачите після неї.</p></div>`;
+  return NOOP;
+}
+const LBUILD=[L1,L2,L3,L4,L5,L6,L7,L8,L9,L10];
+function goL(i,all){
+  LS.i=i; showScr('sLesson');
+  const h=$('#lbody'); h.innerHTML=''; LS.sub=LBUILD[i](h); if(all) LS.sub.all();
+  h.scrollTop=0; updL();
+}
+function updL(){
+  $('#ldots').innerHTML=Array.from({length:LN},(_,k)=>`<span class="dot${k<LS.i?' on':''}${k===LS.i?' cur':''}"></span>`).join('');
+  $('#lBack').disabled=LS.i===0;
+  $('#lNext').textContent=LS.sub.more()?'Далі ↓':(LS.i<LN-1?'Я це розумію ✓':'Готові до завдань ▶');
+}
+$('#lNext').onclick=()=>{
+  if(LS.sub.more()){ LS.sub.next(); updL(); const h=$('#lbody'); h.scrollTo({top:h.scrollHeight,behavior:'smooth'}); return; }
+  if(LS.i<LN-1) goL(LS.i+1); else startTasks(true);
+};
+$('#lBack').onclick=()=>{ if(LS.i>0) goL(LS.i-1,true); };
+
+/* ================= завдання ================= */
+function startTasks(fromLesson){
+  const now=Date.now();
+  S.learnSec=fromLesson?Math.round((now-S.tLearn0)/1000):0;
+  S.tasks=mkTasks(S.seed); S.ans=S.tasks.map(emptyAns);
+  S.idx=0; S.checked=false; S.review=false; S.marks=[]; S.rec=null; S.helps=0;
+  S.tTask0=now; S.phase='test';
+  showScr('sTest'); goTo(0);
+}
+function paintTiles(){
+  $('#tcount').textContent=`Завдання ${S.idx+1} з ${S.tasks.length}`;
+  $('#tiles').innerHTML=S.tasks.map((t,i)=>tileHtml(i)).join('');
+}
+function tileHtml(i){
+  let c='tile';
+  if(i===S.idx&&$('#sTest').classList.contains('on')) c+=' cur';
+  if(S.checked){ const m=S.marks[i]; c+=m===1?' ok':(m>0?' half':' bad'); }
+  else if(isAns(S.tasks[i],S.ans[i])) c+=' fill';
+  return `<button class="${c}" data-i="${i}" aria-label="Завдання ${i+1}">${i+1}</button>`;
+}
+function goTo(i){
+  S.idx=Math.max(0,Math.min(S.tasks.length-1,i)); S.focusEl=null;
+  renderTask(); paintTiles();
+  $('#tBack').disabled=S.idx===0;
+  const last=S.idx===S.tasks.length-1;
+  $('#tNext').textContent=last&&!S.review?'Далі →':'Далі →';
+  $('#tNext').disabled=S.review&&last;
+  $('#toRes').hidden=!S.review;
+  const t=S.tasks[S.idx], hasIn=(t.type==='dec'||t.type==='per'||t.type==='cmp');
+  $('#kb').classList.toggle('on',TOUCH&&hasIn&&!S.checked);
+  $('#kComma').hidden=t.type!=='dec';
+  $('#card').scrollTop=0;
+  if(!S.checked){ const f=$('#card input'); if(f) f.focus({preventScroll:true}); }
+}
+$('#tiles').addEventListener('click',e=>{const b=e.target.closest('.tile');if(b)goTo(+b.dataset.i);});
+$('#tBack').onclick=()=>goTo(S.idx-1);
+$('#tNext').onclick=()=>{
+  if(S.idx<S.tasks.length-1) goTo(S.idx+1);
+  else if(!S.review) showPre();
+};
+$('#toRes').onclick=()=>showResult();
+
+function optBtn(key,label,sel,dis,good,wrong){
+  return `<button class="opt${sel?' sel':''}${good?' good':''}${wrong?' wrong':''}" data-v="${esc(key)}"${dis?' disabled':''}>${esc(label)}</button>`;
+}
+function cellIn(k,val,dis,extra){
+  const ro=(TOUCH||dis)?' readonly':'';
+  return `<input class="cell ${k}" data-k="${k}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="${extra.max}" ${TOUCH?'inputmode="none"':'inputmode="'+(extra.mode||'numeric')+'"'}${ro} value="${esc(val)}" aria-label="${extra.label}">`;
+}
+function pbox(a,dis){
+  return `<span class="pbox"><span class="pc">${cellIn('w',a.w,dis,{max:3,label:'ціла частина'})}<small>ціла частина</small></span><span class="sep">,</span>
+  <span class="pc">${cellIn('p',a.p,dis,{max:4,label:'цифри до періоду'})}<small>цифри до періоду</small></span><span class="sep">(</span>
+  <span class="pc">${cellIn('q',a.q,dis,{max:3,label:'період'})}<small>період</small></span><span class="sep">)</span></span>`;
+}
+function renderTask(){
+  const i=S.idx, t=S.tasks[i], a=S.ans[i], dis=S.checked, F=fr(t.n,t.d);
+  let h='';
+  const g=dis?gradeTask(t,a):null;
+  switch(t.type){
+    case 'kind':
+      h=`<p class="ask">Перетворюємо звичайний дріб у десятковий. Що ми отримаємо?</p><div class="bigf">${F}</div>
+      <div class="opts c1">${['nat','fin','per'].map(k=>optBtn(k,KLAB[k],a===k,dis,dis&&k===t.kind,dis&&a===k&&k!==t.kind)).join('')}</div>`;
+      break;
+    case 'dec':
+      h=`<p class="ask">Перетворіть звичайний дріб у десятковий.</p>
+      <div class="eqrow">${F} = ${cellIn('dec',a,dis,{max:8,mode:'decimal',label:'десятковий дріб'}).replace('class="cell dec"','class="cell dec"')}</div>
+      <div class="hint">Десятковий дріб запишіть через кому.</div>`;
+      break;
+    case 'pick':
+      h=`<p class="ask">Виберіть, чому дорівнює дріб.</p><div class="bigf">${F} = ?</div>
+      <div class="opts c2">${t.opts.map(o=>optBtn(o,o,a===o,dis,dis&&o===t.C,dis&&a===o&&o!==t.C)).join('')}</div>`;
+      break;
+    case 'per':
+      h=`<p class="ask">Перетворіть звичайний дріб у нескінченний періодичний десятковий дріб і вкажіть його період.</p>
+      <div class="eqrow">${F} = ${pbox(a,dis)}</div>
+      <div class="hint">Період запишіть найкоротшим (3, а не 33). Якщо цифр до періоду немає, середню клітинку залиште порожньою.</div>`;
+      break;
+    case 'cmp':
+      h=`<p class="ask">Порівняйте дроби. Спочатку запишіть звичайний дріб у вигляді десяткового дробу.</p>
+      <div class="eqrow">${F} = ${pbox(a,dis)}</div>
+      <div class="sgrow"><span>${F}</span>${['<','=','>'].map(s=>`<button class="sg${a.sg===s?' sel':''}${dis&&s===t.sign?' good':''}${dis&&a.sg===s&&s!==t.sign?' wrong':''}" data-s="${s}"${dis?' disabled':''}>${s==='<'?'&lt;':(s==='>'?'&gt;':'=')}</button>`).join('')}<span>${t.r}</span></div>
+      ${dis?'':'<div class="how"><button class="btn light sm" id="howBtn">Показати, як це робити</button></div>'}
+      <div class="hint">Скінченний дріб: клітинку «період» залиште порожньою. Якщо десятковий дріб записано правильно, а знак ні, ви отримаєте 0,5 бала.</div>`;
+      break;
+  }
+  if(dis){
+    const cls=g.m===1?'ok':(g.m>0?'half':'bad');
+    const title=g.m===1?'✓ Правильно':(g.m>0?'Частково правильно: 0,5 бала':'✗ Неправильно');
+    h+=`<div class="fb ${cls}"><b class="t">${title}</b>${g.m<1?`Ваша відповідь: ${esc(g.ans)}<br>Правильна відповідь: ${esc(correctText(t))}`:`Відповідь: ${esc(correctText(t))}`}<div class="why">${esc(whyText(t))}</div></div>`;
+  }
+  $('#card').innerHTML=h;
+}
+
+/* вибір у завданнях */
+$('#card').addEventListener('click',e=>{
+  if(S.checked) return;
+  const t=S.tasks[S.idx], a=S.ans[S.idx];
+  const o=e.target.closest('.opt');
+  if(o){ S.ans[S.idx]=o.dataset.v; $$('.opt',$('#card')).forEach(x=>x.classList.toggle('sel',x===o)); updTile(); return; }
+  const sg=e.target.closest('.sg');
+  if(sg){ a.sg=sg.dataset.s; $$('.sg',$('#card')).forEach(x=>x.classList.toggle('sel',x===sg)); updTile(); return; }
+  if(e.target.closest('#howBtn')){ openHow(); }
+});
+function updTile(){ const b=$(`#tiles .tile[data-i="${S.idx}"]`); if(b&&!S.checked) b.classList.toggle('fill',isAns(S.tasks[S.idx],S.ans[S.idx])); }
+
+/* введення з клавіатури (комп'ютер) і екранної клавіатури (телефон) */
+function sanitize(el){
+  const k=el.dataset.k; let v=el.value;
+  if(k==='dec'){ v=v.replace(/\./g,',').replace(/[^0-9,]/g,''); const p=v.indexOf(','); if(p>=0) v=v.slice(0,p+1)+v.slice(p+1).replace(/,/g,''); }
+  else v=v.replace(/\D/g,'');
+  if(v!==el.value) el.value=v;
+  return v;
+}
+function storeFromEl(el){
+  const v=sanitize(el), k=el.dataset.k;
+  if(k==='dec') S.ans[S.idx]=v; else S.ans[S.idx][k]=v;
+  updTile();
+}
+$('#card').addEventListener('input',e=>{ const el=e.target.closest('.cell'); if(el&&!S.checked) storeFromEl(el); });
+$('#card').addEventListener('focusin',e=>{ const el=e.target.closest('.cell'); if(el) S.focusEl=el; });
+$('#card').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.closest('.cell')){ e.preventDefault(); const ins=$$('.cell',$('#card')), i=ins.indexOf(e.target); if(i<ins.length-1) ins[i+1].focus(); }
+});
+function kbPress(k){
+  if(S.checked) return;
+  const ins=$$('.cell',$('#card')); if(!ins.length) return;
+  let el=S.focusEl&&ins.includes(S.focusEl)?S.focusEl:(ins.find(x=>x.value==='')||ins[0]);
+  if(!ins.includes(S.focusEl)){ el.focus({preventScroll:true}); S.focusEl=el; }
+  if(k==='next'){ const i=ins.indexOf(el); if(i<ins.length-1){ ins[i+1].focus({preventScroll:true}); S.focusEl=ins[i+1]; } return; }
+  if(k==='bs') el.value=el.value.slice(0,-1);
+  else { if(el.value.length>=(+el.maxLength||9)) return; if(k===','&&el.dataset.k!=='dec') return; el.value+=k; }
+  storeFromEl(el);                                   // одразу в стан
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+$$('#kb .key').forEach(b=>{
+  b.addEventListener('pointerdown',e=>{ e.preventDefault(); kbPress(b.dataset.k); });
+  b.addEventListener('mousedown',e=>e.preventDefault());
+  b.addEventListener('click',e=>e.preventDefault());
+});
+
+/* ---- Показати, як це робити ---- */
+let HOW=null;
+function openHow(){
+  S.helps++;
+  const b=$('#howBody');
+  b.innerHTML=`<h3>Приклад. Порівняйте ${fr(1,6)} і 0,2</h3>
+  <div class="rvs1"><div class="rv rule" style="margin-top:.3rem"><b>Крок 1.</b> Запишемо дріб ${fr(1,6)} у вигляді десяткового. Для цього поділимо 1 на 6 куточком.</div></div>
+  <div class="ldwrap" id="hLd" style="margin-top:.6rem"></div>
+  <div class="rvs2">
+    <div class="rv rule">${fr(1,6)} = 0,1666… = 0,1(<span class="per">6</span>)</div>
+    <div class="rv rule"><b>Крок 2.</b> Порівняємо десяткові дроби за розрядами зліва направо.
+      <table class="pv"><tr><th></th><th>цілі</th><th></th><th>десяті</th><th>соті</th><th>тисячні</th></tr>
+      <tr><td class="lb">0,1666…</td><td class="same">0</td><td>,</td><td class="diff">1</td><td>6</td><td>6…</td></tr>
+      <tr><td class="lb">0,2</td><td class="same">0</td><td>,</td><td class="diff">2</td><td>0</td><td>0</td></tr></table></div>
+    <div class="rv rule">У розряді десятих: <b>1 &lt; 2</b>, тому 0,1(6) &lt; 0,2.</div>
+    <div class="rv rule">Відповідь: ${fr(1,6)} &lt; 0,2. Тепер зробіть так само у своєму завданні.</div>
+  </div>`;
+  HOW=seq([rvS($('.rvs1',b)),makeDiv($('#hLd',b),mkModel('1',6,{extra:1}),{}),rvS($('.rvs2',b))]);
+  $('#how').classList.add('on'); updHow();
+}
+function updHow(){ $('#howNext').disabled=!HOW.more(); }
+$('#howNext').onclick=()=>{ if(HOW.more()){HOW.next();updHow(); const o=$('#how .ovb'); o.scrollTo({top:o.scrollHeight,behavior:'smooth'});} };
+$('#howClose').onclick=()=>$('#how').classList.remove('on');
+$('#how').addEventListener('click',e=>{ if(e.target.id==='how') $('#how').classList.remove('on'); });
+
+/* ================= перед здачею ================= */
+function showPre(){
+  S.phase='pre'; showScr('sPre');
+  const cnt=S.tasks.filter((t,i)=>isAns(t,S.ans[i])).length, N=S.tasks.length, left=N-cnt;
+  $('#preTiles').innerHTML=S.tasks.map((t,i)=>`<button class="tile${isAns(t,S.ans[i])?' fill':''}" data-i="${i}">${i+1}</button>`).join('');
+  $('#preMeta').textContent=`Відповіли на ${cnt} з ${N}`;
+  const w=$('#preWarn'); w.hidden=left===0; w.textContent=left?`Ви не завершили ${left} ${left===1?'завдання':(left<5?'завдання':'завдань')}. Натисніть на номер, щоб до нього повернутися.`:'';
+  $('#preGo').textContent=left?'Все одно перевірити':'Перевірити';
+}
+$('#preTiles').addEventListener('click',e=>{ const b=e.target.closest('.tile'); if(b){ S.phase='test'; showScr('sTest'); goTo(+b.dataset.i); } });
+$('#preBack').onclick=()=>{ S.phase='test'; showScr('sTest'); goTo(S.tasks.length-1); };
+$('#preGo').onclick=()=>finish();
+
+/* ================= перевірка, збереження ================= */
+function finish(){
+  if(S.checked) return;
+  back();
+  const now=Date.now(), N=S.tasks.length;
+  const gr=S.tasks.map((t,i)=>gradeTask(t,S.ans[i]));
+  S.marks=gr.map(x=>x.m);
+  const score=S.marks.reduce((a,b)=>a+b,0);
+  const grade100=Math.round(score/N*100);
+  S.checked=true; S.phase='result';
+  const rec={
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${S.sur} ${S.nam}`, surname:S.sur, firstName:S.nam,
+    ts:now, date:new Date(now).toISOString(),
+    score, max:N, percent:grade100, grade100, tasks:S.marks.slice(),
+    qtext:S.tasks.map(qText), answers:gr.map(x=>x.ans), correct:S.tasks.map(correctText),
+    durationSec:Math.round((now-S.tTask0)/1000), learnSec:S.learnSec,
+    leaves:W.leaves, awaySec:W.awaySec, helps:S.helps, variant:S.seed,
+    test:TEST_NAME
+  };
+  S.rec=rec;
+  saveResult(rec);                       // один раз; учневі нічого не показується
+  showResult();
+}
+function showResult(){
+  const r=S.rec; showScr('sRes');
+  $('#rName').textContent=r.name;
+  $('#rBig').textContent=`${comma(r.score)} з ${r.max}`;
+  $('#rSc').textContent=`${r.grade100} з 100`;
+  $('#kb').classList.remove('on');
+}
+$('#rErr').onclick=()=>{
+  S.review=true; showScr('sTest');
+  let first=S.marks.findIndex(m=>m<1); if(first<0) first=0;
+  goTo(first);
+};
+$('#rAgain').onclick=()=>{
+  resetWatch(); S.seed=(Math.random()*4294967296)>>>0;
+  $('#kb').classList.remove('on');
+  S.checked=false; S.review=false; S.phase='lesson'; S.tLearn0=Date.now();
+  goL(0);                                   // спершу знову теорія, потім нові завдання
+};
+
+/* ================= журнал учителя ================= */
+let JR={rows:[],open:{}};
+function fmtT(s){ s=+s; if(!isFinite(s)) return '—'; return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); }
+function fmtD(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}); }catch(e){return '—';} }
+function openJr(){
+  $('#jr').classList.add('on');
+  $('#jrBody').innerHTML=`<h3>Журнал учителя</h3><div><input class="pw" id="jpw" type="password" placeholder="Пароль" autocomplete="off"> <button class="btn sm" id="jgo">Увійти</button> <button class="btn light sm" id="jx0">Закрити</button></div><div class="err" id="jerr"></div>`;
+  $('#jx0').onclick=closeJr; $('#jgo').onclick=tryPw;
+  $('#jpw').addEventListener('keydown',e=>{if(e.key==='Enter')tryPw();}); $('#jpw').focus();
+}
+function closeJr(){ $('#jr').classList.remove('on'); }
+function tryPw(){ if($('#jpw').value===TEACHER_PASSWORD) loadJr(); else $('#jerr').textContent='Неправильний пароль'; }
+async function loadJr(){
+  $('#jrBody').innerHTML='<h3>Журнал учителя</h3><div>Завантаження…</div>';
+  try{ JR.rows=await loadResults(); JR.open={}; drawJr(); }
+  catch(e){ $('#jrBody').innerHTML='<h3>Журнал учителя</h3><div class="err">Не вдалося підключитися до бази результатів</div><div class="jb"><button class="btn light sm" id="jx1">Закрити</button></div>'; $('#jx1').onclick=closeJr; }
+}
+function mark(m){ return m===1?'<span class="okc">✓</span>':(m>0?'<span class="half" title="Частково правильно">½</span>':'<span class="badc">✗</span>'); }
+function drawJr(){
+  const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
+  let h=`<h3>Журнал учителя (${rows.length})</h3><div class="jb"><button class="btn light sm" id="jRef">Оновити</button><button class="btn light sm" id="jCsv">Завантажити CSV</button><button class="btn light sm" id="jClr">Очистити</button><button class="btn light sm" id="jX">Закрити</button></div><div id="jConf"></div><div class="tw"><table><thead><tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Оцінка (100)</th>`;
+  for(let i=1;i<=NT;i++) h+=`<th>${i}</th>`;
+  h+='</tr></thead><tbody>';
+  rows.forEach((r,k)=>{
+    const g=r.grade100!==undefined?r.grade100:Math.round((r.score||0)/(r.max||1)*100);
+    const hasT=r.durationSec!==undefined, hasL=r.leaves!==undefined;
+    h+=`<tr><td>${k+1}</td><td class="nm" data-k="${k}">${esc(r.name||'')}</td><td>${esc(fmtD(r.date))}</td>`;
+    h+=hasT?`<td class="${r.durationSec<120?'red':''}"${r.durationSec<120?' title="Дуже швидко"':''}>${fmtT(r.durationSec)}</td>`:'<td>—</td>';
+    h+=hasL?`<td class="${r.leaves>=3?'red':''}" title="Поза вікном: ${fmtT(r.awaySec||0)}">${r.leaves}</td>`:'<td>—</td>';
+    h+=`<td>${comma(r.score)}/${r.max}</td><td>${g}</td>`;
+    for(let i=0;i<NT;i++) h+=`<td>${(r.tasks&&r.tasks[i]!==undefined)?mark(r.tasks[i]):''}</td>`;
+    h+='</tr>';
+    if(JR.open[k]){
+      h+=`<tr class="det"><td colspan="${7+NT}"><div>Пояснення: ${r.learnSec!==undefined?fmtT(r.learnSec):'—'} · підказка «Як це робити»: ${r.helps!==undefined?r.helps:'—'} · варіант ${r.variant!==undefined?r.variant:'—'}</div><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th></tr>`;
+      (r.qtext||[]).forEach((q,i)=>{ h+=`<tr><td>${i+1}</td><td>${esc(q)}</td><td>${esc((r.answers||[])[i]||'')}</td><td>${esc((r.correct||[])[i]||'')}</td></tr>`; });
+      h+='</table></td></tr>';
+    }
+  });
+  h+='</tbody></table></div>';
+  $('#jrBody').innerHTML=h;
+  $('#jX').onclick=closeJr; $('#jRef').onclick=loadJr; $('#jCsv').onclick=csvJr;
+  $('#jClr').onclick=()=>{
+    $('#jConf').innerHTML=`<div class="warn" style="background:#FFEDD5;border-radius:.7rem;padding:.5rem .8rem;margin:.4rem 0">Видалити всі записи (${JR.rows.length})? <button class="btn sm" id="jYes">Так, видалити</button> <button class="btn light sm" id="jNo">Скасувати</button></div>`;
+    $('#jNo').onclick=()=>{$('#jConf').innerHTML='';};
+    $('#jYes').onclick=async()=>{
+      try{ await clearResults(); JR.rows=[]; drawJr(); }
+      catch(e){ $('#jConf').innerHTML='<div class="err">Не вдалося очистити записи. Перевірте правила бази Firebase</div>'; }
+    };
+  };
+  $$('#jrBody td.nm').forEach(td=>td.onclick=()=>{ JR.open[td.dataset.k]=!JR.open[td.dataset.k]; drawJr(); });
+}
+function csvJr(){
+  const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
+  const hd=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка (100)'];
+  for(let i=1;i<=NT;i++) hd.push('Завд. '+i);
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const lines=[hd.map(q).join(';')];
+  rows.forEach(r=>{
+    const g=r.grade100!==undefined?r.grade100:Math.round((r.score||0)/(r.max||1)*100);
+    const c=[r.name||'',fmtD(r.date),r.durationSec!==undefined?fmtT(r.durationSec):'',r.leaves!==undefined?r.leaves:'',r.awaySec!==undefined?fmtT(r.awaySec):'',comma(r.score)+'/'+r.max,g];
+    for(let i=0;i<NT;i++){ const m=r.tasks&&r.tasks[i]; c.push(m===undefined?'':(m===1?'+':(m>0?'0,5':'-'))); }
+    lines.push(c.map(q).join(';'));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Періодичні_дроби_6клас_результати.csv';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+$('#keyBtn').onclick=openJr;
+$('#jr').addEventListener('click',e=>{ if(e.target.id==='jr') closeJr(); });
+
+if(/[?&]debug=1/.test(location.search)) window.__t={mkTasks,gradeTask,decParts,fmtDec,valOf,eqV,cmpV,mkModel,kindOf,correctText,S,isAns};
+})();
+</script>
+</body>
+</html>
