@@ -5,7 +5,7 @@ function fbReady(){
   var base="https://www.gstatic.com/firebasejs/"+FBV+"/";
   CFG_FB=Promise.all([import(base+"firebase-app.js"),import(base+"firebase-auth.js"),import(base+"firebase-firestore.js")]).then(function(m){
     var app=m[0].initializeApp(FIREBASE_CONFIG),au=m[1].getAuth(app);
-    return m[1].signInAnonymously(au).then(function(){return {fs:m[2],db:m[2].getFirestore(app)};});
+    return new Promise(function(res){var u=m[1].onAuthStateChanged(au,function(x){u();res(x);});}).then(function(cu){return cu?cu:m[1].signInAnonymously(au);}).then(function(){return {fs:m[2],db:m[2].getFirestore(app),au:au,am:m[1]};});
   });
   CFG_FB.catch(function(){CFG_FB=null;});
   return CFG_FB;
@@ -47,6 +47,7 @@ function saveResult(res){
   attempt();
 }
 
+function teacherSignIn(pw){return fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous)return true;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){return false;});}
 /* запит пароля вчителя: символи ховаються (type=password) */
 function askPw(ok){
   var m=document.createElement("div");m.className="modal";
@@ -54,7 +55,7 @@ function askPw(ok){
   document.body.appendChild(m);
   var i=document.getElementById("pwi");i.focus();
   function close(){if(m.parentNode)m.parentNode.removeChild(m);}
-  function go(){if(i.value===TEACHER_PASSWORD){close();ok();}else{var b=document.getElementById("pwb");document.getElementById("pwe").textContent="Невірний пароль, спробуйте ще раз";i.value="";i.focus();b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");}}
+  function go(){teacherSignIn(i.value).then(function(good){if(good){close();ok();}else{var b=document.getElementById("pwb");document.getElementById("pwe").textContent="Невірний пароль, спробуйте ще раз";i.value="";i.focus();b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");}});}
   document.getElementById("pwo").onclick=go;document.getElementById("pwc").onclick=close;
   m.onclick=function(e){if(e.target===m)close();};
   i.onkeydown=function(e){if(e.key==="Enter")go();else if(e.key==="Escape")close();};

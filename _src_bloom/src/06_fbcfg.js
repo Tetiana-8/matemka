@@ -11,7 +11,7 @@ var FIREBASE_CONFIG = {
 var FB_APP = "default-app-id";
 var FB_COL = "results_bloom_control";
 var FBV = "10.12.2";
-var TEACHER_PASSWORD = "8019";
+var TEACHER_EMAIL = "vchytel@matemka.invalid";
 var MON = (typeof APP_MON!=="undefined"&&APP_MON===true);
 if(MON)FB_COL = "results_bloom_monitoring";
 
