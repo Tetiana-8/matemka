@@ -1518,7 +1518,7 @@ var FIREBASE_CONFIG = {
 var FB_APP = "default-app-id";
 var FB_COL = "results_bloom_control";
 var FBV = "10.12.2";
-var TEACHER_PASSWORD = "8019";
+var TEACHER_EMAIL = "vchytel@matemka.invalid";
 var MON = (typeof APP_MON!=="undefined"&&APP_MON===true);
 if(MON)FB_COL = "results_bloom_monitoring";
 
@@ -1728,7 +1728,7 @@ function fbReady(){
   var base="https://www.gstatic.com/firebasejs/"+FBV+"/";
   CFG_FB=Promise.all([import(base+"firebase-app.js"),import(base+"firebase-auth.js"),import(base+"firebase-firestore.js")]).then(function(m){
     var app=m[0].initializeApp(FIREBASE_CONFIG),au=m[1].getAuth(app);
-    return m[1].signInAnonymously(au).then(function(){return {fs:m[2],db:m[2].getFirestore(app)};});
+    return new Promise(function(res){var u=m[1].onAuthStateChanged(au,function(x){u();res(x);});}).then(function(cu){return cu?cu:m[1].signInAnonymously(au);}).then(function(){return {fs:m[2],db:m[2].getFirestore(app),au:au,am:m[1]};});
   });
   CFG_FB.catch(function(){CFG_FB=null;});
   return CFG_FB;
@@ -1750,9 +1750,13 @@ function saveResult(res){
   fbReady().then(function(db){return fbCol(db).doc(SID).set(pack(res));}).catch(function(){});
 }
 
+function teacherSignIn(pw){return fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous)return true;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){return false;});}
+function teacherGate(cb){fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous){cb();return;}var p=prompt("Пароль вчителя:");if(p===null)return;teacherSignIn(p).then(function(ok){if(ok)cb();else alert("Невірний пароль");});});}
 function teacherPanel(){
   if(MON){teacherPanelM();return;}
-  var p=prompt("Пароль вчителя:");if(p!==TEACHER_PASSWORD)return;
+  teacherGate(teacherPanel2);
+}
+function teacherPanel2(){
   var m=document.createElement("div");m.className="modal";
   m.innerHTML='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">Результати учнів</b><span><select id="wk" style="width:auto;display:inline-block"></select> <button class="btn sm soft" id="csv">CSV</button> <button class="btn sm soft" id="clr">Очистити</button> <button class="btn sm" id="cls">Закрити</button></span></div><div id="tb">Завантаження…</div></div>';
   document.body.appendChild(m);

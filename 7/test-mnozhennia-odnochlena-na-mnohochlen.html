@@ -150,7 +150,7 @@ const firebaseConfig = {
 };
 const APP_ID = "default-app-id";                       
 const COLLECTION = "mnozhennia_odnochlena_results";    
-const TEACHER_PASSWORD = "8019";
+const TEACHER_EMAIL = "vchytel@matemka.invalid";
 const TOTAL = 12;
 
 /* ---------- Firebase ---------- */
@@ -159,7 +159,7 @@ try {
   if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    authReady = firebase.auth().signInAnonymously();
+    authReady = (function(){ const a = firebase.auth(); return new Promise(function(res){ const u = a.onAuthStateChanged(function(x){ u(); res(x); }); }).then(function(cu){ return cu ? cu : a.signInAnonymously(); }); })();
   }
 } catch (e) { console.error("Firebase init error:", e); }
 const colRef = () => db.collection(`artifacts/${APP_ID}/public/data/${COLLECTION}`);
@@ -423,8 +423,15 @@ const modal = document.getElementById("modal");
 document.getElementById("keyBtn").addEventListener("click", () => { modal.classList.remove("hidden"); document.getElementById("pwd").focus(); });
 document.getElementById("closeBtn").addEventListener("click", () => modal.classList.add("hidden"));
 
-const tryLogin = () => {
-  if (document.getElementById("pwd").value === TEACHER_PASSWORD) {
+const tryLogin = async () => {
+  let okLogin = false;
+  try {
+    await authReady;
+    const a = firebase.auth();
+    if (a.currentUser && !a.currentUser.isAnonymous) okLogin = true;
+    else { await a.signInWithEmailAndPassword(TEACHER_EMAIL, String(document.getElementById("pwd").value || "")); okLogin = true; }
+  } catch (e) { okLogin = false; }
+  if (okLogin) {
     document.getElementById("pwdBox").classList.add("hidden");
     document.getElementById("resBox").classList.remove("hidden");
     document.getElementById("pwdMsg").textContent = "";

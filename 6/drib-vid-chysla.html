@@ -314,11 +314,12 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_drib_vid_chysla_6';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Тест. Знаходження дробу від числа (6 клас)';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -328,8 +329,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; });
   }
@@ -809,7 +810,7 @@ let rows=[];
 function openModal(){ $('modal').hidden=false; $('pwRow').hidden=false; $('journal').hidden=true; $('pw').value=''; $('pwErr').hidden=true; $('pw').focus(); }
 function closeModal(){ $('modal').hidden=true; }
 $('keyBtn').onclick=openModal; $('closeA').onclick=closeModal; $('closeB').onclick=closeModal;
-function login(){ if($('pw').value===TEACHER_PASSWORD){ $('pwRow').hidden=true; $('journal').hidden=false; refresh(); } else $('pwErr').hidden=false; }
+function login(){ teacherLogin($('pw').value).then(function(ok){if(ok){ $('pwRow').hidden=true; $('journal').hidden=false; refresh(); }else $('pwErr').hidden=false;}); }
 $('pwOk').onclick=login; $('pw').addEventListener('keydown',e=>{ if(e.key==='Enter')login(); });
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dt=ts=>{const d=new Date(ts);const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;};

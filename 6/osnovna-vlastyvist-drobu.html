@@ -43,7 +43,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -59,6 +59,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const TEACHER_EMAIL = 'vchytel@matemka.invalid';
+        const anonUnlessSignedIn = async () => { const cu = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); }); if (!cu) await signInAnonymously(auth); };
         
         // Fixed single appId so all devices/accounts access the exact same Firebase folder
         const appId = 'math-fractions-6th';
@@ -68,6 +70,7 @@
         window.auth = auth;
         window.appId = appId;
         window.COLLECTION_NAME = COLLECTION_NAME;
+        window.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); const u = auth.currentUser; if (u && !u.isAnonymous) return true; await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { return false; } };
         window.firebaseDocs = { collection, addDoc, onSnapshot, deleteDoc, doc };
 
         let authPromise = null;
@@ -80,10 +83,10 @@
                                 await signInWithCustomToken(auth, __initial_auth_token);
                             } catch (tokenErr) {
                                 console.warn("Fallback to anonymous auth:", tokenErr);
-                                await signInAnonymously(auth);
+                                await anonUnlessSignedIn();
                             }
                         } else {
-                            await signInAnonymously(auth);
+                            await anonUnlessSignedIn();
                         }
                     } catch(err) {
                         console.error("Firebase auth error:", err);
@@ -379,9 +382,9 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        function checkTeacherPassword() {
+        async function checkTeacherPassword() {
             const pwd = document.getElementById('teacher-password-input').value;
-            if (pwd === '8019') {
+            if (await window.teacherSignIn(pwd)) {
                 closeModal('modal-password');
                 document.getElementById('modal-journal').classList.remove('hidden');
                 fetchJournalResults();

@@ -647,9 +647,10 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
 
   /* ----- збір результатів: Firebase (проєкт math-5-892a5) ----- */
   const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
-  const APP_ID='default-app-id', COLLECTION='results_tayemni_dveri_6', TEACHER_PASSWORD='8019', FBV='10.12.2', TEST_NAME='Таємні двері (6 клас)';
+  const APP_ID='default-app-id', COLLECTION='results_tayemni_dveri_6', TEACHER_EMAIL='vchytel@matemka.invalid', FBV='10.12.2', TEST_NAME='Таємні двері (6 клас)';
   let fbPromise=null;
-  function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); await authM.signInAnonymously(authM.getAuth(app)); return {db:fs.getFirestore(app),fs}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+  async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
+function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a); return {db:fs.getFirestore(app),fs,auth:__a,authM}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
   const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
   async function saveResult(rec){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}catch(e){console.warn('Save failed',e)} }
   async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
@@ -677,7 +678,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
     if(now)saveResult(record());else saveT=setTimeout(function(){if(S)saveResult(record())},700);
   }
 
-  /* ----- журнал учителя (ключик, пароль 8019) ----- */
+  /* ----- журнал учителя (ключик) ----- */
   var JR=[];
   function esc(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function z2(n){return ('0'+n).slice(-2)}
@@ -748,8 +749,7 @@ function revealRoom(i,L){return Math.floor(i*ROOMS/L)}
   function jrOpen(){$('#jr').hidden=false;$('#jpass').hidden=false;$('#jmain').hidden=true;$('#jerr1').textContent='';$('#jpw').value='';setTimeout(function(){$('#jpw').focus()},30)}
   function jrClose(){$('#jr').hidden=true;$('#jpw').value='';$('#jconf').hidden=true;$('#jclr').hidden=false}
   function jrEnter(){
-    if($('#jpw').value.trim()===TEACHER_PASSWORD){$('#jpass').hidden=true;$('#jmain').hidden=false;jrLoad()}
-    else{$('#jerr1').textContent='Невірний пароль';$('#jpw').select()}
+    teacherLogin($('#jpw').value.trim()).then(function(ok){if(ok){$('#jpass').hidden=true;$('#jmain').hidden=false;jrLoad()}else {$('#jerr1').textContent='Невірний пароль';$('#jpw').select()}});
   }
 
 

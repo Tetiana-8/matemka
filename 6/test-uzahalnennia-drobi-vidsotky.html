@@ -263,11 +263,12 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_drobi_vidsotky_6';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Узагальнення п. 11–14. Дроби й відсотки (6 клас)';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -277,8 +278,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; }); // при збої — повторна спроба
   }
@@ -701,8 +702,10 @@ modal.addEventListener('click', async e=>{
   const j = b.dataset.j;
   if(j==='close') closeModal();
   else if(j==='login'){
-    if(($('pw').value||'')===TEACHER_PASSWORD) showJournal();
-    else $('jmsg').textContent = 'Неправильний пароль';
+    teacherLogin($('pw').value||'').then(function(ok){
+      if(ok) showJournal();
+      else $('jmsg').textContent = 'Неправильний пароль';
+    });
   }
   else if(j==='refresh') showJournal();
   else if(j==='csv') downloadCSV();
@@ -717,7 +720,7 @@ modal.addEventListener('click', async e=>{
   }
 });
 modal.addEventListener('keydown', e=>{
-  if(e.key==='Enter' && e.target.id==='pw'){ if(e.target.value===TEACHER_PASSWORD) showJournal(); else $('jmsg').textContent='Неправильний пароль'; }
+  if(e.key==='Enter' && e.target.id==='pw'){ teacherLogin(e.target.value).then(function(ok){ if(ok) showJournal(); else $('jmsg').textContent='Неправильний пароль'; }); }
 });
 
 build(false);

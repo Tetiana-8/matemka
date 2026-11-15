@@ -188,11 +188,12 @@ const FIREBASE_CONFIG={
 };
 const APP_ID='default-app-id';
 const COLLECTION='results_addcolumn_5';
-const TEACHER_PASSWORD='8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV='10.12.2';
 const TEST_NAME='Тренажер: Додавання в стовпчик (5 клас)';
 
 let fbPromise=null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise=(async()=>{
@@ -202,8 +203,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app=appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return {db:fs.getFirestore(app),fs};
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(()=>{fbPromise=null});
   }
@@ -507,7 +508,7 @@ $('#keyBtn').addEventListener('click',()=>{
     <div class="pmsg" id="pmsg"></div>`;
   overlay.classList.add('on');
   const pw=$('#pw');pw.focus();
-  const go=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else{$('#pmsg').textContent='Неправильний пароль.';pw.select()}};
+  const go=()=>{teacherLogin(pw.value).then(function(ok){if(ok)showJournal();else {$('#pmsg').textContent='Неправильний пароль.';pw.select()}})};
   $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
   $('#close1').onclick=closeModal;
 });

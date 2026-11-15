@@ -143,11 +143,12 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_regular_polygons_9';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Правильні многокутники (9 клас)';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -157,8 +158,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; });
   }
@@ -620,8 +621,7 @@ function closeJ(){$('#jm').classList.remove('on')}
 $('#keyb').onclick=openJ;$('#jx').onclick=closeJ;$('#jx2').onclick=closeJ;
 $('#jm').addEventListener('click',function(e){if(e.target.id==='jm')closeJ()});
 function unlockJ(){
-  if($('#jpw').value===TEACHER_PASSWORD){$('#jlock').style.display='none';$('#jxlock').style.display='none';$('#jmain').style.display='block';$('#jpw').value='';refreshJ()}
-  else{$('#jerr').textContent='Невірний пароль'}
+  teacherLogin($('#jpw').value).then(function(ok){if(ok){$('#jlock').style.display='none';$('#jxlock').style.display='none';$('#jmain').style.display='block';$('#jpw').value='';refreshJ()}else {$('#jerr').textContent='Невірний пароль'}});
 }
 $('#jok').onclick=unlockJ;$('#jpw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockJ()});
 async function refreshJ(){

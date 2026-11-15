@@ -172,10 +172,11 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_triangles_cevians_7';   // колекція цього тесту
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -185,8 +186,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; }); // при збої — повторна спроба
   }
@@ -574,9 +575,9 @@ let lastRows = [];
 $('keyBtn').addEventListener('click', () => { modal.classList.remove('hidden'); $('pwd').focus(); });
 $('closeBtn').addEventListener('click', () => modal.classList.add('hidden'));
 function tryLogin() {
-  if ($('pwd').value === TEACHER_PASSWORD) {
+  teacherLogin($('pwd').value).then(function(ok){if(ok){
     $('pwdBox').classList.add('hidden'); $('resBox').classList.remove('hidden'); refresh();
-  } else $('pwdMsg').textContent = 'Неправильний пароль';
+  }else $('pwdMsg').textContent = 'Неправильний пароль';});
 }
 $('pwdBtn').addEventListener('click', tryLogin);
 $('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });

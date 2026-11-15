@@ -77,11 +77,12 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_prosti_figury_7';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Найпростіші геометричні фігури (7 клас)';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -91,8 +92,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; });
   }
@@ -306,7 +307,7 @@ $('key').onclick=()=>{
   $('jr').style.display='block';
   $('jbar').innerHTML='';$('jtb').innerHTML='<input class="in" id="pw" type="password" placeholder="Пароль" style="max-width:260px"> <button class="btn" id="pwb" style="flex:none;min-height:40px">Увійти</button>';
   $('jmsg').textContent='';
-  const ok=()=>{if($('pw').value===TEACHER_PASSWORD)openJ();else $('jmsg').textContent='Неправильний пароль'};
+  const ok=()=>{teacherLogin($('pw').value).then(function(ok){if(ok)openJ();else $('jmsg').textContent='Неправильний пароль'})};
   $('pwb').onclick=ok;$('pw').onkeydown=e=>{if(e.key==='Enter')ok()};
   const c=document.createElement('button');c.className='btn s';c.style.cssText='flex:none;min-height:38px;font-size:14px';c.textContent='Закрити';c.onclick=()=>$('jr').style.display='none';$('jbar').appendChild(c);
 };

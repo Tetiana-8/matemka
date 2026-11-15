@@ -62,7 +62,7 @@
     <!-- Firebase Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -78,8 +78,11 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const TEACHER_EMAIL = 'vchytel@matemka.invalid';
+        const anonUnlessSignedIn = async () => { const cu = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); }); if (!cu) await signInAnonymously(auth); };
 
         window.firebaseAPI = { auth, db, collection, addDoc, onSnapshot, query, isReady: false };
+        window.firebaseAPI.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); const u = auth.currentUser; if (u && !u.isAnonymous) return true; await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { return false; } };
 
         const authenticate = async () => {
             try {
@@ -88,10 +91,10 @@
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } catch (tokenError) {
                         console.warn("Користувацький токен не прийнято, перехід на анонімну авторизацію:", tokenError);
-                        await signInAnonymously(auth);
+                        await anonUnlessSignedIn();
                     }
                 } else {
-                    await signInAnonymously(auth);
+                    await anonUnlessSignedIn();
                 }
                 window.firebaseAPI.isReady = true;
             } catch (error) {
@@ -1130,8 +1133,8 @@
             const [результати, встановитиРезультати] = useState([]);
             const [завантаження, встановитиЗавантаження] = useState(false);
 
-            const ПеревіритиПароль = () => {
-                if (пароль === '8019') {
+            const ПеревіритиПароль = async () => {
+                if (await window.firebaseAPI.teacherSignIn(пароль)) {
                     встановитиПарольВведено(true);
                     встановитиПомилку('');
                 } else {

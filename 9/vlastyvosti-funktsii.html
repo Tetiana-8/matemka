@@ -201,10 +201,11 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_lesson_functions_9';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Властивості функції (9 клас)';
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -214,8 +215,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; });
   }
@@ -651,7 +652,7 @@ function fillTp(){
   refreshChecks();
 }
 $('#keyb').onclick=()=>{const p=$('#tp');p.classList.toggle('on');if(p.classList.contains('on')&&!$('#tpw').offsetParent&&!document.body.classList.contains('tm'))$('#tpw').focus()};
-$('#tpok').onclick=()=>{if($('#tpw').value===TEACHER_PASSWORD){$('#tpw').value='';setTmOn(true)}else{$('#tpw').value='';$('#tpw').placeholder='Невірний пароль'}};
+$('#tpok').onclick=()=>{teacherLogin($('#tpw').value).then(function(ok){if(ok){$('#tpw').value='';setTmOn(true)}else {$('#tpw').value='';$('#tpw').placeholder='Невірний пароль'}});};
 $('#tpw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#tpok').click()});
 $('#thide').onclick=()=>{setTmOn(false);$('#tp').classList.remove('on')};
 $('#tcls').onchange=()=>{tm.cls=$('#tcls').value.trim();persistTm()};
@@ -667,8 +668,8 @@ function callNext(){
 $('#callb').onclick=callNext;
 function fillList(){$('#lcls').value=tm.cls;$('#lnames').value=tm.names.join('\n');$('#lmpw').style.display=document.body.classList.contains('tm')?'none':'block';$('#lerr').textContent=''}
 $('#lstb').onclick=()=>{$('#lm').classList.add('on');fillList()};
-$('#lsave').onclick=()=>{
-  if(!document.body.classList.contains('tm')){if($('#lpw').value!==TEACHER_PASSWORD){$('#lerr').textContent='Невірний пароль';return}$('#lpw').value='';setTmOn(true)}
+$('#lsave').onclick=async()=>{
+  if(!document.body.classList.contains('tm')){if(!(await teacherLogin($('#lpw').value))){$('#lerr').textContent='Невірний пароль';return}$('#lpw').value='';setTmOn(true)}
   tm.cls=$('#lcls').value.trim();tm.names=$('#lnames').value.split('\n').map(x=>x.trim()).filter(Boolean);tm.queue=[];tm.cur='';persistTm();fillTp();
   $('#callb').textContent='🎲 Викликати';$('#lm').classList.remove('on');if(cur===0)show(1);
 };

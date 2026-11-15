@@ -115,10 +115,11 @@ function build(R){
 const FIREBASE_CONFIG={apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",authDomain:"math-5-892a5.firebaseapp.com",projectId:"math-5-892a5",storageBucket:"math-5-892a5.firebasestorage.app",messagingSenderId:"163114803328",appId:"1:163114803328:web:caf86c4e8b8c4b3b630665",measurementId:"G-E06VKZ2GP5"};
 const APP_ID='default-app-id';
 const COLLECTION='results_monomials_7';
-const TEACHER_PASSWORD='8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV='10.12.2';
 const TEST_NAME='Одночлени (7 клас)';
 let fbPromise=null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise=(async()=>{
@@ -128,8 +129,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app=appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return{db:fs.getFirestore(app),fs};
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(()=>{fbPromise=null;});
   }
@@ -207,7 +208,7 @@ document.addEventListener('keydown',e=>{if(!S||S.screen!='task'||/INPUT/.test(do
 // Журнал
 const J=$('#jr');let authed=false;
 $('#key').onclick=()=>{J.style.display='block';if(authed)showJ();else{J.innerHTML='<div class=card style="max-width:320px"><b>Пароль</b><input class=t id=pw type=password><div class=err id=pe></div><button class=btn id=pg>Увійти</button> <button class="btn s" id=pc>Закрити</button></div>';
- $('#pc').onclick=()=>J.style.display='none';$('#pg').onclick=()=>{if($('#pw').value==TEACHER_PASSWORD){authed=true;showJ()}else $('#pe').textContent='Неправильний пароль'}}};
+ $('#pc').onclick=()=>J.style.display='none';$('#pg').onclick=()=>{teacherLogin($('#pw').value).then(function(ok){if(ok){authed=true;showJ()}else $('#pe').textContent='Неправильний пароль'});}}};
 async function showJ(){J.innerHTML='<div class=card>Завантаження…</div>';let R;
  try{R=await loadResults()}catch(e){J.innerHTML='<div class=card><div class=err>Не вдалося підключитися до бази результатів</div><button class=btn id=jc>Закрити</button></div>';$('#jc').onclick=()=>J.style.display='none';return}
  const mx=Math.max(0,...R.map(r=>r.max||0));let h=`<div class=card><div class=row style="margin-bottom:8px"><button class=btn id=jo>Оновити</button><button class="btn s" id=jv>Завантажити CSV</button><button class="btn s" id=jx>Очистити</button><button class="btn s" id=jc>Закрити</button></div><div id=cf></div><div style="overflow:auto"><table><tr><th>№<th>Прізвище та ім'я<th>Дата<th>Час<th>Виходів<th>Бал${Array.from({length:mx},(_,i)=>'<th>'+(i+1)).join('')}</tr>`;

@@ -107,7 +107,7 @@ th{color:#5a4b8a}
 var FIREBASE_CONFIG = {apiKey:"AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",authDomain:"math-5-892a5.firebaseapp.com",projectId:"math-5-892a5",appId:"1:163114803328:web:caf86c4e8b8c4b3b630665"};
 var FB_APP_ID = "zriz-znan";
 var FB_COLLECTION = "zriz_znan_results";
-var TEACHER_PASSWORD = "8019";
+var TEACHER_EMAIL = "vchytel@matemka.invalid";
 
 /* ============ Дані: блоки тем (з карт тем 5–6 та 7–11 класів) ============ */
 var SUBJ = {M:"Математика", A:"Алгебра", G:"Геометрія"};
@@ -736,7 +736,7 @@ function fbReady(){
   var base="https://www.gstatic.com/firebasejs/10.12.2/";
   CFG_FB=loadScript(base+"firebase-app-compat.js").then(function(){return loadScript(base+"firebase-auth-compat.js");})
     .then(function(){return loadScript(base+"firebase-firestore-compat.js");})
-    .then(function(){firebase.initializeApp(FIREBASE_CONFIG);return firebase.auth().signInAnonymously();})
+    .then(function(){firebase.initializeApp(FIREBASE_CONFIG);var a=firebase.auth();return new Promise(function(res){var u=a.onAuthStateChanged(function(x){u();res(x);});}).then(function(cu){return cu?cu:a.signInAnonymously();});})
     .then(function(){return firebase.firestore();});
   return CFG_FB;
 }
@@ -753,8 +753,11 @@ function saveResult(r){
     });
   }).catch(function(){});
 }
+function teacherGate(cb){fbReady().then(function(){var a=firebase.auth(),u=a.currentUser;if(u&&!u.isAnonymous){cb();return;}var p=prompt("Пароль вчителя:");if(p===null)return;a.signInWithEmailAndPassword(TEACHER_EMAIL,String(p)).then(function(){cb();},function(){alert("Невірний пароль");});});}
 function teacherPanel(){
-  var p=prompt("Пароль вчителя:");if(p!==TEACHER_PASSWORD)return;
+  teacherGate(teacherPanel2);
+}
+function teacherPanel2(){
   var m=document.createElement("div");m.className="modal";
   m.innerHTML='<div class="box"><div class="btns" style="margin-top:0;justify-content:space-between"><b style="color:#5a4b8a">Результати учнів</b><span><button class="btn sm soft" id="clr">Очистити</button> <button class="btn sm" id="cls">Закрити</button></span></div><div id="tb">Завантаження…</div></div>';
   document.body.appendChild(m);

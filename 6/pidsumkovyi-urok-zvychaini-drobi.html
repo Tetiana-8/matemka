@@ -161,11 +161,12 @@ const TARGET=28;            // скільки балів дає оцінку 12 
 const LESSON_MIN=45;        // тривалість уроку, хв
 const MAXGRADE=12;
 const MIN_FOR_FINISH=6;     // з якого завдання з'являється «Завершити»
-const APP_ID='default-app-id', COLLECTION='results_fractions_summary_6', TEACHER_PASSWORD='8019', FBV='10.12.2';
+const APP_ID='default-app-id', COLLECTION='results_fractions_summary_6', TEACHER_EMAIL='vchytel@matemka.invalid', FBV='10.12.2';
 const TEST_NAME='Підсумковий урок. Звичайні дроби (6 клас)';
 const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
 let fbPromise=null;
-function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); await authM.signInAnonymously(authM.getAuth(app)); return {db:fs.getFirestore(app),fs}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
+function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a); return {db:fs.getFirestore(app),fs,auth:__a,authM}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
 const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
 async function saveResult(rec){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}catch(e){console.warn('Save failed',e)} }
 async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
@@ -658,7 +659,7 @@ $('#gem').onclick=()=>openModal(`<h3>Методична картка</h3>
  <h4>Оцінювання</h4><ul><li>правильно з першої спроби — 1 бал; з другої — 0,5 бала; двічі неправильно — 0 балів;</li><li>оцінка = 12 · (сума балів) : ${TARGET}, не більше 12, округлення до цілого. Отже, оцінка залежить і від кількості виконаних завдань, і від кількості помилок;</li><li>наприкінці учень бачить оцінку, кількість завдань, помилок і теми, які варто повторити.</li></ul>`);
 $('#key').onclick=()=>{
   openModal(`<h3>Журнал учителя</h3><div class="mrow"><input type="password" id="pw" placeholder="Пароль"><button class="btn" id="pwok">Увійти</button><button class="btn sec" id="pwx">Закрити</button></div><div class="msg bad" id="pwe">Неправильний пароль</div>`);
-  const go=()=>{if($('#pw').value===TEACHER_PASSWORD)journal();else $('#pwe').classList.add('show');};
+  const go=()=>{teacherLogin($('#pw').value).then(function(ok){if(ok)journal();else $('#pwe').classList.add('show')});};
   $('#pwok').onclick=go;$('#pwx').onclick=closeModal;$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')go();});setTimeout(()=>$('#pw').focus(),30);
 };
 let JR=[];

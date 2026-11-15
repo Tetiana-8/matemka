@@ -455,9 +455,10 @@ function corrHTML(st){
 
 /* ===== Firebase (дослівно за інструкцією; змінено лише COLLECTION і TEST_NAME) ===== */
 const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
-const APP_ID='default-app-id', COLLECTION='results_rational_expr_8', TEACHER_PASSWORD='8019', FBV='10.12.2', TEST_NAME='Тотожні перетворення раціональних виразів (8 клас)';
+const APP_ID='default-app-id', COLLECTION='results_rational_expr_8', TEACHER_EMAIL='vchytel@matemka.invalid', FBV='10.12.2', TEST_NAME='Тотожні перетворення раціональних виразів (8 клас)';
 let fbPromise=null;
-function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); await authM.signInAnonymously(authM.getAuth(app)); return {db:fs.getFirestore(app),fs}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
+function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a); return {db:fs.getFirestore(app),fs,auth:__a,authM}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
 const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
 async function saveResult(rec){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),rec.id),rec);}catch(e){console.warn('Save failed',e)} }
 async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
@@ -724,7 +725,7 @@ $('#key').addEventListener('click',()=>{
   jr.classList.add('on');
   jrbox.innerHTML=`<div class="pw"><b>Пароль:</b><input id="pw" type="password" autocomplete="off"><button id="pwok">Увійти</button><button id="jrx">Закрити</button></div><div id="pwm" class="em"></div>`;
   const pw=$('#pw');pw.focus();
-  const ok=()=>{if(pw.value===TEACHER_PASSWORD)showJournal();else $('#pwm').textContent='Неправильний пароль'};
+  const ok=()=>{teacherLogin(pw.value).then(function(ok){if(ok)showJournal();else $('#pwm').textContent='Неправильний пароль'})};
   $('#pwok').onclick=ok;pw.onkeydown=ev=>{if(ev.key==='Enter')ok()};
   $('#jrx').onclick=()=>jr.classList.remove('on');
 });

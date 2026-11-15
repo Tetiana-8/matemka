@@ -361,11 +361,12 @@ const FIREBASE_CONFIG = {
 };
 const APP_ID = 'default-app-id';
 const COLLECTION = 'results_periodic_fractions_6';
-const TEACHER_PASSWORD = '8019';
+const TEACHER_EMAIL='vchytel@matemka.invalid';
 const FBV = '10.12.2';
 const TEST_NAME = 'Нескінченні періодичні десяткові дроби (6 клас)';
 
 let fbPromise = null;
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{
@@ -375,8 +376,8 @@ function fb(){
         import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
       ]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      await authM.signInAnonymously(authM.getAuth(app));
-      return { db: fs.getFirestore(app), fs };
+      const __a=authM.getAuth(app); const __cu=await new Promise(r=>{const u=authM.onAuthStateChanged(__a,x=>{u();r(x)})}); if(!__cu) await authM.signInAnonymously(__a);
+      return {db:fs.getFirestore(app),fs,auth:__a,authM};
     })();
     fbPromise.catch(() => { fbPromise = null; }); // при збої — повторна спроба
   }
@@ -1112,7 +1113,7 @@ function openJr(){
   $('#jpw').addEventListener('keydown',e=>{if(e.key==='Enter')tryPw();}); $('#jpw').focus();
 }
 function closeJr(){ $('#jr').classList.remove('on'); }
-function tryPw(){ if($('#jpw').value===TEACHER_PASSWORD) loadJr(); else $('#jerr').textContent='Неправильний пароль'; }
+function tryPw(){ teacherLogin($('#jpw').value).then(function(ok){if(ok)loadJr();else $('#jerr').textContent='Неправильний пароль'}); }
 async function loadJr(){
   $('#jrBody').innerHTML='<h3>Журнал учителя</h3><div>Завантаження…</div>';
   try{ JR.rows=await loadResults(); JR.open={}; drawJr(); }
