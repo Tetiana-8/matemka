@@ -187,7 +187,7 @@ table.res td.k{font-weight:900;color:var(--acc);text-align:center;width:3rem}
 <div class="modal" id="codeModal">
   <div class="mbox" style="width:min(20rem,100%)">
     <h3>Код вчителя</h3>
-    <input type="password" id="codeIn" inputmode="numeric" autocomplete="off" maxlength="8">
+    <input type="password" id="codeIn" autocomplete="off" maxlength="40">
     <div class="err" id="codeErr"></div>
     <div class="srow"><button class="btn pri" id="codeOk">ОК</button><button class="btn" id="codeCancel">Закрити</button></div>
   </div>
@@ -634,13 +634,15 @@ $('tick').onchange=function(){
   save();
 };
 
-/* ---------- ключ вчителя (код 8019) ---------- */
+/* ---------- ключ вчителя ---------- */
+async function __h(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mtk:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const __PH='e02473129ef816215a6cca6542fefe830b711afb626ab44d30fac3b0f8b44ba5';
 function openModal(id){$(id).classList.add('on')}
 function closeModal(id){$(id).classList.remove('on')}
 $('key').onclick=()=>{$('codeIn').value='';$('codeErr').textContent='';openModal('codeModal');setTimeout(()=>$('codeIn').focus(),50)};
 $('codeCancel').onclick=()=>closeModal('codeModal');
-function tryCode(){
-  if($('codeIn').value.trim()==='8019'){closeModal('codeModal');showRes()}
+async function tryCode(){
+  if((await __h($('codeIn').value.trim()))===__PH){closeModal('codeModal');showRes()}
   else{$('codeErr').textContent='Неправильний код';$('codeIn').value=''}
 }
 $('codeOk').onclick=tryCode;
