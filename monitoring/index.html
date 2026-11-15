@@ -3455,7 +3455,7 @@ function saveResult(res){
   attempt();
 }
 
-function teacherSignIn(pw){return fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous)return true;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){return false;});}
+function teacherSignIn(pw){var FF=null;return fbReady().then(function(F){FF=F;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){if(FF&&FF.au.currentUser&&!FF.au.currentUser.isAnonymous){return FF.am.signOut(FF.au).then(function(){return FF.am.signInAnonymously(FF.au);}).then(function(){return false;},function(){return false;});}return false;});}
 /* запит пароля вчителя: символи ховаються (type=password) */
 function askPw(ok){
   var m=document.createElement("div");m.className="modal";

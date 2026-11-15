@@ -82,7 +82,7 @@ const FBV = '10.12.2';
 const TEST_NAME = 'Найпростіші геометричні фігури (7 клас)';
 
 let fbPromise = null;
-async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); const u=auth.currentUser; if(u&&!u.isAnonymous) return true; await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ return false; } }
+async function teacherLogin(pw){ let F=null; try{ F=await fb(); await F.authM.signInWithEmailAndPassword(F.auth,TEACHER_EMAIL,String(pw||'')); return true; }catch(e){ try{ if(F&&F.auth.currentUser&&!F.auth.currentUser.isAnonymous){ await F.authM.signOut(F.auth); await F.authM.signInAnonymously(F.auth); } }catch(_){} return false; } }
 function fb(){
   if(!fbPromise){
     fbPromise = (async()=>{

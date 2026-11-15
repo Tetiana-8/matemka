@@ -1750,8 +1750,8 @@ function saveResult(res){
   fbReady().then(function(db){return fbCol(db).doc(SID).set(pack(res));}).catch(function(){});
 }
 
-function teacherSignIn(pw){return fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous)return true;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){return false;});}
-function teacherGate(cb){fbReady().then(function(F){var u=F.au.currentUser;if(u&&!u.isAnonymous){cb();return;}var p=prompt("Пароль вчителя:");if(p===null)return;teacherSignIn(p).then(function(ok){if(ok)cb();else alert("Невірний пароль");});});}
+function teacherSignIn(pw){var FF=null;return fbReady().then(function(F){FF=F;return F.am.signInWithEmailAndPassword(F.au,TEACHER_EMAIL,String(pw||"")).then(function(){return true;});}).catch(function(){if(FF&&FF.au.currentUser&&!FF.au.currentUser.isAnonymous){return FF.am.signOut(FF.au).then(function(){return FF.am.signInAnonymously(FF.au);}).then(function(){return false;},function(){return false;});}return false;});}
+function teacherGate(cb){fbReady().then(function(F){var p=prompt("Пароль вчителя:");if(p===null)return;teacherSignIn(p).then(function(ok){if(ok)cb();else alert("Невірний пароль");});});}
 function teacherPanel(){
   if(MON){teacherPanelM();return;}
   teacherGate(teacherPanel2);

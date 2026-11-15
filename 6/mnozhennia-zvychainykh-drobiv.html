@@ -62,7 +62,7 @@
     <!-- Firebase Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -82,7 +82,7 @@
         const anonUnlessSignedIn = async () => { const cu = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); }); if (!cu) await signInAnonymously(auth); };
 
         window.firebaseAPI = { auth, db, collection, addDoc, onSnapshot, query, isReady: false };
-        window.firebaseAPI.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); const u = auth.currentUser; if (u && !u.isAnonymous) return true; await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { return false; } };
+        window.firebaseAPI.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { try { if (auth.currentUser && !auth.currentUser.isAnonymous) { await signOut(auth); await signInAnonymously(auth); } } catch (_) {} return false; } };
 
         const authenticate = async () => {
             try {

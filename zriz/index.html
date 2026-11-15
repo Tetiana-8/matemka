@@ -753,7 +753,7 @@ function saveResult(r){
     });
   }).catch(function(){});
 }
-function teacherGate(cb){fbReady().then(function(){var a=firebase.auth(),u=a.currentUser;if(u&&!u.isAnonymous){cb();return;}var p=prompt("Пароль вчителя:");if(p===null)return;a.signInWithEmailAndPassword(TEACHER_EMAIL,String(p)).then(function(){cb();},function(){alert("Невірний пароль");});});}
+function teacherGate(cb){fbReady().then(function(){var a=firebase.auth();var p=prompt("Пароль вчителя:");if(p===null)return;a.signInWithEmailAndPassword(TEACHER_EMAIL,String(p)).then(function(){cb();},function(){var u=a.currentUser;if(u&&!u.isAnonymous){a.signOut().then(function(){return a.signInAnonymously();}).catch(function(){});}alert("Невірний пароль");});});}
 function teacherPanel(){
   teacherGate(teacherPanel2);
 }

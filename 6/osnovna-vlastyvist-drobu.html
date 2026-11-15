@@ -43,7 +43,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -70,7 +70,7 @@
         window.auth = auth;
         window.appId = appId;
         window.COLLECTION_NAME = COLLECTION_NAME;
-        window.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); const u = auth.currentUser; if (u && !u.isAnonymous) return true; await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { return false; } };
+        window.teacherSignIn = async (pw) => { try { await anonUnlessSignedIn(); await signInWithEmailAndPassword(auth, TEACHER_EMAIL, String(pw || '')); return true; } catch (e) { try { if (auth.currentUser && !auth.currentUser.isAnonymous) { await signOut(auth); await signInAnonymously(auth); } } catch (_) {} return false; } };
         window.firebaseDocs = { collection, addDoc, onSnapshot, deleteDoc, doc };
 
         let authPromise = null;

@@ -428,8 +428,8 @@ const tryLogin = async () => {
   try {
     await authReady;
     const a = firebase.auth();
-    if (a.currentUser && !a.currentUser.isAnonymous) okLogin = true;
-    else { await a.signInWithEmailAndPassword(TEACHER_EMAIL, String(document.getElementById("pwd").value || "")); okLogin = true; }
+    try { await a.signInWithEmailAndPassword(TEACHER_EMAIL, String(document.getElementById("pwd").value || "")); okLogin = true; }
+    catch (e2) { okLogin = false; if (a.currentUser && !a.currentUser.isAnonymous) { await a.signOut(); await a.signInAnonymously(); } }
   } catch (e) { okLogin = false; }
   if (okLogin) {
     document.getElementById("pwdBox").classList.add("hidden");
