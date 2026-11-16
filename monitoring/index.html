@@ -1828,7 +1828,10 @@ function buildTest(cfg,name){
   return out;}
 
 /* ===== Підрахунок ===== */
-function gotOf(r){if(r.mix){var g0=r.part||0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g0+=Math.max(0,Math.min(r.opn,r.ograde));return g0;}if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
+function gotRaw(r){if(r.mix){var g0=r.part||0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g0+=Math.max(0,Math.min(r.opn,r.ograde));return g0;}if(r.part!=null)return r.part;if(r.rb)return r.ograde==null?0:Math.max(0,Math.min(r.pts,r.ograde));var g=r.ok?r.aut:0;if(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde!=null)g+=Math.max(0,Math.min(r.opn,r.ograde));return g;}
+/* штраф за виходи з вікна: px балів за кожен вихід під час цього завдання, не більше за набрані бали */
+function penOf(r){var raw=gotRaw(r),p=(r.ex||0)*(r.px||0);return p>0?Math.round(Math.min(raw,p)*100)/100:0;}
+function gotOf(r){return Math.round((gotRaw(r)-penOf(r))*100)/100;}
 function isPending(r){if(r.rb)return r.ograde==null&&!!((r.otext&&r.otext.trim())||(r.photos&&r.photos.length)||r.given);return !!(r.opn&&((r.otext&&r.otext.trim())||(r.photos&&r.photos.length))&&r.ograde==null);}
 function summarize(recs){
   var lv={},bl={},tp={},score=0,max=0,pending=false;
@@ -1867,7 +1870,7 @@ function flS(p){var f=fl(p);return f<0?"":' style="background:'+FLC[f]+'" title=
    - вхідний (К1+К2), проміжний (лише К1, за рішенням) і підсумковий зрізи;
    - учні не отримують оцінок за зріз. */
 
-var MK={one:true,mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
+var MK={px:0.25,one:true,mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
 function defYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;var a=m>=8?y:y-1;return a+"/"+String(a+1).slice(2);}
 function monId(s,g,tp){return xmur(s+g+tp.slice().sort().join(","))().toString(36).slice(0,5);}
 function monTitle(tp){var all=topicsOf(MK.s,MK.g).map(function(t){return t[0];}),sfx="";
@@ -1926,6 +1929,7 @@ function showConsM(){
   h+='</div><label>Клас</label><div class="seg" id="sGr">';
   GR[MK.s].forEach(function(g){h+='<button data-g="'+g+'" class="'+(MK.g===g?"on":"")+'">'+g+'</button>';});
   h+='</div><div class="row2"><div><label>Навчальний рік</label><input type="text" id="yr" value="'+esc(MK.yr)+'"></div><div><label>Час, хвилин</label><input type="number" id="mn" min="15" max="60" value="'+MK.m+'"></div></div>';
+  h+='<div class="row2"><div><label>Штраф за вихід із вікна</label><select id="px">'+[["0","не знімати"],["0.1","0,1 б за вихід"],["0.25","0,25 б за вихід (рекомендовано)"],["0.5","0,5 б за вихід"]].map(function(o){return '<option value="'+o[0]+'"'+(String(MK.px)===o[0]?" selected":"")+'>'+o[1]+'</option>';}).join("")+'</select><div class="note">Знімається з того завдання, під час якого учень вийшов; ніколи нижче нуля. Виходи видно вчителю в журналі.</div></div><div></div></div>';
   h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div><label>Коли підсумковий</label><input type="text" id="pb" value="'+esc(MK.pb)+'"></div></div>';
   if(MK.one){
     h+='<label>Теми, за якими буде зріз</label><div class="note" style="margin:0 0 6px">Позначте теми, які ви вже вивчили з класом: одну, кілька або всі. Завдання складаються з усіх позначених тем, у кожного учня числа різні, а складність і набір завдань однакові. Те саме посилання працює для вхідного, проміжного й підсумкового зрізів.</div>';
@@ -1955,6 +1959,7 @@ function showConsM(){
   $("yr").oninput=function(){MK.yr=this.value;};
   $("pa").oninput=function(){MK.pa=this.value;};
   $("pb").oninput=function(){MK.pb=this.value;};
+  $("px").onchange=function(){MK.px=+this.value;};
   $("mn").oninput=function(){MK.m=Math.max(15,Math.min(60,+this.value||monTime(MK.g)));};
   Array.prototype.forEach.call(document.querySelectorAll("[data-q]"),function(b){b.onclick=function(){
     var q=b.dataset.q,pv=monReadyPrev().map(function(t){return t[0];}),cu=monReady().map(function(t){return t[0];});
@@ -1977,7 +1982,7 @@ function showConsM(){
     var ta=srt(MK.ta),tb=srt(MK.tb),id=monId(MK.s,MK.g,ta),yr=MK.yr.trim()||defYear();
     var base=location.href.split("#")[0].split("?")[0];
     var per=[MK.pa.trim(),MK.pb.trim(),MK.pc.trim()];
-    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
+    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],px:MK.px,o:{}});}
     var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","3 завдання (аналіз, оцінювання, створення), "+monMax(2)+" балів"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
     $("lk").innerHTML=L.map(function(u,i){return '<div class="linkbox"><b>'+names[i][0]+'</b> <span class="note">· '+names[i][1]+'</span><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" data-cp="'+i+'">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';}).join("")+'<div class="note">Підсумкове посилання відкладіть до кінця року. Якщо його загубите — створіть знову з тими самими класом, предметом, темами вхідного зрізу та навчальним роком: результати зіставляться автоматично.</div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){var inp=b.closest(".linkbox").querySelector("input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);b.textContent="Скопійовано";};});
@@ -2051,7 +2056,7 @@ function showResultM(r){
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не збережено</div>';
   else h+='<div id="svst" class="note" style="margin:8px 0;font-weight:600"></div>';
   h+='<div class="mis" style="border:none">Твої відповіді допоможуть учителю зрозуміти, що в тебе виходить найкраще, а над чим потрібно ще попрацювати.</div>';
-  h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div></div></div></div></div></div>';
+  h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div><div class="stat"><b>'+r.exits+'</b><span>виходів із вікна</span></div></div>'+(r.exits>0&&PX>0?'<div class="note">За кожен вихід із вікна знято по '+String(PX).replace(".",",")+' б із завдання, під час якого ти вийшов(ла).</div>':'')+'</div></div></div></div>';
   $("app").innerHTML=h;
 }
 /* ============ КОМПЛЕКТИ АДМІНІСТРАЦІЇ (вхідний зріз, листопад) ============
@@ -2984,19 +2989,20 @@ function teacherPanelM(){
   function tblData(st,cut){return st.filter(function(s){return s.p[cut];}).map(function(s){var x=s.p[cut],S=summarize(x.tasks),pend={},v={};
     LV.forEach(function(L){v[L]=S.lv[L].e;pend[L]=false;});x.tasks.forEach(function(r){if(isPending(r))pend[r.l]=true;});
     var g=GRP.map(function(q){return q[1].reduce(function(a,L){return a+v[L];},0);});
-    return {name:s.name,v:v,pend:pend,tot:S.score,g:g,anyP:S.pending,max:S.max};});}
+    var ex=0,pen=0,hasEx=false;x.tasks.forEach(function(r){if(r.ex!=null)hasEx=true;ex+=r.ex||0;pen+=penOf(r);});if(!hasEx)ex=x.exits||x.leaves||0;
+    return {name:s.name,v:v,pend:pend,tot:S.score,g:g,anyP:S.pending,max:S.max,ex:ex,pen:Math.round(pen*100)/100};});}
   function tblBlock(st){
     var has=[0,1,2].filter(function(c){return st.some(function(s){return s.p[c];});});
     if(!has.length)return "";
     if(CUT==null||has.indexOf(CUT)<0)CUT=has[0];
     var D=tblData(st,CUT),th='style="background:#d9e2f3;text-align:center"',yl='background:#fff2cc;text-align:center',gr='background:#e2efda;text-align:center';
     var o='<h2>Таблиця для переносу в журнал</h2><div class="qb" id="cutb">'+has.map(function(c){return '<button class="btn sm '+(c===CUT?'':'soft')+'" data-cut="'+c+'">'+["Вхідний зріз","Підсумковий зріз","Проміжний зріз"][c]+'</button>';}).join(" ")+'</div>';
-    o+='<div style="overflow-x:auto"><table style="width:auto"><tr><th rowspan="2" '+th+'>Учень</th><th colspan="6" '+th+'>Критерії</th><th '+th+'>Разом<br>(0–24)</th>'+GRP.map(function(q){return '<th '+th+'>'+q[0]+'<br>(0–8)</th>';}).join("")+'</tr><tr>'+LV.map(function(L){return '<th '+th+'>'+L+'</th>';}).join("")+'<th '+th+'></th><th '+th+'></th><th '+th+'></th><th '+th+'></th></tr>';
-    D.forEach(function(d){o+='<tr><td>'+esc(d.name)+'</td>'+LV.map(function(L){return '<td style="'+yl+'">'+d.v[L]+(d.pend[L]?'<span class="a" title="є відповідь, яку ще не оцінено вчителем">?</span>':'')+'</td>';}).join("")+'<td style="text-align:center;font-weight:700">'+d.tot+'</td>'+d.g.map(function(x){return '<td style="'+gr+'">'+x+'</td>';}).join("")+'</tr>';});
+    o+='<div style="overflow-x:auto"><table style="width:auto"><tr><th rowspan="2" '+th+'>Учень</th><th colspan="6" '+th+'>Критерії</th><th '+th+'>Разом<br>(0–24)</th>'+GRP.map(function(q){return '<th '+th+'>'+q[0]+'<br>(0–8)</th>';}).join("")+'<th rowspan="2" style="background:#fde9e7;text-align:center" title="Лише для вас, у копіювання не входить">Виходи з вікна</th><th rowspan="2" style="background:#fde9e7;text-align:center" title="Уже враховано в балах">Знято, б</th></tr><tr>'+LV.map(function(L){return '<th '+th+'>'+L+'</th>';}).join("")+'<th '+th+'></th><th '+th+'></th><th '+th+'></th><th '+th+'></th></tr>';
+    D.forEach(function(d){o+='<tr><td>'+esc(d.name)+'</td>'+LV.map(function(L){return '<td style="'+yl+'">'+nf(d.v[L])+(d.pend[L]?'<span class="a" title="є відповідь, яку ще не оцінено вчителем">?</span>':'')+'</td>';}).join("")+'<td style="text-align:center;font-weight:700">'+nf(d.tot)+'</td>'+d.g.map(function(x){return '<td style="'+gr+'">'+nf(x)+'</td>';}).join("")+'<td style="text-align:center;background:#fdf3f2;'+(d.ex?'color:#b3261e;font-weight:700':'')+'">'+d.ex+'</td><td style="text-align:center;background:#fdf3f2">'+(d.pen?'−'+nf(d.pen):'0')+'</td></tr>';});
     o+='</table></div><div class="act" style="justify-content:flex-start;gap:8px"><button class="btn sm" id="cpT">Копіювати цифри (без імен)</button><button class="btn sm soft" id="cpN">Копіювати з іменами</button><span class="note" id="cpM"></span></div>';
     o+='<div class="note">Кожен рівень Блума — 0–4 бали, разом 6 × 4 = 24. Рівні об’єднано в три блоки по два рівні (по 8 балів): <b>A — знання й розуміння</b> (Зн + Ро), <b>B — застосування й аналіз</b> (Зс + Ан), <b>C — оцінювання й створення</b> (Оц + Ст). Позначка <span class="a"><b>?</b></span> — є відповідь, яку ще не оцінено вручну (кнопка «відкрити» у списку робіт; після збереження оцінок таблиця оновиться). Вставляйте в таблицю як є: порядок стовпців — Зн, Ро, Зс, Ан, Оц, Ст, Разом, A, B, C.'+(CUT===2?' Проміжний зріз містить лише наскрізні (К1) завдання, тому бали менші.':'')+'</div>';
     tblBlock.D=D;return o;}
-  function tblCopy(withNames){var D=tblBlock.D||[],L=D.map(function(d){return (withNames?[d.name]:[]).concat(LV.map(function(l){return d.v[l];}),[d.tot],d.g).join("\t");}).join("\n");
+  function tblCopy(withNames){var D=tblBlock.D||[],L=D.map(function(d){return (withNames?[d.name]:[]).concat(LV.map(function(l){return nf(d.v[l]);}),[nf(d.tot)],d.g.map(nf)).join("\t");}).join("\n");
     var m=$("cpM");function ok(){if(m)m.textContent="Скопійовано — вставте в таблицю (Ctrl+V).";}
     function fb(){var t=document.createElement("textarea");t.value=L;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok();}catch(e){if(m)m.textContent="Не вдалося скопіювати.";}document.body.removeChild(t);}
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(L).then(ok,fb);else fb();}
@@ -3038,7 +3044,12 @@ function teacherPanelM(){
     var d=document.createElement("div");d.className="modal";
     var S=summarize(x.tasks);
     var h='<div class="box"><div class="act" style="margin-top:0"><b style="color:#5a4b8a">'+esc(x.name)+' · '+PTN[Math.min(2,x.pt|0)]+(x.per?' ('+esc(x.per)+')':'')+'</b><button class="btn sm" id="dc">Закрити</button></div>';
-    h+=phTop(x);h+='<h2>Завдання</h2>';
+    h+=phTop(x);
+    var exT=[],exN=0,penT=0;x.tasks.forEach(function(r,i){if(r.ex){exN+=r.ex;penT+=penOf(r);exT.push((i+1)+'. '+LVN[r.l]+' — '+r.ex);}});
+    if(exN)h+='<div class="mis" style="border-color:#b3261e"><b style="color:#b3261e">Виходи з вікна: '+exN+'</b> (знято '+nf(penT)+' б). Де саме: '+exT.join('; ')+'.</div>';
+    else if(x.exits||x.leaves)h+='<div class="mis"><b>Виходів із вікна:</b> '+(x.exits||x.leaves)+' (за цей зріз штрафу не було).</div>';
+    else h+='<div class="note">Виходів із вікна: 0.</div>';
+    h+='<h2>Завдання</h2>';
     x.tasks.forEach(function(r,i){
       if(!r.opn)return;
       var M=r.rubm;
@@ -3190,7 +3201,7 @@ function linkHtml(){return '<div class="linkbox"><b>Посилання для у
 function bindLink(){var c=$("cpl");if(!c)return;c.onclick=function(){var v=$("lkv");v.select();try{document.execCommand("copy");$("cpm").textContent="Скопійовано.";}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(v.value);};}
 
 /* ================= УЧЕНЬ ================= */
-var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EXITS=0,AWAY=0,awayAt=0,away=false,DONE=false,SID="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EXITS=0,AWAY=0,awayAt=0,away=false,PICK=0,PX=0.25,DONE=false,SID="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
@@ -3204,6 +3215,7 @@ function showStart(){
   var h='<div class="screen"><div class="card fill">';
   if(FIREBASE_CONFIG||true)h+='<button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
   h+='<h1>'+esc(CFG.t)+'</h1><div class="sub">'+esc(SUBJ[CFG.s])+', '+CFG.g+' клас · '+tot+' завдань · '+CFG.m+' хв'+(CFG.per?' · '+esc(CFG.per):'')+'</div>';
+  var px0=CFG.px==null?0.25:+CFG.px;if(px0>0)h+='<div class="note center" style="margin:0 0 6px">👁 Не виходь з вікна під час роботи: кожен вихід фіксується, і за кожен знімається '+String(px0).replace(".",",")+' б із завдання, під час якого ти вийшов(ла).</div>';
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не зберігається</div>';
   h+='<div class="scroll"><div class="row2"><div><label>Прізвище</label><input type="text" id="sn" autocomplete="off" value="'+esc(ST.sn)+'"></div><div><label>Ім\'я</label><input type="text" id="fn" autocomplete="off" value="'+esc(ST.fn)+'"></div></div>';
   h+='<div class="err" id="err"></div><div class="center" style="margin-top:6px"><button class="btn" id="go">Почати</button></div>';
@@ -3217,14 +3229,15 @@ function startTest(){
   ST.sn=ST.sn.trim();ST.fn=ST.fn.trim();
   if(!ST.sn||!ST.fn){$("err").textContent="Введи прізвище та ім'я.";return;}
   T=(MON?buildMon:buildTest)(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
-  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[],pf:{},photos:[]};});
+  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[],pf:{},photos:[],ex:0};});
+  PX=CFG.px==null?0.25:Math.max(0,+CFG.px||0);PICK=0;
   IX=0;DONE=false;EXITS=0;AWAY=0;away=false;T0=Date.now();END=T0+CFG.m*60000;
   document.addEventListener("visibilitychange",onVis);window.addEventListener("blur",onLeave);window.addEventListener("focus",onBack);
   window.onbeforeunload=function(){return DONE?undefined:"Робота ще не здана";};
   TMR=setInterval(tick,1000);showQ();
 }
-function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();EXITS++;}
-function onBack(){if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
+function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();if(PICK&&Date.now()-PICK<180000)return;EXITS++;if(ANS[IX])ANS[IX].ex=(ANS[IX].ex||0)+1;}
+function onBack(){PICK=0;if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
 function onVis(){if(document.hidden)onLeave();else onBack();}
 function answered(i){var a=ANS[i];return a.sel!=null||!!a.txt||!!a.otext.trim()||(a.photos&&a.photos.length>0)||(a.ms&&a.ms.some(Boolean))||(a.ps&&a.ps.some(function(x){return x!=null&&String(x).trim()!=="";}));}
 function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
@@ -3324,7 +3337,7 @@ function phShow(A){var b=$("pth");if(!b)return;b.innerHTML=(A.photos||[]).map(fu
 function phComp(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var mx=1100,w=im.width,h=im.height,k=Math.min(1,mx/Math.max(w,h)),q=0.65,out="";
     for(var tr=0;tr<6;tr++){var c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));var cx=c.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,c.width,c.height);cx.drawImage(im,0,0,c.width,c.height);out=c.toDataURL("image/jpeg",q);if(out.length<=150000)break;q=Math.max(0.35,q-0.1);k*=0.85;}
     cb(out);};im.onerror=function(){cb(null);};im.src=fr.result;};fr.onerror=function(){cb(null);};fr.readAsDataURL(file);}
-function phInit(A){phShow(A);var f=$("pf");if(!f)return;f.onchange=function(){var fl=Array.prototype.slice.call(f.files||[]),i=0,msg=$("phn");
+function phInit(A){phShow(A);var f=$("pf");if(!f)return;f.onclick=function(){PICK=Date.now();};f.onchange=function(){var fl=Array.prototype.slice.call(f.files||[]),i=0,msg=$("phn");
   (function nx(){if(i>=fl.length){f.value="";phShow(A);var dots=$("dots");if(dots&&dots.children[IX])dots.children[IX].className=(answered(IX)?"a ":"")+"c";return;}
     var file=fl[i++];if((A.photos||[]).length>=PH_MAX){if(msg)msg.textContent="Максимум "+PH_MAX+" фото до одного завдання.";return nx();}
     phComp(file,function(d){if(!d){if(msg)msg.textContent="Не вдалося відкрити фото.";}else if(phTotal()+d.length>PH_TOT){if(msg)msg.textContent="Забагато фото в роботі: стисни або прибери зайве.";}else A.photos.push(d);nx();});})();};}
@@ -3380,7 +3393,7 @@ function finish(auto){
       given=t.parts.map(function(p,j){return (j+1)+") "+mixText(p,a.ps[j])+(mixOk(p,a.ps[j])?" ✓":" ✗");}).join("; ");right=t.parts.map(function(p,j){return (j+1)+") "+mixRight(p);}).join("; ");}
     else if(t.k==="rub"){given="";}
     else if(/\d/.test(a.txt)){given=a.txt;ok=Math.abs(parseNum(a.txt)-t.a)<0.0005;}
-    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,rubm:t.rubm,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0};});
+    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,rubm:t.rubm,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0,ex:a.ex||0,px:PX};});
   var S=summarize(recs),g=grade12(S.score);
   var res={recs:recs,S:S,g:g,start:T0,end:end,dur:(end-T0)/1000,exits:EXITS,away:Math.round(AWAY)};
   showResult(res);saveResult(res);

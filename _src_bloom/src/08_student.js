@@ -1,5 +1,5 @@
 /* ================= УЧЕНЬ ================= */
-var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EXITS=0,AWAY=0,awayAt=0,away=false,DONE=false,SID="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+var CFG=null,PREV=false,T=[],ANS=[],IX=0,ST={sn:"",fn:""},TMR=null,T0=0,END=0,EXITS=0,AWAY=0,awayAt=0,away=false,PICK=0,PX=0.25,DONE=false,SID="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 function boot(){
   var p=new URLSearchParams(location.search),c=p.get("c");PREV=p.get("p")==="1";
@@ -13,6 +13,7 @@ function showStart(){
   var h='<div class="screen"><div class="card fill">';
   if(FIREBASE_CONFIG||true)h+='<button class="key" id="keyBtn" title="Для вчителя">🔑</button>';
   h+='<h1>'+esc(CFG.t)+'</h1><div class="sub">'+esc(SUBJ[CFG.s])+', '+CFG.g+' клас · '+tot+' завдань · '+CFG.m+' хв'+(CFG.per?' · '+esc(CFG.per):'')+'</div>';
+  var px0=CFG.px==null?0.25:+CFG.px;if(px0>0)h+='<div class="note center" style="margin:0 0 6px">👁 Не виходь з вікна під час роботи: кожен вихід фіксується, і за кожен знімається '+String(px0).replace(".",",")+' б із завдання, під час якого ти вийшов(ла).</div>';
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не зберігається</div>';
   h+='<div class="scroll"><div class="row2"><div><label>Прізвище</label><input type="text" id="sn" autocomplete="off" value="'+esc(ST.sn)+'"></div><div><label>Ім\'я</label><input type="text" id="fn" autocomplete="off" value="'+esc(ST.fn)+'"></div></div>';
   h+='<div class="err" id="err"></div><div class="center" style="margin-top:6px"><button class="btn" id="go">Почати</button></div>';
@@ -26,14 +27,15 @@ function startTest(){
   ST.sn=ST.sn.trim();ST.fn=ST.fn.trim();
   if(!ST.sn||!ST.fn){$("err").textContent="Введи прізвище та ім'я.";return;}
   T=(MON?buildMon:buildTest)(CFG,(ST.sn+"|"+ST.fn).toLowerCase().replace(/\s+/g," "));
-  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[],pf:{},photos:[]};});
+  ANS=T.map(function(){return {sel:null,txt:"",otext:"",skip:false,ms:[],ps:[],pf:{},photos:[],ex:0};});
+  PX=CFG.px==null?0.25:Math.max(0,+CFG.px||0);PICK=0;
   IX=0;DONE=false;EXITS=0;AWAY=0;away=false;T0=Date.now();END=T0+CFG.m*60000;
   document.addEventListener("visibilitychange",onVis);window.addEventListener("blur",onLeave);window.addEventListener("focus",onBack);
   window.onbeforeunload=function(){return DONE?undefined:"Робота ще не здана";};
   TMR=setInterval(tick,1000);showQ();
 }
-function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();EXITS++;}
-function onBack(){if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
+function onLeave(){if(DONE||away)return;away=true;awayAt=Date.now();if(PICK&&Date.now()-PICK<180000)return;EXITS++;if(ANS[IX])ANS[IX].ex=(ANS[IX].ex||0)+1;}
+function onBack(){PICK=0;if(!away)return;away=false;AWAY+=(Date.now()-awayAt)/1000;}
 function onVis(){if(document.hidden)onLeave();else onBack();}
 function answered(i){var a=ANS[i];return a.sel!=null||!!a.txt||!!a.otext.trim()||(a.photos&&a.photos.length>0)||(a.ms&&a.ms.some(Boolean))||(a.ps&&a.ps.some(function(x){return x!=null&&String(x).trim()!=="";}));}
 function tick(){var left=Math.round((END-Date.now())/1000),el=$("tm");
@@ -133,7 +135,7 @@ function phShow(A){var b=$("pth");if(!b)return;b.innerHTML=(A.photos||[]).map(fu
 function phComp(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var mx=1100,w=im.width,h=im.height,k=Math.min(1,mx/Math.max(w,h)),q=0.65,out="";
     for(var tr=0;tr<6;tr++){var c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));var cx=c.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,c.width,c.height);cx.drawImage(im,0,0,c.width,c.height);out=c.toDataURL("image/jpeg",q);if(out.length<=150000)break;q=Math.max(0.35,q-0.1);k*=0.85;}
     cb(out);};im.onerror=function(){cb(null);};im.src=fr.result;};fr.onerror=function(){cb(null);};fr.readAsDataURL(file);}
-function phInit(A){phShow(A);var f=$("pf");if(!f)return;f.onchange=function(){var fl=Array.prototype.slice.call(f.files||[]),i=0,msg=$("phn");
+function phInit(A){phShow(A);var f=$("pf");if(!f)return;f.onclick=function(){PICK=Date.now();};f.onchange=function(){var fl=Array.prototype.slice.call(f.files||[]),i=0,msg=$("phn");
   (function nx(){if(i>=fl.length){f.value="";phShow(A);var dots=$("dots");if(dots&&dots.children[IX])dots.children[IX].className=(answered(IX)?"a ":"")+"c";return;}
     var file=fl[i++];if((A.photos||[]).length>=PH_MAX){if(msg)msg.textContent="Максимум "+PH_MAX+" фото до одного завдання.";return nx();}
     phComp(file,function(d){if(!d){if(msg)msg.textContent="Не вдалося відкрити фото.";}else if(phTotal()+d.length>PH_TOT){if(msg)msg.textContent="Забагато фото в роботі: стисни або прибери зайве.";}else A.photos.push(d);nx();});})();};}
@@ -189,7 +191,7 @@ function finish(auto){
       given=t.parts.map(function(p,j){return (j+1)+") "+mixText(p,a.ps[j])+(mixOk(p,a.ps[j])?" ✓":" ✗");}).join("; ");right=t.parts.map(function(p,j){return (j+1)+") "+mixRight(p);}).join("; ");}
     else if(t.k==="rub"){given="";}
     else if(/\d/.test(a.txt)){given=a.txt;ok=Math.abs(parseNum(a.txt)-t.a)<0.0005;}
-    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,rubm:t.rubm,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0};});
+    return {l:t.l,t:t.t,blk:t.blk,pts:t.pts,aut:t.aut,opn:t.opn,q:t.q,k:t.k,given:given,right:right,ok:ok,otext:a.otext,photos:(a.photos||[]).slice(),rub:t.rub,rubm:t.rubm,open:t.open,ograde:null,c:t.c||0,an:t.an||0,rb:t.rb||0,part:part,mix:t.k==="mix"?1:0,ex:a.ex||0,px:PX};});
   var S=summarize(recs),g=grade12(S.score);
   var res={recs:recs,S:S,g:g,start:T0,end:end,dur:(end-T0)/1000,exits:EXITS,away:Math.round(AWAY)};
   showResult(res);saveResult(res);

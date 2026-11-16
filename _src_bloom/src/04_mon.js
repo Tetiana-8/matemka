@@ -7,7 +7,7 @@
    - вхідний (К1+К2), проміжний (лише К1, за рішенням) і підсумковий зрізи;
    - учні не отримують оцінок за зріз. */
 
-var MK={one:true,mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
+var MK={px:0.25,one:true,mode:"gen",s:"M",g:5,ta:[],tb:[],m:40,yr:"",pa:"листопад",pc:"грудень",pb:"травень",init:false};
 function defYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;var a=m>=8?y:y-1;return a+"/"+String(a+1).slice(2);}
 function monId(s,g,tp){return xmur(s+g+tp.slice().sort().join(","))().toString(36).slice(0,5);}
 function monTitle(tp){var all=topicsOf(MK.s,MK.g).map(function(t){return t[0];}),sfx="";
@@ -66,6 +66,7 @@ function showConsM(){
   h+='</div><label>Клас</label><div class="seg" id="sGr">';
   GR[MK.s].forEach(function(g){h+='<button data-g="'+g+'" class="'+(MK.g===g?"on":"")+'">'+g+'</button>';});
   h+='</div><div class="row2"><div><label>Навчальний рік</label><input type="text" id="yr" value="'+esc(MK.yr)+'"></div><div><label>Час, хвилин</label><input type="number" id="mn" min="15" max="60" value="'+MK.m+'"></div></div>';
+  h+='<div class="row2"><div><label>Штраф за вихід із вікна</label><select id="px">'+[["0","не знімати"],["0.1","0,1 б за вихід"],["0.25","0,25 б за вихід (рекомендовано)"],["0.5","0,5 б за вихід"]].map(function(o){return '<option value="'+o[0]+'"'+(String(MK.px)===o[0]?" selected":"")+'>'+o[1]+'</option>';}).join("")+'</select><div class="note">Знімається з того завдання, під час якого учень вийшов; ніколи нижче нуля. Виходи видно вчителю в журналі.</div></div><div></div></div>';
   h+='<div class="row2"><div><label>Коли вхідний зріз</label><input type="text" id="pa" value="'+esc(MK.pa)+'"></div><div><label>Коли підсумковий</label><input type="text" id="pb" value="'+esc(MK.pb)+'"></div></div>';
   if(MK.one){
     h+='<label>Теми, за якими буде зріз</label><div class="note" style="margin:0 0 6px">Позначте теми, які ви вже вивчили з класом: одну, кілька або всі. Завдання складаються з усіх позначених тем, у кожного учня числа різні, а складність і набір завдань однакові. Те саме посилання працює для вхідного, проміжного й підсумкового зрізів.</div>';
@@ -95,6 +96,7 @@ function showConsM(){
   $("yr").oninput=function(){MK.yr=this.value;};
   $("pa").oninput=function(){MK.pa=this.value;};
   $("pb").oninput=function(){MK.pb=this.value;};
+  $("px").onchange=function(){MK.px=+this.value;};
   $("mn").oninput=function(){MK.m=Math.max(15,Math.min(60,+this.value||monTime(MK.g)));};
   Array.prototype.forEach.call(document.querySelectorAll("[data-q]"),function(b){b.onclick=function(){
     var q=b.dataset.q,pv=monReadyPrev().map(function(t){return t[0];}),cu=monReady().map(function(t){return t[0];});
@@ -117,7 +119,7 @@ function showConsM(){
     var ta=srt(MK.ta),tb=srt(MK.tb),id=monId(MK.s,MK.g,ta),yr=MK.yr.trim()||defYear();
     var base=location.href.split("#")[0].split("?")[0];
     var per=[MK.pa.trim(),MK.pb.trim(),MK.pc.trim()];
-    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],o:{}});}
+    function lnk(pt){return base+"?c="+b64enc({v:4,md:1,t:monTitle(ta)+" ("+PTN[pt]+")",s:MK.s,g:MK.g,tp:ta,tk:pt===1?tb:pt===2?[]:ta,m:pt===2?Math.min(MK.m,25):MK.m,id:id,yr:yr,pt:pt,per:per[pt],px:MK.px,o:{}});}
     var L=[lnk(0),lnk(2),lnk(1)],names=[["Вхідний зріз","повний, "+monMax(0)+" балів"],["Проміжний зріз (за рішенням, грудень)","3 завдання (аналіз, оцінювання, створення), "+monMax(2)+" балів"],["Підсумковий зріз","повний, "+monMax(1)+" балів"]];
     $("lk").innerHTML=L.map(function(u,i){return '<div class="linkbox"><b>'+names[i][0]+'</b> <span class="note">· '+names[i][1]+'</span><input type="text" readonly value="'+esc(u)+'" onclick="this.select()"><div class="act"><button class="btn sm" data-cp="'+i+'">Копіювати</button><a class="btn sm soft" style="text-decoration:none" href="'+esc(u)+'&p=1" target="_blank">Переглянути як учень</a></div></div>';}).join("")+'<div class="note">Підсумкове посилання відкладіть до кінця року. Якщо його загубите — створіть знову з тими самими класом, предметом, темами вхідного зрізу та навчальним роком: результати зіставляться автоматично.</div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){var inp=b.closest(".linkbox").querySelector("input");inp.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(inp.value);b.textContent="Скопійовано";};});
@@ -191,6 +193,6 @@ function showResultM(r){
   if(PREV)h+='<div class="banner">Попередній перегляд: результат не збережено</div>';
   else h+='<div id="svst" class="note" style="margin:8px 0;font-weight:600"></div>';
   h+='<div class="mis" style="border:none">Твої відповіді допоможуть учителю зрозуміти, що в тебе виходить найкраще, а над чим потрібно ще попрацювати.</div>';
-  h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div></div></div></div></div></div>';
+  h+='<div class="stats"><div class="stat"><b>'+dur(r.dur)+'</b><span>час виконання</span></div><div class="stat"><b>'+r.exits+'</b><span>виходів із вікна</span></div></div>'+(r.exits>0&&PX>0?'<div class="note">За кожен вихід із вікна знято по '+String(PX).replace(".",",")+' б із завдання, під час якого ти вийшов(ла).</div>':'')+'</div></div></div></div>';
   $("app").innerHTML=h;
 }
