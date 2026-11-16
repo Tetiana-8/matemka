@@ -8,8 +8,6 @@ function fr(a,b){return "[["+a+"|"+b+"]]";}
 function sq(s){return s+"<sup>2</sup>";}
 function r3(x){return Math.round(x*1000)/1000;}
 function OP(c,w){var o=[String(c)];w.forEach(function(x){x=String(x);if(o.indexOf(x)<0&&o.length<4)o.push(x);});return o;}
-/* Відмінювання іменника після числівника: pl(n,"книжка","книжки","книжок") → "книжка" / "книжки" / "книжок" (acc — знахідний однини після «на», «по»: «книжку») */
-function pl(n,one,few,many,acc){var a=Math.abs(n)%100,b=a%10;if(a>10&&a<15)return many;if(b===1)return acc||one;if(b>=2&&b<=4)return few;return many;}
 function isPyth(t){return t[0]*t[0]+t[1]*t[1]===t[2]*t[2];}
 
 /* ===== Теми (за підручниками Мерзляка) ===== */
