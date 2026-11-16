@@ -817,8 +817,7 @@ function openMeta() {
   box.appendChild(plan); $('#ovMeta').classList.add('on');
   $('#metaX').onclick = () => $('#ovMeta').classList.remove('on');
 }
-async function __h(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mtk:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-const __PH='e02473129ef816215a6cca6542fefe830b711afb626ab44d30fac3b0f8b44ba5';
+async function __teacherCheck(pw){ try{ const base='https://www.gstatic.com/firebasejs/10.12.2/'; const [A,U]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js')]); const app=A.getApps().find(x=>x.name==='pwcheck')||A.initializeApp({ apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665" },'pwcheck'); const auth=U.getAuth(app); await U.signInWithEmailAndPassword(auth,'vchytel@matemka.invalid',String(pw||'')); await U.signOut(auth); return true; }catch(e){ return false; } }
 const PWK = 'k7_mnozh_prakt_pw';
 function getPw() { try { return localStorage.getItem(PWK) || ''; } catch (e) { return ''; } }
 function setPw(p) { try { localStorage.setItem(PWK, p); } catch (e) {} }
@@ -855,7 +854,7 @@ function openKey() {
   const box = $('#keyBox'); KEY_OPEN = false; $('#ovKey').classList.add('on');
   box.innerHTML = '<button class="x" id="keyX">✕</button><h3>🔑 Для вчителя</h3><label class="lab" for="kpw">Пароль</label><div class="bar"><input id="kpw" type="password" autocomplete="off"><button class="btn" id="kgo">Увійти</button></div><div class="hint" id="kmsg"></div>';
   $('#keyX').onclick = closeKey; $('#kpw').focus();
-  const go = async () => { const v = $('#kpw').value, cur = getPw(); const ok = cur ? v === cur : (await __h(v)) === __PH; if (ok) { KEY_OPEN = true; renderJournal(); } else { $('#kmsg').textContent = 'Невірний пароль.'; $('#kpw').value = ''; } };
+  const go = async () => { const v = $('#kpw').value, cur = getPw(); const ok = cur ? v === cur : await __teacherCheck(v); if (ok) { KEY_OPEN = true; renderJournal(); } else { $('#kmsg').textContent = 'Невірний пароль.'; $('#kpw').value = ''; } };
   $('#kgo').onclick = go; $('#kpw').onkeydown = e => { if (e.key === 'Enter') go(); };
 }
 $('#ovMeta').addEventListener('click', e => { if (e.target.id === 'ovMeta') $('#ovMeta').classList.remove('on'); });

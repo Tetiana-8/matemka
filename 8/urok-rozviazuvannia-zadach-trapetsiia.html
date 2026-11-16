@@ -635,14 +635,13 @@ $('tick').onchange=function(){
 };
 
 /* ---------- ключ вчителя ---------- */
-async function __h(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mtk:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-const __PH='e02473129ef816215a6cca6542fefe830b711afb626ab44d30fac3b0f8b44ba5';
+async function __teacherCheck(pw){ try{ const base='https://www.gstatic.com/firebasejs/10.12.2/'; const [A,U]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js')]); const app=A.getApps().find(x=>x.name==='pwcheck')||A.initializeApp({ apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665" },'pwcheck'); const auth=U.getAuth(app); await U.signInWithEmailAndPassword(auth,'vchytel@matemka.invalid',String(pw||'')); await U.signOut(auth); return true; }catch(e){ return false; } }
 function openModal(id){$(id).classList.add('on')}
 function closeModal(id){$(id).classList.remove('on')}
 $('key').onclick=()=>{$('codeIn').value='';$('codeErr').textContent='';openModal('codeModal');setTimeout(()=>$('codeIn').focus(),50)};
 $('codeCancel').onclick=()=>closeModal('codeModal');
 async function tryCode(){
-  if((await __h($('codeIn').value.trim()))===__PH){closeModal('codeModal');showRes()}
+  if(await __teacherCheck($('codeIn').value.trim())){closeModal('codeModal');showRes()}
   else{$('codeErr').textContent='Неправильний код';$('codeIn').value=''}
 }
 $('codeOk').onclick=tryCode;

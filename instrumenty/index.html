@@ -41,12 +41,12 @@ input:focus{border-color:#a695d6}
 </div>
 <script>
 (function(){
-  var PH='e02473129ef816215a6cca6542fefe830b711afb626ab44d30fac3b0f8b44ba5',box=document.getElementById("box"),ask=document.getElementById("ask"),tools=document.getElementById("tools"),pw=document.getElementById("pw"),err=document.getElementById("err");
+  var box=document.getElementById("box"),ask=document.getElementById("ask"),tools=document.getElementById("tools"),pw=document.getElementById("pw"),err=document.getElementById("err");
   function reset(){tools.className="";ask.style.display="";pw.value="";err.textContent="";box.className="";}
-  async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mtk:'+s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+  async function __teacherCheck(pw){ try{ const base='https://www.gstatic.com/firebasejs/10.12.2/'; const [A,U]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js')]); const app=A.getApps().find(x=>x.name==='pwcheck')||A.initializeApp({ apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665" },'pwcheck'); const auth=U.getAuth(app); await U.signInWithEmailAndPassword(auth,'vchytel@matemka.invalid',String(pw||'')); await U.signOut(auth); return true; }catch(e){ return false; } }
   function check(){
-    sha(pw.value).then(function(h){
-      if(h===PH){ask.style.display="none";tools.className="on";err.textContent="";pw.value="";}
+    __teacherCheck(pw.value).then(function(good){
+      if(good){ask.style.display="none";tools.className="on";err.textContent="";pw.value="";}
       else{err.textContent="Невірний пароль";pw.value="";pw.focus();}
     });
   }
