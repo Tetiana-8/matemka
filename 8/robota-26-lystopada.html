@@ -53,6 +53,13 @@ button,select,input{font-family:inherit}
 .f{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:5px 0;padding:6px 8px;border-radius:10px;border:2px solid transparent;font-size:17px}
 .f input[type=text]{width:92px;padding:8px;font-size:17px;text-align:center;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;font-family:'Times New Roman',Times,serif}
 .f input.ex{width:190px;text-align:left}
+#kb{position:fixed;left:0;right:0;bottom:0;z-index:55;background:#fff;border-top:2px solid var(--line);box-shadow:0 -4px 16px rgba(18,48,31,.15);padding:6px 6px calc(6px + env(safe-area-inset-bottom));display:none}
+#kb.on{display:block}
+#kb .kr{display:flex;gap:5px;margin:3px auto;max-width:560px}
+#kb button{flex:1 1 0;min-width:0;height:46px;border:2px solid var(--line);border-radius:10px;background:var(--soft2);color:var(--ink);font:800 21px 'Times New Roman',Times,serif;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#kb button.act{background:var(--accL);color:var(--acc)}
+#kb button.go{background:var(--acc);border-color:var(--acc);color:#fff;font-family:inherit}
+#kb button:active{filter:brightness(.92)}
 .f select{padding:8px;font-size:16px;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;max-width:100%}
 .f input:focus,.f select:focus,.who input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(13,92,58,.15)}
 .f.ok{background:var(--okbg);border-color:var(--okln)}
@@ -172,6 +179,7 @@ table.j tr.nm{cursor:pointer}table.j tr.nm:hover{background:var(--soft2)}
   <div id="jBody" style="overflow:auto"></div>
 </div></div>
 <div id="big"><img alt=""></div>
+<div id="kb" aria-label="Екранна клавіатура"></div>
 
 <script>
 (function(){ "use strict";
@@ -416,6 +424,7 @@ function build(){
   const app=$('#app'); app.innerHTML=html;
   FIELDS.forEach(F=>{F.el=$('[data-fid="'+F.id+'"]');});
   Object.keys(MT).forEach(drawMT);
+  initKb();
   $('#goBtn').addEventListener('click',()=>submit());
   $$('input[type=file]').forEach(inp=>inp.addEventListener('change',onFiles));
   app.addEventListener('click',e=>{const b=e.target.closest('[data-rm]'); if(b){const [k,i]=b.dataset.rm.split(':'); PH[k].splice(+i,1); drawPh(k);}});
@@ -451,6 +460,31 @@ function toJpeg(file){
     img.onerror=()=>{URL.revokeObjectURL(url);rej();};
     img.src=url;
   });
+}
+
+/* ============ Екранна клавіатура (щоб не вискакувала клавіатура телефона) ============ */
+const KB={num:[['1','2','3','4','5','6','7','8','9','0'],['−',',','/','⌫','→']],expr:[['1','2','3','4','5','6','7','8','9','0'],['x','+','−',',','⌫','→']]};
+const COARSE=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+let kbIn=null, kbKind='';
+function drawKb(kind){ if(kind===kbKind&&$('#kb').firstChild) return; kbKind=kind; $('#kb').innerHTML=KB[kind].map(r=>'<div class="kr">'+r.map(k=>'<button type="button" data-k="'+k+'" class="'+(k==='→'?'go':(/[0-9]/.test(k)?'':'act'))+'" aria-label="'+(k==='⌫'?'Стерти':k==='→'?'Далі':k)+'">'+(k==='x'?'<i>x</i>':k)+'</button>').join('')+'</div>').join(''); }
+function hideKb(){ $('#kb').classList.remove('on'); document.body.style.paddingBottom=''; kbIn=null; }
+function kbPress(k){
+  const el=kbIn; if(!el||STATE.done) return;
+  if(k==='→'){ const all=$$('.f input[type=text]'), nx=all[all.indexOf(el)+1]; if(nx) nx.focus(); else { el.blur(); hideKb(); } return; }
+  let v=el.value, a=el.selectionStart==null?v.length:el.selectionStart, b=el.selectionEnd==null?a:el.selectionEnd;
+  if(k==='⌫'){ if(a===b&&a>0) a--; v=v.slice(0,a)+v.slice(b); b=a; } else { v=v.slice(0,a)+k+v.slice(b); a=b=a+k.length; }
+  el.value=v; try{ el.setSelectionRange(a,a); }catch(_){}
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function initKb(){
+  FIELDS.forEach(F=>{ $$('input[type=text]',F.el).forEach(i=>{ i.dataset.kb=F.def.t==='expr'?'expr':'num'; if(COARSE) i.setAttribute('inputmode','none'); }); });
+  const kb=$('#kb');
+  ['pointerdown','mousedown'].forEach(ev=>kb.addEventListener(ev,e=>e.preventDefault()));
+  kb.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) kbPress(b.dataset.k); });
+  document.addEventListener('focusin',e=>{ const t=e.target;
+    if(t.matches&&t.matches('.f input[type=text]')&&!STATE.done){ kbIn=t; drawKb(t.dataset.kb||'num'); kb.classList.add('on'); document.body.style.paddingBottom=(kb.offsetHeight+16)+'px'; setTimeout(()=>{ try{ t.scrollIntoView({block:'center',behavior:'smooth'}); }catch(_){} },60); }
+    else if(!(t.closest&&t.closest('#kb'))) hideKb(); });
+  document.addEventListener('click',e=>{ const path=e.composedPath?e.composedPath():[]; if(path.some(n=>n&&n.id==='kb')) return; if(!e.target.closest('.f input[type=text]')) hideKb(); });
 }
 
 /* ============ Виходи зі сторінки: фіксація й штраф ============ */
@@ -545,7 +579,7 @@ async function submit(force){
   }
   busy=false;
   if(!ok){ $('#goBtn').disabled=false; showMsg('err','Не вдалося надіслати роботу. Перевірте інтернет і натисніть «Здати» ще раз.'); return; }
-  STATE.done=true; $('#goBtn').style.display='none';
+  STATE.done=true; hideKb(); $('#goBtn').style.display='none';
   $$('input, select').forEach(e=>e.disabled=true); keys.forEach(drawPh); $$('.th button').forEach(b=>b.remove());
   $('#out').innerHTML='<div class="done"><div class="big">Роботу здано ✓</div><div class="sm">'+esc(sur+' '+nam)+'<br>Учитель оцінить вашу роботу.</div></div>';
   $('#out').scrollIntoView({behavior:'smooth',block:'center'});
