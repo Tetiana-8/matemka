@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Вхід до курсу</title>
+<style>body{margin:0;font-family:system-ui,sans-serif;background:#fbf8f2;color:#3b3f46;display:flex;min-height:100vh;align-items:center;justify-content:center}
+form{width:min(20rem,92vw);text-align:center;padding:1rem;box-sizing:border-box}
+h1{font-size:1.1rem;color:#1f6b4f;margin:.2rem 0 .9rem}
+input{width:100%;box-sizing:border-box;font-size:1.1rem;padding:.6rem;border:2px solid #cfe6da;border-radius:.7rem;text-align:center}
+button,a.go{display:block;box-sizing:border-box;margin-top:.7rem;width:100%;font-size:1rem;font-weight:700;padding:.6rem;border:none;border-radius:.7rem;background:#2f8f6b;color:#fff;cursor:pointer;text-decoration:none}
+#m{min-height:1.2rem;margin-top:.5rem;color:#d9480f;font-size:.9rem}</style></head>
+<body><form id="f"><h1>🎓 Курс «Параметри»</h1><input id="p" type="password" placeholder="Пароль" autocomplete="current-password" autofocus><button>Відкрити</button><div id="m"></div></form>
+<script>
+(function(){
+var COURSE="https://tetiana-8.github.io/matemka/parametry/index.html";
+var f=document.getElementById("f"),m=document.getElementById("m");
+function d(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+f.onsubmit=function(e){e.preventDefault();m.style.color="#666";m.textContent="Перевіряю…";
+ var pw=document.getElementById("p").value;
+ var w=null;try{w=window.open("","_blank")}catch(x){}
+ fetch("parametry/index.html",{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){
+  var S=t.match(/var S="([^"]+)"/)[1],I=t.match(/I="([^"]+)"/)[1],C=t.match(/C="([^"]+)"/)[1],N=+t.match(/N=(\d+)/)[1];
+  return crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"])
+  .then(function(k){return crypto.subtle.deriveBits({name:"PBKDF2",salt:d(S),iterations:N,hash:"SHA-256"},k,256)})
+  .then(function(bits){var raw=new Uint8Array(bits);
+   return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]).then(function(k){return crypto.subtle.decrypt({name:"AES-GCM",iv:d(I)},k,d(C))}).then(function(){
+    var s="";for(var i=0;i<raw.length;i++)s+=String.fromCharCode(raw[i]);
+    var url=COURSE+"#k="+btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    if(w){w.location.href=url;m.style.color="#2f8f6b";m.textContent="Курс відкрито";setTimeout(function(){window.close()},400)}
+    else{m.innerHTML="";var a=document.createElement("a");a.className="go";a.href=url;a.target="_blank";a.textContent="Відкрити курс";m.appendChild(a)}
+   })})
+ }).catch(function(){if(w)try{w.close()}catch(x){}m.style.color="#d9480f";m.textContent="Неправильний пароль"})};
+})();
+</script></body></html>
