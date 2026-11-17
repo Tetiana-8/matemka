@@ -54,7 +54,7 @@ function plain(h){return String(h).replace(/<sup>(.*?)<\/sup>/g,"^$1").replace(/
 function rubFor(sl,parts,LET){
   if(sl.L==="Ро"){
     var ei=0;parts.forEach(function(x,i){if(!ei&&x.ex)ei=i;});var p=parts[ei],L1=LET[ei],R=p.o?p.o[p.a]:fm(p.a),W=p.o?p.o.filter(function(x,i){return i!==p.a;})[0]:null,T=topName(p.tp);
-    var open=p.exq||("Поясни своїми словами, чому в запитанні "+L1+" правильна відповідь саме «"+plain(R)+"»"+(W?", а не «"+plain(W)+"»":"")+".");
+    var open=p.exq||("Поясни своїми словами, чому ти обрав(ла) саме таку відповідь у запитанні "+L1+": на яке правило чи означення ти спирався(лася) і чому інші варіанти не підходять.");
     var why=p.why?p.why.replace(/\s+$/,""):"";
     var mod="Правильна відповідь у "+L1+": «"+plain(R)+"». "+(why?"Зразок пояснення: "+why+(/[.!?]$/.test(why)?"":".")+(W?" Бажано також сказати, чому «"+plain(W)+"» не підходить.":""):"Очікується пояснення за означенням, правилом чи властивістю з теми «"+T+"», що стосується саме цього запитання.");
     return {open:open,at:ei,m:{qa:p.q,mod:mod,key:mod,
