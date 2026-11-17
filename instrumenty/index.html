@@ -10,6 +10,14 @@ html,body{background:transparent;font-family:"Segoe UI",system-ui,-apple-system,
 body{padding:6px}
 #gem{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;opacity:.55;padding:4px 6px;border-radius:10px}
 #gem:hover{opacity:1;background:rgba(185,166,234,.18)}
+#cap{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;opacity:.55;padding:4px 6px;border-radius:10px}
+#cap:hover{opacity:1;background:rgba(47,143,107,.15)}
+#box2{display:none;margin-top:6px;max-width:340px;background:linear-gradient(135deg,#e6f5ee,#eef7f1 50%,#e3f1fb);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(47,143,107,.18)}
+#box2.on{display:block}
+#box2 .b{background:#2f8f6b}#box2 .b:hover{background:#27795b}
+#box2 input:focus{border-color:#2f8f6b}
+#err2{min-height:18px;margin-top:6px;font-size:12px;color:#b04a5a}
+#go2{display:none;text-decoration:none;text-align:center;margin-top:8px;padding:10px 14px;border-radius:12px;background:#2f8f6b;color:#fff;font-weight:700;font-size:15px}
 #box{display:none;margin-top:6px;max-width:340px;background:linear-gradient(135deg,#fde7f1,#efe9fb 50%,#e3f1fb);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(120,100,170,.18)}
 #box.on{display:block}
 .row{display:flex;gap:8px}
@@ -27,7 +35,7 @@ input:focus{border-color:#a695d6}
 </style>
 </head>
 <body>
-<button id="gem" title="Для вчителя" aria-label="Для вчителя">💎</button>
+<button id="gem" title="Для вчителя" aria-label="Для вчителя">💎</button><button id="cap" title="Курс «Параметри»" aria-label="Курс «Параметри»">🎓</button>
 <div id="box">
   <div id="ask">
     <div class="row"><input type="password" id="pw" placeholder="Пароль" autocomplete="off"><button class="b" id="ok">Увійти</button></div>
@@ -38,6 +46,10 @@ input:focus{border-color:#a695d6}
     <a href="https://tetiana-8.github.io/matemka/monitoring/" target="_blank" rel="noopener">Моніторинг за Блумом<small>вхідний і підсумковий зріз, динаміка за рік</small></a>
     <button id="lock">Сховати</button>
   </div>
+</div>
+<div id="box2">
+  <div class="row"><input type="password" id="pw2" placeholder="Пароль" autocomplete="off"><button class="b" id="ok2">Відкрити</button></div>
+  <div id="err2"></div><a id="go2" href="#" target="_blank" rel="noopener">Відкрити курс «Параметри»</a>
 </div>
 <script>
 (function(){
@@ -57,6 +69,37 @@ input:focus{border-color:#a695d6}
   document.getElementById("ok").onclick=check;
   pw.onkeydown=function(e){if(e.key==="Enter")check();};
   document.getElementById("lock").onclick=reset;
+})();
+</script>
+<script>
+(function(){
+  var COURSE="https://tetiana-8.github.io/matemka/parametry/index.html";
+  var gem=document.getElementById("gem"),cap=document.getElementById("cap"),box=document.getElementById("box"),b2=document.getElementById("box2"),pw=document.getElementById("pw2"),err=document.getElementById("err2"),go=document.getElementById("go2");
+  function d(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+  function close2(){b2.className="";pw.value="";err.textContent="";go.style.display="none"}
+  cap.addEventListener("click",function(){
+    if(b2.className==="on"){close2();return}
+    box.className="";b2.className="on";pw.focus();
+  });
+  gem.addEventListener("click",function(){close2()});
+  function check(){
+    var p=pw.value;err.style.color="#666";err.textContent="Перевіряю…";
+    fetch("../parametry/index.html",{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){
+      var S=t.match(/var S="([^"]+)"/)[1],I=t.match(/I="([^"]+)"/)[1],C=t.match(/C="([^"]+)"/)[1],N=+t.match(/N=(\d+)/)[1];
+      return crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"])
+      .then(function(k){return crypto.subtle.deriveBits({name:"PBKDF2",salt:d(S),iterations:N,hash:"SHA-256"},k,256)})
+      .then(function(bits){var raw=new Uint8Array(bits);
+        return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]).then(function(k){return crypto.subtle.decrypt({name:"AES-GCM",iv:d(I)},k,d(C))}).then(function(){
+          var s="";for(var i=0;i<raw.length;i++)s+=String.fromCharCode(raw[i]);
+          var url=COURSE+"#k="+btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+          pw.value="";err.textContent="";go.href=url;
+          var w=null;try{w=window.open(url,"_blank")}catch(x){}
+          if(w){close2()}else{go.style.display="block"}
+        })})
+    }).catch(function(){err.style.color="#b04a5a";err.textContent="Невірний пароль";pw.value="";pw.focus()});
+  }
+  document.getElementById("ok2").onclick=check;
+  pw.onkeydown=function(e){if(e.key==="Enter")check()};
 })();
 </script>
 </body>
