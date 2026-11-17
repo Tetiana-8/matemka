@@ -365,6 +365,59 @@ function gMatchT(R){ // відповідність: графіки -> вид ф�
   return {type:'match',q:'Для кожного рисунка оберіть вид функції.',figs:gs.map(s=>plot(s,150,true)),rows,clab:['1','2','3'],
     legend:LB.map((x,i)=>(i+1)+' — '+x),exp,desc:'Чотири рисунки: '+gs.map((s,j)=>LET[j]+' — '+s.tex).join('; ')};
 }
+/* ---------- базові точки ---------- */
+function ptY(f,x){const y=f(x);return Math.abs(y*1024-Math.round(y*1024))<1e-6?Math.round(y*1024)/1024:y;}
+function fmtNum(y){
+  if(Number.isInteger(y))return String(y);
+  const sg=y<0?'-':'';let a=Math.abs(y);
+  for(let d=2;d<=1024;d*=2){if(Math.abs(a*d-Math.round(a*d))<1e-9)return sg+'\\dfrac{'+Math.round(a*d)+'}{'+d+'}';}
+  return String(y);
+}
+const ptTex=p=>'('+p[0]+';'+fmtNum(p[1])+')';
+function basePts(sp){
+  const n=sp.n,f=sp.f;
+  const xs={NE:[-1,0,1],NO:[-1,0,1],ZE:[-1,1,2],ZO:[-1,1,2],RE:[0,1,Math.pow(2,n)],RO:[-Math.pow(2,n),0,Math.pow(2,n)]}[sp.fam];
+  return xs.map(x=>[x,ptY(f,x)]);
+}
+const onG=(sp,p)=>{const y=sp.f(p[0]);return isFinite(y)&&Math.abs(y-p[1])<1e-6*(1+Math.abs(p[1]));};
+function gPts(R){ // 6. через які точки проходить графік
+  const fam=R.pick(FAMS),g=pw(fam,R.pick(EXPS[fam])),own=basePts(g);
+  const cand=R.shuffle(FAMS.filter(f=>f!==fam)).map(f=>basePts(pw(f,R.pick(EXPS[f])))).filter(ps=>!ps.every(p=>onG(g,p)));
+  const txt=ps=>'$'+ps.map(ptTex).join(',\\ ')+'$';
+  const seen=new Set([txt(own)]),wr=[];
+  cand.forEach(ps=>{if(wr.length<3&&!seen.has(txt(ps))){seen.add(txt(ps));wr.push({t:txt(ps),sp:ps});}});
+  const t=CHS(R,'Через які точки проходить графік зображеної функції?',{t:txt(own),sp:own},wr,
+    'Це графік функції $'+g.tex+'$. Він проходить через точки '+txt(own)+'. Інші набори містять точку, яка графіку не належить.',
+    {fig:plot(g,280),desc:'Рисунок: графік '+g.tex});
+  t.pv={g:g};
+  return t;
+}
+function gMatchB(R){ // 5. відповідність: графік <-> формула базових функцій
+  const specs=[lin(R.pick(NZ3),R.pick(NZ3)),prop(R.pick(NZ3)),hyp(R.pick([-4,-3,-2,-1,1,2,3,4])),par0(R.pick([1,-1]),R.pick(NZ3))];
+  const order=R.shuffle([0,1,2,3]),gs=order.map(i=>specs[i]),rowsSp=R.shuffle(specs);
+  const rows=rowsSp.map(s=>({t:F$(s),ok:gs.indexOf(s)}));
+  const exp=rowsSp.map((s,i)=>'$'+s.tex+'$ — рисунок '+LET[rows[i].ok]+({A:' (пряма не через початок координат)',B:' (пряма через початок координат)',D:' (гіпербола)',E:' (парабола)'})[s.fam]).join('; ')+'.';
+  return {type:'match',q:'Установіть відповідність між графіками та формулами функцій.',figs:gs.map(s=>plot(s,150,true)),rows,clab:LET.slice(0,4),
+    exp,desc:'Чотири рисунки: '+gs.map((s,j)=>LET[j]+' — '+s.tex).join('; '),gspecs:gs,rspecs:rowsSp};
+}
+function gMatchP(R){ // 7. відповідність: точка <-> графік
+  const fams=R.sample(FAMS,4),gs=fams.map(f=>pw(f,R.pick(EXPS[f])));
+  const XS=[-8,-2,-1,0,1,2,4,8,16];
+  const rowsAll=[];
+  for(let j=0;j<4;j++){
+    const el=[];
+    XS.forEach(x=>{const y=gs[j].f(x);if(!isFinite(y))return;const yy=ptY(gs[j].f,x);
+      if(Math.abs(yy)>16||Math.abs(yy*8-Math.round(yy*8))>1e-9)return;
+      const p=[x,yy];if(gs.every((g,i)=>onG(g,p)===(i===j)))el.push(p);});
+    if(!el.length)return {type:'match',rows:[],figs:[]};
+    rowsAll.push({p:R.pick(el),j});
+  }
+  const rr=R.shuffle(rowsAll);
+  const rows=rr.map(r=>({t:'Точка $'+ptTex(r.p)+'$',ok:r.j}));
+  return {type:'match',q:'Для кожної точки вкажіть рисунок, на графіку якого вона лежить.',figs:gs.map(s=>plot(s,150,true)),rows,clab:LET.slice(0,4),
+    exp:rr.map(r=>'$'+ptTex(r.p)+'$ — рисунок '+LET[r.j]+' ($'+gs[r.j].tex+'$)').join('; ')+'.',
+    desc:'Чотири рисунки: '+gs.map((s,j)=>LET[j]+' — '+s.tex).join('; '),gspecs:gs,pts:rr.map(r=>r.p)};
+}
 function gParG(R){ // 12. парність за графіком
   const c=[
     ()=>({sp:pw('NE',R.pick(EXPS.NE)),a:'e'}),()=>({sp:pw('NO',R.pick(EXPS.NO)),a:'o'}),
@@ -446,9 +499,9 @@ const GENS=[
  {k:'Графік → формула',fn:gG2},
  {k:'Формула → вид',fn:gProp},
  {k:'Формула → вид',fn:gInv},
- {k:'Формула → вид',fn:gQuad},
- {k:'Формула → вид',fn:gType},
- {k:'Формула → вид',fn:gNeg},
+ {k:'Відповідність: графік і формула',fn:gMatchB},
+ {k:'Базові точки',fn:gPts},
+ {k:'Відповідність: точки',fn:gMatchP},
  {k:'Парність',fn:gParity},
  {k:'Графік → формула',fn:gGF(['NE','NO'])},
  {k:'Графік → формула',fn:gGF(['ZE','ZO'])},
@@ -472,6 +525,10 @@ function validTask(t){
   if(t.type==='choice'){
     const keys=t.opts.map(o=>typeof o==='string'?o:o.alt);
     if(new Set(keys).size!==keys.length||t.correct<0||t.correct>=t.opts.length||t.opts.length<3)return false;
+    if(t.pv){
+      const ok=t.specs.map(ps=>ps.every(p=>onG(t.pv.g,p)));
+      if(ok.filter(Boolean).length!==1||!ok[t.correct])return false;
+    }
     if(t.v){
       const m=t.specs.map((s,i)=>sameFn(t.v.g,s)?i:-1).filter(i=>i>=0);
       if(m.length!==1||m[0]!==t.correct)return false;
@@ -481,6 +538,9 @@ function validTask(t){
   if(t.type==='yn'){const s=new Set(t.items.map(x=>x.t));return s.size===t.items.length&&t.items.some(x=>x.ok)&&t.items.some(x=>!x.ok);}
   if(t.type==='match'){
     if(t.rows.length!==4||t.figs.length!==4)return false;
+    if(t.pts){
+      return t.rows.every((r,i)=>t.gspecs.every((g,j)=>onG(g,t.pts[i])===(j===r.ok)))&&new Set(t.rows.map(r=>r.ok)).size===4;
+    }
     if(t.rspecs){ // кожен рядок збігається рівно з одним графіком — тим, що вказано
       return t.rows.every((r,i)=>{const m=t.gspecs.map((g,j)=>sameFn(g,t.rspecs[i])?j:-1).filter(j=>j>=0);return m.length===1&&m[0]===r.ok;})
         && new Set(t.rows.map(r=>r.ok)).size===4;
