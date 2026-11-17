@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Робота за 26 листопада (8 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12301f; --muted:#5b7a68; --acc:#0d5c3a; --acc2:#2f9e6b; --accL:#dcf7e4;
+  --soft:#eef7e8; --soft2:#f4faee; --line:#c9e6cf;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b; --badln:#efa3a8;
+  --warnbg:#fff6e5; --warntx:#8a5a00; --warnln:#f3d9a4;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#eef7e8 0%,#e3f4dc 45%,#cfeed0 100%) fixed;min-height:100vh;line-height:1.45}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 70px}
+i,.m{font-family:'Times New Roman',Times,serif;font-style:italic}
+sup{font-size:.7em;line-height:0}
+button,select,input{font-family:inherit}
+
+.hero{background:var(--acc);color:#fff;border-radius:20px;padding:20px 22px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(13,92,58,.25)}
+.pill{display:inline-block;background:#ffb938;color:#4a3000;font-weight:900;font-size:13px;letter-spacing:.06em;padding:6px 14px;border-radius:999px}
+.hero h1{margin:10px 0 4px;font-size:clamp(24px,5vw,34px);line-height:1.15;font-weight:900;padding-right:80px}
+.hero p{margin:0;font-size:16px;opacity:.95;padding-right:80px}
+.hero svg{position:absolute;right:14px;top:14px;width:70px;height:60px;opacity:.9}
+
+.who{margin-top:16px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px}
+.who h2{margin:0 0 8px;font-size:19px}
+.who .row{display:flex;gap:10px;flex-wrap:wrap}
+.who label{flex:1 1 200px;font-weight:700;font-size:14px;color:var(--muted)}
+.who input{display:block;width:100%;margin-top:3px;padding:10px 12px;font-size:17px;border:2px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
+.who input.err{border-color:var(--bad);background:var(--badbg)}
+
+.rules{margin-top:12px;border:2px dashed var(--acc2);border-radius:16px;background:#fff;padding:12px 16px;font-size:15.5px}
+.rules ul{margin:6px 0 0;padding-left:20px}.rules li{margin:3px 0}
+
+.ex{margin-top:14px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;scroll-margin-top:12px}
+.exh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.exn{background:var(--accL);color:var(--acc);font-weight:900;padding:4px 12px;border-radius:10px;font-size:18px}
+.ext{font-size:16.5px;margin:0 0 8px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 2px;font-size:.95em}.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}.fr>span:last-child{padding:0 3px}
+.ext ol{margin:6px 0 0;padding-left:22px}
+.part{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.ext+.part,.fig+.part{border-top:0;padding-top:0}
+.pt{font-size:17px;font-weight:700;margin-bottom:6px}
+.note{font-size:13.5px;color:var(--muted);margin:2px 0 6px}
+.fig{margin:8px 0 4px;text-align:center}.fig img{max-width:100%;height:auto;border-radius:10px;border:2px solid var(--line)}
+.f{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:5px 0;padding:6px 8px;border-radius:10px;border:2px solid transparent;font-size:17px}
+.f input[type=text]{width:92px;padding:8px;font-size:17px;text-align:center;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;font-family:'Times New Roman',Times,serif}
+.f input.ex{width:190px;text-align:left}
+.f select{padding:8px;font-size:16px;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;max-width:100%}
+.f input:focus,.f select:focus,.who input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(13,92,58,.15)}
+.f.ok{background:var(--okbg);border-color:var(--okln)}
+.f.bad{background:var(--badbg);border-color:var(--badln)}
+.f .res{flex-basis:100%;font-size:14.5px;font-weight:700}.f .res:empty{display:none}
+.f.ok .res{color:var(--oktx)}.f.bad .res{color:var(--badtx)}
+.f.empty{border-color:var(--warnln);background:var(--warnbg)}
+
+.ph{margin:10px 0 6px;border:2px dashed #e3a64a;border-radius:14px;background:#fffaf0;padding:12px 14px}
+.ph .pl{font-weight:800;font-size:16px}
+.ph .pn{font-size:13.5px;color:var(--muted);margin:2px 0 8px}
+.addb{display:inline-block;background:var(--acc);color:#fff;font-weight:800;font-size:16px;padding:10px 16px;border-radius:12px;cursor:pointer;touch-action:manipulation}
+.addb.dis{opacity:.45;pointer-events:none}
+.ph input[type=file]{display:none}
+.th{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.th div{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;border:2px solid var(--line);background:#fff}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.th button{position:absolute;right:3px;top:3px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(18,48,31,.78);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+
+.btn{background:var(--acc);color:#fff;border:0;border-radius:14px;font-weight:900;font-size:18px;padding:14px 22px;cursor:pointer;touch-action:manipulation;min-height:48px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec2{background:#fff;color:var(--acc);border:2px solid var(--acc)}
+.subw{margin-top:18px}
+.msg{margin-top:10px;border-radius:12px;padding:10px 14px;font-size:15.5px}
+.msg.warn{background:var(--warnbg);border:2px solid var(--warnln);color:var(--warntx)}
+.msg.err{background:var(--badbg);border:2px solid var(--badln);color:var(--badtx)}
+.done{margin-top:12px;border-radius:16px;background:var(--okbg);border:2px solid var(--okln);padding:14px 16px}
+.done .big{font-size:26px;font-weight:900;color:var(--oktx)}
+.done .sm{font-size:15px;color:var(--oktx);margin-top:4px}
+.red{color:var(--bad);font-weight:800}.dim{font-weight:700;color:var(--muted)}
+.auth{text-align:center;font-size:10px;color:var(--muted);margin-top:22px}
+
+#keyb{position:fixed;right:8px;top:6px;z-index:50;border:0;background:rgba(255,255,255,.55);border-radius:10px;font-size:15px;padding:4px 8px;opacity:.45;cursor:pointer}
+#keyb:hover{opacity:1}
+.ov{position:fixed;inset:0;background:rgba(18,48,31,.55);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+.ov.on{display:flex}
+.box{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:1000px}
+.box.sm{max-width:340px;margin-top:80px}
+.box h3{margin:0 0 10px}
+.box input[type=password]{width:100%;padding:10px;font-size:17px;border:2px solid var(--line);border-radius:10px}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row2 .btn{font-size:15px;padding:9px 14px;min-height:40px}
+table.j{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}
+table.j th,table.j td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+table.j th{background:var(--soft);position:sticky;top:0}
+table.j tr.nm{cursor:pointer}table.j tr.nm:hover{background:var(--soft2)}
+.jd{background:var(--soft2);padding:8px 12px}
+.jd table{width:100%;border-collapse:collapse;font-size:13.5px}
+.jd td{padding:3px 6px;border-bottom:1px dotted var(--line)}
+.jd .g{color:var(--oktx);font-weight:800}.jd .r{color:var(--badtx);font-weight:800}
+.jph{margin:8px 0;padding:6px 8px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.jph .imgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.cmp{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;align-items:flex-start}.cmp .col{flex:1 1 260px;min-width:240px}.cmp h4{margin:0 0 4px;font-size:13.5px;color:var(--muted)}.gr{display:flex;gap:6px;margin:4px 0 8px;flex-wrap:wrap;align-items:center}.gr button{border:2px solid var(--line);background:#fff;border-radius:10px;padding:6px 12px;font-weight:800;font-size:14px;cursor:pointer}.gr button.yes.on{background:var(--ok);border-color:var(--ok);color:#fff}.gr button.no.on{background:var(--bad);border-color:var(--bad);color:#fff}.refbox svg{display:block}
+.jph img{height:120px;border-radius:8px;border:2px solid var(--line);cursor:zoom-in}
+.jph .rf{font-size:13px;color:var(--muted)}
+#big{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:70;display:none;align-items:center;justify-content:center;padding:10px}
+#big.on{display:flex}#big img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+.mt .mrow{gap:10px}.mex{font-size:18px;min-width:120px}
+.mcell{display:inline-flex;align-items:center;justify-content:center;min-width:130px;min-height:46px;border:2px dashed var(--acc2);border-radius:12px;background:var(--soft2);padding:4px}
+.mcell.over{border-style:solid;border-color:var(--acc);background:var(--accL)}
+.mpool{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding:10px;background:var(--accL);border:2px solid var(--line);border-radius:12px;min-height:58px}
+.chipd{display:inline-block;background:#fff;border:2px solid var(--acc2);border-radius:10px;padding:8px 14px;font-size:18px;font-weight:700;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;white-space:nowrap}
+.chipd.sel{box-shadow:0 0 0 3px var(--acc)}
+.chipd.ghost{position:fixed;z-index:80;pointer-events:none;opacity:.92;transform:translate(-50%,-50%)}
+.eth{font-size:14px;line-height:1.5}.eth ul,.eth ol{margin:4px 0;padding-left:20px}.eth li{margin:3px 0}
+@media(max-width:520px){
+  .hero{padding:16px}.hero svg{width:54px;height:46px}.hero h1,.hero p{padding-right:56px}
+  .f input[type=text]{width:78px}
+}
+</style>
+</head>
+<body>
+<button id="keyb" title="Журнал">🔑</button>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="pill">АЛГЕБРА · 8 КЛАС</span>
+    <h1>Робота за 26 листопада</h1>
+    <p>Рівносильні рівняння. Раціональні рівняння</p>
+    <svg viewBox="0 0 84 70" fill="none"><text x="42" y="27" text-anchor="middle" font-size="26" fill="#fff" font-style="italic" font-family="Times New Roman,serif">A</text><path d="M18 36h48" stroke="#ffb938" stroke-width="3.5" stroke-linecap="round"/><text x="42" y="62" text-anchor="middle" font-size="26" fill="#fff" font-style="italic" font-family="Times New Roman,serif">B</text></svg>
+  </div>
+
+  <div class="who" id="who">
+    <h2>Хто виконує</h2>
+    <div class="row">
+      <label>Прізвище<input id="sur" type="text" autocomplete="family-name" maxlength="40"></label>
+      <label>Ім'я<input id="nam" type="text" autocomplete="given-name" maxlength="40"></label>
+    </div>
+  </div>
+
+  <div class="rules">
+    <b>Перед початком</b>
+    <ul>
+      <li>Спочатку опрацюйте §7 (с. 60–65) і зробіть конспект у зошиті. Потім виконайте завдання, внесіть відповіді нижче й натисніть «Здати роботу» внизу сторінки.</li>
+      <li>Дробові числа пишіть як 1/2 або 0,5; мінус — звичайний дефіс.</li>
+      <li><b>Фото</b> робіть чітке, без тіней і обрізаних країв, щоб учитель міг прочитати запис. Усі фото обов'язкові.</li>
+    </ul>
+  </div>
+
+  <div id="app"></div>
+  <div class="auth">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+
+<div class="ov" id="ovLogin"><div class="box sm">
+  <h3>Пароль</h3>
+  <input type="password" id="pw" autocomplete="current-password">
+  <div id="pwErr" class="red" style="margin-top:6px;display:none">Неправильний пароль</div>
+  <div class="row2"><button class="btn" id="pwOk">Увійти</button><button class="btn sec2" id="pwNo">Скасувати</button></div>
+</div></div>
+<div class="ov" id="ovJ"><div class="box">
+  <h3>Журнал: Робота за 26 листопада (8 клас)</h3>
+  <div class="row2" style="margin-top:0">
+    <button class="btn" id="jRef">Оновити</button><button class="btn" id="jCsv">Завантажити CSV</button>
+    <button class="btn sec2" id="jClr">Очистити</button><button class="btn sec2" id="jClose">Закрити</button>
+  </div>
+  <div id="jMsg"></div>
+  <div id="jBody" style="overflow:auto"></div>
+</div></div>
+<div id="big"><img alt=""></div>
+
+<script>
+(function(){ "use strict";
+
+/* ============ Firebase (дослівно за інструкцією; змінено лише COLLECTION і TEST_NAME) ============ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain: "math-5-892a5.firebaseapp.com",
+  projectId: "math-5-892a5",
+  storageBucket: "math-5-892a5.firebasestorage.app",
+  messagingSenderId: "163114803328",
+  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId: "G-E06VKZ2GP5"
+};
+const APP_ID = 'default-app-id';
+const COLLECTION = 'results_robota_26_8';
+const PHOTOS = 'results_robota_26_8_photos';
+const TEACHER_EMAIL = 'vchytel@matemka.invalid';
+const FBV = '10.12.2';
+const TEST_NAME = 'Робота за 26 листопада (8 клас)';
+
+let fbPromise = null;
+function fb(){
+  if(!fbPromise){
+    fbPromise = (async()=>{
+      const [appM, authM, fs] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      const auth = authM.getAuth(app);
+      await authM.signInAnonymously(auth);
+      return { db: fs.getFirestore(app), fs, auth, authM };
+    })();
+    fbPromise.catch(() => { fbPromise = null; });
+  }
+  return fbPromise;
+}
+const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+const pcoll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', PHOTOS);
+
+// Повертає true/false: учень має знати, що відповіді й фото дійшли.
+async function saveDoc(kind, rec){
+  if(window.__mockSave) return window.__mockSave(kind, rec);
+  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(kind==='p'?pcoll(db,fs):coll(db, fs), rec.id), rec); return true; }
+  catch(e){ console.warn('Save failed', e); return false; }
+}
+async function teacherLogin(password){
+  try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
+  catch(e){ return false; }
+}
+async function teacherLogout(){
+  try { const { auth, authM } = await fb(); await authM.signOut(auth); await authM.signInAnonymously(auth); } catch(e){}
+}
+async function loadResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+async function loadPhotos(subId){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(fs.query(pcoll(db, fs), fs.where('subId','==',subId)));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (a.key+a.idx).localeCompare(b.key+b.idx));
+}
+async function clearResults(){
+  const { db, fs } = await fb();
+  for(const c of [coll(db, fs), pcoll(db, fs)]){
+    const snap = await fs.getDocs(c);
+    await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+  }
+}
+fb().catch(() => {});
+
+/* ============ Завдання ============ */
+// N — число; P — два числа (порядок не важливий); O — впорядкована пара; Z — нулі (0–2 числа, порожньо = немає); S — вибір зі списку
+const N=(pre,ans,post,tol)=>({t:'num',pre,post:post||'',ans,tol});
+const P=(pre,mid,post,ans,tol)=>({t:'pair',pre,mid,post:post||'',ans,tol});
+const O=(pre,mid,post,ans)=>({t:'opair',pre,mid,post:post||'',ans});
+const Z=(pre,mid,post,ans)=>({t:'zeros',pre,mid,post:post||'',ans});
+const EX=(pre,a,b,post)=>({t:'expr',pre,a,b,post:post||''});
+const S=(pre,opts,ans,post)=>({t:'sel',pre,opts,ans,post:post||''});
+const x='<i>x</i>', x2='<i>x</i><sup>2</sup>';
+const FR=(a,c)=>'<span class="fr"><span>'+a+'</span><span>'+c+'</span></span>';
+const AB=FR('<i>A</i>','<i>B</i>');
+const PHN='Фото чітке, без тіней і обрізаних країв, видно весь запис.';
+const DEN=['дорівнює 0','не дорівнює 0'], YN=['так','ні'];
+const AN=['коренів немає',x+' — будь-яке число',x+' — будь-яке число, крім 0',x+' — будь-яке число, крім 2'];
+const AN2=[x+' = 2','коренів немає',x+' — будь-яке число'];
+const eq=(l,r)=>l+' = '+r;
+const TASKS=[
+ {id:'1',src:'§7, с. 60–65',pts:0,text:'Опрацюйте §7 «Рівносильні рівняння. Раціональні рівняння» (с. 60–65): прочитайте теорію, розберіть приклади 1–4 і <b>випишіть у зошит найважливіше</b>: означення рівносильних рівнянь, означення раціонального рівняння, властивості рівнянь, умову, за якої дріб дорівнює нулю, та алгоритм розв\'язування рівняння виду '+AB+' = 0. <b>Завантажте фото конспекту.</b>',
+  photo:{key:'n1',pts:8,max:3,label:'Фото конспекту (§7)',ref:'означення рівносильних і раціонального рівнянь; властивості рівнянь; умова A/B = 0 (A = 0 і B ≠ 0) та алгоритм із трьох кроків; розібрані приклади 1–4'},
+  parts:[]},
+ {id:'2',src:'теорія §7',pts:14,text:'Заповніть пропуски. Користуйтесь підручником і своїм конспектом.',
+  parts:[
+   {title:'1) Рівносильні рівняння',fields:[S('Два рівняння називають рівносильними, якщо вони мають',['різну кількість коренів','одні й ті самі корені','по два корені'],'одні й ті самі корені'),S('або кожне з них',['має один корінь','має безліч коренів','не має коренів'],'не має коренів')]},
+   {title:'2) Раціональне рівняння',fields:[S('Рівняння, ліва й права частини якого є',['многочленами','цілими числами','раціональними виразами','лише дробами'],'раціональними виразами','називають раціональним.')]},
+   {title:'3) Коли дріб дорівнює нулю',fields:[S('Дріб '+AB+' дорівнює нулю тоді й тільки тоді, коли',['<i>A</i> = 0 і <i>B</i> ≠ 0','<i>A</i> ≠ 0 і <i>B</i> = 0','<i>A</i> = 0 і <i>B</i> = 0','<i>A</i> ≠ 0 і <i>B</i> ≠ 0'],'<i>A</i> = 0 і <i>B</i> ≠ 0')]},
+   {title:'4) Перенесення доданка',fields:[S('Якщо доданок перенести з однієї частини рівняння в другу, змінивши його знак на',['такий самий','протилежний','нуль'],'протилежний','то отримаємо рівняння, рівносильне даному.')]},
+   {title:'5) Множення обох частин',fields:[S('Якщо обидві частини рівняння помножити на одне й те саме число,',['яке дорівнює нулю','відмінне від нуля','будь-яке'],'відмінне від нуля','то отримаємо рівняння, рівносильне даному.')]},
+   {title:'6) Алгоритм розв\'язування '+eq(AB,'0'),fields:[S('Розв\'язати рівняння <i>A</i> = 0 і перевірити, чи виконується умова',['<i>B</i> = 0','<i>B</i> ≠ 0','<i>A</i> ≠ 0'],'<i>B</i> ≠ 0','; корені, які її задовольняють, записати у відповідь.')]}]},
+ {id:'3',src:'192 (за зразком)',pts:10,text:'Чи рівносильні рівняння? Спробуйте відповісти усно, а потім оберіть відповідь.',
+  parts:[
+   {title:'1) '+x+' + 2 = 10 і 3'+x+' = 24',fields:[S('',['так, рівносильні','ні, не рівносильні'],'так, рівносильні')]},
+   {title:'2) −2'+x+' = −6 і '+FR(x,3)+' = 1',fields:[S('',['так, рівносильні','ні, не рівносильні'],'так, рівносильні')]},
+   {title:'3) '+x+' − 5 = 0 і '+x+'('+x+' − 5) = 0',fields:[S('',['так, рівносильні','ні, не рівносильні'],'ні, не рівносильні')]},
+   {title:'4) '+x2+' = −4 і |'+x+'| = −3',fields:[S('',['так, рівносильні','ні, не рівносильні'],'так, рівносильні')]},
+   {title:'5) '+x2+' = 4 і '+x+' = 2',fields:[S('',['так, рівносильні','ні, не рівносильні'],'ні, не рівносильні')]}]},
+ {id:'4',src:'193 (за зразком)',pts:8,text:'Знайдіть пари рівносильних рівнянь. Перетягніть відповідь у клітинку біля рівняння (на телефоні: торкніться відповіді, потім клітинки). <b>Одна відповідь зайва.</b>',
+  parts:[{match:{rows:[{expr:x+' − 3 = 5',ans:x+' = 8'},{expr:'2'+x+' = −6',ans:x+' + 3 = 0'},{expr:x2+' = 4',ans:'|'+x+'| = 2'},{expr:x+' + 4 = 4',ans:x+' = 0'}],
+    pool:[x+' = 0','|'+x+'| = 2',x+' = 2',x+' = 8',x+' + 3 = 0']}}]},
+ {id:'5',src:'196 (1–7)',text:'Розв\'яжіть рівняння в зошиті. Не забувайте перевіряти, чи знаменник не дорівнює нулю. <b>Спочатку завантажте фото розв\'язань</b> (чітке фото), потім заповніть відповіді:',
+  photo:{key:'n2',pts:12,max:3,label:'Фото розв\'язання рівнянь 1–7',ref:'розв\'язання 1–7 у зошиті з перевіркою знаменника. Відповіді: 6; коренів немає; −2; будь-яке число, крім 2; будь-яке число; 3; 0,5'},
+  parts:[
+   {pts:4,title:'1) '+eq(FR(x+' − 6',x+' − 4'),'0'),fields:[N(x+' − 6 = 0, тоді '+x+' =',6),S('При цьому значенні знаменник '+x+' − 4',DEN,'не дорівнює 0'),N('Відповідь: '+x+' =',6)]},
+   {pts:5,title:'2) '+eq(FR(x+' − 2',x2+' − 4'),'0'),fields:[N(x+' − 2 = 0, тоді '+x+' =',2),S('При цьому значенні знаменник '+x2+' − 4',DEN,'дорівнює 0'),S('Відповідь:',AN2,'коренів немає')]},
+   {pts:6,title:'3) '+eq(FR(x2+' − 4',x+' − 2'),'0'),fields:[P(x2+' − 4 = 0, тоді '+x+' =',' або '+x+' =','',[2,-2]),S('Число 2 є коренем заданого рівняння?',YN,'ні'),S('Число −2 є коренем заданого рівняння?',YN,'так'),N('Відповідь: '+x+' =',-2)]},
+   {pts:7,title:'4) '+eq(FR(x+' − 2',x+' − 2'),'1'),note:'Перенесіть 1 у ліву частину й зведіть до спільного знаменника.',fields:[N('Чисельник: ('+x+' − 2) − ('+x+' − 2) =',0),S('Рівняння '+eq(FR('0',x+' − 2'),'0')+' виконується',['при будь-якому '+x+', для якого знаменник ≠ 0','тільки при '+x+' = 2','ні при якому '+x],'при будь-якому '+x+', для якого знаменник ≠ 0'),N('Знаменник '+x+' − 2 дорівнює 0 при '+x+' =',2),S('Відповідь:',AN,AN[3])]},
+   {pts:7,title:'5) '+eq(FR('2'+x2+' + 18',x2+' + 9'),'2'),note:'Перенесіть 2 у ліву частину й зведіть до спільного знаменника.',fields:[N('Чисельник: 2'+x2+' + 18 − 2('+x2+' + 9) =',0),S('Знаменник '+x2+' + 9 дорівнює 0',['при '+x+' = 3','при '+x+' = −3','ні при якому '+x],'ні при якому '+x),S('Відповідь:',AN,AN[1])]},
+   {pts:9,title:'6) '+FR(x,x+' − 5')+' + '+FR('2'+x+' − 9',x+' − 5')+' = 0',note:'Дроби мають однаковий знаменник. Запишіть чисельник у спрощеному вигляді, наприклад: 5'+x+' + 2. Літеру '+x+' пишіть латинською.',fields:[EX('У результаті додавання дробів отримуємо дріб із чисельником:',3,-9),N('Прирівняйте чисельник до нуля. Тоді '+x+' =',3),S('При цьому значенні знаменник '+x+' − 5',DEN,'не дорівнює 0'),N('Відповідь: '+x+' =',3)]},
+   {pts:10,title:'7) '+FR('5'+x+' − 7',x+' + 1')+' − '+FR(x+' − 5',x+' + 1')+' = 0',note:'Дроби мають однаковий знаменник. Запишіть чисельник у спрощеному вигляді, наприклад: 5'+x+' + 2. Літеру '+x+' пишіть латинською.',fields:[EX('У результаті віднімання дробів отримуємо дріб із чисельником:',4,-2),N('Прирівняйте чисельник до нуля. Тоді '+x+' =',0.5),S('При цьому значенні знаменник '+x+' + 1',DEN,'не дорівнює 0'),N('Відповідь: '+x+' =',0.5)]}]}
+];
+
+
+/* ============ Перетягування (пари рівносильних рівнянь) ============ */
+const MT={};
+function mtHTML(mid,m){
+  MT[mid]={pool:m.pool,cells:m.rows.map(()=>null),sel:null};
+  let h='<div class="mt" data-mt="'+mid+'">';
+  m.rows.forEach((r,k)=>{ h+='<div class="f mrow" data-fid="'+mid+'|'+k+'"><span class="mex">'+r.expr+'</span><span>↔</span><span class="mcell" data-cell="'+k+'"></span></div>'; });
+  return h+'<div class="mpool" data-pool></div></div>';
+}
+function chipHTML(mid,i){ return '<span class="chipd'+(MT[mid].sel===i?' sel':'')+'" data-mid="'+mid+'" data-idx="'+i+'">'+MT[mid].pool[i]+'</span>'; }
+function drawMT(mid){
+  const S=MT[mid], box=$('[data-mt="'+mid+'"]');
+  $$('.mcell',box).forEach(c=>{ const k=+c.dataset.cell, v=S.cells[k]; c.innerHTML=v==null?'':chipHTML(mid,v); c.closest('.mrow').dataset.val=v==null?'':S.pool[v]; });
+  $('.mpool',box).innerHTML=S.pool.map((t,i)=>S.cells.indexOf(i)>=0?'':chipHTML(mid,i)).join('');
+}
+function putChip(mid,idx,k){
+  const S=MT[mid], p=S.cells.indexOf(idx); if(p>=0) S.cells[p]=null;
+  if(k>=0){ S.cells[k]=idx; const row=$('[data-mt="'+mid+'"] [data-cell="'+k+'"]').closest('.mrow'); row.classList.remove('empty'); }
+  S.sel=null; drawMT(mid);
+}
+let drag=null;
+function endDrag(e){
+  if(!drag) return; const d=drag; drag=null; if(d.ghost) d.ghost.remove(); $$('.mcell.over').forEach(c=>c.classList.remove('over'));
+  const S=MT[d.mid];
+  if(d.moved){ const u=document.elementFromPoint(e.clientX,e.clientY), cl=u&&u.closest?u.closest('.mcell'):null;
+    if(cl&&cl.closest('[data-mt]').dataset.mt===d.mid) putChip(d.mid,d.idx,+cl.dataset.cell);
+    else if(u&&u.closest&&u.closest('.mpool')) putChip(d.mid,d.idx,-1);
+    else drawMT(d.mid); }
+  else if(d.el.parentNode&&d.el.parentNode.classList&&d.el.parentNode.classList.contains('mcell')) putChip(d.mid,d.idx,-1);
+  else { S.sel=(S.sel===d.idx?null:d.idx); drawMT(d.mid); }
+}
+document.addEventListener('pointerdown',e=>{
+  if(STATE.done) return; const c=e.target.closest&&e.target.closest('.chipd'); if(!c||c.classList.contains('ghost')) return;
+  e.preventDefault(); drag={mid:c.dataset.mid,idx:+c.dataset.idx,sx:e.clientX,sy:e.clientY,moved:false,ghost:null,el:c};
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){ drag.moved=true; const g=drag.el.cloneNode(true); g.classList.add('ghost'); document.body.appendChild(g); drag.ghost=g; drag.el.style.opacity='.35'; }
+  if(drag.ghost){ drag.ghost.style.left=e.clientX+'px'; drag.ghost.style.top=e.clientY+'px';
+    $$('.mcell.over').forEach(c=>c.classList.remove('over')); const u=document.elementFromPoint(e.clientX,e.clientY), cl=u&&u.closest?u.closest('.mcell'):null; if(cl) cl.classList.add('over'); }
+});
+window.addEventListener('pointerup',endDrag); window.addEventListener('pointercancel',endDrag);
+document.addEventListener('click',e=>{
+  if(STATE.done) return; const cl=e.target.closest&&e.target.closest('.mcell'); if(!cl||e.target.closest('.chipd')) return;
+  const mid=cl.closest('[data-mt]').dataset.mt; if(MT[mid].sel!=null) putChip(mid,MT[mid].sel,+cl.dataset.cell);
+});
+
+/* ============ Допоміжне ============ */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function plain(h){const d=document.createElement('div');d.innerHTML=h;Array.from(d.querySelectorAll('.fr')).forEach(e=>{e.replaceWith(document.createTextNode('('+e.children[0].textContent+'/'+e.children[1].textContent+')'));});return d.textContent.replace(/\s+/g,' ').trim();}
+function fmt(n){return String(Math.round(n*1e6)/1e6).replace('.',',').replace('-','−');}
+function parseNum(s){
+  s=String(s==null?'':s).trim().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  if(!s) return null;
+  if(!/^[0-9+\-*/().√]+$/.test(s)) return NaN;
+  s=s.replace(/√(\d+(\.\d+)?)/g,'Math.sqrt($1)').replace(/√\(/g,'Math.sqrt(');
+  try{ const v=Function('"use strict";return ('+s+')')(); return (typeof v==='number'&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+}
+function parseLin(str){
+  let t=String(str==null?'':str).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/х/g,'x').replace(/[*·×⋅]/g,'').replace(/,/g,'.');
+  if(!t||/[()]/.test(t)) return null;
+  const terms=t.split(/(?=[+-])/); let a=0,b=0,na=0,nb=0;
+  for(const q of terms){ const m=/^([+-]?)(\d+(?:\.\d+)?)?(x)?$/.exec(q); if(!m||(!m[2]&&!m[3])) return null;
+    const sg=m[1]==='-'?-1:1, c=m[2]?parseFloat(m[2]):1;
+    if(m[3]){ a+=sg*c; na++; } else { b+=sg*c; nb++; } }
+  if(na>1||nb>1) return null;
+  return {a,b};
+}
+const near=(v,a,tol)=>typeof v==='number'&&!isNaN(v)&&Math.abs(v-a)<=(tol||0.0005);
+function fmtAns(f){
+  if(f.t==='expr') return (f.a===1?'':f.a===-1?'-':fmt(f.a))+'x'+(f.b>0?' + '+fmt(f.b):f.b<0?' − '+fmt(-f.b):'');
+  if(f.t==='num') return fmt(f.ans);
+  if(f.t==='pair') return f.ans.map(fmt).join(' ; ');
+  if(f.t==='opair') return '('+f.ans.map(fmt).join(' ; ')+')';
+  if(f.t==='zeros') return f.ans.length?f.ans.map(fmt).join(' ; '):'нулів немає (порожньо)';
+  return plain(f.ans);
+}
+
+/* ============ Побудова сторінки ============ */
+const FIELDS=[], PH={}, PHM={}, STATE={done:false};
+
+function fieldHTML(f,id){
+  let h='<div class="f" data-fid="'+id+'">';
+  if(f.pre) h+='<span>'+f.pre+'</span>';
+  const inp=i=>'<input type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-i="'+i+'" aria-label="відповідь">';
+  if(f.t==='num') h+=inp(0);
+  else if(f.t==='expr') h+=inp(0).replace('<input ','<input class="ex" ');
+  else if(f.t==='pair'||f.t==='opair'||f.t==='zeros') h+=inp(0)+'<span>'+f.mid+'</span>'+inp(1);
+  else h+='<select data-i="0"><option value="">— оберіть —</option>'+f.opts.map(o=>'<option value="'+esc(o)+'">'+plain(o)+'</option>').join('')+'</select>';
+  if(f.post) h+='<span>'+f.post+'</span>';
+  return h+'<span class="res"></span></div>';
+}
+function photoSlot(ph,t){
+  PH[ph.key]=[]; PHM[ph.key]={label:ph.label,ref:ph.ref||'',src:(t&&t.src)||'',pts:ph.pts||0};
+  return '<div class="ph" data-ph="'+ph.key+'" data-max="'+(ph.max||1)+'"><div class="pl">📷 '+ph.label+' <span class="red">· обов\'язково</span></div><div class="pn">'+(ph.note||PHN)+'</div>'+
+    '<label class="addb">Додати фото<input type="file" accept="image/*" data-key="'+ph.key+'"'+((ph.max||1)>1?' multiple':'')+'></label><div class="th"></div></div>';
+}
+function build(){
+  let html='';
+  TASKS.forEach(t=>{
+    html+='<div class="ex" id="t-'+t.id+'"><div class="exh"><span class="exn">Завдання '+t.id+'</span></div><p class="ext">'+t.text+'</p>';
+    if(t.figure) html+='<div class="fig"><img src="'+FIG+'" alt="Малюнок"></div>';
+    if(t.photo) html+=photoSlot(t.photo,t);
+    t.parts.forEach((p,pi)=>{
+      html+='<div class="part">'+(p.title?'<div class="pt">'+p.title+'</div>':'')+(p.note?'<div class="note">'+p.note+'</div>':'');
+      if(p.photo) html+=photoSlot(p.photo,t);
+      if(p.match){ const mid=t.id+'m'+pi; html+=mtHTML(mid,p.match); p.match.rows.forEach((r,k)=>FIELDS.push({id:mid+'|'+k,def:{t:'cell',pre:r.expr,ans:r.ans},task:t,part:p})); }
+      (p.fields||[]).forEach((f,fi)=>{ const id=t.id+'|'+pi+'|'+fi; html+=fieldHTML(f,id); FIELDS.push({id,def:f,task:t,part:p}); });
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  html+='<div class="subw"><button class="btn" id="goBtn">Здати роботу</button><div id="out"></div></div>';
+  const app=$('#app'); app.innerHTML=html;
+  FIELDS.forEach(F=>{F.el=$('[data-fid="'+F.id+'"]');});
+  Object.keys(MT).forEach(drawMT);
+  $('#goBtn').addEventListener('click',()=>submit());
+  $$('input[type=file]').forEach(inp=>inp.addEventListener('change',onFiles));
+  app.addEventListener('click',e=>{const b=e.target.closest('[data-rm]'); if(b){const [k,i]=b.dataset.rm.split(':'); PH[k].splice(+i,1); drawPh(k);}});
+  app.addEventListener('input',e=>{const f=e.target.closest('.f'); if(f) f.classList.remove('empty');});
+}
+function drawPh(k){
+  const box=$('[data-ph="'+k+'"]'), max=+box.dataset.max, list=PH[k];
+  $('.th',box).innerHTML=list.map((p,i)=>'<div><img src="'+p.data+'" alt=""><button type="button" data-rm="'+k+':'+i+'" aria-label="Прибрати">×</button></div>').join('');
+  $('.addb',box).classList.toggle('dis',list.length>=max||STATE.done);
+}
+async function onFiles(e){
+  const inp=e.target, k=inp.dataset.key, box=$('[data-ph="'+k+'"]'), max=+box.dataset.max;
+  const files=Array.from(inp.files||[]); inp.value='';
+  setTimeout(()=>{picking=false;},1200);
+  for(const f of files){
+    if(PH[k].length>=max) break;
+    try{ const data=await toJpeg(f); PH[k].push({data,name:f.name||'photo.jpg'}); }
+    catch(err){ showMsg('err','Не вдалося відкрити це фото. Спробуйте інше.'); }
+  }
+  drawPh(k);
+}
+function toJpeg(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight; const k=Math.min(1,1400/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+      const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      let q=0.72, d=c.toDataURL('image/jpeg',q);
+      while(d.length>700000&&q>0.3){ q-=0.1; d=c.toDataURL('image/jpeg',q); }
+      res(d);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej();};
+    img.src=url;
+  });
+}
+
+/* ============ Виходи зі сторінки: фіксація й штраф ============ */
+const W={t0:Date.now(),leaves:0,awaySec:0}, EXITS=[];
+let awayAt=0, picking=false, pickT=0, curExit=null;
+// у якому завданні учень був у момент виходу: поле в фокусі, інакше те, що в центрі екрана
+function curTask(){ let el=null; try{ const a=document.activeElement; el=a&&a.closest?a.closest('.ex'):null; if(!el){ const e=document.elementFromPoint(innerWidth/2,innerHeight/2); el=e&&e.closest?e.closest('.ex'):null; } }catch(e){} return el?el.id.replace('t-',''):'0'; }
+// вибір фото (камера, галерея) не вважається виходом
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('.addb')){ picking=true; clearTimeout(pickT); pickT=setTimeout(()=>{picking=false;},180000); } },true);
+function leave(){ if(STATE.done||awayAt||picking) return; awayAt=Date.now(); W.leaves++; curExit={at:Math.round((awayAt-W.t0)/1000),task:curTask(),sec:0}; EXITS.push(curExit); }
+function back(){
+  if(picking){ clearTimeout(pickT); pickT=setTimeout(()=>{picking=false;},2500); }
+  if(!awayAt) return; const s=Math.max(1,Math.round((Date.now()-awayAt)/1000)); W.awaySec+=s; if(curExit){ curExit.sec=s; curExit=null; } awayAt=0;
+}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+/* ============ Перевірка й здача ============ */
+function readField(F){
+  const f=F.def, ins=$$('[data-i]',F.el).map(e=>e.value);
+  let empty=false, ok=false, ans='';
+  if(f.t==='num'){ empty=!ins[0].trim(); ok=!empty&&near(parseNum(ins[0]),f.ans,f.tol); ans=ins[0].trim(); }
+  else if(f.t==='pair'){ empty=!ins[0].trim()||!ins[1].trim(); const s=[parseNum(ins[0]),parseNum(ins[1])].sort((x,y)=>x-y), t=f.ans.slice().sort((x,y)=>x-y);
+    ok=!empty&&near(s[0],t[0],f.tol)&&near(s[1],t[1],f.tol); ans=ins[0].trim()+' | '+ins[1].trim(); }
+  else if(f.t==='opair'){ empty=!ins[0].trim()||!ins[1].trim(); ok=!empty&&near(parseNum(ins[0]),f.ans[0],f.tol)&&near(parseNum(ins[1]),f.ans[1],f.tol); ans=ins[0].trim()+' | '+ins[1].trim(); }
+  else if(f.t==='zeros'){
+    const vals=ins.map(s=>s.trim()).filter(s=>s&&!/^(немає|нема|—|–|-)$/i.test(s)).map(parseNum);
+    const s=vals.slice().sort((x,y)=>x-y), t=f.ans.slice().sort((x,y)=>x-y);
+    ok=vals.every(v=>!isNaN(v))&&s.length===t.length&&s.every((v,i)=>near(v,t[i],f.tol));
+    ans=ins.map(x=>x.trim()).filter(Boolean).join(' | ')||'(порожньо)';
+  }
+  else if(f.t==='expr'){ empty=!ins[0].trim(); const L=parseLin(ins[0]); ok=!empty&&!!L&&near(L.a,f.a)&&near(L.b,f.b); ans=ins[0].trim(); }
+  else if(f.t==='cell'){ const v=F.el.dataset.val||''; empty=!v; ok=!empty&&v===f.ans; ans=v?plain(v):''; }
+  else { empty=!ins[0]; ok=!empty&&ins[0]===f.ans; ans=ins[0]||''; }
+  return {empty,ok,ans};
+}
+function showMsg(cls,text,extra){ $('#out').innerHTML='<div class="msg '+cls+'">'+text+(extra||'')+'</div>'; }
+let busy=false;
+async function submit(force){
+  if(busy||STATE.done) return;
+  const sur=$('#sur').value.trim(), nam=$('#nam').value.trim();
+  if(!sur||!nam){
+    ['#sur','#nam'].forEach(s=>$(s).classList.toggle('err',!$(s).value.trim()));
+    $('#who').scrollIntoView({behavior:'smooth',block:'center'});
+    showMsg('err','Введіть прізвище та ім\'я вгорі сторінки, щоб здати роботу.'); return;
+  }
+  $('#sur').classList.remove('err'); $('#nam').classList.remove('err');
+  const missing=Object.keys(PH).filter(k=>!PH[k].length);
+  if(missing.length){
+    showMsg('err','Додайте фото: <b>'+missing.map(k=>PHM[k].label).join('; ')+'</b>.');
+    $('[data-ph="'+missing[0]+'"]').scrollIntoView({behavior:'smooth',block:'center'}); return;
+  }
+  const rows=FIELDS.map(F=>({F,r:readField(F)}));
+  const empties=rows.filter(x=>x.r.empty);
+  if(empties.length&&!force){
+    empties.forEach(x=>x.F.el.classList.add('empty'));
+    showMsg('warn','Ви не завершили '+empties.length+' '+(function(n){const a=n%10,b=n%100;return a===1&&b!==11?'пункт':(a>=2&&a<=4&&(b<10||b>=20)?'пункти':'пунктів');})(empties.length)+' (виділено жовтим). ',
+      '<div class="row2"><button class="btn sec2" id="bBack">Дописати</button><button class="btn" id="bForce">Все одно здати</button></div>');
+    $('#bBack').onclick=()=>{ $('#out').innerHTML=''; empties[0].F.el.scrollIntoView({behavior:'smooth',block:'center'}); };
+    $('#bForce').onclick=()=>submit(true);
+    return;
+  }
+  busy=true; $('#goBtn').disabled=true;
+  showMsg('warn','Надсилаємо роботу… не закривайте сторінку.');
+  back();
+  const now=Date.now(), id=now+'_'+Math.random().toString(36).slice(2,8);
+  const total=rows.length, right=rows.filter(x=>x.r.ok).length;
+  // бали за відповіді: бали завдання ділимо порівну між його пунктами; бали за фото додаються, коли вчителька зарахує
+  const nPart=new Map(), nTask={}; FIELDS.forEach(F=>{ nPart.set(F.part,(nPart.get(F.part)||0)+1); nTask[F.task.id]=(nTask[F.task.id]||0)+1; });
+  const wOf=F=>F.part.pts!=null?F.part.pts/nPart.get(F.part):(F.task.pts||0)/nTask[F.task.id];
+  const autoScore=Math.round(10*rows.reduce((sm,x)=>sm+(x.r.ok?wOf(x.F):0),0))/10;
+  const autoMax=Math.round(10*rows.reduce((sm,x)=>sm+wOf(x.F),0))/10;
+  const keys=Object.keys(PH);
+  const photoPts={}, photoCount={}; keys.forEach(k=>{ photoPts[k]=PHM[k].pts; photoCount[k]=PH[k].length; });
+  const photoMax=keys.reduce((s,k)=>s+PHM[k].pts,0);
+  const rec={id,name:sur+' '+nam,surname:sur,firstName:nam,ts:now,date:new Date(now).toISOString(),
+    score:autoScore,autoScore,autoMax,photoMax,photoPts,photoCount,max:100,percent:autoScore,rightCount:right,fieldCount:total,
+    tasks:rows.map(x=>x.r.ok?1:0),
+    qtext:rows.map(x=>'Завд. '+x.F.task.id+(x.F.task.src?' ('+x.F.task.src+')':'')+' '+(x.F.part.title?plain(x.F.part.title)+' ':'')+plain(x.F.def.pre||'')),
+    answers:rows.map(x=>x.r.ans),correct:rows.map(x=>fmtAns(x.F.def)),
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,exits:EXITS.map(e=>({at:e.at,task:e.task,sec:e.sec})),
+    photos:keys.reduce((s,k)=>s+PH[k].length,0),photoKeys:keys,test:TEST_NAME};
+  let ok=await saveDoc('r',rec);
+  if(ok){
+    outer: for(const k of keys){
+      for(let i=0;i<PH[k].length;i++){
+        ok=await saveDoc('p',{id:id+'_'+k+'_'+i,subId:id,name:rec.name,key:k,idx:i,data:PH[k][i].data,ts:now});
+        if(!ok) break outer;
+      }
+    }
+  }
+  busy=false;
+  if(!ok){ $('#goBtn').disabled=false; showMsg('err','Не вдалося надіслати роботу. Перевірте інтернет і натисніть «Здати» ще раз.'); return; }
+  STATE.done=true; $('#goBtn').style.display='none';
+  $$('input, select').forEach(e=>e.disabled=true); keys.forEach(drawPh); $$('.th button').forEach(b=>b.remove());
+  $('#out').innerHTML='<div class="done"><div class="big">Роботу здано ✓</div><div class="sm">'+esc(sur+' '+nam)+'<br>Учитель оцінить вашу роботу.</div></div>';
+  $('#out').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+
+/* ============ Еталони (лише для журналу вчительки) ============ */
+const REFS={
+ n1:'<div class="eth"><b>Конспект має містити:</b><ul><li>означення рівносильних рівнянь (одні й ті самі корені або обидва без коренів) і приклади;</li><li>означення раціонального рівняння;</li><li>властивості: додати чи відняти число; перенести доданок зі зміною знака; помножити чи поділити на число, відмінне від нуля;</li><li>'+AB+' = 0 рівносильне системі <i>A</i> = 0, <i>B</i> ≠ 0; алгоритм із трьох кроків;</li><li>розібрані приклади 1–4.</li></ul></div>',
+ n2:'<div class="eth"><b>Еталонне розв\'язання:</b><ol>'+
+  '<li>'+x+' − 6 = 0, '+x+' = 6; знаменник 6 − 4 = 2 ≠ 0. <b>Відповідь: 6.</b></li>'+
+  '<li>'+x+' − 2 = 0, '+x+' = 2; знаменник 2<sup>2</sup> − 4 = 0, корінь не підходить. <b>Коренів немає.</b></li>'+
+  '<li>'+x2+' − 4 = 0, '+x+' = 2 або '+x+' = −2; при '+x+' = 2 знаменник дорівнює 0. <b>Відповідь: −2.</b></li>'+
+  '<li>'+FR(x+' − 2',x+' − 2')+' − 1 = '+FR('0',x+' − 2')+' = 0; '+x+' ≠ 2. <b>Будь-яке число, крім 2.</b></li>'+
+  '<li>'+FR('2'+x2+' + 18 − 2'+x2+' − 18',x2+' + 9')+' = 0; знаменник завжди додатний. <b>Будь-яке число.</b></li>'+
+  '<li>'+FR(x+' + 2'+x+' − 9',x+' − 5')+' = 0; 3'+x+' − 9 = 0, '+x+' = 3; 3 − 5 ≠ 0. <b>Відповідь: 3.</b></li>'+
+  '<li>'+FR('5'+x+' − 7 − '+x+' + 5',x+' + 1')+' = 0; 4'+x+' − 2 = 0, '+x+' = 0,5; 0,5 + 1 ≠ 0. <b>Відповідь: 0,5.</b></li></ol></div>'
+};
+const refSVG=key=>REFS[key]||'';
+
+/* ============ Журнал учительки ============ */
+let JROWS=[];
+$('#keyb').onclick=()=>{ $('#pw').value=''; $('#pwErr').style.display='none'; $('#ovLogin').classList.add('on'); setTimeout(()=>$('#pw').focus(),50); };
+$('#pwNo').onclick=()=>$('#ovLogin').classList.remove('on');
+$('#pw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#pwOk').click(); });
+$('#pwOk').onclick=async()=>{
+  if(!(await teacherLogin($('#pw').value))){ $('#pwErr').style.display='block'; return; }
+  $('#ovLogin').classList.remove('on'); $('#ovJ').classList.add('on'); refreshJ();
+};
+$('#jClose').onclick=()=>{ $('#ovJ').classList.remove('on'); teacherLogout(); };
+$('#jRef').onclick=()=>refreshJ();
+function mmss(s){ s=Math.max(0,s|0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+async function refreshJ(){
+  $('#jMsg').textContent='Завантаження…';
+  try{ JROWS=await loadResults(); $('#jMsg').textContent=''; drawJ(); }
+  catch(e){ $('#jMsg').innerHTML='<div class="msg err">Не вдалося підключитися до бази результатів</div>'; }
+}
+const f1=n=>String(Math.round(n*10)/10).replace('.',',');
+const LONG=30;   // вихід довший за стільки секунд підсвічується червоним
+function exitsMax(r){ return (r.exits||[]).reduce((m,e)=>Math.max(m,e.sec||0),0); }
+function photoCredit(r){   // бали за зараховані фото
+  let s=0; const pg=r.pg||{};
+  Object.keys(r.photoPts||{}).forEach(k=>{ const n=(r.photoCount||{})[k]||0; let ok=n>0; for(let x=0;x<n;x++) if(pg[k+'_'+x]!==1) ok=false; if(ok) s+=r.photoPts[k]; });
+  return s;
+}
+function totalScore(r){ return Math.round(10*((r.autoScore!=null?r.autoScore:(r.score||0))+photoCredit(r)))/10; }
+function pgText(r){ const n=r.photos||0; if(!n) return '—'; const set=Object.keys(r.pg||{}).length, ok=Object.values(r.pg||{}).filter(v=>v===1).length;
+  return (set?ok+' з '+n+(set<n?' (оцінено '+set+')':''):'не оцінено')+' · +'+f1(photoCredit(r))+' з '+f1(r.photoMax||0); }
+function drawJ(){
+  if(!JROWS.length){ $('#jBody').innerHTML='<p>Поки що немає записів.</p>'; return; }
+  let h='<table class="j"><tr><th>№</th><th>Прізвище та ім\'я</th><th>Дата</th><th>Час на роботу</th><th>Виходів</th><th>Відповіді</th><th>Фото</th><th>Разом</th></tr>';
+  JROWS.forEach((r,i)=>{
+    const dt=new Date(r.ts||r.date).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const fast=r.durationSec!=null&&r.durationSec<120, mx=exitsMax(r);
+    h+='<tr class="nm" data-i="'+i+'"><td>'+(JROWS.length-i)+'</td><td><b>'+esc(r.name||'')+'</b></td><td>'+dt+'</td>'+
+      '<td'+(fast?' class="red" title="Дуже швидко"':'')+'>'+(r.durationSec!=null?mmss(r.durationSec):'—')+(r.awaySec?'<div class="dim">поза вікном '+mmss(r.awaySec)+'</div>':'')+'</td>'+
+      '<td'+(mx>=LONG?' class="red"':'')+'>'+(r.leaves!=null?r.leaves:'—')+(r.leaves?'<div class="dim">макс. '+mx+' с</div>':'')+'</td>'+
+      '<td>'+(r.autoScore!=null?f1(r.autoScore)+' з '+f1(r.autoMax):'—')+'</td><td id="pc'+i+'">'+pgText(r)+'</td><td id="tt'+i+'"><b>'+f1(totalScore(r))+'</b> з 100</td></tr><tr class="jr" id="jr'+i+'" style="display:none"><td colspan="8"></td></tr>';
+  });
+  $('#jBody').innerHTML=h+'</table>';
+  $$('#jBody tr.nm').forEach(tr=>tr.onclick=()=>toggleJ(+tr.dataset.i));
+}
+async function setGrade(i,gk,v,bn){
+  const r=JROWS[i]; r.pg=r.pg||{}; r.pg[gk]=v; r.score=totalScore(r);
+  const row=bn.closest('.gr'); $$('button',row).forEach(b=>b.classList.remove('on')); bn.classList.add('on');
+  const sp=$('.dim',row); sp.textContent='збереження…';
+  const pc=$('#pc'+i); if(pc) pc.textContent=pgText(r);
+  const tt=$('#tt'+i); if(tt) tt.innerHTML='<b>'+f1(r.score)+'</b> з 100';
+  const sm=$('#sm'+i); if(sm) sm.innerHTML=sumHTML(r);
+  try{ const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), r.id), {pg:r.pg,score:r.score}, {merge:true}); sp.textContent='збережено'; }
+  catch(e){ sp.textContent=''; $('#jMsg').innerHTML='<div class="msg err">Не вдалося зберегти вибір у базі. Перевірте правила Firebase: вчителька має мати право змінювати записи. Вибір видно лише в цьому вікні.</div>'; }
+}
+function sumHTML(r){ return 'Відповіді: <b>'+f1(r.autoScore!=null?r.autoScore:0)+'</b> з '+f1(r.autoMax||0)+' · фото: <b>+'+f1(photoCredit(r))+'</b> з '+f1(r.photoMax||0)+' · разом: <b>'+f1(totalScore(r))+'</b> з 100'; }
+function exitsHTML(r){
+  const ex=r.exits||[]; if(!r.leaves) return '<div>Виходів зі сторінки не було.</div>';
+  if(!ex.length) return '<div>Виходів: <b>'+r.leaves+'</b>, поза вікном '+mmss(r.awaySec||0)+'.</div>';
+  const by={}; ex.forEach(e=>{ (by[e.task]=by[e.task]||[]).push(e); });
+  let h='<div>Виходів: <b>'+r.leaves+'</b>, сумарно поза вікном: <b>'+mmss(r.awaySec||0)+'</b> (з '+mmss(r.durationSec||0)+' загального часу).</div><table style="margin:4px 0"><tr><td><b>Де</b></td><td><b>Виходів</b></td><td><b>Скільки секунд кожен</b></td></tr>';
+  Object.keys(by).sort((a,b)=>(+a)-(+b)).forEach(k=>{ h+='<tr><td>'+(k==='0'?'поза завданнями (угорі сторінки)':'Завдання '+k)+'</td><td>'+by[k].length+'</td><td>'+by[k].map(e=>{ const long=(e.sec||0)>=LONG; return '<span class="'+(long?'red':'')+'">'+(e.sec||'?')+' с</span> <span class="dim">(на '+mmss(e.at||0)+')</span>'; }).join(', ')+'</td></tr>'; });
+  return h+'</table>';
+}
+async function toggleJ(i){
+  const row=$('#jr'+i), cell=$('td',row);
+  if(row.style.display!=='none'){ row.style.display='none'; return; }
+  row.style.display='table-row';
+  if(cell.dataset.ok) return;
+  const r=JROWS[i];
+  let h='<div class="jd"><div id="sm'+i+'" style="font-size:15px;margin-bottom:6px">'+sumHTML(r)+'</div>'+exitsHTML(r)+'<div style="margin-top:6px">Правильно '+(r.rightCount!=null?r.rightCount:'—')+' з '+(r.fieldCount||(r.tasks||[]).length)+' пунктів:</div><table>';
+  (r.tasks||[]).forEach((m,k)=>{ h+='<tr><td>'+(k+1)+'</td><td>'+esc((r.qtext||[])[k]||'')+'</td><td>'+esc((r.answers||[])[k]||'—')+'</td><td class="'+(m?'g':'r')+'">'+(m?'✓':'✗ '+esc((r.correct||[])[k]||''))+'</td></tr>'; });
+  h+='</table><div id="jp'+i+'">'+((r.photos||0)?'Завантаження фото…':'Фото немає.')+'</div></div>';
+  cell.innerHTML=h; cell.dataset.ok='1';
+  if(r.photos){
+    try{
+      const ps=await loadPhotos(r.id), by={};
+      ps.forEach(p=>{(by[p.key]=by[p.key]||[]).push(p);});
+      r.pg=r.pg||{};
+      let g='<div class="row2" style="margin:6px 0"><button class="btn sec2" id="sv'+i+'">Зберегти всі фото в файли</button></div>';
+      Object.keys(by).forEach(k=>{ const m=PHM[k]||{label:k,ref:'',src:''};
+        g+='<div class="jph"><b>'+esc(m.label)+(m.src?' <span class="dim">(вправа '+esc(m.src)+')</span>':'')+'</b>'+(m.ref?'<div class="rf">Має бути: '+m.ref+'</div>':'')+
+          '<div class="cmp"><div class="col"><h4>Фото учня</h4>'+by[k].map(p=>{ const gk=p.key+'_'+p.idx, v=r.pg[gk];
+            return '<div class="imgs"><img src="'+p.data+'" alt=""></div><div class="gr" data-gk="'+gk+'"><button class="yes'+(v===1?' on':'')+'" data-g="'+i+'|'+gk+'|1">✓ Зарахувати</button><button class="no'+(v===0?' on':'')+'" data-g="'+i+'|'+gk+'|0">✗ Не зарахувати</button><span class="dim"></span></div>'; }).join('')+
+          '</div><div class="col refbox"><h4>Еталон (учні його не бачать)</h4>'+refSVG(k)+'</div></div></div>'; });
+      $('#jp'+i).innerHTML=ps.length?g:'Фото не знайдено.';
+      $$('#jp'+i+' [data-g]').forEach(bn=>bn.onclick=e=>{e.stopPropagation(); const [ri,gk,v]=bn.dataset.g.split('|'); setGrade(+ri,gk,+v,bn);});
+      $$('#jp'+i+' .imgs img').forEach(im=>im.onclick=e=>{e.stopPropagation(); $('#big img').src=im.src; $('#big').classList.add('on');});
+      const sv=$('#sv'+i); if(sv) sv.onclick=e=>{ e.stopPropagation(); ps.forEach((p,n)=>setTimeout(()=>{ const a=document.createElement('a'); a.href=p.data; a.download=(r.name||'учень').replace(/\s+/g,'_')+'_'+p.key.replace(/[^\w.-]/g,'_')+'_'+(p.idx+1)+'.jpg'; document.body.appendChild(a); a.click(); a.remove(); },n*400)); };
+    }catch(e){ $('#jp'+i).textContent='Не вдалося завантажити фото.'; }
+  }
+}
+$('#big').onclick=()=>$('#big').classList.remove('on');
+$('#jCsv').onclick=()=>{
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const maxN=Math.max(0,...JROWS.map(r=>(r.tasks||[]).length));
+  let csv='﻿Прізвище та ім\'я;Дата;Час (хв:с);Виходів з вікна;Найдовший вихід (с);Поза вікном (хв:с);Бал за відповіді;Бал за фото;Разом;Правильно;Фото (зараховано)';
+  for(let k=1;k<=maxN;k++) csv+=';п.'+k;
+  csv+='\n';
+  JROWS.forEach(r=>{
+    csv+=[q(r.name),q(r.date),r.durationSec!=null?mmss(r.durationSec):'',r.leaves!=null?r.leaves:'',exitsMax(r),r.awaySec!=null?mmss(r.awaySec):'',String(r.autoScore!=null?r.autoScore:'').replace('.',','),String(photoCredit(r)).replace('.',','),String(totalScore(r)).replace('.',','),r.rightCount!=null?r.rightCount:'',pgText(r)].join(';');
+    for(let k=0;k<maxN;k++) csv+=';'+(r.tasks&&r.tasks[k]!=null?(r.tasks[k]?'+':'-'):'');
+    csv+='\n';
+  });
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='Робота_26_листопада_8клас_результати.csv'; document.body.appendChild(a); a.click(); a.remove();
+};
+$('#jClr').onclick=()=>{
+  $('#jMsg').innerHTML='<div class="msg warn">Видалити всі записи ('+JROWS.length+') разом з фото? <div class="row2"><button class="btn" id="cYes">Так, видалити</button><button class="btn sec2" id="cNo">Скасувати</button></div></div>';
+  $('#cNo').onclick=()=>$('#jMsg').innerHTML='';
+  $('#cYes').onclick=async()=>{ try{ await clearResults(); refreshJ(); }catch(e){ $('#jMsg').innerHTML='<div class="msg err">Не вдалося очистити записи. Перевірте правила бази Firebase</div>'; } };
+};
+
+build();
+window.__HW={parseLin,setJ:(r)=>{JROWS=r;drawJ();},toggleJ,setGrade,refSVG,REFS,TASKS,FIELDS,PH,PHM,parseNum,readField,W,EXITS,leave,back,submit};
+})();
+</script>
+</body>
+</html>
