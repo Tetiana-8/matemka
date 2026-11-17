@@ -22,6 +22,10 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}
 .m i,i{font-style:italic}
 .op{padding:0 .26em}
 sup{font-size:.68em;line-height:0;vertical-align:super}
+.line.lw{display:block;line-height:2.3}
+.lw .fld{margin:0 3px;vertical-align:middle}
+.xs{display:inline-block;position:relative;top:-.62em;margin-left:.08em;line-height:1}
+.xs .fld{font-size:.78em;width:2.6em;padding:3px 2px}
 .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.1;margin:0 .15em}
 .frac>span:first-child{border-bottom:2px solid currentColor;padding:0 .15em}
 
@@ -386,14 +390,14 @@ function g8(){ // множення одночленів
   var p=ri(1,3),q=ri(1,3),r=ri(1,3),s=ri(1,3);
   if(p!==1&&r!==1&&q!==1&&s!==1)return null;
   var L='('+termHTML(c1,[[u,p],[v,q]],true)+')'+DOT()+'('+termHTML(c2,[[u,r],[v,s]],true)+')';
-  return {W:5,body:'<div class="q">Виконайте множення одночленів.</div><div class="qmath m">'+L+'</div><div class="line m">'+EQ()+' {{0}}'+V(u)+'<sup>{{1}}</sup>'+V(v)+'<sup>{{2}}</sup></div><div class="hint">Вписуйте коефіцієнт і показники степенів.</div>',
+  return {W:5,body:'<div class="q">Виконайте множення одночленів.</div><div class="qmath m">'+L+'</div><div class="line m">'+EQ()+' {{0}}'+V(u)+'<span class="xs">{{1}}</span>'+V(v)+'<span class="xs">{{2}}</span></div><div class="hint">Вписуйте коефіцієнт і показники степенів.</div>',
     parts:[numPart(c1*c2,2),numPart(p+r,1.5,'sm'),numPart(q+s,1.5,'sm')],raw:{c1:c1,c2:c2,p:p,q:q,r:r,s:s}};
 }
 function g9(){ // піднесення одночлена до степеня
   var pr=pick(PAIRS),u=pr[0],v=pr[1];
   var c=pick([-3,-2,2,3]),n=pick([2,3]),p=ri(1,3),q=ri(1,3);
   var L='('+termHTML(c,[[u,p],[v,q]],true)+')<sup>'+n+'</sup>';
-  return {W:5,body:'<div class="q">Піднесіть одночлен до степеня.</div><div class="qmath m">'+L+'</div><div class="line m">'+EQ()+' {{0}}'+V(u)+'<sup>{{1}}</sup>'+V(v)+'<sup>{{2}}</sup></div><div class="hint">Вписуйте коефіцієнт і показники степенів.</div>',
+  return {W:5,body:'<div class="q">Піднесіть одночлен до степеня.</div><div class="qmath m">'+L+'</div><div class="line m">'+EQ()+' {{0}}'+V(u)+'<span class="xs">{{1}}</span>'+V(v)+'<span class="xs">{{2}}</span></div><div class="hint">Вписуйте коефіцієнт і показники степенів.</div>',
     parts:[numPart(Math.pow(c,n),2),numPart(p*n,1.5,'sm'),numPart(q*n,1.5,'sm')],raw:{c:c,n:n,p:p,q:q}};
 }
 function g10(){ // властивості степеня: перетягування
@@ -418,7 +422,7 @@ function g11(){ // спрощення степеня
   var a=ri(2,5),b=ri(2,4),c=ri(2,6),d=ri(2,6);
   var r=a*b+c-d;if(r<3)return null;
   var X=function(e){return V(u)+'<sup>'+e+'</sup>';};
-  return {W:5,body:'<div class="q">Подайте вираз у вигляді степеня з основою '+V(u)+'.</div><div class="qmath m">('+X(a)+')<sup>'+b+'</sup>'+DOT()+X(c)+' : '+X(d)+'</div><div class="line m">('+X(a)+')<sup>'+b+'</sup> '+EQ()+' '+V(u)+'<sup>{{0}}</sup></div><div class="line m">('+X(a)+')<sup>'+b+'</sup>'+DOT()+X(c)+' : '+X(d)+' '+EQ()+' '+V(u)+'<sup>{{1}}</sup></div>',
+  return {W:5,body:'<div class="q">Подайте вираз у вигляді степеня з основою '+V(u)+'.</div><div class="qmath m">('+X(a)+')<sup>'+b+'</sup>'+DOT()+X(c)+' : '+X(d)+'</div><div class="line m">('+X(a)+')<sup>'+b+'</sup> '+EQ()+' '+V(u)+'<span class="xs">{{0}}</span></div><div class="line m">('+X(a)+')<sup>'+b+'</sup>'+DOT()+X(c)+' : '+X(d)+' '+EQ()+' '+V(u)+'<span class="xs">{{1}}</span></div>',
     parts:[numPart(a*b,2,'sm'),numPart(r,3,'sm')],raw:{a:a,b:b,c:c,d:d,r:r}};
 }
 function g12(){ // корінь рівняння
@@ -675,7 +679,7 @@ function partHTML(ti,pi,rev){
   }
   return '';
 }
-function bodyHTML(ti,rev){return S.tasks[ti].body.replace(/\{\{(\d+)\}\}/g,function(_,k){return partHTML(ti,+k,rev);});}
+function bodyHTML(ti,rev){return S.tasks[ti].body.replace(/<div class="line m">((?:(?!<\/div>).)*?<sup>(?:(?!<\/div>).)*?)<\/div>/g,'<div class="line m lw">$1</div>').replace(/\{\{(\d+)\}\}/g,function(_,k){return partHTML(ti,+k,rev);});}
 function numCell(i,rev){
   var t=S.tasks[i],c='nc';
   if(rev){var f=taskFrac(t,S.ans[i]);c+=f>=0.999?' ok':(f>0?' mid':' bad');}
