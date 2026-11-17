@@ -65,7 +65,10 @@ function showQ(){
   else if(t.k==="checks")$("chk").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;var j=+b.dataset.j;A.ms[j]=!A.ms[j];A.skip=false;showQ();};
   else if(t.k==="nums"){var nm=$("nms");var hn=function(e){wChange(e.target,t,A,"nums");};nm.addEventListener("input",hn);nm.addEventListener("change",hn);}
   else if(t.k==="mcs")$("mcs").onclick=function(e){var b=e.target.closest(".opt");if(!b)return;A.ps[+b.dataset.j]=+b.dataset.p;A.skip=false;showQ();};
-  else if(t.k==="mix"){var mx=$("mx");var hm=function(e){wChange(e.target,t,A,"mix");};mx.addEventListener("input",hm);mx.addEventListener("change",hm);}
+  else if(t.k==="mix"){var mx=$("mx");var hm=function(e){wChange(e.target,t,A,"mix");};mx.addEventListener("input",hm);mx.addEventListener("change",hm);
+    mx.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".mopts .opt");if(!b)return;var j=+b.dataset.j;A.ps[j]=+b.dataset.p;A.skip=false;
+      Array.prototype.forEach.call(b.parentNode.querySelectorAll(".opt"),function(x){x.classList.toggle("on",x===b);});
+      var dots=$("dots");if(dots&&dots.children[IX])dots.children[IX].className=(answered(IX)?"a ":"")+"c";});}
   else if(t.k==="rub"){}
   else $("pad").onclick=function(e){var b=e.target.closest("button");if(b)typeKey(b.dataset.k);};
   if(t.open){$("ot").oninput=function(){A.otext=this.value;};phInit(A);}
@@ -82,7 +85,8 @@ function symsOf(a){a=Array.isArray(a)?a[0]:a;var s=String(a==null?"":a),o="";
   return o;}
 function symBar(s){return s?'<div class="sy">'+s.split("").map(function(c){return '<button type="button" data-s="'+c+'">'+c+'</button>';}).join("")+'</div>':'';}
 function mixRow(p,j,A){var v=A.ps[j],h='<div class="xrow" data-j="'+j+'"><div class="xl">'+fmt(p.q)+'</div>';
-  if(p.k==="s"){h+='<select class="xsel" data-j="'+j+'"><option value="">— обери —</option>'+p.o.map(function(o,i){return '<option value="'+i+'"'+(v===i?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';}
+  if(p.k==="s"&&p.o.some(function(o){return /\[\[|<sup>|<sub>/.test(o);})){h+='<div class="mopts" data-j="'+j+'">'+p.o.map(function(o,i){return '<button type="button" class="opt'+(v===i?' on':'')+'" data-j="'+j+'" data-p="'+i+'">'+fmt(o)+'</button>';}).join('')+'</div>';}
+  else if(p.k==="s"){h+='<select class="xsel" data-j="'+j+'"><option value="">— обери —</option>'+p.o.map(function(o,i){return '<option value="'+i+'"'+(v===i?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';}
   else{var sp=p.k==="t"?wSpec(p.a,"txt",p.w):null;
     if(sp)h+=wHtml(sp,A,j);
     else{var sy=p.sym!=null?p.sym:symsOf(p.k==="n"?p.a:p.a[0]);h+='<input type="text" autocomplete="off" inputmode="'+(p.k==="n"&&!sy?'decimal':'text')+'" data-j="'+j+'" value="'+esc(v||'')+'">'+symBar(sy);}}
