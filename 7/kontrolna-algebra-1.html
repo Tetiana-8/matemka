@@ -556,9 +556,26 @@ function fb(){
   return fbPromise;
 }
 const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+const PEND_KEY='pending_'+COLLECTION;
+function pendGet(){ try{ return JSON.parse(localStorage.getItem(PEND_KEY)||'[]'); }catch(e){ return []; } }
+function pendSet(a){ try{ localStorage.setItem(PEND_KEY,JSON.stringify(a)); }catch(e){} }
+function saveFlag(v){ try{ document.documentElement.setAttribute('data-save',v); }catch(e){} }
+async function writeOne(rec){ const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
+async function flushPending(){
+  const list=pendGet(); if(!list.length) return;
+  const left=[];
+  for(const r of list){ try{ await writeOne(r); }catch(e){ console.warn('Resend failed', e); left.push(r); } }
+  pendSet(left);
+}
 async function saveResult(rec){
-  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
-  catch(e){ console.warn('Save failed', e); }
+  rec=JSON.parse(JSON.stringify(rec));            // без undefined
+  pendSet(pendGet().concat([rec]));               // резервна копія в браузері учня
+  saveFlag('pending');
+  for(let i=0;i<5;i++){
+    try{ await writeOne(rec); pendSet(pendGet().filter(r=>r.id!==rec.id)); saveFlag('ok'); return; }
+    catch(e){ console.warn('Save failed', e); await new Promise(r=>setTimeout(r,2000*(i+1))); }
+  }
+  saveFlag('fail');
 }
 async function teacherLogin(password){
   try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
@@ -579,6 +596,8 @@ async function clearResults(){
   await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
 }
 fb().catch(() => {});
+window.addEventListener('online',()=>{ flushPending(); });
+setTimeout(()=>{ flushPending(); },3000);
 
 /* ===== застосунок ===== */
 var $=function(s){return document.querySelector(s);};
@@ -910,7 +929,7 @@ async function refreshJr(){
 }
 function drawJr(){
   var mx=0;jrRows.forEach(function(r){mx=Math.max(mx,(r.tasks||[]).length);});
-  var h='<table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Оцінка</th>';
+  var h='<table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал (з 100)</th><th>Оцінка (з 12)</th>';
   for(var i=1;i<=mx;i++)h+='<th>'+i+'</th>';h+='</tr></thead><tbody>';
   jrRows.forEach(function(r,k){
     var d=r.date?new Date(r.date).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
@@ -927,12 +946,12 @@ $('#jrTbl').addEventListener('click',function(e){
   var k=+td.dataset.det,row=$('#det'+k),r=jrRows[k];
   if(!row.classList.contains('hidden')){row.classList.add('hidden');return;}
   var h='<div class="small">Виходів: '+(r.leaves==null?'—':r.leaves)+', поза вікном: '+fmtMs(r.awaySec)+(r.exits&&r.exits.length?' (кожен вихід, с: '+r.exits.join(', ')+')':'')+'. Варіант: '+esc(r.variant)+'</div><table><thead><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна</th><th>Бал</th><th>Час, с</th></tr></thead><tbody>';
-  (r.tasks||[]).forEach(function(v,i){h+='<tr><td>'+(i+1)+'</td><td>'+esc((r.qtext||[])[i])+'</td><td>'+esc((r.answers||[])[i])+'</td><td>'+esc((r.correct||[])[i])+'</td><td>'+(v>=0.999?'✓':(v>0?'½':'✗'))+'</td><td>'+esc((r.taskSec||[])[i]==null?'—':(r.taskSec||[])[i])+'</td></tr>';});
+  (r.tasks||[]).forEach(function(v,i){h+='<tr><td>'+(i+1)+'</td><td>'+esc((r.qtext||[])[i])+'</td><td>'+esc((r.answers||[])[i])+'</td><td>'+esc((r.correct||[])[i])+'</td><td>'+(v>=0.999?'✓ ':(v>0?'½ ':'✗ '))+((r.weights&&r.weights[i]!=null)?(Math.round(v*r.weights[i]*10)/10)+' з '+r.weights[i]:'')+'</td><td>'+esc((r.taskSec||[])[i]==null?'—':(r.taskSec||[])[i])+'</td></tr>';});
   row.firstChild.innerHTML=h+'</tbody></table>';row.classList.remove('hidden');
 });
 $('#jrCsv').addEventListener('click',function(){
   var mx=0;jrRows.forEach(function(r){mx=Math.max(mx,(r.tasks||[]).length);});
-  var head=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка'];for(var i=1;i<=mx;i++)head.push('Завд. '+i);
+  var head=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал (з 100)','Оцінка (з 12)'];for(var i=1;i<=mx;i++)head.push('Завд. '+i);
   var lines=[head.join(';')];
   jrRows.forEach(function(r){
     var row=['"'+String(r.name).replace(/"/g,'""')+'"',r.date||'',r.durationSec==null?'':fmtMs(r.durationSec),r.leaves==null?'':r.leaves,r.awaySec==null?'':fmtMs(r.awaySec),r.score,r.grade==null?'':r.grade];
