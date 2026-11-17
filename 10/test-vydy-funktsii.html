@@ -170,8 +170,9 @@ function samples(sp,W){
   });
   return out;
 }
-function plot(sp,size,mini){
-  const W=WIN[sp.fam], id='fg'+(++FIGID);
+function plot(sp,size,mini,labels){
+  const showLab=!mini||labels;
+  const W=sp.win||WIN[sp.fam], id='fg'+(++FIGID);
   const x0=W.x[0],x1=W.x[1],y0=W.y[0],y1=W.y[1];
   const X=x=>(x-x0)/(x1-x0)*size, Y=y=>size-(y-y0)/(y1-y0)*size;
   const ax=X(0), ay=Y(0), yr=y1-y0;
@@ -197,7 +198,7 @@ function plot(sp,size,mini){
   });
   s+='<g clip-path="url(#'+id+')"><path d="'+d+'" fill="none" stroke="#6B21A8" stroke-width="'+(mini?2.2:2.8)+'" stroke-linejoin="round" stroke-linecap="round"/></g>';
   const fs=mini?9:10, fmt=t=>String(t).replace('-','−');
-  if(!mini){
+  if(showLab){
     xt.forEach(t=>{const px=X(t); if(px>10&&px<size-10)s+='<text x="'+f1(px)+'" y="'+f1(ay+13)+'" font-size="'+fs+'" text-anchor="middle" fill="#6b5a80" font-family="Nunito,Arial,sans-serif">'+fmt(t)+'</text>';});
     yt.forEach(t=>{const py=Y(t); if(py>10&&py<size-8)s+='<text x="'+f1(ax-5)+'" y="'+f1(py+3.5)+'" font-size="'+fs+'" text-anchor="end" fill="#6b5a80" font-family="Nunito,Arial,sans-serif">'+fmt(t)+'</text>';});
     s+='<text x="'+f1(ax-5)+'" y="'+f1(ay+13)+'" font-size="'+fs+'" text-anchor="end" fill="#6b5a80" font-family="Nunito,Arial,sans-serif">0</text>';
@@ -466,6 +467,20 @@ function gRec(pool){
       {fig:plot(sp,280),desc:'Рисунок: графік '+(sp.tex||'параболи')});
   };
 }
+function parV(a,p,q){
+  const sx=p===0?'x^{2}':'(x'+sgn(-p)+')^{2}';
+  return {fam:'E',a,p,q,win:{x:[-4,4],y:[-4,4],tx:1,ty:1},f:x=>a*(x-p)*(x-p)+q,tex:'y='+(a<0?'-':'')+sx+sgn(q)};
+}
+function gMatchV(R){ // 7. вершина параболи: формула <-> графік
+  const a=R.pick([1,-1]),P=R.sample([-3,-2,-1,0,1,2,3],4),Q=R.sample([-3,-2,-1,0,1,2,3],4);
+  const specs=P.map((p,i)=>parV(a,p,Q[i]));
+  const order=R.shuffle([0,1,2,3]),gs=order.map(i=>specs[i]),rowsSp=R.shuffle(specs);
+  const rows=rowsSp.map(s=>({t:F$(s),ok:gs.indexOf(s)}));
+  return {type:'match',q:'Знайдіть вершину кожної параболи й установіть відповідність між формулами та графіками.',
+    figs:gs.map(s=>plot(s,150,true,true)),rows,clab:LET.slice(0,4),
+    exp:rowsSp.map((s,i)=>'$'+s.tex+'$ — вершина $('+s.p+';'+s.q+')$, рисунок '+LET[rows[i].ok]).join('; ')+'.',
+    desc:'Чотири параболи: '+gs.map((s,j)=>LET[j]+' — '+s.tex).join('; '),gspecs:gs,rspecs:rowsSp};
+}
 function gParG(R){ // 12. парність за графіком
   const c=[
     ()=>({sp:pw('NE',R.pick(EXPS.NE)),a:'e'}),()=>({sp:pw('NO',R.pick(EXPS.NO)),a:'o'}),
@@ -549,7 +564,7 @@ const GENS=[
  {k:'Формула → вид',fn:gInv},
  {k:'Відповідність: графік і формула',fn:gMatchB},
  {k:'Графік → функція (степеневі)',fn:gRec(FAMS)},
- {k:'Графік → функція',fn:gRec(['A','B','C','D','E','ABS'].concat(FAMS))},
+ {k:'Відповідність: вершина параболи',fn:gMatchV},
  {k:'Парність',fn:gParity},
  {k:'Графік → формула',fn:gGF(['NE','NO'])},
  {k:'Графік → формула',fn:gGF(['ZE','ZO'])},
