@@ -27,6 +27,7 @@ h1{margin:0;padding:0 46px;text-align:center;color:var(--title);font-size:clamp(
 .chip.fill{background:var(--acc);border-color:var(--acc);color:#fff}
 .chip.cur{box-shadow:0 0 0 3px var(--acc2);border-color:var(--dark)}
 .chip.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.part{background:#d97706;border-color:#d97706;color:#fff}
 .chip.bad{background:var(--bad);border-color:var(--bad);color:#fff}
 .chip.miss{background:#fff;border-color:var(--bad);color:var(--bad)}
 .card{flex:1 1 auto;min-height:0;overflow:auto;background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 8px 26px rgba(23,63,95,.15);border:1px solid var(--line)}
@@ -75,7 +76,7 @@ h1{margin:0;padding:0 46px;text-align:center;color:var(--title);font-size:clamp(
 .steps{padding:10px 12px;gap:8px}
 .hintnum{text-align:center;font-size:14px;color:var(--muted)}
 .verdict{font-weight:800;font-size:16px}
-.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+.verdict.part{color:#b45309} .verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
 .corr{font-size:17px;font-weight:700;color:var(--ok);text-align:center}
 #nav{flex:none;display:flex;gap:10px;justify-content:center}
 .btn{font:inherit;font-weight:800;font-size:17px;border:0;border-radius:999px;padding:12px 26px;min-height:46px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 5px 14px rgba(42,101,146,.3);touch-action:manipulation}
@@ -117,7 +118,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:ta
 th,td{border:1px solid var(--line);padding:6px 8px;text-align:center;white-space:nowrap}
 th{background:var(--soft)}
 td.name{text-align:left;cursor:pointer;font-weight:700;color:var(--dark)}
-td.y{color:var(--ok);font-weight:800} td.n{color:var(--bad);font-weight:800}
+td.p{color:#b45309;font-weight:800} td.y{color:var(--ok);font-weight:800} td.n{color:var(--bad);font-weight:800}
 td.red{color:var(--bad);font-weight:800}
 tr.det td{white-space:normal;text-align:left;background:var(--pr)}
 .small{font-size:14px;color:var(--muted)}
@@ -477,6 +478,11 @@ function isRight(i){var t=S.tasks[i],a=S.ans[i];if(!answered(i))return false;
   if(t.type==="match")return t.items.every(function(it,k){return t.pool[a[k]]===it.res;});
   if(t.type==="steps")return t.cells.every(function(c,k){return parseNum(a[k])===c;});
   return parseNum(a)===t.right;}
+function frac(i){var t=S.tasks[i],a=S.ans[i];if(!answered(i))return 0;
+  if(t.type==="steps"){var n=t.cells.filter(function(c,k){return parseNum(a[k])===c;}).length;return n/t.cells.length;}
+  if(t.type==="match"){var m=t.items.filter(function(it,k){return t.pool[a[k]]===it.res;}).length;return m/t.items.length;}
+  return isRight(i)?1:0;}
+function pts(x){return String(Math.round(x*10)/10).replace(".",",");}
 function ansText(i){var t=S.tasks[i],a=S.ans[i];
   if(t.type==="steps")return t.cells.map(function(_,k){return Array.isArray(a)&&a[k]!==undefined&&String(a[k]).trim()!==""?String(a[k]).trim():"—";}).join(" | ");
   if(t.type==="match")return (Array.isArray(a)?a:[null,null,null]).map(function(x){return x===null?"—":plain(t.pool[x]);}).join(" | ");
@@ -500,7 +506,7 @@ function chips(mode){
   for(var i=0;i<TOTAL;i++){
     var c="chip";
     if(mode==="work"){if(answered(i))c+=" fill";}
-    else {c+=S.marks[i]?" ok":" bad";}
+    else {c+=S.marks[i]===1?" ok":(S.marks[i]>0?" part":" bad");}
     if((S.screen==="task"||S.screen==="rview")&&i===S.cur)c+=" cur";
     if(mode==="rev"&&!answered(i)&&S.screen==="review")c="chip miss"+(i===S.cur?" cur":"");
     h+='<button type="button" class="'+c+'" data-chip="'+i+'">'+(i+1)+"</button>";
@@ -571,7 +577,8 @@ function taskHTML(i,review){
     if(!review)h+='<div class="hintnum">Введіть відповідь числом</div>';
   }
   if(review){
-    h+='<div class="verdict '+(S.marks[i]?"ok":"bad")+'">'+(S.marks[i]?"✓ Правильно · ":"✗ Неправильно · ")+(S.marks[i]?WEIGHTS[i]:0)+" з "+WEIGHTS[i]+" "+plural(WEIGHTS[i],["бала","балів","балів"])+"</div>";
+    var mk=S.marks[i],got=Math.round(mk*WEIGHTS[i]*10)/10;
+    h+='<div class="verdict '+(mk===1?"ok":(mk>0?"part":"bad"))+'">'+(mk===1?"✓ Правильно · ":(mk>0?"◐ Частково правильно · ":"✗ Неправильно · "))+pts(got)+" з "+WEIGHTS[i]+" "+plural(WEIGHTS[i],["бала","балів","балів"])+"</div>";
     if(t.type==="num")h+='<div class="corr">Правильна відповідь: '+esc(plain(String(t.right)))+"</div>";
   }
   return h+"</div>";
@@ -614,7 +621,7 @@ function render(){
   }
   if(S.screen==="result"){
     top.innerHTML="";
-    card.innerHTML='<div class="center"><div class="who-name">'+esc(S.sur+" "+S.nam)+'</div><div class="big">'+S.score+" з "+MAXPTS+'</div><div class="when">'+esc(S.when)+"</div>"+
+    card.innerHTML='<div class="center"><div class="who-name">'+esc(S.sur+" "+S.nam)+'</div><div class="big">'+pts(S.score)+" з "+MAXPTS+'</div><div class="when">'+esc(S.when)+"</div>"+
       '<div class="shot"><span class="ic">📸</span><span>Зробіть скриншот цього екрана та прикріпіть його до Д/з.</span></div>'+
       '<div class="info">Натисніть на номер завдання, щоб побачити свою відповідь і правильну.</div>'+chips("rev")+"</div>";
     nav.innerHTML=navBtn("againBtn","Пройти ще раз");
@@ -653,9 +660,9 @@ function check(){
   if(S.checked)return;
   back();
   S.checked=true;
-  S.marks=S.tasks.map(function(_,i){return isRight(i)?1:0;});
-  S.right=S.marks.reduce(function(s,x){return s+x;},0);
-  S.score=S.marks.reduce(function(s,x,i){return s+x*WEIGHTS[i];},0);
+  S.marks=S.tasks.map(function(_,i){return frac(i);});
+  S.right=S.marks.filter(function(x){return x===1;}).length;
+  S.score=Math.round(S.marks.reduce(function(s,x,i){return s+x*WEIGHTS[i];},0)*10)/10;
   var now=Date.now();
   S.when=new Date(now).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
   saveResult({
@@ -811,8 +818,8 @@ async function load(){
     h+='<tr><td>'+(k+1)+'</td><td class="name" data-row="'+k+'"></td><td>'+dt+"</td>"+
       '<td'+(fast?' class="red" title="Дуже швидко"':"")+">"+(hasT?mmss(r.durationSec):"—")+"</td>"+
       '<td'+(many?' class="red"':"")+(hasL&&typeof r.awaySec==="number"?' title="Поза вікном: '+mmss(r.awaySec)+'"':"")+">"+(hasL?r.leaves:"—")+"</td>"+
-      "<td><b>"+r.score+" / "+(r.max||"")+"</b></td>";
-    for(var q=0;q<maxN;q++){var v=(r.tasks||[])[q];h+=v===undefined?"<td>—</td>":(v?'<td class="y">✓</td>':'<td class="n">✗</td>');}
+      "<td><b>"+pts(r.score)+" / "+(r.max||"")+"</b></td>";
+    for(var q=0;q<maxN;q++){var v=(r.tasks||[])[q];h+=v===undefined?"<td>—</td>":(v===1?'<td class="y">✓</td>':(v>0?'<td class="p" title="Частково">'+pts(v*((r.weights||[])[q]||1))+"</td>":'<td class="n">✗</td>'));}
     h+="</tr>";
   });
   $("tbl").innerHTML=h+"</tbody></table>";
@@ -827,7 +834,7 @@ $("tbl").addEventListener("click",function(e){
   var span=tr.children.length,h='<tr class="det"><td colspan="'+span+'"><table><thead><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна</th></tr></thead><tbody>';
   (r.qtext||[]).forEach(function(q,i){
     var ok=(r.tasks||[])[i];
-    h+="<tr><td>"+(i+1)+'</td><td style="text-align:left;white-space:normal">'+esc(q)+'</td><td class="'+(ok?"y":"n")+'">'+esc((r.answers||[])[i]||"—")+"</td><td>"+esc((r.correct||[])[i]||"")+"</td></tr>";
+    h+="<tr><td>"+(i+1)+'</td><td style="text-align:left;white-space:normal">'+esc(q)+'</td><td class="'+(ok===1?"y":(ok>0?"p":"n"))+'">'+esc((r.answers||[])[i]||"—")+"</td><td>"+esc((r.correct||[])[i]||"")+"</td></tr>";
   });
   tr.insertAdjacentHTML("afterend",h+"</tbody></table></td></tr>");
 });
@@ -837,8 +844,8 @@ $("csvBtn").addEventListener("click",function(){
   for(var i=1;i<=maxN;i++)head.push("Завд. "+i);
   var lines=[head.join(";")];
   rows.forEach(function(r){
-    var l=[(r.name||"").replace(/;/g,","),r.date?new Date(r.date).toLocaleString("uk-UA"):"",typeof r.durationSec==="number"?mmss(r.durationSec):"",typeof r.leaves==="number"?r.leaves:"",typeof r.awaySec==="number"?mmss(r.awaySec):"",r.score+"/"+(r.max||"")];
-    for(var q=0;q<maxN;q++){var v=(r.tasks||[])[q];l.push(v===undefined?"":(v?"+":"-"));}
+    var l=[(r.name||"").replace(/;/g,","),r.date?new Date(r.date).toLocaleString("uk-UA"):"",typeof r.durationSec==="number"?mmss(r.durationSec):"",typeof r.leaves==="number"?r.leaves:"",typeof r.awaySec==="number"?mmss(r.awaySec):"",pts(r.score)+"/"+(r.max||"")];
+    for(var q=0;q<maxN;q++){var v=(r.tasks||[])[q];l.push(v===undefined?"":(v===1?"+":(v>0?pts(v*((r.weights||[])[q]||1)):"-")));}
     lines.push(l.join(";"));
   });
   var blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
