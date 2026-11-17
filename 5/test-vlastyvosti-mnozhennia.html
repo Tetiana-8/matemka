@@ -331,10 +331,26 @@ function fb(){
 }
 const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
 
-async function saveResult(rec){
-  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
-  catch(e){ console.warn('Save failed', e); }
+const PEND_KEY='pending_'+COLLECTION;
+function pendGet(){ try{ return JSON.parse(localStorage.getItem(PEND_KEY)||'[]'); }catch(e){ return []; } }
+function pendSet(a){ try{ localStorage.setItem(PEND_KEY,JSON.stringify(a)); }catch(e){} }
+async function writeOne(rec){ const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
+async function flushPending(){
+  const list=pendGet(); if(!list.length) return;
+  const left=[];
+  for(const r of list){ try{ await writeOne(r); }catch(e){ console.warn('Resend failed', e); left.push(r); } }
+  pendSet(left);
 }
+async function saveResult(rec){
+  rec=JSON.parse(JSON.stringify(rec));            // без undefined
+  pendSet(pendGet().concat([rec]));               // резервна копія в браузері учня
+  for(let i=0;i<4;i++){
+    try{ await writeOne(rec); pendSet(pendGet().filter(r=>r.id!==rec.id)); return; }
+    catch(e){ console.warn('Save failed', e); await new Promise(r=>setTimeout(r,2000*(i+1))); }
+  }
+}
+window.addEventListener('online',()=>{ flushPending(); });
+setTimeout(()=>{ flushPending(); },3000);
 async function teacherLogin(password){
   try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
   catch(e){ return false; }
@@ -1166,7 +1182,7 @@ function finish(){
     name:`${sur} ${nam}`,surname:sur,firstName:nam,
     ts:now,date:new Date(now).toISOString(),
     score,max:100,percent:Math.round(score),tasks:marks,weights:QUESTIONS.map(q=>q.w),rightCount:marks.filter(m=>m===1).length,
-    parts:QUESTIONS.map((q,i)=>q.kind==='step'||q.kind==='expr2'?[partRight(q,state.val[i],0)?1:0,partRight(q,state.val[i],1)?1:0]:null),
+    parts:QUESTIONS.map((q,i)=>q.kind==='step'||q.kind==='expr2'?(partRight(q,state.val[i],0)?'1':'0')+(partRight(q,state.val[i],1)?'1':'0'):''),
     qtext:QUESTIONS.map(qText),
     answers:QUESTIONS.map((q,i)=>answerText(q,state.val[i])),
     correct:QUESTIONS.map(correctText),
