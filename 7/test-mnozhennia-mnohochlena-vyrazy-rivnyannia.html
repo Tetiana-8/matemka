@@ -175,7 +175,6 @@ tr.det td{white-space:normal;text-align:left;background:var(--pr)}
       <div class="row">
         <button class="btn light mini" id="refreshBtn" type="button">Оновити</button>
         <button class="btn light mini" id="csvBtn" type="button">Завантажити CSV</button>
-        <button class="btn light mini" id="fairBtn" type="button">Справедливі бали</button>
         <button class="btn light mini" id="clearBtn" type="button">Очистити</button>
         <span class="small" id="resInfo"></span>
       </div>
@@ -184,7 +183,6 @@ tr.det td{white-space:normal;text-align:left;background:var(--pr)}
         <button class="btn mini" id="confYes" type="button" style="background:var(--bad)">Так, видалити</button>
         <button class="btn light mini" id="confNo" type="button">Скасувати</button>
       </div>
-      <div class="tbl" id="fairBox" hidden></div>
       <div class="tbl" id="tbl"></div>
     </div>
   </div>
@@ -804,34 +802,21 @@ function login(){
 $("pwdBtn").addEventListener("click",login);
 $("pwd").addEventListener("keydown",function(e){if(e.key==="Enter")login();});
 $("refreshBtn").addEventListener("click",load);
-var FAIR_Q=[4,12,13];
-function fairOf(r){var w=r.weights||WEIGHTS,t=r.tasks||[],sum=0,notes=[];
+var PART_Q=[4,12,13];
+function fixRec(r){var w=r.weights||WEIGHTS,t=(r.tasks||[]).slice(),sum=0;
   for(var q=0;q<t.length;q++){var m=t[q]||0;
-    if(m<1&&FAIR_Q.indexOf(q)>=0&&r.answers&&r.correct&&r.answers[q]&&r.correct[q]){
+    if(m<1&&PART_Q.indexOf(q)>=0&&r.answers&&r.correct&&r.answers[q]&&r.correct[q]){
       var A=String(r.answers[q]).split(" | "),C=String(r.correct[q]).split(" | "),n=C.length,ok=0;
       for(var k=0;k<n;k++){var a=(A[k]||"").trim(),c=C[k].trim();
         if(a&&a!=="—"&&(a===c||(!isNaN(parseNum(a))&&parseNum(a)===parseNum(c))))ok++;}
-      if(ok>0&&ok<n){m=ok/n;notes.push("№"+(q+1)+": "+ok+" з "+n);}
-      else if(ok===n)m=1;
-    }
-    sum+=m*(w[q]||0);}
-  return {score:Math.round(sum*10)/10,notes:notes};}
-$("fairBtn").addEventListener("click",async function(){
-  var box=$("fairBox");
-  if(!box.hidden){box.hidden=true;return;}
-  if(!rows.length){try{rows=await loadResults();}catch(e){$("resInfo").textContent="Не вдалося підключитися до бази результатів";return;}}
-  var h='<div class="small" style="margin:6px 0">Справедливі бали: перераховано за відповідями учнів, у базі нічого не змінено. Часткові бали враховано в завданнях 5, 13, 14.</div><table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Було</th><th>Справедливо</th><th>Різниця</th><th>Що перераховано</th></tr></thead><tbody>';
-  rows.slice().reverse().forEach(function(r,k){var f=fairOf(r),d=Math.round((f.score-(r.score||0))*10)/10;
-    h+="<tr><td>"+(k+1)+'</td><td class="nm2" style="text-align:left"></td><td>'+pts(r.score||0)+"</td><td><b>"+pts(f.score)+"</b></td><td"+(d>0?' class="y"':"")+">"+(d>0?"+"+pts(d):"—")+"</td><td style=\"text-align:left\">"+esc(f.notes.join("; "))+"</td></tr>";});
-  box.innerHTML=h+"</tbody></table>";
-  var rr=rows.slice().reverse();
-  box.querySelectorAll("td.nm2").forEach(function(td,k){td.textContent=rr[k].name||((rr[k].surname||"")+" "+(rr[k].firstName||""));});
-  box.hidden=false;
-});
+      m=ok/n;}
+    t[q]=m;sum+=m*(w[q]||0);}
+  if(!t.length)return r;
+  return Object.assign({},r,{tasks:t,score:Math.round(sum*10)/10});}
 function mmss(s){s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2);}
 async function load(){
   var info=$("resInfo");info.textContent="Завантаження…";
-  try{rows=await loadResults();}catch(e){info.textContent="Не вдалося підключитися до бази результатів";$("tbl").innerHTML="";return;}
+  try{rows=(await loadResults()).map(fixRec);}catch(e){info.textContent="Не вдалося підключитися до бази результатів";$("tbl").innerHTML="";return;}
   info.textContent="Усього записів: "+rows.length;
   var maxN=rows.reduce(function(m,r){return Math.max(m,(r.tasks||[]).length);},0)||TOTAL;
   var h="<table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>";
