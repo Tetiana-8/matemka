@@ -558,26 +558,26 @@ function gYN(R){ // 16. Так / Ні
 }
 
 const GENS=[
- {k:'Графік → вид функції',fn:gG1},
- {k:'Графік → формула',fn:gG2},
- {k:'Формула → вид',fn:gProp},
- {k:'Формула → вид',fn:gInv},
- {k:'Відповідність: графік і формула',fn:gMatchB},
- {k:'Графік → функція (степеневі)',fn:gRec(FAMS)},
- {k:'Відповідність: вершина параболи',fn:gMatchV},
- {k:'Парність',fn:gParity},
- {k:'Графік → формула',fn:gGF(['NE','NO'])},
- {k:'Графік → формула',fn:gGF(['ZE','ZO'])},
- {k:'Графік → формула',fn:gGF(['RE','RO'])},
- {k:'Відповідність',fn:gMatchF(['NE','NO','ZE','ZO'])},
- {k:'Відповідність',fn:gMatchF(['NE','NO','RE','RO'])},
- {k:'Відповідність',fn:gMatchF(['ZE','ZO','RE','RO'])},
- {k:'Відповідність: вид функції',fn:gMatchT},
- {k:'Парність за графіком',fn:gParG},
- {k:'Область визначення',fn:gDomain},
- {k:'Область значень',fn:gRange},
- {k:'Формула → графік',fn:gG8},
- {k:'Так чи ні',fn:gYN}
+ {w:4,k:'Графік → вид функції',fn:gG1},
+ {w:5,k:'Графік → формула',fn:gG2},
+ {w:4,k:'Формула → вид',fn:gProp},
+ {w:4,k:'Формула → вид',fn:gInv},
+ {w:7,k:'Відповідність: графік і формула',fn:gMatchB},
+ {w:5,k:'Графік → функція (степеневі)',fn:gRec(FAMS)},
+ {w:7,k:'Відповідність: вершина параболи',fn:gMatchV},
+ {w:4,k:'Парність',fn:gParity},
+ {w:4,k:'Графік → формула',fn:gGF(['NE','NO'])},
+ {w:4,k:'Графік → формула',fn:gGF(['ZE','ZO'])},
+ {w:4,k:'Графік → формула',fn:gGF(['RE','RO'])},
+ {w:6,k:'Відповідність',fn:gMatchF(['NE','NO','ZE','ZO'])},
+ {w:6,k:'Відповідність',fn:gMatchF(['NE','NO','RE','RO'])},
+ {w:6,k:'Відповідність',fn:gMatchF(['ZE','ZO','RE','RO'])},
+ {w:6,k:'Відповідність: вид функції',fn:gMatchT},
+ {w:4,k:'Парність за графіком',fn:gParG},
+ {w:4,k:'Область визначення',fn:gDomain},
+ {w:4,k:'Область значень',fn:gRange},
+ {w:6,k:'Формула → графік',fn:gG8},
+ {w:6,k:'Так чи ні',fn:gYN}
 ];
 function sameFn(a,b){
   const xs=[-4.3,-2.7,-1.6,-0.8,0.7,1.3,2.2,3.9,6.1];let n=0;
@@ -615,7 +615,7 @@ function validTask(t){
 function genTest(seed){
   const R=mkR(seed); const out=[];
   GENS.forEach((g,i)=>{let t=null;for(let tr=0;tr<60;tr++){t=g.fn(R);if(validTask(t))break;}
-    t.w=1;t.kind=g.k;t.id=i;out.push(t);});
+    t.w=g.w;t.kind=g.k;t.id=i;out.push(t);});
   return out;
 }
 function isRight(t,a){
@@ -687,10 +687,21 @@ function fb(){
 }
 const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
 
+const PEND='pending_'+COLLECTION;
+function pendGet(){try{return JSON.parse(localStorage.getItem(PEND)||'[]');}catch(e){return [];}}
+function pendSet(a){try{if(a.length)localStorage.setItem(PEND,JSON.stringify(a));else localStorage.removeItem(PEND);}catch(e){}}
+async function writeOnce(rec){ const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
 async function saveResult(rec){
-  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
-  catch(e){ console.warn('Save failed', e); }
+  rec=JSON.parse(JSON.stringify(rec));
+  pendSet(pendGet().filter(r=>r.id!==rec.id).concat([rec]));
+  for(let i=0;i<4;i++){
+    try{ await writeOnce(rec); pendSet(pendGet().filter(r=>r.id!==rec.id)); return true; }
+    catch(e){ console.warn('Save failed',e); await new Promise(r=>setTimeout(r,1500*(i+1))); }
+  }
+  return false;
 }
+function flushPending(){ pendGet().forEach(r=>{ writeOnce(r).then(()=>pendSet(pendGet().filter(x=>x.id!==r.id))).catch(()=>{}); }); }
+window.addEventListener('online',flushPending);
 async function teacherLogin(password){
   try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
   catch(e){ return false; }
@@ -709,7 +720,7 @@ async function clearResults(){
   const snap = await fs.getDocs(coll(db, fs));
   await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
 }
-fb().catch(() => {});
+fb().then(flushPending).catch(() => {});
 
 /* ========================= СТАН ========================= */
 const app=document.getElementById('app');
@@ -858,13 +869,13 @@ function check(){
   back();
   S.done=true;
   const marks=S.tasks.map((t,k)=>isRight(t,S.ans[k])?1:0);
-  const score=marks.reduce((s,m)=>s+m,0);
+  const score=marks.reduce((s,m,k)=>s+m*S.tasks[k].w,0);
   S.res={tasks:marks,score,leaves:W.leaves};
   saveResult({
     id:now+'_'+Math.random().toString(36).slice(2,8),
     name:S.surname.trim()+' '+S.first.trim(),surname:S.surname.trim(),firstName:S.first.trim(),
     ts:now,date:new Date(now).toISOString(),
-    score,max:S.tasks.length,tasks:marks,
+    score,max:100,percent:Math.round(score),tasks:marks,weights:S.tasks.map(t=>t.w),rightCount:marks.reduce((a,b)=>a+b,0),
     qtext:S.tasks.map(t=>plain(t.q)+(t.type==='yn'?': '+t.items.map(it=>plain(it.t)).join('; '):'')+(t.type==='match'&&t.legend?' ('+t.legend.map(plain).join('; ')+')':'')+(t.desc?' ['+t.desc+']':'')),
     answers:S.tasks.map((t,k)=>ansText(t,S.ans[k])),
     correct:S.tasks.map(t=>correctText(t)),
@@ -876,9 +887,9 @@ function check(){
 function renderResult(){
   const r=S.res;
   app.innerHTML=header()+'<div class="card scroll center"><div style="font-weight:800;font-size:20px;margin-bottom:6px">'+esc(S.surname.trim()+' '+S.first.trim())+'</div>'+
-    '<div class="big">'+r.score+' з '+S.tasks.length+'</div>'+
+    '<div class="big">'+r.score+' з 100 балів</div><div class="big" style="font-size:clamp(26px,6vw,38px);margin-top:4px">'+r.score+' %</div>'+
     (r.leaves>=3?'<div class="soft">💡 <b>Ви забагато виходили з вікна тесту</b> (разів: '+r.leaves+'), тому є підозра, що завдання виконано недоброчесно.<br>Недоброчесне виконання не дає знань, а лише створює ілюзію гарної оцінки.</div>':'')+
-    '<div style="margin:12px 0 4px;font-size:14px;color:#6b5a80">Натисніть на номер, щоб переглянути завдання</div>'+cellsHtml('res')+
+    '<div style="border:2px dashed var(--brand);border-radius:14px;padding:10px 12px;margin:12px 0;background:var(--brandLight);font-weight:700">Зробіть скріншот результату та надішліть його вчителю</div>'+'<div style="margin:8px 0 4px;font-size:14px;color:#6b5a80">Натисніть на номер, щоб переглянути завдання</div>'+cellsHtml('res')+
     '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px"><button class="btn light" id="err" type="button">Дивитись завдання</button><button class="btn" id="again" type="button">Пройти ще раз</button></div></div>'+FOOT;
   document.getElementById('again').onclick=()=>{begin();};
   document.getElementById('err').onclick=()=>{const f=S.res.tasks.findIndex(m=>!m);S.ri=f<0?0:f;S.screen='errors';render();};
@@ -895,7 +906,7 @@ function renderErrors(){
   }else{
     body=t.items.map((it,j)=>{const g=a[j]===it.ok;return '<div class="yn" style="border-color:'+(g?'#16a34a':'#dc2626')+'"><div class="t">'+M(it.t)+'</div><div class="b"><b>'+(a[j]===true?'Так':a[j]===false?'Ні':'—')+'</b>'+(g?'':' <span style="color:#16a34a;font-weight:800">→ '+(it.ok?'Так':'Ні')+'</span>')+'</div></div>';}).join('');
   }
-  app.innerHTML=header()+cellsHtml('err')+'<div class="card scroll"><div class="qhead"><span>Завдання '+(k+1)+' з '+S.tasks.length+' '+(ok?'✓':'✗')+'</span><span class="badge">'+esc(t.kind)+'</span></div><div class="q">'+M(t.q)+'</div>'+(t.fig?'<div class="fig">'+t.fig+'</div>':'')+body+'<div class="exp">'+M(t.exp)+'</div></div>'+
+  app.innerHTML=header()+cellsHtml('err')+'<div class="card scroll"><div class="qhead"><span>Завдання '+(k+1)+' з '+S.tasks.length+' '+(ok?'✓':'✗')+'</span><span class="badge">'+esc(t.kind)+' · '+t.w+' б.</span></div><div class="q">'+M(t.q)+'</div>'+(t.fig?'<div class="fig">'+t.fig+'</div>':'')+body+'<div class="exp">'+M(t.exp)+'</div></div>'+
     '<div class="nav"><button class="btn light" id="toRes" type="button">← До результату</button><div style="display:flex;gap:8px"><button class="btn light" id="p" type="button"'+(k===0?' disabled':'')+'>←</button><button class="btn" id="n" type="button"'+(k===S.tasks.length-1?' disabled':'')+'>→</button></div></div>'+FOOT;
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{S.ri=+b.dataset.go;renderErrors();});
   document.getElementById('toRes').onclick=()=>{S.screen='result';render();};
@@ -937,7 +948,7 @@ function drawTable(){
   jrRows.forEach((r,ri)=>{
     const d=new Date(r.ts||r.date||0); const ds=isNaN(d)?'—':d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
     const fast=r.durationSec!=null&&r.durationSec<120, many=(r.leaves||0)>=3;
-    h+='<tr><td>'+(ri+1)+'</td><td class="nm" data-d="'+ri+'">'+esc(r.name||'—')+'</td><td>'+ds+'</td><td class="'+(fast?'red':'')+'" title="'+(fast?'Дуже швидко':'')+'">'+(r.durationSec!=null?fmtDur(r.durationSec):'—')+'</td><td class="'+(many?'red':'')+'" title="'+(r.awaySec!=null?'Поза вікном: '+r.awaySec+' с':'')+'">'+(r.leaves!=null?r.leaves:'—')+'</td><td><b>'+(r.score!=null?String(r.score).replace('.',','):'—')+'</b></td>';
+    h+='<tr><td>'+(ri+1)+'</td><td class="nm" data-d="'+ri+'">'+esc(r.name||'—')+'</td><td>'+ds+'</td><td class="'+(fast?'red':'')+'" title="'+(fast?'Дуже швидко':'')+'">'+(r.durationSec!=null?fmtDur(r.durationSec):'—')+'</td><td class="'+(many?'red':'')+'" title="'+(r.awaySec!=null?'Поза вікном: '+r.awaySec+' с':'')+'">'+(r.leaves!=null?r.leaves+(r.leaves>0&&r.awaySec!=null?'<br><span style="font-size:11px;font-weight:400">'+fmtDur(r.awaySec)+' хв:с</span>':''):'—')+'</td><td><b>'+(r.score!=null?String(r.score).replace('.',','):'—')+'</b></td>';
     for(let i=0;i<N;i++){const m=(r.tasks||[])[i];h+=m===1?'<td class="o">✓</td>':m===0.5?'<td style="color:#f59e0b;font-weight:800">½</td>':m===0?'<td class="x">✗</td>':'<td>—</td>';}
     h+='</tr><tr class="det" id="det'+ri+'" style="display:none"><td colspan="'+(6+N)+'">'+detHtml(r)+'</td></tr>';
   });
@@ -956,7 +967,7 @@ function drawTable(){
 }
 function detHtml(r){
   const q=r.qtext||[],a=r.answers||[],c=r.correct||[],t=r.tasks||[];
-  const ex=(r.leaves!=null?'<div style="margin-bottom:4px"><b>Виходів: '+r.leaves+'</b>, поза вікном: '+(r.awaySec||0)+' с</div>':'');
+  const ex=(r.leaves!=null?'<div style="margin-bottom:4px"><b>Виходів: '+r.leaves+'</b>, поза вікном: '+fmtDur(r.awaySec||0)+' (хв:с), усього '+(r.awaySec||0)+' с</div>':'');
   return ex+t.map((m,i)=>'<div><b>'+(i+1)+'.</b> '+esc(q[i]||'')+' — відповідь: <b style="color:'+(m?'#16a34a':'#dc2626')+'">'+esc(a[i]===''?'—':(a[i]||'—'))+'</b>'+(m?'':' · правильно: <b>'+esc(c[i]||'')+'</b>')+'</div>').join('');
 }
 function csv(){
