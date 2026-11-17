@@ -16,16 +16,33 @@ var SL4=[
 function monSlots4(pt){return SL4.filter(function(s){return pt!==2||s.c===1;});}
 function monMax4(pt){return monSlots4(pt).length*4;}
 function allTopicIds(){return topicsOf(MK.s,MK.g).map(function(t){return t[0];});}
+function gradeIds(cfg){return topicsOf(cfg.s||MK.s,cfg.g||MK.g).map(function(t){return t[0];});}
 /* структурний прогон: які саме (шаблон, варіант) увійдуть у завдання — залежить лише від коду зрізу */
-function pick4(pool,spec,n,id){
-  var by={};pool.forEach(function(g){(by[g.t]=by[g.t]||[]).push(g);});
-  var tops=spec.sh(Object.keys(by).sort());tops.forEach(function(t){by[t]=spec.sh(by[t].sort(function(a,b){return a.id<b.id?-1:1;}));by[t]=by[t].filter(function(g){return g.must;}).concat(by[t].filter(function(g){return !g.must;}));});
-  var order=[],i=0;while(true){var moved=false;tops.forEach(function(t){if(by[t][i]){order.push(by[t][i]);moved=true;}});if(!moved)break;i++;}
-  var out=[],seen={};
-  for(var v=0;v<4&&out.length<n;v++){
+function qcl(s){return String(s).replace(/<[^>]+>/g,"").replace(/\[\[([^|\]]*)\|([^\]]*)\]\]/g,"$1/$2").replace(/\s+/g," ").trim();}
+/* чи видає правильна відповідь одного запитання текст іншого (або навпаки) — перевіряємо на кількох наборах чисел */
+function leakPair(ga,gb){
+  function hit(o1,o2){if(!o1.o)return false;var a=qcl(o1.o[o1.a||0]);return a.length>=3&&qcl(o2.q).indexOf(a)>=0;}
+  for(var i=0;i<4;i++)for(var j=0;j<4;j++){var oa=ga.f(mkR("lk|"+ga.id+"|"+i)),ob=gb.f(mkR("lk|"+gb.id+"|"+j));if(hit(oa,ob)||hit(ob,oa))return true;}
+  return false;}
+/* Кожен шаблон входить у завдання не більше одного разу (інакше те саме запитання повторювалося б з іншими числами або літерами).
+   Якщо в обраних темах шаблонів не вистачає — добираємо з інших тем цього ж класу (pool2). */
+function pick4(pool,spec,n,id,pool2){
+  function order0(pl){var by={};pl.forEach(function(g){(by[g.t]=by[g.t]||[]).push(g);});
+    var tops=spec.sh(Object.keys(by).sort());tops.forEach(function(t){by[t]=spec.sh(by[t].sort(function(a,b){return a.id<b.id?-1:1;}));by[t]=by[t].filter(function(g){return g.must;}).concat(by[t].filter(function(g){return !g.must;}));});
+    var order=[],i=0;while(true){var moved=false;tops.forEach(function(t){if(by[t][i]){order.push(by[t][i]);moved=true;}});if(!moved)break;i++;}
+    return order;}
+  var out=[],used={};
+  function fill(order,strict){
     for(var j=0;j<order.length&&out.length<n;j++){
-      var g=order[j],o=g.f(mkR("struct|"+id+"|"+g.id+"|"+v)),q=String(o.q);
-      if(seen[q])continue;seen[q]=1;out.push({g:g,v:v});}}
+      var g=order[j];if(used[g.id])continue;
+      if(strict&&out.some(function(x){return leakPair(x.g,g);}))continue;
+      used[g.id]=1;out.push({g:g,v:0});}}
+  var o1=order0(pool);fill(o1,true);fill(o1,false);
+  if(out.length<n&&pool2){var have={};pool.forEach(function(g){have[g.id]=1;});
+    var o2=order0(pool2.filter(function(g){return !have[g.id];}));fill(o2,true);fill(o2,false);}
+  /* крайній випадок: у всьому класі замало шаблонів — повторюємо шаблон з іншими числами (як було раніше), щоб не втратити бали */
+  if(out.length<n){var all=o1.concat(pool2||[]),seenQ={};out.forEach(function(x){seenQ[String(x.g.f(mkR("struct|"+id+"|"+x.g.id+"|0")).q)]=1;});
+    for(var v=1;v<4&&out.length<n;v++)for(var j=0;j<all.length&&out.length<n;j++){var g=all[j],q=String(g.f(mkR("struct|"+id+"|"+g.id+"|"+v)).q);if(seenQ[q])continue;seenQ[q]=1;out.push({g:g,v:v});}}
   return out;}
 function realPart(g,v,key,letter){
   var R=mkR(key+"|"+g.id+"|"+v),o=g.f(R),q=letter+" "+o.q;
@@ -55,7 +72,7 @@ function rubFor(sl,parts,LET){
 function slotPool(sl,cfg){
   var tp=(sl.an||sl.c===1)?cfg.tp:cfg.tk;
   var p=poolOf({tp:tp},sl.L);
-  if(!p.length)p=poolOf({tp:allTopicIds()},sl.L);
+  if(!p.length)p=poolOf({tp:gradeIds(cfg)},sl.L);
   return p;}
 function buildMon4(cfg,name){
   var pt=cfg.pt|0,out=[],key="mon|"+name+"|"+cfg.id+"|"+pt,keyA="mon|"+name+"|"+cfg.id+"|anchor",LET=["(а)","(б)","(в)","(г)"];
@@ -77,7 +94,7 @@ function buildMon4(cfg,name){
         t.rubm={key:"Що очікується: "+base+" Додатково: запропоновано спосіб перевірки (інший спосіб, оцінка, підстановка)."+(t.right?" Помилка, яку має назвати учень: «"+plain(t.right)+"».":"")};
       }
     }else{
-      var pk=pick4(pool,spec,sl.n,cfg.id);
+      var pk=pick4(pool,spec,sl.n,cfg.id,poolOf({tp:gradeIds(cfg)},sl.L));
       var parts=pk.map(function(x,i){return realPart(x.g,x.v,sk,LET[i]);});
       var sh=pk[0]?pk[0].g.t:"";
       t={l:sl.L,t:sh,k:"mix",q:sl.q,pts:4,c:sl.c,aut:sl.ap,ap:sl.ap,opn:4-sl.ap,parts:parts,open:"",openLb:"",rub:"",right:""};
@@ -89,4 +106,4 @@ function buildMon4(cfg,name){
     t.blk=blk;out.push(t);});
   return out;}
 function struct4(tpA,tpB,pt){var cfg={tp:tpA,tk:tpB},res=[];
-  monSlots4(pt).forEach(function(sl){if(sl.rb)return;var pool=slotPool(sl,cfg),got=pick4(pool,mkR("w|"+sl.L),sl.n,"w").length;res.push([sl.L,got,sl.n]);});return res;}
+  monSlots4(pt).forEach(function(sl){if(sl.rb)return;var pool=slotPool(sl,cfg),got=pick4(pool,mkR("w|"+sl.L),sl.n,"w",poolOf({tp:gradeIds(cfg)},sl.L)).length;res.push([sl.L,got,sl.n]);});return res;}
