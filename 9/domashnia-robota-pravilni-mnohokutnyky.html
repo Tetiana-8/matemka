@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Домашня робота. Правильні многокутники (9 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#13203f; --muted:#5b6b8f; --acc:#1d4ed8; --acc2:#4f7cf0; --accL:#dbe5ff;
+  --soft:#ebf0ff; --soft2:#f6f8ff; --line:#c9d6f5;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b; --badln:#efa3a8;
+  --warnbg:#fff6e5; --warntx:#8a5a00; --warnln:#f3d9a4;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#ebf0ff 0%,#dbe5ff 45%,#c7d6ff 100%) fixed;min-height:100vh;line-height:1.45}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 70px}
+i,.m{font-family:'Times New Roman',Times,serif;font-style:italic}
+sup,sub{font-size:.7em;line-height:0}
+button,select,input{font-family:inherit}
+
+.hero{background:var(--acc);color:#fff;border-radius:20px;padding:20px 22px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(29,78,216,.25)}
+.pill{display:inline-block;background:#ffb938;color:#4a3000;font-weight:900;font-size:13px;letter-spacing:.06em;padding:6px 14px;border-radius:999px}
+.hero h1{margin:10px 0 4px;font-size:clamp(24px,5vw,34px);line-height:1.15;font-weight:900;padding-right:80px}
+.hero p{margin:0;font-size:16px;opacity:.95;padding-right:80px}
+.hero svg{position:absolute;right:14px;top:14px;width:70px;height:64px;opacity:.9}
+
+.who{margin-top:16px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px}
+.who h2{margin:0 0 8px;font-size:19px}
+.who .row{display:flex;gap:10px;flex-wrap:wrap}
+.who label{flex:1 1 200px;font-weight:700;font-size:14px;color:var(--muted)}
+.who input{display:block;width:100%;margin-top:3px;padding:10px 12px;font-size:17px;border:2px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
+.who input.err{border-color:var(--bad);background:var(--badbg)}
+
+.rules{margin-top:12px;border:2px dashed var(--acc2);border-radius:16px;background:#fff;padding:12px 16px;font-size:17px;font-weight:700}
+.rules ul{margin:6px 0 0;padding-left:20px}.rules li{margin:3px 0}
+
+.card{margin-top:14px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px}
+.card h2{margin:0 0 6px;font-size:20px}
+.card p{margin:6px 0}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 2px;font-size:.95em}.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}.fr>span:last-child{padding:0 3px}
+.formulas{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:center;background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0;font-size:20px}
+.tbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:18px}
+.tbl th,.tbl td{border:2px solid var(--line);padding:8px 10px;text-align:center}
+.tbl th{background:var(--soft)}
+.tbl td:first-child,.tbl th:first-child{text-align:left;font-weight:700}
+.tblw{overflow-x:auto}
+.plan{margin-top:10px;background:var(--warnbg);border:2px solid var(--warnln);border-radius:14px;padding:10px 14px;font-size:15.5px;color:#5c3d00}
+.plan ol{margin:4px 0 0;padding-left:22px}
+
+.ex{margin-top:14px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;scroll-margin-top:12px}
+.exh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.exn{background:var(--accL);color:var(--acc);font-weight:900;padding:4px 12px;border-radius:10px;font-size:18px}
+.ext{font-size:17px;margin:0 0 8px;font-weight:600}
+.part{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.pt{font-size:17px;font-weight:800;margin-bottom:2px}
+.pt .k{display:inline-block;background:var(--acc);color:#fff;border-radius:8px;padding:1px 9px;margin-right:6px;font-size:15px}
+.note{font-size:15px;color:var(--muted);margin:2px 0 6px}
+.fig{margin:8px 0 4px;text-align:center}
+.gf{width:100%;max-width:340px;height:auto;display:block;margin:0 auto}
+.gf text{font-family:'Nunito',Arial,sans-serif;font-size:14px;font-weight:700;fill:#13203f;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.gf .it{font-family:'Times New Roman',Times,serif;font-style:italic;font-weight:400;font-size:16px}
+.f{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:5px 0;padding:6px 8px;border-radius:10px;border:2px solid transparent;font-size:17px}
+.f input[type=text]{width:110px;padding:8px;font-size:17px;text-align:center;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;font-family:'Times New Roman',Times,serif}
+.f select{padding:8px;font-size:16px;border:2px solid var(--line);border-radius:9px;color:var(--ink);background:#fff;max-width:100%}
+.f input:focus,.f select:focus,.who input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.f.empty{border-color:var(--warnln);background:var(--warnbg)}
+
+.btn{background:var(--acc);color:#fff;border:0;border-radius:14px;font-weight:900;font-size:18px;padding:14px 22px;cursor:pointer;touch-action:manipulation;min-height:48px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec2{background:#fff;color:var(--acc);border:2px solid var(--acc)}
+.subw{margin-top:18px}
+.msg{margin-top:10px;border-radius:12px;padding:10px 14px;font-size:15.5px}
+.msg.warn{background:var(--warnbg);border:2px solid var(--warnln);color:var(--warntx)}
+.msg.err{background:var(--badbg);border:2px solid var(--badln);color:var(--badtx)}
+.done{margin-top:12px;border-radius:16px;background:var(--okbg);border:2px solid var(--okln);padding:14px 16px}
+.done .big{font-size:26px;font-weight:900;color:var(--oktx)}
+.done .sm{font-size:15px;color:var(--oktx);margin-top:4px}
+.red{color:var(--bad);font-weight:800}.dim{font-weight:700;color:var(--muted)}
+.auth{text-align:center;font-size:10px;color:var(--muted);margin-top:22px}
+
+#keyb{position:fixed;right:8px;top:6px;z-index:50;border:0;background:rgba(255,255,255,.55);border-radius:10px;font-size:15px;padding:4px 8px;opacity:.45;cursor:pointer}
+#keyb:hover{opacity:1}
+.ov{position:fixed;inset:0;background:rgba(19,32,63,.55);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+.ov.on{display:flex}
+.box{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:1000px}
+.box.sm{max-width:340px;margin-top:80px}
+.box h3{margin:0 0 10px}
+.box input[type=password]{width:100%;padding:10px;font-size:17px;border:2px solid var(--line);border-radius:10px}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row2 .btn{font-size:15px;padding:9px 14px;min-height:40px}
+table.j{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}
+table.j th,table.j td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+table.j th{background:var(--soft);position:sticky;top:0}
+table.j tr.nm{cursor:pointer}table.j tr.nm:hover{background:var(--soft2)}
+.jd{background:var(--soft2);padding:8px 12px}
+.jd table{width:100%;border-collapse:collapse;font-size:13.5px}
+.jd td{padding:3px 6px;border-bottom:1px dotted var(--line)}
+.jd .g{color:var(--oktx);font-weight:800}.jd .r{color:var(--badtx);font-weight:800}
+.dbox{margin:8px 0 4px;border:2px solid var(--line);border-radius:14px;background:var(--soft2);padding:10px 12px}
+.dbox .dh{font-weight:900;font-size:16px;color:var(--acc)}
+.dview{margin:6px 0;background:#fff;border:2px dashed var(--line);border-radius:12px;min-height:170px;display:flex;align-items:center;justify-content:center;padding:4px}
+.dview.on{border-style:solid}
+.dview .ph{color:var(--muted);font-size:15px;text-align:center;padding:14px}
+.dcap{font-size:16px;min-height:46px;margin:4px 0 8px}
+.dcap b{color:var(--acc)}
+.drow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drow .btn{font-size:16px;padding:10px 16px;min-height:44px}
+.drow .btn.done{background:var(--ok);opacity:1}
+.gf text.hl{fill:#b3202a}
+@media(max-width:520px){
+  .hero{padding:16px}.hero svg{width:54px;height:48px}.hero h1,.hero p{padding-right:56px}
+  .f input[type=text]{width:92px}
+  .tbl{font-size:15px}.tbl th,.tbl td{padding:6px 4px}
+  .formulas{font-size:17px}
+}
+</style>
+</head>
+<body>
+<button id="keyb" title="Журнал">🔑</button>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="pill">ГЕОМЕТРІЯ · 9 КЛАС</span>
+    <h1>Домашня робота</h1>
+    <p>Правильні многокутники: радіуси описаного й вписаного кіл</p>
+    <svg viewBox="0 0 84 76" fill="none"><circle cx="42" cy="38" r="34" stroke="#fff" stroke-opacity=".45" stroke-width="2"/><polygon points="76,38 59,67.4 25,67.4 8,38 25,8.6 59,8.6" stroke="#ffb938" stroke-width="3" stroke-linejoin="round"/><circle cx="42" cy="38" r="29.4" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></svg>
+  </div>
+
+  <div class="who" id="who">
+    <h2>Хто виконує</h2>
+    <div class="row">
+      <label>Прізвище<input id="sur" type="text" autocomplete="family-name" maxlength="40"></label>
+      <label>Ім'я<input id="nam" type="text" autocomplete="given-name" maxlength="40"></label>
+    </div>
+  </div>
+
+  <div class="card" id="theory">
+    <div class="formulas">
+      <span><i>R<sub>n</sub></i> = <span class="fr"><span><i>a<sub>n</sub></i></span><span>2 sin <span class="fr"><span>180°</span><span><i>n</i></span></span></span></span></span>
+      <span><i>r<sub>n</sub></i> = <span class="fr"><span><i>a<sub>n</sub></i></span><span>2 tg <span class="fr"><span>180°</span><span><i>n</i></span></span></span></span></span>
+    </div>
+    <div class="tblw"><table class="tbl">
+      <tr><th>Кількість сторін правильного <i>n</i>-кутника</th><th><i>n</i> = 3</th><th><i>n</i> = 4</th><th><i>n</i> = 6</th></tr>
+      <tr><td>Радіус описаного кола</td>
+        <td><i>R</i><sub>3</sub> = <span class="fr"><span><i>a</i>√3</span><span>3</span></span></td>
+        <td><i>R</i><sub>4</sub> = <span class="fr"><span><i>a</i>√2</span><span>2</span></span></td>
+        <td><i>R</i><sub>6</sub> = <i>a</i></td></tr>
+      <tr><td>Радіус вписаного кола</td>
+        <td><i>r</i><sub>3</sub> = <span class="fr"><span><i>a</i>√3</span><span>6</span></span></td>
+        <td><i>r</i><sub>4</sub> = <span class="fr"><span><i>a</i></span><span>2</span></span></td>
+        <td><i>r</i><sub>6</sub> = <span class="fr"><span><i>a</i>√3</span><span>2</span></span></td></tr>
+    </table></div>
+  </div>
+
+  <div class="rules">
+    Розв'яжіть ці задачі та зафіксуйте їх у зошиті, бо їх потрібно вміти розв'язувати. Якщо ви якісно це зробите, то в кінці можна буде натиснути «Здати роботу».
+  </div>
+
+  <div id="app"></div>
+  <div class="auth">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+
+<div class="ov" id="ovLogin"><div class="box sm">
+  <h3>Пароль</h3>
+  <input type="password" id="pw" autocomplete="current-password">
+  <div id="pwErr" class="red" style="margin-top:6px;display:none">Неправильний пароль</div>
+  <div class="row2"><button class="btn" id="pwOk">Увійти</button><button class="btn sec2" id="pwNo">Скасувати</button></div>
+</div></div>
+<div class="ov" id="ovJ"><div class="box">
+  <h3>Журнал: Домашня робота. Правильні многокутники (9 клас)</h3>
+  <div class="row2" style="margin-top:0">
+    <button class="btn" id="jRef">Оновити</button><button class="btn" id="jCsv">Завантажити CSV</button>
+    <button class="btn sec2" id="jClr">Очистити</button><button class="btn sec2" id="jClose">Закрити</button>
+  </div>
+  <div id="jMsg"></div>
+  <div id="jBody" style="overflow:auto"></div>
+</div></div>
+
+<script>
+(function(){ "use strict";
+
+/* ============ Firebase (дослівно за інструкцією; змінено лише COLLECTION і TEST_NAME) ============ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain: "math-5-892a5.firebaseapp.com",
+  projectId: "math-5-892a5",
+  storageBucket: "math-5-892a5.firebasestorage.app",
+  messagingSenderId: "163114803328",
+  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId: "G-E06VKZ2GP5"
+};
+const APP_ID = 'default-app-id';
+const COLLECTION = 'results_dz_pravylni_mnohokutnyky_9';
+const TEACHER_EMAIL = 'vchytel@matemka.invalid';
+const FBV = '10.12.2';
+const TEST_NAME = 'Домашня робота. Правильні многокутники (9 клас)';
+
+let fbPromise = null;
+function fb(){
+  if(!fbPromise){
+    fbPromise = (async()=>{
+      const [appM, authM, fs] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      const auth = authM.getAuth(app);
+      await authM.signInAnonymously(auth);
+      return { db: fs.getFirestore(app), fs, auth, authM };
+    })();
+    fbPromise.catch(() => { fbPromise = null; });
+  }
+  return fbPromise;
+}
+const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+
+// Повертає true/false: учень має знати, що відповіді дійшли.
+async function saveDoc(rec){
+  try{ rec = JSON.parse(JSON.stringify(rec)); }catch(e){}
+  if(window.__mockSave) return window.__mockSave('r', rec);
+  for(let a=0;a<3;a++){
+    try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); return true; }
+    catch(e){ console.warn('Save failed', e); await new Promise(r=>setTimeout(r,1200*(a+1))); }
+  }
+  return false;
+}
+async function teacherLogin(password){
+  try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
+  catch(e){ return false; }
+}
+async function teacherLogout(){
+  try { const { auth, authM } = await fb(); await authM.signOut(auth); await authM.signInAnonymously(auth); } catch(e){}
+}
+async function loadResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+async function clearResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+}
+fb().catch(() => {});
+
+/* ============ Рисунки покроково (SVG, будуються кодом) ============ */
+const DEG=Math.PI/180;
+const P=(cx,cy,r,deg)=>[cx+r*Math.cos(deg*DEG), cy+r*Math.sin(deg*DEG)];
+const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+const polyV=(cx,cy,r,n,start)=>Array.from({length:n},(_,k)=>P(cx,cy,r,start+k*360/n));
+const C_POLY='#1d4ed8', C_OUT='#e08a00', C_IN='#0f9d8a', C_RED='#e0464e';
+const line=(a,b,c,w,d)=>'<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+c+'" stroke-width="'+(w||2)+'"'+(d?' stroke-dasharray="'+d+'"':'')+' stroke-linecap="round"/>';
+const circ=(c,r,col,w)=>'<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="'+(w||2)+'"/>';
+const dot=p=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.2" fill="#13203f"/>';
+const tx=(x,y,s,anchor,hl)=>'<text'+(hl?' class="hl"':'')+' x="'+x+'" y="'+y+'" text-anchor="'+(anchor||'middle')+'">'+s+'</text>';
+const it=s=>'<tspan class="it">'+s+'</tspan>';
+const SV=(h,body)=>'<svg class="gf" viewBox="0 0 300 '+h+'" xmlns="http://www.w3.org/2000/svg" role="img">'+body+'</svg>';
+const sc=(hl,norm)=>hl?C_RED:norm, sw=(hl,w)=>hl?w+0.8:w;
+const polyL=(V,hl,fill)=>'<polygon points="'+pts(V)+'" fill="'+(fill||'rgba(29,78,216,.06)')+'" stroke="'+sc(hl,C_POLY)+'" stroke-width="'+sw(hl,2.4)+'" stroke-linejoin="round"/>';
+// малюнок k = перші k шарів; найновіший шар червоним
+const stageFig=(h,layers)=>k=>SV(h,layers.slice(0,k).map((L,i)=>L(i===k-1)).join(''));
+
+// правильний трикутник (завдання 1 і 2)
+const TC=[150,128], TV=polyV(150,128,105,3,-90), TD=[150,180.5];
+const triL=hl=>polyL(TV,hl,'rgba(29,78,216,.07)');
+const heightL=lab=>hl=>line(TV[0],TD,sc(hl,C_POLY),sw(hl,2.4))+'<polyline points="156,174.5 156,180.5 150,180.5" fill="none" stroke="#13203f" stroke-width="1.5"/>'+tx(144,62,it('h')+' = '+lab+' см','end',hl);
+const FIG1=stageFig(246,[
+  triL, heightL(24),
+  hl=>circ(TC,105,sc(hl,C_OUT),sw(hl,2))+dot(TC)+tx(142,125,it('O'),'end'),
+  hl=>line(TC,TV[1],C_RED,3.2)+tx(192,142,it('R')+' = ?','start',true)
+]);
+const FIG2=stageFig(206,[
+  triL, heightL(18),
+  hl=>circ(TC,52.5,sc(hl,C_IN),sw(hl,2))+dot(TC)+tx(142,125,it('O'),'end'),
+  hl=>line(TC,TD,C_RED,3.6)+tx(158,160,it('r')+' = ?','start',true)
+]);
+// шестикутник у колі (завдання 3)
+const H3C=[150,122], H3V=polyV(150,122,100,6,0);
+const FIG3=stageFig(244,[
+  hl=>circ(H3C,100,sc(hl,C_OUT),sw(hl,2))+dot(H3C)+tx(142,118,it('O'),'end'),
+  hl=>line(H3C,H3V[0],sc(hl,C_OUT),sw(hl,2.4))+tx(200,140,it('R')+' = 14 см','middle',hl),
+  hl=>polyL(H3V,hl,'rgba(29,78,216,.05)')+H3V.map(dot).join(''),
+  hl=>'<polygon points="'+pts([H3C,H3V[0],H3V[5]])+'" fill="rgba(224,70,78,.13)"/>'+line(H3C,H3V[5],C_OUT,2.4)+line(H3V[5],H3V[0],C_RED,3.6)+tx(238,66,it('a')+' = ?','start',true)
+]);
+// шестикутник навколо кола (завдання 4)
+const H4C=[150,118], H4r=100*Math.cos(30*DEG), H4V=polyV(150,118,100,6,0), H4M=[150,118+H4r];
+const FIG4=stageFig(246,[
+  hl=>circ(H4C,H4r,sc(hl,C_IN),sw(hl,2))+dot(H4C)+tx(142,114,it('O'),'end'),
+  hl=>line(H4C,H4M,sc(hl,C_IN),sw(hl,2.6))+tx(158,172,it('r')+' = 9√3 см','start',hl),
+  hl=>polyL(H4V,hl,'rgba(29,78,216,.05)')+'<polyline points="156,'+(H4M[1]-6)+' 156,'+H4M[1]+' 150,'+H4M[1]+'" fill="none" stroke="#13203f" stroke-width="1.5"/>',
+  hl=>line(H4V[1],H4V[2],C_RED,3.6)+tx(150,H4M[1]+22,it('a')+' = ?','middle',true)
+]);
+// шестикутник навколо кола, квадрат у колі (завдання 5)
+const H5C=[150,124], H5r=100*Math.cos(30*DEG), H5V=polyV(150,124,100,6,0), H5S=polyV(150,124,H5r,4,45);
+const FIG5=stageFig(246,[
+  hl=>circ(H5C,H5r,sc(hl,C_IN),sw(hl,2))+dot(H5C)+tx(142,129,it('O'),'end'),
+  hl=>polyL(H5V,hl,'rgba(29,78,216,.05)')+tx(150,29,'10√3 см','middle',hl),
+  hl=>'<polygon points="'+pts(H5S)+'" fill="rgba(224,70,78,.12)" stroke="'+sc(hl,C_RED)+'" stroke-width="'+sw(hl,2.4)+'" stroke-linejoin="round"/>'+H5S.map(dot).join(''),
+  hl=>line(H5S[2],H5S[3],C_RED,3.8)+tx(150,51,it('x')+' = ?','middle',true)
+]);
+// квадрат у колі, трикутник навколо кола (завдання 6)
+const T6C=[150,130], T6V=polyV(150,130,120,3,-90), T6S=polyV(150,130,60,4,45);
+const FIG6=stageFig(224,[
+  hl=>circ(T6C,60,sc(hl,C_OUT),sw(hl,2))+dot(T6C)+tx(158,135,it('O'),'start'),
+  hl=>'<polygon points="'+pts(T6S)+'" fill="rgba(224,70,78,.12)" stroke="'+sc(hl,C_RED)+'" stroke-width="'+sw(hl,2.4)+'" stroke-linejoin="round"/>'+T6S.map(dot).join('')+tx(150,104,'7√2 см','middle',hl),
+  hl=>polyL(T6V,hl,'rgba(29,78,216,.05)'),
+  hl=>line(T6V[2],T6V[1],C_RED,3.8)+tx(150,208,it('a')+' = ?','middle',true)
+]);
+
+/* ============ Завдання ============ */
+// FR — дріб із горизонтальною рискою
+const FR=(a,b)=>'<span class="fr"><span>'+a+'</span><span>'+b+'</span></span>';
+// N — число; S — вибір зі списку (корені вибираються зі списку)
+const N=(pre,ans,post)=>({t:'num',pre,post:post||'',ans,tol:0.0005});
+const S=(pre,opts,ans)=>({t:'sel',pre,opts,ans});
+const CIRC=['описаним','вписаним'];
+const A='<i>a</i>', Rr='<i>R</i>', rr='<i>r</i>';
+const TASKS=[
+ {id:'1',src:'6.24 (1)',pts:14,fig:FIG1,
+  text:'Висота правильного трикутника дорівнює 24 см. Знайдіть радіус описаного кола.',
+  draw:[
+   'Накресліть правильний (рівносторонній) трикутник.',
+   'З верхньої вершини проведіть висоту до основи: вона перпендикулярна до основи. Підпишіть: <i>h</i> = 24 см.',
+   'Навколо трикутника накресліть описане коло: воно проходить через усі три вершини. Центр кола <i>O</i> лежить на висоті.',
+   'З центра <i>O</i> проведіть радіус до вершини трикутника. Це <i>R</i>, його потрібно знайти.'],
+  parts:[
+   {title:'Знайдіть сторону трикутника',
+    note:'Висота правильного трикутника зі стороною '+A+': <i>h</i> = '+FR(A+'√3','2')+'. Підставте 24: '+FR(A+'√3','2')+' = 24. Помножте обидві частини рівності на 2.',
+    fields:[N(A+'√3 =',48,'см')]},
+   {title:'Знайдіть '+A,
+    note:'Поділіть 48 на √3. Щоб прибрати корінь зі знаменника, домножте чисельник і знаменник на √3: '+FR('48','√3')+' = '+FR('48√3','3')+'.',
+    fields:[S(A+' =',['8√3','16√3','24√3','48√3','16'],'16√3')]},
+   {title:'Радіус описаного кола',
+    note:'У таблиці для <i>n</i> = 3: <i>R</i><sub>3</sub> = '+FR(A+'√3','3')+'. Підставте '+A+' = 16√3 і пам\'ятайте, що √3 · √3 = 3.',
+    fields:[N(Rr+' =',16,'см')]},
+   {title:'Перевірте себе',
+    note:'Центр правильного трикутника ділить висоту у відношенні 2 : 1, починаючи від вершини. Тому '+Rr+' становить '+FR('2','3')+' висоти. Обчисліть.',
+    fields:[N(FR('2','3')+' · 24 =',16,'см')]}
+  ]},
+ {id:'2',src:'6.24 (2)',pts:14,fig:FIG2,
+  text:'Висота правильного трикутника дорівнює 18 см. Знайдіть радіус вписаного кола.',
+  draw:[
+   'Накресліть правильний (рівносторонній) трикутник.',
+   'З верхньої вершини проведіть висоту до основи: вона перпендикулярна до основи. Підпишіть: <i>h</i> = 18 см.',
+   'Усередині трикутника накресліть вписане коло: воно дотикається до всіх трьох сторін. Центр кола <i>O</i> лежить на висоті.',
+   'З центра <i>O</i> проведіть радіус до основи (по висоті вниз). Це <i>r</i>, його потрібно знайти.'],
+  parts:[
+   {title:'Знайдіть сторону трикутника',
+    note:'Висота правильного трикутника зі стороною '+A+': <i>h</i> = '+FR(A+'√3','2')+'. Підставте 18: '+FR(A+'√3','2')+' = 18. Помножте обидві частини рівності на 2.',
+    fields:[N(A+'√3 =',36,'см')]},
+   {title:'Знайдіть '+A,
+    note:'Поділіть 36 на √3. Домножте чисельник і знаменник на √3: '+FR('36','√3')+' = '+FR('36√3','3')+'.',
+    fields:[S(A+' =',['6√3','12√3','18√3','36√3','12'],'12√3')]},
+   {title:'Радіус вписаного кола',
+    note:'У таблиці для <i>n</i> = 3: <i>r</i><sub>3</sub> = '+FR(A+'√3','6')+'. Підставте '+A+' = 12√3 і пам\'ятайте, що √3 · √3 = 3.',
+    fields:[N(rr+' =',6,'см')]},
+   {title:'Перевірте себе',
+    note:'Центр правильного трикутника ділить висоту у відношенні 2 : 1, починаючи від вершини. Тому '+rr+' становить '+FR('1','3')+' висоти. Обчисліть.',
+    fields:[N(FR('1','3')+' · 18 =',6,'см')]}
+  ]},
+ {id:'3',src:'6.26',pts:16,fig:FIG3,
+  text:'Радіус кола дорівнює 14 см. Знайдіть сторону вписаного в це коло правильного шестикутника.',
+  draw:[
+   'Накресліть коло й позначте його центр <i>O</i>.',
+   'Проведіть радіус і підпишіть: <i>R</i> = 14 см.',
+   'Впишіть правильний шестикутник: від кінця радіуса послідовно відкладайте на колі хорди, що дорівнюють радіусу. Отримаєте шість вершин.',
+   'Позначте одну сторону шестикутника й сполучіть її кінці з центром <i>O</i>. Сторона '+A+' — те, що потрібно знайти.'],
+  parts:[
+   {title:'Що дано?',
+    note:'Шестикутник вписано в коло. Яким для шестикутника є це коло?',
+    fields:[S('Коло, радіус якого дано, для шестикутника є',CIRC,'описаним')]},
+   {title:'Центральний кут шестикутника',
+    note:'Центральний кут правильного <i>n</i>-кутника дорівнює '+FR('360°','<i>n</i>')+'. Знайдіть кут між двома радіусами, проведеними до кінців сторони.',
+    fields:[N('∠<i>AOB</i> = '+FR('360°','6')+' =',60,'°')]},
+   {title:'Який трикутник <i>AOB</i>?',
+    note:'<i>OA</i> = <i>OB</i> (це радіуси), кут при вершині 60°. Тоді кути при основі: (180° − 60°) : 2 = 60°.',
+    fields:[S('Трикутник <i>AOB</i> —',['рівносторонній','прямокутний','тупокутний'],'рівносторонній')]},
+   {title:'Перевірте за формулою',
+    note:'За формулою для <i>n</i> = 6: <i>R</i><sub>6</sub> = '+FR(A,'2 sin 30°')+'. Згадайте значення синуса.',
+    fields:[N('sin 30° =',0.5,'')]},
+   {title:'Знайдіть сторону',
+    note:'Підставте <i>R</i> = 14 і sin 30° у формулу: 14 = '+FR(A,'2 · 0,5')+'. Порівняйте з висновком про трикутник <i>AOB</i>.',
+    fields:[N(A+' =',14,'см')]}
+  ]},
+ {id:'4',src:'6.27',pts:14,fig:FIG4,
+  text:'Радіус кола дорівнює 9√3 см. Знайдіть сторону описаного навколо цього кола правильного шестикутника.',
+  draw:[
+   'Накресліть коло й позначте його центр <i>O</i>.',
+   'Проведіть радіус вниз до якоїсь точки кола й підпишіть: <i>r</i> = 9√3 см.',
+   'Опишіть навколо кола правильний шестикутник: кожна його сторона дотикається до кола, а радіус, проведений у точку дотику, перпендикулярний до сторони.',
+   'Виділіть сторону шестикутника, до якої проведено радіус. Її довжина '+A+' — те, що потрібно знайти.'],
+  parts:[
+   {title:'Що дано?',
+    note:'Шестикутник описано навколо кола. Яким для шестикутника є це коло?',
+    fields:[S('Коло, радіус якого дано, для шестикутника є',CIRC,'вписаним')]},
+   {title:'Складіть рівняння',
+    note:'У таблиці для <i>n</i> = 6: <i>r</i><sub>6</sub> = '+FR(A+'√3','2')+'. Підставте <i>r</i> = 9√3: '+FR(A+'√3','2')+' = 9√3. Помножте обидві частини на 2.',
+    fields:[S(A+'√3 =',['9√3','18','18√3','27','9'],'18√3')]},
+   {title:'Знайдіть сторону',
+    note:'Поділіть обидві частини на √3.',
+    fields:[N(A+' =',18,'см')]},
+   {title:'Перевірте себе',
+    note:'У правильного шестикутника <i>R</i><sub>6</sub> = '+A+'. Чому дорівнює радіус описаного кола цього шестикутника? Він має бути більшим за 9√3 ≈ 15,6.',
+    fields:[N(Rr+' =',18,'см')]}
+  ]},
+ {id:'5',src:'6.34',pts:21,fig:FIG5,
+  text:'Навколо кола описано правильний шестикутник зі стороною 10√3 см. Знайдіть сторону квадрата, вписаного в це коло.',
+  draw:[
+   'Накресліть коло й позначте його центр <i>O</i>.',
+   'Опишіть навколо кола правильний шестикутник (сторони дотикаються до кола). Підпишіть його сторону: 10√3 см.',
+   'У це саме коло впишіть квадрат: усі його вершини лежать на колі.',
+   'Позначте сторону квадрата <i>x</i>. Її потрібно знайти.'],
+  parts:[
+   {title:'Що таке коло для шестикутника?',
+    note:'Шестикутник описано навколо кола.',
+    fields:[S('Коло для шестикутника є',CIRC,'вписаним')]},
+   {title:'Знайдіть радіус кола',
+    note:'Це радіус вписаного кола шестикутника: <i>r</i><sub>6</sub> = '+FR(A+'√3','2')+'. Підставте '+A+' = 10√3 і пам\'ятайте, що √3 · √3 = 3.',
+    fields:[N(rr+' =',15,'см')]},
+   {title:'Що таке це коло для квадрата?',
+    note:'Квадрат вписано в це коло.',
+    fields:[S('Коло для квадрата є',CIRC,'описаним')]},
+   {title:'Складіть рівняння для квадрата',
+    note:'Радіус описаного кола квадрата <i>R</i><sub>4</sub> = 15 (це те саме коло). У таблиці: <i>R</i><sub>4</sub> = '+FR('<i>a</i><sub>4</sub>√2','2')+'. Тоді '+FR('<i>a</i><sub>4</sub>√2','2')+' = 15. Помножте обидві частини на 2.',
+    fields:[N('<i>a</i><sub>4</sub>√2 =',30,'см')]},
+   {title:'Знайдіть сторону квадрата',
+    note:'Поділіть 30 на √2. Домножте чисельник і знаменник на √2: '+FR('30','√2')+' = '+FR('30√2','2')+'.',
+    fields:[S('<i>x</i> = <i>a</i><sub>4</sub> =',['10√2','15','15√2','30','30√2'],'15√2')]}
+  ]},
+ {id:'6',src:'6.35',pts:21,fig:FIG6,
+  text:'У коло вписано квадрат зі стороною 7√2 см. Знайдіть сторону правильного трикутника, описаного навколо цього кола.',
+  draw:[
+   'Накресліть коло й позначте його центр <i>O</i>.',
+   'Впишіть у коло квадрат (вершини на колі) і підпишіть його сторону: 7√2 см.',
+   'Опишіть навколо цього кола правильний трикутник: його сторони дотикаються до кола.',
+   'Позначте сторону трикутника '+A+'. Її потрібно знайти.'],
+  parts:[
+   {title:'Що таке коло для квадрата?',
+    note:'Квадрат вписано в коло.',
+    fields:[S('Коло для квадрата є',CIRC,'описаним')]},
+   {title:'Знайдіть радіус кола',
+    note:'Це радіус описаного кола квадрата: <i>R</i><sub>4</sub> = '+FR(A+'√2','2')+'. Підставте '+A+' = 7√2 і пам\'ятайте, що √2 · √2 = 2.',
+    fields:[N(Rr+' =',7,'см')]},
+   {title:'Що таке це коло для трикутника?',
+    note:'Правильний трикутник описано навколо цього кола.',
+    fields:[S('Коло для трикутника є',CIRC,'вписаним')]},
+   {title:'Складіть рівняння для трикутника',
+    note:'Тепер це радіус вписаного кола: <i>r</i><sub>3</sub> = 7. У таблиці: <i>r</i><sub>3</sub> = '+FR(A+'√3','6')+'. Тоді '+FR(A+'√3','6')+' = 7. Помножте обидві частини на 6.',
+    fields:[N(A+'√3 =',42,'см')]},
+   {title:'Знайдіть сторону трикутника',
+    note:'Поділіть 42 на √3. Домножте чисельник і знаменник на √3: '+FR('42','√3')+' = '+FR('42√3','3')+'.',
+    fields:[S(A+' =',['7√3','14','14√3','21√3','42√3'],'14√3')]}
+  ]}
+];
+
+/* ============ Допоміжне ============ */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function plain(h){const d=document.createElement('div');d.innerHTML=h;Array.from(d.querySelectorAll('.fr')).forEach(e=>{e.replaceWith(document.createTextNode('('+e.children[0].textContent+'/'+e.children[1].textContent+')'));});return d.textContent.replace(/\s+/g,' ').trim();}
+function fmt(n){return String(Math.round(n*1e6)/1e6).replace('.',',').replace('-','−');}
+function parseNum(s){
+  s=String(s==null?'':s).trim().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[·×]/g,'*').replace(/sqrt|корінь/gi,'√');
+  if(!s) return null;
+  if(!/^[0-9+\-*/().√]+$/.test(s)) return NaN;
+  s=s.replace(/([0-9)])(?=√)/g,'$1*').replace(/√(\d+(\.\d+)?)/g,'Math.sqrt($1)').replace(/√\(/g,'Math.sqrt(');
+  s=s.replace(/(\))(?=[0-9])/g,'$1*');
+  try{ const v=Function('"use strict";return ('+s+')')(); return (typeof v==='number'&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+}
+const near=(v,a,tol)=>typeof v==='number'&&!isNaN(v)&&Math.abs(v-a)<=(tol||0.0005);
+function fmtAns(f){ if(f.t==='num') return f.show||fmt(f.ans); return plain(f.ans); }
+
+/* ============ Побудова сторінки ============ */
+const FIELDS=[], STATE={done:false};
+
+function fieldHTML(f,id){
+  let h='<div class="f" data-fid="'+id+'">';
+  if(f.pre) h+='<span>'+f.pre+'</span>';
+  if(f.t==='num') h+='<input type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-i="0" aria-label="відповідь">'+(f.show?'<button type="button" class="rt" tabindex="-1" aria-label="вставити корінь" title="вставити √">√</button>':'');
+  else h+='<select data-i="0"><option value="">— оберіть —</option>'+f.opts.map(o=>'<option value="'+esc(o)+'">'+plain(o)+'</option>').join('')+'</select>';
+  if(f.post) h+='<span>'+f.post+'</span>';
+  return h+'</div>';
+}
+function build(){
+  let html='';
+  TASKS.forEach(t=>{
+    html+='<div class="ex" id="t-'+t.id+'"><div class="exh"><span class="exn">Завдання '+t.id+'</span></div><p class="ext">'+t.text+'</p>';
+    html+='<div class="dbox" data-t="'+t.id+'"><div class="dh">Рисунок до завдання</div><div class="dview"><div class="ph">Натисніть кнопку «Намалювати рисунок», і з\'явиться перший крок. Малюйте разом у зошиті.</div></div><div class="dcap"></div><div class="drow"><button type="button" class="btn dbtn">✏️ Намалювати рисунок</button><button type="button" class="btn sec2 dre" style="display:none">Почати спочатку</button></div></div>';
+    t.parts.forEach((p,pi)=>{
+      html+='<div class="part"><div class="pt"><span class="k">Крок '+(pi+1)+'</span>'+p.title+'</div>'+(p.note?'<div class="note">'+p.note+'</div>':'');
+      p.fields.forEach((f,fi)=>{ const id=t.id+'|'+pi+'|'+fi; html+=fieldHTML(f,id); FIELDS.push({id,def:f,task:t,part:p,pi}); });
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  html+='<div class="subw"><button class="btn" id="goBtn">Здати роботу</button><div id="out"></div></div>';
+  const app=$('#app'); app.innerHTML=html;
+  FIELDS.forEach(F=>{F.el=$('[data-fid="'+F.id+'"]');});
+  $('#goBtn').addEventListener('click',()=>submit());
+  app.addEventListener('input',e=>{const f=e.target.closest('.f'); if(f) f.classList.remove('empty');});
+  app.addEventListener('click',e=>{
+    const box=e.target.closest('.dbox'); if(!box) return;
+    const t=TASKS.find(x=>x.id===box.dataset.t); let k=+(box.dataset.k||0), K=t.draw.length;
+    if(e.target.closest('.dre')) k=0; else if(e.target.closest('.dbtn')){ if(k>=K) return; k++; } else return;
+    box.dataset.k=k; drawStage(box,t,k);
+  });
+}
+function drawStage(box,t,k){
+  const K=t.draw.length, v=$('.dview',box), btn=$('.dbtn',box);
+  if(!k){ v.classList.remove('on'); v.innerHTML='<div class="ph">Натисніть кнопку «Намалювати рисунок», і з\'явиться перший крок. Малюйте разом у зошиті.</div>'; $('.dcap',box).innerHTML=''; }
+  else { v.classList.add('on'); v.innerHTML=t.fig(k); $('.dcap',box).innerHTML='<b>Малюнок '+k+' з '+K+'. Намалюйте в зошиті:</b> '+t.draw[k-1]; }
+  btn.textContent=k===0?'✏️ Намалювати рисунок':(k<K?'✏️ Домалювати':'✓ Рисунок готовий');
+  btn.classList.toggle('done',k>=K); btn.disabled=k>=K;
+  $('.dre',box).style.display=k>0?'':'none';
+}
+
+/* ============ Виходи зі сторінки (лише для журналу) ============ */
+const W={t0:Date.now(),leaves:0,awaySec:0}, EXITS=[];
+let awayAt=0, curExit=null;
+function curTask(){ let el=null; try{ const a=document.activeElement; el=a&&a.closest?a.closest('.ex'):null; if(!el){ const e=document.elementFromPoint(innerWidth/2,innerHeight/2); el=e&&e.closest?e.closest('.ex'):null; } }catch(e){} return el?el.id.replace('t-',''):'0'; }
+function leave(){ if(STATE.done||awayAt) return; awayAt=Date.now(); W.leaves++; curExit={at:Math.round((awayAt-W.t0)/1000),task:curTask(),sec:0}; EXITS.push(curExit); }
+function back(){ if(!awayAt) return; const s=Math.max(1,Math.round((Date.now()-awayAt)/1000)); W.awaySec+=s; if(curExit){ curExit.sec=s; curExit=null; } awayAt=0; }
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+/* ============ Перевірка й здача ============ */
+function readField(F){
+  const f=F.def, v=$('[data-i]',F.el).value;
+  let empty=false, ok=false, ans='';
+  if(f.t==='num'){ empty=!v.trim(); ok=!empty&&near(parseNum(v),f.ans,f.tol); ans=v.trim(); }
+  else { empty=!v; ok=!empty&&v===f.ans; ans=v||''; }
+  return {empty,ok,ans};
+}
+function showMsg(cls,text,extra){ $('#out').innerHTML='<div class="msg '+cls+'">'+text+(extra||'')+'</div>'; }
+let busy=false;
+async function submit(force){
+  if(busy||STATE.done) return;
+  const sur=$('#sur').value.trim(), nam=$('#nam').value.trim();
+  if(!sur||!nam){
+    ['#sur','#nam'].forEach(s=>$(s).classList.toggle('err',!$(s).value.trim()));
+    $('#who').scrollIntoView({behavior:'smooth',block:'center'});
+    showMsg('err','Введіть прізвище та ім\'я вгорі сторінки, щоб здати роботу.'); return;
+  }
+  $('#sur').classList.remove('err'); $('#nam').classList.remove('err');
+  const rows=FIELDS.map(F=>({F,r:readField(F)}));
+  const empties=rows.filter(x=>x.r.empty);
+  if(empties.length&&!force){
+    empties.forEach(x=>x.F.el.classList.add('empty'));
+    const nE=empties.length, m10=nE%10, m100=nE%100, wd=(m10===1&&m100!==11)?'пункт':((m10>=2&&m10<=4&&(m100<12||m100>14))?'пункти':'пунктів');
+    showMsg('warn','Ви не завершили '+nE+' '+wd+' (виділено жовтим). ',
+      '<div class="row2"><button class="btn sec2" id="bBack">Дописати</button><button class="btn" id="bForce">Все одно здати</button></div>');
+    $('#bBack').onclick=()=>{ $('#out').innerHTML=''; empties[0].F.el.scrollIntoView({behavior:'smooth',block:'center'}); };
+    $('#bForce').onclick=()=>submit(true);
+    return;
+  }
+  busy=true; $('#goBtn').disabled=true;
+  showMsg('warn','Надсилаємо роботу… не закривайте сторінку.');
+  back();
+  const now=Date.now(), id=now+'_'+Math.random().toString(36).slice(2,8);
+  const total=rows.length, right=rows.filter(x=>x.r.ok).length;
+  // бали завдання ділимо порівну між його пунктами; сума завжди 100
+  const tp={}; TASKS.forEach(t=>{ tp[t.id]={pts:t.pts,n:0,r:0}; });
+  rows.forEach(x=>{ const o=tp[x.F.task.id]; o.n++; if(x.r.ok) o.r++; });
+  const autoScore=Math.round(10*Object.values(tp).reduce((s,o)=>s+(o.n?o.pts*o.r/o.n:0),0))/10;
+  const autoMax=Object.values(tp).reduce((s,o)=>s+o.pts,0);
+  const rec={id,name:sur+' '+nam,surname:sur,firstName:nam,ts:now,date:new Date(now).toISOString(),
+    score:autoScore,autoScore,autoMax,max:100,percent:autoScore,rightCount:right,fieldCount:total,
+    tasks:rows.map(x=>x.r.ok?1:0),
+    weights:rows.map(x=>Math.round(10*x.F.task.pts/tp[x.F.task.id].n)/10),
+    qtext:rows.map(x=>'Завд. '+x.F.task.id+(x.F.task.src?' ('+x.F.task.src+')':'')+', крок '+(x.F.pi+1)+': '+plain(x.F.part.title)+' '+plain(x.F.def.pre||'')),
+    answers:rows.map(x=>x.r.ans),correct:rows.map(x=>fmtAns(x.F.def)),
+    durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,exits:EXITS.map(e=>({at:e.at,task:e.task,sec:e.sec})),
+    photos:0,test:TEST_NAME};
+  const ok=await saveDoc(rec);
+  busy=false;
+  if(!ok){ $('#goBtn').disabled=false; showMsg('err','Не вдалося надіслати роботу. Перевірте інтернет і натисніть «Здати» ще раз.'); return; }
+  STATE.done=true; $('#goBtn').style.display='none';
+  $$('input, select').forEach(e=>e.disabled=true);
+  $('#out').innerHTML='<div class="done"><div class="big">Роботу здано ✓</div><div class="sm">'+esc(sur+' '+nam)+'<br>Учитель оцінить вашу роботу.</div></div>';
+  $('#out').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ============ Журнал учительки ============ */
+let JROWS=[];
+$('#keyb').onclick=()=>{ $('#pw').value=''; $('#pwErr').style.display='none'; $('#ovLogin').classList.add('on'); setTimeout(()=>$('#pw').focus(),50); };
+$('#pwNo').onclick=()=>$('#ovLogin').classList.remove('on');
+$('#pw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#pwOk').click(); });
+$('#pwOk').onclick=async()=>{
+  if(!(await teacherLogin($('#pw').value))){ $('#pwErr').style.display='block'; return; }
+  $('#ovLogin').classList.remove('on'); $('#ovJ').classList.add('on'); refreshJ();
+};
+$('#jClose').onclick=()=>{ $('#ovJ').classList.remove('on'); teacherLogout(); };
+$('#jRef').onclick=()=>refreshJ();
+function mmss(s){ s=Math.max(0,s|0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+async function refreshJ(){
+  $('#jMsg').textContent='Завантаження…';
+  try{ JROWS=await loadResults(); $('#jMsg').textContent=''; drawJ(); }
+  catch(e){ $('#jMsg').innerHTML='<div class="msg err">Не вдалося підключитися до бази результатів</div>'; }
+}
+const f1=n=>String(Math.round(n*10)/10).replace('.',',');
+const LONG=30;
+function exitsMax(r){ return (r.exits||[]).reduce((m,e)=>Math.max(m,e.sec||0),0); }
+function drawJ(){
+  if(!JROWS.length){ $('#jBody').innerHTML='<p>Поки що немає записів.</p>'; return; }
+  let h='<table class="j"><tr><th>№</th><th>Прізвище та ім\'я</th><th>Дата</th><th>Час на роботу</th><th>Виходів</th><th>Бал</th></tr>';
+  JROWS.forEach((r,i)=>{
+    const dt=new Date(r.ts||r.date).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const fast=r.durationSec!=null&&r.durationSec<120, mx=exitsMax(r);
+    h+='<tr class="nm" data-i="'+i+'"><td>'+(JROWS.length-i)+'</td><td><b>'+esc(r.name||'')+'</b></td><td>'+dt+'</td>'+
+      '<td'+(fast?' class="red" title="Дуже швидко"':'')+'>'+(r.durationSec!=null?mmss(r.durationSec):'—')+(r.awaySec?'<div class="dim">поза вікном '+mmss(r.awaySec)+'</div>':'')+'</td>'+
+      '<td'+((r.leaves>=3||mx>=LONG)?' class="red"':'')+'>'+(r.leaves!=null?r.leaves:'—')+(r.leaves?'<div class="dim">макс. '+mx+' с</div>':'')+'</td>'+
+      '<td><b>'+f1(r.autoScore!=null?r.autoScore:(r.score||0))+'</b> з 100</td></tr><tr class="jr" id="jr'+i+'" style="display:none"><td colspan="6"></td></tr>';
+  });
+  $('#jBody').innerHTML=h+'</table>';
+  $$('#jBody tr.nm').forEach(tr=>tr.onclick=()=>toggleJ(+tr.dataset.i));
+}
+function exitsHTML(r){
+  const ex=r.exits||[]; if(!r.leaves) return '<div>Виходів зі сторінки не було.</div>';
+  if(!ex.length) return '<div>Виходів: <b>'+r.leaves+'</b>, поза вікном '+mmss(r.awaySec||0)+'.</div>';
+  const by={}; ex.forEach(e=>{ (by[e.task]=by[e.task]||[]).push(e); });
+  let h='<div>Виходів: <b>'+r.leaves+'</b>, сумарно поза вікном: <b>'+mmss(r.awaySec||0)+'</b> (з '+mmss(r.durationSec||0)+' загального часу).</div><table style="margin:4px 0"><tr><td><b>Де</b></td><td><b>Виходів</b></td><td><b>Скільки секунд кожен</b></td></tr>';
+  Object.keys(by).sort((a,b)=>(+a)-(+b)).forEach(k=>{ h+='<tr><td>'+(k==='0'?'поза завданнями (угорі сторінки)':'Завдання '+k)+'</td><td>'+by[k].length+'</td><td>'+by[k].map(e=>{ const long=(e.sec||0)>=LONG; return '<span class="'+(long?'red':'')+'">'+(e.sec||'?')+' с</span> <span class="dim">(на '+mmss(e.at||0)+')</span>'; }).join(', ')+'</td></tr>'; });
+  return h+'</table>';
+}
+function toggleJ(i){
+  const row=$('#jr'+i), cell=$('td',row);
+  if(row.style.display!=='none'){ row.style.display='none'; return; }
+  row.style.display='table-row';
+  if(cell.dataset.ok) return;
+  const r=JROWS[i], wt=r.weights||[];
+  let h='<div class="jd"><div style="font-size:15px;margin-bottom:6px"><b>'+f1(r.autoScore!=null?r.autoScore:(r.score||0))+'</b> з 100 балів ('+(r.percent!=null?f1(r.percent):'—')+' %)</div>'+exitsHTML(r)+'<div style="margin-top:6px">Правильно '+(r.rightCount!=null?r.rightCount:'—')+' з '+(r.fieldCount||(r.tasks||[]).length)+' пунктів:</div><table>';
+  (r.tasks||[]).forEach((m,k)=>{ h+='<tr><td>'+(k+1)+'</td><td>'+esc((r.qtext||[])[k]||'')+'</td><td>'+esc((r.answers||[])[k]||'—')+'</td><td class="'+(m?'g':'r')+'">'+(m?'✓ +'+f1(wt[k]||0):'✗ '+esc((r.correct||[])[k]||''))+'</td></tr>'; });
+  cell.innerHTML=h+'</table></div>'; cell.dataset.ok='1';
+}
+$('#jCsv').onclick=()=>{
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const maxN=Math.max(0,...JROWS.map(r=>(r.tasks||[]).length));
+  let csv='﻿Прізвище та ім\'я;Дата;Час (хв:с);Виходів з вікна;Найдовший вихід (с);Поза вікном (хв:с);Бал (з 100);Правильно';
+  for(let k=1;k<=maxN;k++) csv+=';п.'+k;
+  csv+='\n';
+  JROWS.forEach(r=>{
+    csv+=[q(r.name),q(r.date),r.durationSec!=null?mmss(r.durationSec):'',r.leaves!=null?r.leaves:'',exitsMax(r),r.awaySec!=null?mmss(r.awaySec):'',String(r.autoScore!=null?r.autoScore:(r.score||'')).replace('.',','),r.rightCount!=null?r.rightCount:''].join(';');
+    for(let k=0;k<maxN;k++) csv+=';'+(r.tasks&&r.tasks[k]!=null?(r.tasks[k]?'+':'-'):'');
+    csv+='\n';
+  });
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='Домашня_робота_многокутники_9клас_результати.csv'; document.body.appendChild(a); a.click(); a.remove();
+};
+$('#jClr').onclick=()=>{
+  $('#jMsg').innerHTML='<div class="msg warn">Видалити всі записи ('+JROWS.length+')? <div class="row2"><button class="btn" id="cYes">Так, видалити</button><button class="btn sec2" id="cNo">Скасувати</button></div></div>';
+  $('#cNo').onclick=()=>$('#jMsg').innerHTML='';
+  $('#cYes').onclick=async()=>{ try{ await clearResults(); refreshJ(); }catch(e){ $('#jMsg').innerHTML='<div class="msg err">Не вдалося очистити записи. Перевірте правила бази Firebase</div>'; } };
+};
+
+build();
+window.__HW={drawStage,setJ:(r)=>{JROWS=r;drawJ();},toggleJ,TASKS,FIELDS,parseNum,readField,W,EXITS,leave,back,submit};
+})();
+</script>
+</body>
+</html>
