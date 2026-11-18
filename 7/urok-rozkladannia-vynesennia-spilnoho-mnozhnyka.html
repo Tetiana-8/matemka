@@ -186,6 +186,8 @@ button:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
 .tools{position:absolute;right:1rem;bottom:.7rem;z-index:5;display:flex;gap:.4rem}
 .tools .btn{min-height:0;padding:.2em .8em;font-size:.85rem;opacity:.85}
 .stp,.ab{padding-bottom:2.8rem}
+.clsbox{margin-top:1.2rem;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.clsinfo{font-size:1rem;font-weight:700;color:var(--muted)}
 .st.num{font-size:2.8rem;line-height:1.1;margin:0 0 .3rem;color:var(--accD)}
 .ext{text-align:center}
 .ext:empty{display:none}
@@ -485,6 +487,7 @@ function stStart(){
   const st=el('div','stage start on'),card=el('div','card');
   card.innerHTML='<div class="kicker">Алгебра · 7 клас</div><h1><small>Тема:</small>Розкладання многочлена на множники. Винесення спільного множника за дужки</h1><div class="sub">Алгебра, п. 12</div>';
   const go=el('button','go','<b>Почати</b><span>▶</span>');go.onclick=()=>goTo(1);card.appendChild(go);
+  const lw=el('div','clsbox'),lb=el('button','btn light','👥 Список класу'),li=el('div','clsinfo');li.id='clsInfo';lb.onclick=openKey;lw.append(lb,li);card.appendChild(lw);
   const dia=el('button','dia',GEM);dia.title='Методична картка';dia.onclick=openMeta;
   st.append(card,dia);return st;
 }
@@ -734,7 +737,13 @@ function clsSet(text){
   const fresh=names.filter(n=>!CLS.names.includes(n));
   CLS.queue=CLS.queue.filter(n=>names.includes(n));
   fresh.forEach(n=>CLS.queue.splice(rnd(0,CLS.queue.length),0,n));
-  CLS.names=names;CLS.st=st;clsSave();
+  CLS.names=names;CLS.st=st;clsSave();refreshCls();
+}
+function refreshCls(){
+  const n=CLS.names.length,i=$('#clsInfo');
+  if(i)i.textContent=n?'У списку: '+n:'Без списку — кнопка виклику учнів не потрібна';
+  const d=$('#bDice');if(d)d.style.display=n?'':'none';
+  if(!n&&CLS.cur){CLS.cur='';callShow();}
 }
 function clsNext(){
   if(!CLS.names.length)return '';
@@ -755,7 +764,7 @@ function callShow(){
   bar.append(nx,hd);
 }
 function callNext(){
-  if(!CLS.names.length){openKey();return;}
+  if(!CLS.names.length)return;
   CLS.cur=clsNext();callShow();if(KEY_OPEN)renderJournal();
 }
 
@@ -841,7 +850,7 @@ function goTo(i,dir){
   t0=Date.now();tick();
   window.dispatchEvent(new Event('resize'));
 }
-function restart(){CLS.cur='';buildAll();goTo(0);}
+function restart(){CLS.cur='';buildAll();goTo(0);refreshCls();}
 const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function tick(){
   const total=DUR[cur]*60;if(!total)return;
@@ -855,7 +864,7 @@ $('#bDia').innerHTML=GEM;$('#bDia').onclick=openMeta;$('#bDice').onclick=callNex
 $('#keyBtn').onclick=openKey;$('#candle').onclick=()=>{t0=Date.now();tick();};
 setInterval(tick,1000);
 addEventListener('keydown',e=>{if(e.key==='Escape'){['#ovMeta','#ovFin'].forEach(s=>{const o=$(s);if(o)o.classList.remove('on');});try{closeKey();}catch(_){}}});
-clsLoad();buildAll();goTo(0);
+clsLoad();buildAll();goTo(0);refreshCls();
 </script>
 <!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
      Вставити цей блок цілком перед </body> будь-якої розробки.
