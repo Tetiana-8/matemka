@@ -113,6 +113,7 @@ table.j tr.nm{cursor:pointer}table.j tr.nm:hover{background:var(--soft2)}
 .drow .btn.done{background:var(--ok);opacity:1}
 .lock{margin-top:10px;background:var(--warnbg);border:2px solid var(--warnln);color:var(--warntx);border-radius:10px;padding:8px 12px;font-size:15px;font-weight:700}
 .steps.locked{display:none}
+.lock.open{background:var(--okbg);border-color:var(--okln);color:var(--oktx)}
 .gf text.hl{fill:#b3202a}
 @media(max-width:520px){
   .hero{padding:16px}.hero svg{width:54px;height:48px}.hero h1,.hero p{padding-right:56px}
@@ -502,7 +503,7 @@ function build(){
   let html='';
   TASKS.forEach(t=>{
     html+='<div class="ex" id="t-'+t.id+'"><div class="exh"><span class="exn">Завдання '+t.id+'</span></div><p class="ext">'+t.text+'</p>';
-    html+='<div class="dbox" data-t="'+t.id+'"><div class="dh">Рисунок до завдання</div><div class="dview"><div class="ph">Натисніть кнопку «Намалювати рисунок», і з\'явиться перший крок. Малюйте разом у зошиті.</div></div><div class="dcap"></div><div class="drow"><button type="button" class="btn dbtn">✏️ Намалювати рисунок</button><button type="button" class="btn sec2 dre" style="display:none">Почати спочатку</button></div><div class="lock">🔒 Кроки розв\'язання відкриються, коли ви домалюєте рисунок до кінця.</div></div><div class="steps locked" data-for="'+t.id+'">';
+    html+='<div class="dbox" data-t="'+t.id+'"><div class="dh">Рисунок до завдання</div><div class="dview"><div class="ph">Натисніть кнопку «Намалювати рисунок», і з\'явиться перший крок. Малюйте разом у зошиті.</div></div><div class="dcap"></div><div class="drow"><button type="button" class="btn dbtn">✏️ Намалювати рисунок</button><button type="button" class="btn sec2 dre" style="display:none">Почати спочатку</button></div><div class="lock">🔒 Щоб відкрилися кроки розв\'язання, натискайте «Намалювати рисунок», поки не з\'являться всі малюнки.</div></div><div class="steps locked" data-for="'+t.id+'">';
     t.parts.forEach((p,pi)=>{
       html+='<div class="part"><div class="pt"><span class="k">Крок '+(pi+1)+'</span>'+p.title+'</div>'+(p.note?'<div class="note">'+p.note+'</div>':'');
       p.fields.forEach((f,fi)=>{ const id=t.id+'|'+pi+'|'+fi; html+=fieldHTML(f,id); FIELDS.push({id,def:f,task:t,part:p,pi}); });
@@ -529,10 +530,13 @@ function drawStage(box,t,k){
   btn.textContent=k===0?'✏️ Намалювати рисунок':(k<K?'✏️ Домалювати':'✓ Рисунок готовий');
   btn.classList.toggle('done',k>=K); btn.disabled=k>=K;
   $('.dre',box).style.display=k>0?'':'none';
+  { const lk=$('.lock',box), left=K-k;
+    if(k>=K){ lk.style.display=''; lk.className='lock open'; lk.innerHTML='✅ Рисунок готовий. Кроки розв\'язання відкрито: заповнюйте відповіді нижче ⬇️'; }
+    else if(!box.dataset.un){ lk.className='lock'; lk.innerHTML='🔒 Щоб відкрилися кроки розв\'язання, домалюйте рисунок до кінця: натисніть «Домалювати» ще '+left+' '+(left===1?'раз':(left<5?'рази':'разів'))+'.'; } }
   if(k>=K&&!box.dataset.un){
     box.dataset.un='1';
-    const st=$('.steps[data-for="'+t.id+'"]'); st.classList.remove('locked'); $('.lock',box).style.display='none';
-    try{ st.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+    const st=$('.steps[data-for="'+t.id+'"]'); st.classList.remove('locked');
+    try{ st.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
   }
 }
 
