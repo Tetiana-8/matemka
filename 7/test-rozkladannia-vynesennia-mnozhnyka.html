@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Тест. Розкладання на множники (7 клас)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#173F5F; --txt:#1b3347; --muted:#5f7f97;
+    --acc:#2A6592; --accD:#1F4E73; --acc2:#3887AF; --accL:#DCE9F2;
+    --soft:#EAF2F7; --soft2:#F5F9FC; --line:#A8CADD;
+    --ok:#059669; --okbg:#ecfdf5; --bad:#dc2626; --badbg:#fef2f2;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--txt);
+    background:linear-gradient(135deg,#DCE9F2 0%,#A5C5DD 100%) fixed;
+    touch-action:manipulation;
+  }
+  .app{max-width:860px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:8px 12px 6px}
+  h1{margin:2px 44px 8px;text-align:center;color:var(--ink);font-size:clamp(18px,3.6vw,30px);font-weight:900;line-height:1.2;text-wrap:balance}
+  #screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+  .sign{text-align:center;color:#7b8b99;font-size:12px;padding:6px 0 0}
+  .card{background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 8px 24px rgba(23,63,95,.14)}
+  .scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+  .hidden{display:none!important}
+
+  /* початок */
+  .start{margin:auto 0;display:flex;flex-direction:column;gap:14px;padding:20px}
+  .who{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .who label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:15px;color:var(--ink)}
+  .who input{font:inherit;font-weight:600;padding:12px 14px;border:2px solid var(--line);border-radius:12px;outline:none;background:var(--soft2);min-height:46px}
+  .who input:focus{border-color:var(--acc);background:#fff}
+  .who input.err{border-color:var(--bad);background:var(--badbg)}
+  @media (max-width:560px){.who{grid-template-columns:1fr}}
+  .hint{color:var(--muted);font-size:15px;text-align:center}
+  .errmsg{color:var(--bad);font-weight:800;text-align:center;min-height:1.3em;font-size:15px}
+
+  /* кнопки */
+  .btn{font:inherit;font-weight:800;font-size:17px;border:0;border-radius:999px;padding:12px 28px;min-height:48px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 5px 14px rgba(42,101,146,.3)}
+  .btn:hover{background:linear-gradient(135deg,var(--accD),var(--acc))}
+  .btn.light{background:#fff;color:var(--acc);border:2px solid var(--line);box-shadow:none}
+  .btn.light:hover{background:var(--accL)}
+  .btn:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .nav{display:flex;gap:10px;justify-content:space-between}
+  .nav .btn{flex:1}
+  .nav .btn.s{font-size:15px;padding:10px 8px}
+
+  /* ряд номерів */
+  .top{display:flex;flex-direction:column;gap:8px;padding:10px 14px}
+  .cnt{font-weight:900;color:var(--ink);font-size:16px}
+  .nums{display:flex;flex-wrap:wrap;gap:6px}
+  .n{font:inherit;font-weight:800;font-size:14px;width:34px;height:34px;border-radius:9px;border:2px solid var(--line);background:#fff;color:var(--acc);cursor:pointer;padding:0}
+  .n.ans{background:var(--acc);border-color:var(--acc);color:#fff}
+  .n.cur{border:4px solid var(--accD);line-height:1}
+  .n.ans.cur{border-color:var(--ink)}
+  .n.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+  .n.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+  .n.empty{border-style:dashed;border-color:#d97706;background:#fffbeb;color:#b45309}
+  .nums.big .n{width:44px;height:44px;font-size:16px}
+
+  /* завдання */
+  .q{display:flex;flex-direction:column;gap:12px;border:3px solid transparent;padding:16px 18px}
+  .q.ok{border-color:var(--ok)} .q.bad{border-color:var(--bad)}
+  .qhead{display:flex;gap:12px;align-items:flex-start}
+  .num{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .qtext{font-size:18px;line-height:1.45;font-weight:700;padding-top:3px;color:var(--ink)}
+  .qmath{font-size:clamp(22px,4.8vw,32px);text-align:center;padding:2px 0;overflow-x:auto;color:var(--txt)}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .opts.tx{grid-template-columns:1fr}
+  .opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;cursor:pointer;background:var(--soft2);min-height:52px;font-size:19px;overflow-x:auto}
+  .opt:hover{border-color:var(--acc2);background:var(--soft)}
+  .opt .mk{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--accL);color:var(--accD);font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .opt .ot.t{font-size:17px;line-height:1.35;font-weight:600}
+  .opt.chosen{border-color:var(--acc);background:var(--accL)}
+  .opt.chosen .mk{background:var(--acc);color:#fff}
+  .opt.right{border-color:var(--ok);background:var(--okbg)}
+  .opt.right .mk{background:var(--ok);color:#fff}
+  .opt.wrong{border-color:var(--bad);background:var(--badbg)}
+  .opt.wrong .mk{background:var(--bad);color:#fff}
+  .locked .opt{cursor:default}
+  .verdict{font-weight:800;font-size:16px}
+  .verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+
+  /* запис формул */
+  .m{font-family:"Cambria Math","Cambria","Times New Roman",Times,serif;white-space:nowrap;letter-spacing:.01em}
+  .m i{font-style:italic;padding-right:.04em}
+  .m sup{font-size:.68em;font-style:normal;vertical-align:super;line-height:0;margin-left:.02em}
+  .m .op{padding:0 .28em}
+  .m .mbox{display:inline-block;min-width:1.4em;padding:0 .2em;border:2px solid var(--acc);border-radius:6px;text-align:center;font-style:normal;color:var(--acc);font-weight:700;margin:0 .1em}
+
+  /* перед здачею / результат */
+  .review{display:flex;flex-direction:column;gap:14px;margin:auto 0;padding:20px;text-align:center}
+  .review h2{margin:0;color:var(--ink);font-size:22px}
+  .review .nums{justify-content:center}
+  .warnline{color:#b45309;font-weight:800;font-size:16px}
+  .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .sum{text-align:center;display:flex;flex-direction:column;gap:4px;padding:12px 16px}
+  .sum .who2{font-weight:800;color:var(--ink);font-size:17px}
+  .sum .big{font-size:40px;font-weight:900;color:var(--acc);line-height:1.1}
+  .notice{background:#fffbeb;border:2px solid #f5d98b;border-radius:14px;padding:10px 14px;text-align:left;font-size:15px;line-height:1.45;color:#6b4e0c}
+  .notice p{margin:0 0 4px}.notice p:last-child{margin:0}
+  .resbar{display:flex;flex-direction:column;gap:8px}
+
+  /* вчитель */
+  .key{position:fixed;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.6);font-size:18px;cursor:pointer;z-index:20}
+  .key:hover{background:#fff}
+  .modal{position:fixed;inset:0;background:rgba(23,63,95,.55);display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;z-index:30;overflow:auto}
+  .panel{background:#fff;border-radius:18px;padding:18px;width:min(1100px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .panel h2{margin:0;font-size:21px;color:var(--ink)}
+  .prow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .prow input{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:12px}
+  .small{font-size:14px;color:var(--muted)}
+  .tbl{overflow-x:auto;margin-top:12px}
+  table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+  th,td{border:1px solid var(--line);padding:5px 8px;text-align:center;white-space:nowrap}
+  th{background:var(--soft)}
+  td.name{text-align:left;cursor:pointer;color:var(--accD);font-weight:700}
+  td.y{color:var(--ok);font-weight:800} td.nn{color:var(--bad);font-weight:800}
+  td.red{color:var(--bad);font-weight:800}
+  tr.det td{white-space:normal;text-align:left;background:var(--soft2)}
+  .det table{font-size:13px}
+  .det td,.det th{white-space:normal}
+  .btn.sm{padding:8px 16px;min-height:38px;font-size:14px}
+</style>
+</head>
+<body>
+<button class="key" id="keyBtn" title="Для вчителя">🔑</button>
+
+<div class="app">
+  <h1>Тест. Розкладання на множники (7 клас)</h1>
+  <div id="screen"></div>
+  <div class="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="panel">
+    <div class="prow" style="justify-content:space-between;margin:0">
+      <h2>Результати учнів</h2>
+      <button class="btn light sm" id="closeBtn">Закрити ✕</button>
+    </div>
+    <div id="pwdBox" class="prow">
+      <input type="password" id="pwd" placeholder="Пароль" autocomplete="off">
+      <button class="btn sm" id="pwdBtn">Увійти</button>
+      <span class="small" id="pwdMsg"></span>
+    </div>
+    <div id="resBox" class="hidden">
+      <div class="prow">
+        <button class="btn light sm" id="refreshBtn">Оновити</button>
+        <button class="btn light sm" id="csvBtn">Завантажити CSV</button>
+        <button class="btn light sm" id="clearBtn">Очистити</button>
+        <span id="clearBox" class="hidden"><span class="small" id="clearTxt"></span>
+          <button class="btn sm" id="clearYes" style="background:var(--bad)">Так, видалити</button>
+          <button class="btn light sm" id="clearNo">Скасувати</button></span>
+        <span class="small" id="resInfo"></span>
+      </div>
+      <div class="tbl" id="tbl"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== Firebase (блок з інструкції, змінено лише COLLECTION і TEST_NAME) ===================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU",
+  authDomain: "math-5-892a5.firebaseapp.com",
+  projectId: "math-5-892a5",
+  storageBucket: "math-5-892a5.firebasestorage.app",
+  messagingSenderId: "163114803328",
+  appId: "1:163114803328:web:caf86c4e8b8c4b3b630665",
+  measurementId: "G-E06VKZ2GP5"
+};
+const APP_ID = 'default-app-id';
+const COLLECTION = 'results_factorization_7';
+const TEACHER_EMAIL = 'vchytel@matemka.invalid';   // пошта-псевдонім; пароль у коді НЕ зберігається
+const FBV = '10.12.2';
+const TEST_NAME = 'Розкладання на множники (7 клас)';
+
+let fbPromise = null;
+function fb(){
+  if(!fbPromise){
+    fbPromise = (async()=>{
+      const [appM, authM, fs] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)
+      ]);
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      const auth = authM.getAuth(app);
+      await authM.signInAnonymously(auth);
+      return { db: fs.getFirestore(app), fs, auth, authM };
+    })();
+    fbPromise.catch(() => { fbPromise = null; }); // при збої — повторна спроба
+  }
+  return fbPromise;
+}
+const coll = (db, fs) => fs.collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION);
+
+async function saveResult(rec){
+  try { const { db, fs } = await fb(); await fs.setDoc(fs.doc(coll(db, fs), rec.id), rec); }
+  catch(e){ console.warn('Save failed', e); }   // учням нічого не показувати
+}
+// Вхід учительки: лише пароль, пошта підставляється з TEACHER_EMAIL. Повертає true/false.
+async function teacherLogin(password){
+  try { const { auth, authM } = await fb(); await authM.signInWithEmailAndPassword(auth, TEACHER_EMAIL, password); return true; }
+  catch(e){ return false; }
+}
+// Вихід з журналу: знову анонімний вхід (учень лише записує).
+async function teacherLogout(){
+  try { const { auth, authM } = await fb(); await authM.signOut(auth); await authM.signInAnonymously(auth); } catch(e){}
+}
+async function loadResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  const out = []; snap.forEach(d => out.push(d.data()));
+  return out.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+async function clearResults(){
+  const { db, fs } = await fb();
+  const snap = await fs.getDocs(coll(db, fs));
+  await Promise.all(snap.docs.map(d => fs.deleteDoc(d.ref)));
+}
+fb().catch(() => {});   // підключення одразу при відкритті сторінки
+
+/*GEN_START*/
+/* ===================== Генератор завдань ===================== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=Math.random;
+function setSeed(s){rnd=mulberry32(s);}
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=arr=>arr[Math.floor(rnd()*arr.length)];
+const shuffle=arr=>{const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const escH=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* одночлен: {c: коефіцієнт, e: {змінна: степінь}} ; многочлен: масив одночленів */
+const M=(c,e)=>({c:c,e:e||{}});
+const cloneM=t=>({c:t.c,e:Object.assign({},t.e)});
+const cloneP=q=>q.map(cloneM);
+function mulM(a,b){const e={};for(const k in a.e)e[k]=a.e[k];for(const k in b.e)e[k]=(e[k]||0)+b.e[k];return {c:a.c*b.c,e:e};}
+const mulP=(g,q)=>q.map(t=>mulM(g,t));
+const monoKey=t=>Object.keys(t.e).filter(v=>t.e[v]>0).sort().map(v=>v+t.e[v]).join('');
+function canon(p){const m={};p.forEach(t=>{const k=monoKey(t);m[k]=(m[k]||0)+t.c;});return Object.keys(m).filter(k=>m[k]!==0).sort().map(k=>k+':'+m[k]).join('|');}
+
+function monoParts(t,vars,html){
+  const a=Math.abs(t.c);let vs='';
+  vars.forEach(v=>{const e=t.e[v]||0;if(e>0){vs+=html?('<i>'+v+'</i>'+(e>1?'<sup>'+e+'</sup>':'')):(v+(e>1?'^'+e:''));}});
+  return {neg:t.c<0,body:(a===1&&vs)?vs:String(a)+vs};
+}
+function polyS(p,vars,html){
+  let o='';
+  p.forEach((t,i)=>{
+    const x=monoParts(t,vars,html);
+    if(i===0)o+=(x.neg?(html?'−':'-'):'')+x.body;
+    else o+=html?('<span class="op">'+(x.neg?'−':'+')+'</span>'+x.body):((x.neg?'-':'+')+x.body);
+  });
+  return o;
+}
+function monoS(t,vars,html){const x=monoParts(t,vars,html);return (x.neg?(html?'−':'-'):'')+x.body;}
+const facS=(g,q,vars,html)=>monoS(g,vars,html)+'('+polyS(q,vars,html)+')';
+
+/* помилкові варіанти: «ламаємо» правильну відповідь і лишаємо лише ті, що не дають початкового многочлена */
+function mutations(G,Q,vars,allowG){
+  const out=[];const add=(g,q)=>out.push([g,q]);const P=mulP(G,Q);
+  Q.forEach((t,i)=>{
+    let q=cloneP(Q);q[i].c=-q[i].c;add(G,q);
+    if(P[i].c!==t.c){q=cloneP(Q);q[i].c=P[i].c;add(G,q);}
+    [1,-1].forEach(d=>{const nc=t.c+d;if(nc!==0){q=cloneP(Q);q[i].c=nc;add(G,q);}});
+    vars.forEach(v=>{
+      const e=t.e[v]||0;
+      if(P[i].e[v]&&P[i].e[v]!==e){q=cloneP(Q);q[i].e[v]=P[i].e[v];add(G,q);}
+      if(e>0){q=cloneP(Q);q[i].e[v]=e+1;add(G,q);q=cloneP(Q);q[i].e[v]=e-1;add(G,q);}
+    });
+  });
+  if(allowG){
+    Object.keys(G.e).forEach(v=>{[1,-1].forEach(d=>{const ne=G.e[v]+d;if(ne>=0){const g=cloneM(G);g.e[v]=ne;add(g,Q);}});});
+    let g=cloneM(G);g.c=-G.c;add(g,Q);
+    g=cloneM(G);g.c=G.c+(G.c>0?1:-1);add(g,Q);
+    if(Math.abs(G.c)>=2){g=cloneM(G);g.c=G.c*2;add(g,Q);}
+  }
+  return out;
+}
+function validPoly(g,q){
+  if(!g.c||g.c!==Math.round(g.c))return false;
+  for(const v in g.e)if(g.e[v]<0)return false;
+  const seen={};
+  for(const t of q){
+    if(!t.c||t.c!==Math.round(t.c))return false;
+    for(const v in t.e)if(t.e[v]<0)return false;
+    const k=monoKey(t);if(seen[k])return false;seen[k]=1;
+  }
+  return true;
+}
+function distractors(G,Q,vars,allowG){
+  const P=canon(mulP(G,Q));const seen=new Set([facS(G,Q,vars,false)]);const good=[];
+  shuffle(mutations(G,Q,vars,allowG)).forEach(([g,q])=>{
+    if(!validPoly(g,q))return;
+    if(canon(mulP(g,q))===P)return;
+    const k=allowG?facS(g,q,vars,false):polyS(q,vars,false);
+    if(seen.has(k)||(!allowG&&k===polyS(Q,vars,false)))return;
+    seen.add(k);good.push([g,q]);
+  });
+  return good.slice(0,3);
+}
+
+const LETTERS=['a','b','c','d','m','n','p','q','x','y','k','t','s'];
+const pickVars=k=>shuffle(LETTERS).slice(0,k);
+const pickPair=()=>pickVars(2).sort();
+function coprimePair(maxm,maxn,eq1){
+  let m,n;
+  do{m=ri(1,maxm);n=ri(1,maxn);}while(gcd(m,n)!==1||(m===n&&!(eq1&&m===1)));
+  return [m,n];
+}
+
+/* шаблони многочленів: {vars, G (спільний множник), Q (многочлен у дужках)} */
+function spec4(){const [u,v]=pickPair();const g=ri(2,9);const [m,n]=coprimePair(5,6);const s=pick([1,-1]);
+  return {vars:[u,v],G:M(g,{}),Q:[M(m,{[u]:1}),M(s*n,{[v]:1})]};}
+function spec5(){const [w,...r]=pickVars(3);const [u,v]=r.sort();const g=ri(2,7);const [m,n]=coprimePair(4,5);const s=pick([1,-1]);
+  return {vars:[w,u,v],G:M(g,{[w]:1}),Q:[M(m,{[u]:1}),M(s*n,{[v]:1})]};}
+function spec6(){const [w,...r]=pickVars(3);const [u,v]=r.sort();const g=ri(2,6);const [m,n]=coprimePair(7,9);const hasW=rnd()<0.4;
+  return {vars:hasW?[w,u,v]:[u,v],G:hasW?M(-g,{[w]:1}):M(-g,{}),Q:[M(m,{[u]:1}),M(n,{[v]:1})]};}
+function spec7(){const [u,v]=pickPair();const g=ri(1,9);const [m,n]=coprimePair(3,5,true);const s=pick([1,-1]);
+  return {vars:[u,v],G:M(g,{[u]:1}),Q:[M(m,{[u]:1}),M(s*n,{[v]:1})]};}
+function spec8(){const [u]=pickVars(1);const s=pick([1,-1]);
+  if(rnd()<0.5){
+    let e1,e2;do{e1=ri(2,9);e2=ri(2,9);}while(e1===e2);
+    const mn=Math.min(e1,e2);
+    return {vars:[u],G:M(1,{[u]:mn}),Q:[M(1,{[u]:e1-mn}),M(s,{[u]:e2-mn})]};
+  }
+  let e1,e2;do{e1=ri(1,9);e2=ri(1,9);}while(e1===e2);
+  const mn=Math.min(e1,e2);const g=pick([1,1,2,3,4,5,7]);const [m,n]=coprimePair(9,9);
+  return {vars:[u],G:M(g,{[u]:mn}),Q:[M(m,{[u]:e1-mn}),M(s*n,{[u]:e2-mn})]};}
+const QE=[[[1,0],[0,1]],[[1,0],[0,0]],[[0,1],[0,0]],[[2,0],[0,1]],[[1,0],[0,2]],[[1,0],[0,3]],[[1,0],[0,5]],[[0,1],[2,0]],[[1,1],[0,0]],[[2,0],[0,0]],[[0,2],[0,0]]];
+function spec9(){const [u,v]=pickPair();const [a,b]=pick(QE);
+  const g=ri(1,9);const [m,n]=coprimePair(9,9);const s=pick([1,-1]);
+  const G=M(g,{[u]:ri(1,3),[v]:ri(1,2)});
+  return {vars:[u,v],G,Q:[M(m,{[u]:a[0],[v]:a[1]}),M(s*n,{[u]:b[0],[v]:b[1]})]};}
+
+function mk(kind,text,exprH,exprP,opts,extra){
+  const o=shuffle(opts);
+  return Object.assign({kind,text,exprH,exprP,opts:o,correct:o.findIndex(x=>x.ok)},extra||{});
+}
+function theory(text,right,wrongs){
+  return mk('t',text,'','',[{h:escH(right),p:right,ok:true}].concat(wrongs.map(w=>({h:escH(w),p:w}))),{type:'theory'});
+}
+
+function factorItem(sp,text){
+  const P=mulP(sp.G,sp.Q);
+  const opts=[{h:facS(sp.G,sp.Q,sp.vars,true),p:facS(sp.G,sp.Q,sp.vars,false),ok:true}];
+  distractors(sp.G,sp.Q,sp.vars,true).forEach(([g,q])=>opts.push({h:facS(g,q,sp.vars,true),p:facS(g,q,sp.vars,false)}));
+  return mk('m',text,polyS(P,sp.vars,true),polyS(P,sp.vars,false),opts,{type:'factor',target:polyS(P,sp.vars,false)});
+}
+function missingItem(sp){
+  const P=mulP(sp.G,sp.Q);
+  const opts=[{h:polyS(sp.Q,sp.vars,true),p:polyS(sp.Q,sp.vars,false),ok:true}];
+  distractors(sp.G,sp.Q,sp.vars,false).forEach(([g,q])=>opts.push({h:polyS(q,sp.vars,true),p:polyS(q,sp.vars,false)}));
+  const h=polyS(P,sp.vars,true)+'<span class="op">=</span>'+monoS(sp.G,sp.vars,true)+'<span class="op">·</span>(<span class="mbox">?</span>)';
+  const p=polyS(P,sp.vars,false)+'='+monoS(sp.G,sp.vars,false)+'·(?)';
+  return mk('m','Яким многочленом потрібно замінити «?», щоб рівність була правильною?',h,p,opts,{type:'missing',target:polyS(P,sp.vars,false),g:monoS(sp.G,sp.vars,false)});
+}
+function gcfItem(sp){
+  const P=mulP(sp.G,sp.Q);const A=P[0],B=P[1];const vars=sp.vars;
+  const gc=gcd(A.c,B.c),lc=Math.abs(A.c*B.c)/gc;
+  const mn={},mx={};vars.forEach(v=>{mn[v]=Math.min(A.e[v]||0,B.e[v]||0);mx[v]=Math.max(A.e[v]||0,B.e[v]||0);});
+  const Gk=monoKey(sp.G);
+  const pool=[];
+  pool.push(M(lc,Object.assign({},mn)));
+  pool.push(M(gc,Object.assign({},mx)));
+  pool.push(M(Math.min(Math.abs(A.c),Math.abs(B.c)),Object.assign({},mn)));
+  pool.push(M(gc,Object.assign({},A.e)));
+  pool.push(M(gc,Object.assign({},B.e)));
+  vars.forEach(v=>{if(mn[v]>0){const e=Object.assign({},mn);e[v]=mn[v]-1;pool.push(M(gc,e));}});
+  pool.push(M(gc*2,Object.assign({},mn)));
+  const seen=new Set([monoS(sp.G,vars,false)]);const wrong=[];
+  shuffle(pool).forEach(t=>{
+    const k=monoS(t,vars,false);
+    if(seen.has(k)||k==='1'||t.c<1)return;
+    seen.add(k);wrong.push(t);
+  });
+  const opts=[{h:monoS(sp.G,vars,true),p:monoS(sp.G,vars,false),ok:true}].concat(wrong.slice(0,3).map(t=>({h:monoS(t,vars,true),p:monoS(t,vars,false)})));
+  return mk('m','Який спільний множник потрібно винести за дужки з многочлена, щоб у дужках не залишилося спільного множника?',polyS(P,vars,true),polyS(P,vars,false),opts,{type:'gcf',target:polyS(P,vars,false),g:monoS(sp.G,vars,false)});
+}
+function numItem(){
+  const a=ri(12,89);let x,y,R,h,p,ev,sd;
+  if(rnd()<0.5){
+    const s=pick([10,100]);x=s===10?ri(2,8):ri(21,79);y=s-x;R=a*s;
+    h=a+'·'+x+'<span class="op">+</span>'+a+'·'+y;p=a+'·'+x+'+'+a+'·'+y;ev=a+'*'+x+'+'+a+'*'+y;
+    sd=s;
+  }else{
+    const d=pick([10,100]);y=d===10?ri(21,89):ri(11,49);x=y+d;R=a*d;
+    h=a+'·'+x+'<span class="op">−</span>'+a+'·'+y;p=a+'·'+x+'-'+a+'·'+y;ev=a+'*'+x+'-'+a+'*'+y;
+    sd=d;
+  }
+  const cand=[R*10,R+a,R-a,R+sd,R-sd,a*x+y,a*y+x];
+  if(R%10===0)cand.push(R/10);
+  const seen=new Set([R]);const wrong=[];
+  shuffle(cand).forEach(c=>{if(c>0&&!seen.has(c)){seen.add(c);wrong.push(c);}});
+  const opts=[{h:String(R),p:String(R),ok:true}].concat(wrong.slice(0,3).map(c=>({h:String(c),p:String(c)})));
+  return mk('m','Обчисліть зручним способом, винісши спільний множник за дужки:',h,p,opts,{type:'num',ev:ev});
+}
+
+/* 12 завдань: слот → генератор */
+const SLOTS=[
+  /* 1 */ ()=>theory('Що означає розкласти многочлен на множники?',
+        'Подати його у вигляді добутку кількох многочленів',
+        ['Подати його у вигляді суми кількох одночленів','Помножити всі його члени один на одного','Звести в ньому подібні доданки']),
+  /* 2 */ ()=>pick([
+        ()=>theory('На якій властивості множення ґрунтується винесення спільного множника за дужки?',
+          'На розподільній властивості множення',
+          ['На переставній властивості множення','На сполучній властивості множення','На властивості множення на нуль']),
+        ()=>theory('Як перевірити, чи правильно многочлен розкладено на множники?',
+          'Перемножити множники й отримати початковий многочлен',
+          ['Додати множники й порівняти з многочленом','Підставити замість змінних нулі','Поділити многочлен на кожний із множників'])
+      ])(),
+  /* 3 */ ()=>gcfItem(pick([spec9,spec9,spec5,spec7,spec8,spec4])()),
+  /* 4 */ ()=>factorItem(spec4(),'Розкладіть многочлен на множники, винісши спільний множник за дужки:'),
+  /* 5 */ ()=>factorItem(spec5(),'Розкладіть многочлен на множники:'),
+  /* 6 */ ()=>factorItem(spec6(),'Винесіть за дужки спільний множник зі знаком «−»:'),
+  /* 7 */ ()=>factorItem(spec7(),'Розкладіть многочлен на множники:'),
+  /* 8 */ ()=>factorItem(spec8(),'Розкладіть многочлен на множники:'),
+  /* 9 */ ()=>factorItem(spec9(),'Розкладіть многочлен на множники:'),
+  /* 10 */()=>pick([
+        ()=>theory('Один із членів многочлена збігається зі спільним множником. Що залишиться в дужках на місці цього члена?',
+          'Одиниця (зі знаком цього члена)',
+          ['Нуль','Нічого, місце буде порожнім','Сам спільний множник']),
+        ()=>theory('Многочлен має три члени. Скільки членів буде в дужках після винесення спільного множника?',
+          'Три',['Два','Один','Чотири'])
+      ])(),
+  /* 11 */()=>missingItem(pick([spec4,spec5,spec6,spec7,spec8,spec9])()),
+  /* 12 */()=>numItem()
+];
+/*GEN_END*/
+
+/* ===================== Інтерфейс ===================== */
+const N=SLOTS.length;
+const $=id=>document.getElementById(id);
+const esc=escH;
+const plural=n=>{const a=n%10,b=n%100;return (a===1&&b!==11)||(a>=2&&a<=4&&(b<12||b>14))?'завдання':'завдань';};
+const fmtT=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+
+function initSeed(){const m=/[?&]v=(\d+)/.exec(location.search);return m?(parseInt(m[1],10)>>>0):((Date.now()^Math.floor(Math.random()*4294967296))>>>0);}
+let seed=initSeed(),QS=[],A=[],idx=0,screen='start',checked=false,marks=[],who={sur:'',nam:''};
+
+/* час і виходи з вікна */
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};}
+function leave(){if(screen==='start'||checked||W.awayAt)return;W.awayAt=Date.now();W.leaves++;}
+function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0;}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+function newTest(){
+  setSeed(seed);
+  QS=SLOTS.map(f=>f());
+  A=Array(N).fill(null);idx=0;checked=false;marks=[];
+  resetWatch();
+}
+
+function numsRow(big){
+  let h='<div class="nums'+(big?' big':'')+'">';
+  for(let i=0;i<N;i++){
+    let c='n';
+    if(checked)c+=marks[i]?' ok':' bad';
+    else if(A[i]!==null)c+=' ans';
+    else if(screen==='review')c+=' empty';
+    if(i===idx&&screen!=='review')c+=' cur';
+    h+=`<button class="${c}" data-i="${i}" aria-label="Завдання ${i+1}">${i+1}</button>`;
+  }
+  return h+'</div>';
+}
+function qCard(i,rev){
+  const q=QS[i];
+  let h=`<div class="qhead"><div class="num">${i+1}</div><div class="qtext">${esc(q.text)}</div></div>`;
+  if(q.exprH)h+=`<div class="qmath m">${q.exprH}</div>`;
+  h+=`<div class="opts${q.kind==='t'?' tx':''}">`+q.opts.map((o,j)=>{
+    let c='opt';
+    if(rev){if(j===q.correct)c+=' right';else if(A[i]===j)c+=' wrong';}
+    else if(A[i]===j)c+=' chosen';
+    return `<div class="${c}" data-j="${j}" role="button" tabindex="0"><span class="mk">${'АБВГ'[j]}</span><span class="ot ${q.kind==='m'?'m':'t'}">${o.h}</span></div>`;
+  }).join('')+'</div>';
+  if(rev){
+    h+=`<div class="verdict ${marks[i]?'ok':'bad'}">${marks[i]?'✓ Правильно':(A[i]===null?'✗ Немає відповіді — правильну відповідь виділено зеленим':'✗ Неправильно — правильну відповідь виділено зеленим')}</div>`;
+  }
+  return h;
+}
+
+function render(){
+  const s=$('screen');
+  if(screen==='start')renderStart(s);
+  else if(screen==='q')renderQ(s);
+  else if(screen==='review')renderReview(s);
+  else renderResult(s);
+}
+function bindNums(s){
+  s.querySelectorAll('.n').forEach(b=>b.addEventListener('click',()=>{idx=+b.dataset.i;if(screen==='review')screen='q';render();}));
+}
+function bindOpts(s){
+  if(checked)return;
+  s.querySelectorAll('.opt').forEach(o=>{
+    const pickIt=()=>{A[idx]=+o.dataset.j;render();};
+    o.addEventListener('click',pickIt);
+    o.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickIt();}});
+  });
+}
+
+function renderStart(s){
+  s.innerHTML=`<div class="card start">
+    <div class="who">
+      <label>Прізвище<input id="sur" autocomplete="family-name" value="${esc(who.sur)}"></label>
+      <label>Ім’я<input id="nam" autocomplete="given-name" value="${esc(who.nam)}"></label>
+    </div>
+    <div class="hint">${N} завдань. До перевірки відповіді можна змінювати.</div>
+    <div class="errmsg" id="err"></div>
+    <button class="btn" id="go">Почати</button>
+  </div>`;
+  const go=()=>{
+    const a=$('sur'),b=$('nam');
+    a.classList.toggle('err',!a.value.trim());b.classList.toggle('err',!b.value.trim());
+    if(!a.value.trim()||!b.value.trim()){$('err').textContent='Введіть прізвище та ім’я, щоб почати';return;}
+    who={sur:a.value.trim(),nam:b.value.trim()};
+    screen='q';idx=0;resetWatch();render();
+  };
+  $('go').addEventListener('click',go);
+  s.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')go();}));
+}
+function renderQ(s){
+  s.innerHTML=`<div class="card top"><div class="cnt">Завдання ${idx+1} з ${N}</div>${numsRow()}</div>
+    <div class="card q scroll">${qCard(idx,false)}</div>
+    <div class="nav"><button class="btn light" id="bk" ${idx===0?'disabled':''}>← Назад</button><button class="btn" id="nx">Далі →</button></div>`;
+  bindNums(s);bindOpts(s);
+  $('bk').addEventListener('click',()=>{if(idx>0){idx--;render();}});
+  $('nx').addEventListener('click',goNext);
+}
+function goNext(){
+  if(idx<N-1){idx++;render();}
+  else{screen='review';render();}
+}
+function renderReview(s){
+  const left=A.filter(a=>a===null).length;
+  s.innerHTML=`<div class="card review">
+    <h2>Перед здачею</h2>
+    <div class="cnt">Відповіли на ${N-left} з ${N}</div>
+    ${numsRow(true)}
+    ${left?`<div class="warnline">Ви не завершили ${left} ${plural(left)}</div>`:''}
+    <div class="row"><button class="btn light" id="bk">← До завдань</button><button class="btn" id="chk">${left?'Все одно перевірити':'Перевірити'}</button></div>
+  </div>`;
+  bindNums(s);
+  $('bk').addEventListener('click',()=>{screen='q';idx=N-1;render();});
+  $('chk').addEventListener('click',doCheck);
+}
+function doCheck(){
+  if(checked)return;
+  const now=Date.now();back();
+  marks=QS.map((q,i)=>A[i]===q.correct?1:0);
+  const score=marks.reduce((a,b)=>a+b,0);
+  const rec={
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${who.sur} ${who.nam}`,surname:who.sur,firstName:who.nam,
+    ts:now,date:new Date(now).toISOString(),
+    score:score,max:N,tasks:marks,
+    qtext:QS.map(q=>q.text+(q.exprP?' '+q.exprP:'')),
+    answers:QS.map((q,i)=>A[i]===null?'':q.opts[A[i]].p),
+    correct:QS.map(q=>q.opts[q.correct].p),
+    durationSec:Math.round((now-W.t0)/1000),
+    leaves:W.leaves,awaySec:W.awaySec,
+    test:TEST_NAME
+  };
+  checked=true;
+  saveResult(rec);
+  screen='result';idx=0;render();
+}
+function renderResult(s){
+  const score=marks.reduce((a,b)=>a+b,0);
+  s.innerHTML=`<div class="scroll resbar">
+      <div class="card sum"><div class="who2">${esc(who.sur+' '+who.nam)}</div><div class="big">${score} з ${N}</div>${numsRow()}</div>
+      ${W.leaves>=3?`<div class="notice"><p><b>Ви забагато виходили з вікна тесту</b> (разів: ${W.leaves}), тому є підозра, що завдання виконано недоброчесно.</p><p>Недоброчесне виконання не дає знань, а лише створює ілюзію гарної оцінки.</p></div>`:''}
+      <div class="card q locked ${marks[idx]?'ok':'bad'}">${qCard(idx,true)}</div>
+    </div>
+    <div class="nav"><button class="btn light s" id="bk" ${idx===0?'disabled':''}>← Назад</button><button class="btn light s" id="again">Пройти ще раз</button><button class="btn s" id="nx" ${idx===N-1?'disabled':''}>Далі →</button></div>`;
+  bindNums(s);
+  $('bk').addEventListener('click',()=>{if(idx>0){idx--;render();}});
+  $('nx').addEventListener('click',()=>{if(idx<N-1){idx++;render();}});
+  $('again').addEventListener('click',()=>{seed=(Date.now()^Math.floor(Math.random()*4294967296))>>>0;newTest();screen='q';render();});
+}
+
+/* клавіатура комп'ютера */
+document.addEventListener('keydown',e=>{
+  if(!$('modal').classList.contains('hidden'))return;
+  if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if(screen==='q'){
+    if(e.key==='Enter'){if(A[idx]!==null)goNext();}
+    else if(e.key==='ArrowRight')goNext();
+    else if(e.key==='ArrowLeft'){if(idx>0){idx--;render();}}
+    else if(/^[1-4]$/.test(e.key)&&!checked){A[idx]=+e.key-1;render();}
+  }else if(screen==='result'){
+    if(e.key==='ArrowRight'&&idx<N-1){idx++;render();}
+    else if(e.key==='ArrowLeft'&&idx>0){idx--;render();}
+  }
+});
+
+/* ===================== Журнал учителя ===================== */
+const modal=$('modal');
+let lastRows=[];
+$('keyBtn').addEventListener('click',()=>{modal.classList.remove('hidden');if(!$('pwdBox').classList.contains('hidden'))$('pwd').focus();});
+$('closeBtn').addEventListener('click',()=>{
+  modal.classList.add('hidden');$('resBox').classList.add('hidden');$('pwdBox').classList.remove('hidden');
+  $('pwd').value='';$('pwdMsg').textContent='';$('clearBox').classList.add('hidden');
+  teacherLogout();
+});
+async function tryLogin(){
+  const pw=$('pwd').value;if(!pw)return;
+  $('pwdMsg').textContent='Перевірка…';
+  const ok=await teacherLogin(pw);
+  if(ok){
+    $('pwd').value='';$('pwdMsg').textContent='';
+    $('pwdBox').classList.add('hidden');$('resBox').classList.remove('hidden');
+    showResults();
+  }else $('pwdMsg').textContent='Неправильний пароль';
+}
+$('pwdBtn').addEventListener('click',tryLogin);
+$('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+$('refreshBtn').addEventListener('click',showResults);
+
+async function showResults(){
+  const info=$('resInfo'),tbl=$('tbl');
+  info.textContent='Завантаження…';
+  try{
+    lastRows=await loadResults();
+  }catch(e){
+    info.textContent='Не вдалося підключитися до бази результатів';tbl.innerHTML='';return;
+  }
+  info.textContent='Усього спроб: '+lastRows.length;
+  const maxN=lastRows.reduce((m,r)=>Math.max(m,r.max||(r.tasks||[]).length||0),0)||N;
+  let h='<table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>';
+  for(let i=1;i<=maxN;i++)h+=`<th>${i}</th>`;
+  h+='</tr></thead><tbody>';
+  lastRows.forEach((r,k)=>{
+    const dt=r.date?new Date(r.date).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const hasT=typeof r.durationSec==='number',hasL=typeof r.leaves==='number';
+    const tCls=hasT&&r.durationSec<120?' class="red" title="Дуже швидко"':'';
+    const lCls=hasL&&r.leaves>=3?' class="red"':'';
+    const lTitle=hasL?` title="Поза вікном: ${fmtT(r.awaySec||0)}"`:'';
+    h+=`<tr data-k="${k}"><td>${k+1}</td><td class="name"></td><td>${dt}</td><td${tCls}>${hasT?fmtT(r.durationSec):'—'}</td><td${lCls}${lTitle}>${hasL?r.leaves:'—'}</td><td><b>${r.score} / ${r.max||maxN}</b></td>`;
+    for(let i=0;i<maxN;i++){const v=(r.tasks||[])[i];h+=v===undefined?'<td></td>':(v?'<td class="y">✓</td>':'<td class="nn">✗</td>');}
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  tbl.innerHTML=h;
+  tbl.querySelectorAll('td.name').forEach(td=>{
+    const k=+td.parentNode.dataset.k,r=lastRows[k];
+    td.textContent=r.name||`${r.surname||''} ${r.firstName||r.firstname||''}`;
+    td.addEventListener('click',()=>toggleDetails(td.parentNode,r,maxN));
+  });
+}
+function toggleDetails(tr,r,maxN){
+  const nx=tr.nextElementSibling;
+  if(nx&&nx.classList.contains('det')){nx.remove();return;}
+  const d=document.createElement('tr');d.className='det';
+  const td=document.createElement('td');td.colSpan=6+maxN;
+  let h='';
+  if(typeof r.leaves==='number')h+=`<div class="small" style="margin-bottom:6px">Виходів: ${r.leaves}, поза вікном: ${r.awaySec||0} с</div>`;
+  if(r.qtext){
+    h+='<table><thead><tr><th>№</th><th>Завдання</th><th>Відповідь учня</th><th>Правильна відповідь</th></tr></thead><tbody>';
+    r.qtext.forEach((t,i)=>{
+      const ok=(r.tasks||[])[i];
+      h+=`<tr><td>${i+1}</td><td style="text-align:left">${esc(t)}</td><td class="${ok?'y':'nn'}">${esc((r.answers||[])[i]||'—')}</td><td>${esc((r.correct||[])[i]||'')}</td></tr>`;
+    });
+    h+='</tbody></table>';
+  }else h='<span class="small">Для цього запису деталей немає.</span>';
+  td.innerHTML=h;d.appendChild(td);tr.after(d);
+}
+$('csvBtn').addEventListener('click',()=>{
+  const maxN=lastRows.reduce((m,r)=>Math.max(m,r.max||(r.tasks||[]).length||0),0)||N;
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const head=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал'];
+  for(let i=1;i<=maxN;i++)head.push('завд. '+i);
+  const lines=[head.map(q).join(';')];
+  lastRows.forEach(r=>{
+    const row=[r.name||'',r.date?new Date(r.date).toLocaleString('uk-UA'):'',typeof r.durationSec==='number'?fmtT(r.durationSec):'',typeof r.leaves==='number'?r.leaves:'',typeof r.awaySec==='number'?fmtT(r.awaySec):'',r.score+'/'+(r.max||maxN)];
+    for(let i=0;i<maxN;i++){const v=(r.tasks||[])[i];row.push(v===undefined?'':(v?'+':'-'));}
+    lines.push(row.map(q).join(';'));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Розкладання_на_множники_7клас_результати.csv';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+});
+$('clearBtn').addEventListener('click',()=>{
+  $('clearTxt').textContent=`Видалити всі записи (${lastRows.length})?`;
+  $('clearBox').classList.remove('hidden');
+});
+$('clearNo').addEventListener('click',()=>$('clearBox').classList.add('hidden'));
+$('clearYes').addEventListener('click',async()=>{
+  $('clearBox').classList.add('hidden');
+  try{await clearResults();showResults();}
+  catch(e){$('resInfo').textContent='Не вдалося очистити записи. Перевірте правила бази Firebase';}
+});
+
+newTest();render();
+})();
+</script>
+</body>
+</html>
