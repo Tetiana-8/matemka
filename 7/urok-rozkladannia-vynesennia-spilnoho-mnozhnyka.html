@@ -186,6 +186,7 @@ button:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
 .tools{position:absolute;right:1rem;bottom:.7rem;z-index:5;display:flex;gap:.4rem}
 .tools .btn{min-height:0;padding:.2em .8em;font-size:.85rem;opacity:.85}
 .stp,.ab{padding-bottom:2.8rem}
+.st.num{font-size:2.8rem;line-height:1.1;margin:0 0 .3rem;color:var(--accD)}
 .ext{text-align:center}
 .ext:empty{display:none}
 .ext .def{text-align:left}
@@ -348,13 +349,18 @@ function mergeSlots(steps){const out=[];for(let i=0;i<steps.length;i++){const s=
 function taskPane(T,idx){
   const root=el('div','task'),P=['#2f7d4f','#2A6592','#66811d','#4b5fb0'][idx%4];
   root.style.setProperty('--tc',P);
-  root.appendChild(el('div','ask','<span class="kk">'+(T.lab||('№'+T.n+' ('+T.i+')'))+'</span>'+(T.ask||'')));
   let r0,steps;
   if(T.expr){const f=factorTask(T);r0=f.row0;steps=f.steps;}else{r0=T.row0;steps=mergeSlots(T.steps);}
   root.appendChild(stepPane(r0,steps,{noAr:true}));
   return root;
 }
-function taskStage(list,ask){return tabs(list.map((T,i)=>({label:'('+T.i+')',make:()=>taskPane(Object.assign({ask},T),i)})));}
+function taskStage(list,ask,title){
+  const w=el('div');
+  if(title)w.appendChild(el('h2','st num',title));
+  if(ask)w.appendChild(el('div','ask',ask));
+  w.appendChild(tabs(list.map((T,i)=>({label:'('+T.i+')',make:()=>taskPane(T,i)}))));
+  return w;
+}
 </script>
 <script>
 /* ===================== ЗАВДАННЯ З ПІДРУЧНИКА (Мерзляк, п. 12) ===================== */
@@ -668,9 +674,9 @@ function commonPane(){
     {add:[{h:'3'+X+' + 3<i>y</i> = <span class="cfx">3</span>('+X+' + <i>y</i>)'}]}],{cls:'sm big'});
 }
 function stCommonF(){return mkStage('Винесення спільного множника',commonPane());}
-const stFind=()=>mkStage('',taskStage(T_E1,'Розкладіть на множники'));
-const stBracket=()=>mkStage('',taskStage(T_E2,'Подайте у вигляді добутку многочленів'));
-const stTasks=(list,ask)=>mkStage('',taskStage(list,ask));
+const stFind=()=>mkStage('',taskStage(T_E1,'Розкладіть на множники','Приклад 1'));
+const stBracket=()=>mkStage('',taskStage(T_E2,'Подайте у вигляді добутку многочленів','Приклад 2'));
+const stTasks=(list,ask,title)=>mkStage('',taskStage(list,ask,title));
 /* підсумок */
 function stSum(){
   const d=el('div'),fin=el('div');
@@ -754,7 +760,7 @@ function callNext(){
 }
 
 /* ===================== ВІКНА: картка, ключик, завершення ===================== */
-const NAMES=['Старт','Актуалізація','Розкладання на множники','Навіщо це вміти','Винесення спільного множника','Як знайти спільний множник','Спільний множник — многочлен','№479 (1)–(8)','№479 (9)–(15)','№482','№484 (1), (2)','№486','№490','№492','Підсумок уроку','Рефлексія «Світлофор»'];
+const NAMES=['Старт','Актуалізація','Розкладання на множники','Навіщо це вміти','Винесення спільного множника','Як знайти спільний множник','Спільний множник — многочлен','№479 (1)–(8)','№479 (9)–(15)','№482 (1)–(3)','№484 (1), (2)','№486 (1)–(6)','№490 (1)–(6)','№492 (1)–(6)','Підсумок уроку','Рефлексія «Світлофор»'];
 const DUR=[0,3,3,4,2,5,4,4,2,3,2,4,3,2,2,2];
 const LAST=NAMES.length-1;
 const fmtMin=m=>m+' хв';
@@ -818,10 +824,10 @@ let stages=[],cur=0,t0=Date.now();
 function buildAll(){
   const wrap=$('#stagewrap');wrap.innerHTML='';stages=[];
   const parts=[stStart(),stWarm(),stSplit(),stWhy(),stCommonF(),stFind(),stBracket(),
-    stTasks(T479a,'Винесіть за дужки спільний множник'),stTasks(T479b,'Винесіть за дужки спільний множник'),
-    stTasks(T482,'Обчисліть, використовуючи винесення спільного множника за дужки'),
-    stTasks(T484,'Обчисліть значення виразу, попередньо розклавши його на множники'),
-    stTasks(T486,'Розв’яжіть рівняння'),stTasks(T490,'Розкладіть на множники'),stTasks(T492,'Розкладіть на множники'),stSum(),stTL()];
+    stTasks(T479a,'Винесіть за дужки спільний множник','№479 (1)–(8)'),stTasks(T479b,'Винесіть за дужки спільний множник','№479 (9)–(15)'),
+    stTasks(T482,'Обчисліть, використовуючи винесення спільного множника за дужки','№482 (1)–(3)'),
+    stTasks(T484,'Обчисліть значення виразу, попередньо розклавши його на множники','№484 (1), (2)'),
+    stTasks(T486,'Розв’яжіть рівняння','№486 (1)–(6)'),stTasks(T490,'Розкладіть на множники','№490 (1)–(6)'),stTasks(T492,'Розкладіть на множники','№492 (1)–(6)'),stSum(),stTL()];
   parts.forEach(p=>{const st=p.st||p;st.classList.remove('on');wrap.appendChild(st);stages.push(st);});
 }
 function goTo(i,dir){
