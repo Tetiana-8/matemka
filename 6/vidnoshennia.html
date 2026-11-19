@@ -60,8 +60,8 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 footer b{color:#374151}
 
 /* стрілка ↓ */
-#dwrap{flex:none;height:3.4rem;display:flex;justify-content:center;align-items:center}
-#down{width:2.9rem;height:2.9rem;border-radius:50%;border:0;background:var(--acc2);color:#fff;font-size:1.6rem;font-weight:900;cursor:pointer;box-shadow:0 3px 8px rgba(194,65,12,.35);animation:bob 1.2s ease-in-out infinite}
+#dwrap{flex:none;height:0}
+#down{position:fixed;z-index:30;left:50%;top:70%;width:2.9rem;height:2.9rem;border-radius:50%;border:0;background:var(--acc2);color:#fff;font-size:1.6rem;font-weight:900;cursor:pointer;box-shadow:0 3px 8px rgba(194,65,12,.35);animation:bob 1.2s ease-in-out infinite}
 #down:hover{background:var(--acch)}
 #down[hidden]{display:none}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(.25rem)}}
@@ -80,6 +80,19 @@ footer b{color:#374151}
 .rv.prow.show,.rv.two.show{display:grid}
 .rv.exrow.show,.rv.xi.show{display:flex}
 .rv:not(.show):not(.g){display:none!important}
+.wt{text-align:center;font-size:1.4rem;font-weight:800;margin-bottom:.2rem}
+.wp{text-align:center;font-size:1.55rem;font-weight:800;line-height:1.75}
+.wp b{color:var(--ink)}
+.wp.fin{background:var(--soft);border:2px solid var(--l2);border-radius:1rem;padding:.2rem 1rem;margin:.4rem auto 0;max-width:30rem;font-size:1.7rem}
+.wp.fin b{color:var(--acc)}
+.xi.st{text-align:center;align-items:stretch}
+.xi.st .xq{justify-content:center}
+.stp{font-size:1.5rem;font-weight:800;margin-top:.2rem;line-height:1.5}
+.stp.fin{color:var(--oktx);background:var(--okbg);border:2px solid var(--okln);border-radius:.7rem;padding:.05rem .6rem}
+.items.c1 .stp{font-size:1.75rem}
+.k1{color:#6d3fc8;font-weight:900}
+.k2{color:#c2255c;font-weight:900}
+.stage.hasmore .items,.stage.hasmore .sumbox{padding-bottom:3.4rem}
 .note{background:var(--soft);border:2px solid var(--l2);border-radius:1rem;padding:.7rem 1.2rem;font-size:1.3rem;font-weight:700;line-height:1.55;text-align:center}
 .note b{color:var(--acc);font-weight:900}
 .mapsvg{width:100%;max-width:38rem;display:block;margin:.5rem auto 0;height:auto}
@@ -275,7 +288,12 @@ footer b{color:#374151}
     <!-- 2. Відношення -->
     <section class="stage" data-dur="240" data-name="Відношення">
       <div class="inner">
-        <div class="note rv">У житті одне й те саме часто називають різними словами: <b>урок</b> — <b>заняття</b>, <b>думати</b> — <b>мислити</b>. У математиці так само. Раніше ми казали «<b>частка</b>», а тепер частку двох чисел називатимемо ще одним словом — «<b>відношення</b>».</div>
+        <div class="wt rv">У житті одне й те саме називають різними словами:</div>
+        <div class="wp rv"><b>урок</b> — <b>заняття</b></div>
+        <div class="wp rv"><b>думати</b> — <b>мислити</b></div>
+        <div class="wp rv"><b>великий</b> — <b>величезний</b></div>
+        <div class="wp rv"><b>говорити</b> — <b>розмовляти</b></div>
+        <div class="wp fin rv"><b>частка</b> — <b>відношення</b></div>
         <div class="rule rv mt" style="font-size:1.35rem">Частку двох чисел <b class="A">a</b> і <b class="B">b</b>, відмінних від нуля, називають <b>відношенням</b> чисел <b class="A">a</b> і <b class="B">b</b>, або відношенням числа <b class="A">a</b> до числа <b class="B">b</b>.</div>
         <div id="relRows"></div>
         <div class="rv mt" id="relSch">
@@ -483,6 +501,7 @@ const eqR=(a,b)=>a[0]*b[1]===a[1]*b[0];
 
 /* ---------- каркас: етапи, кроки, навігація ---------- */
 const stages=$$('#main .stage');
+stages.forEach(s=>s.addEventListener('scroll',()=>placeDown(),{passive:true}));
 const DUR=stages.map(s=>+s.dataset.dur), NAMES=stages.map(s=>s.dataset.name);
 const ST=[]; let cur=0;
 const fmtT=s=>String(s/60).replace('.',',')+' хв';
@@ -492,8 +511,31 @@ function rvStepper(root){
           next(){const x=it().find(x=>!x.classList.contains('show'));if(x){x.classList.add('show');setTimeout(()=>x.scrollIntoView({block:'nearest',behavior:'smooth'}),30);}},
           reset(){it().forEach(x=>x.classList.remove('show'));}};
 }
-function updDown(){ $('#down').hidden=!(ST[cur]&&ST[cur].more()); }
-$('#down').onclick=()=>{ST[cur].next();updDown();};
+function placeDown(){
+  const d=$('#down'); if(d.hidden||!stages[cur])return;
+  const st=stages[cur], R=st.getBoundingClientRect(), w=d.offsetWidth, h=d.offsetHeight;
+  let bot=null;
+  $$('.rv.show',st).forEach(e=>{ if(!e.getClientRects().length)return; const r=e.getBoundingClientRect(); if(bot===null||r.bottom>bot)bot=r.bottom; });
+  let top;
+  if(bot===null){
+    top=R.top+6;
+    for(const e of $$('.rv:not(.show)',st)){
+      e.style.visibility='hidden'; e.classList.add('show');
+      const r=e.getBoundingClientRect(), ok=r.height>0;
+      e.classList.remove('show'); e.style.visibility='';
+      if(ok){top=r.top;break;}
+    }
+  } else top=bot+6;
+  top=Math.max(R.top+4,Math.min(top,R.bottom-h-6));
+  d.style.top=top+'px'; d.style.left=(R.left+R.width/2-w/2)+'px';
+}
+function updDown(){
+  const m=!!(ST[cur]&&ST[cur].more());
+  $('#down').hidden=!m; stages[cur]&&stages[cur].classList.toggle('hasmore',m);
+  if(m)placeDown();
+}
+$('#down').onclick=()=>{ST[cur].next();updDown();[120,450,800].forEach(t=>setTimeout(updDown,t));};
+window.addEventListener('resize',()=>{updDown();});
 
 let left=0,tmr=null;
 function tmStart(){
@@ -709,9 +751,10 @@ ST[5]=rvStepper(stages[5]);
     const g=gen(first), {A,q,a}=calc(g);
     host.innerHTML=`
       <div class="card rv cond">Знайдіть відношення ${hA(a+' '+g.au)} до ${hB(g.b+' '+g.bu)}.</div>
-      <div class="card left rv">Щоб знайти відношення даних величин, треба спочатку <b>виразити їх в однакових одиницях виміру</b>, а потім <b>виконати ділення</b>.</div>
+      <div class="card left rv">Щоб знайти відношення <b>даних величин</b>, треба спочатку <b class="k1">виразити їх в однакових одиницях виміру</b>, а потім <b class="k2">виконати ділення</b>.</div>
       <div class="card rv">${hA(a+' '+g.au)} = ${a} · ${g.f} = ${hA(N(A)+' '+g.bu)}</div>
       <div class="card rv">${hA(a+' '+g.au)} : ${hB(g.b+' '+g.bu)} = ${hA(N(A)+' '+g.bu)} : ${hB(g.b+' '+g.bu)} = <b>${N(q)}</b></div>
+      <div class="card rv">Або дробом: ${fr(hA(N(A)+' '+g.bu),hB(g.b+' '+g.bu))} = <b>${N(q)}</b></div>
       <div class="ans rv">Відповідь: ${N(q)}</div>`;
     updDown();
   }
@@ -745,6 +788,7 @@ ST[5]=rvStepper(stages[5]);
       <div class="card rv">Найменший спільний знаменник дробів <span class="A">${fr(n1,d1)}</span> і <span class="B">${fr(n2,d2)}</span> — число <span class="nsk">${c.L}</span></div>
       <div class="card rv">(<span class="A">${fr(n1,d1)}</span> · <span class="nsk">${c.L}</span>) : (<span class="B">${fr(n2,d2)}</span> · <span class="nsk">${c.L}</span>)</div>
       <div class="card rv">= (${hA(n1)} · ${c.m1}) : (${hB(n2)} · ${c.m2}) = ${hA(c.A)} : ${hB(c.B)}</div>
+      <div class="card rv">Або ділення замінимо множенням на обернений дріб:<br><span class="A">${fr(n1,d1)}</span> : <span class="B">${fr(n2,d2)}</span> = <span class="A">${fr(n1,d1)}</span> · <span class="B">${fr(d2,n2)}</span> = ${fr(n1*d2,d1*n2)}${gcd(n1*d2,d1*n2)>1?' = '+fr(c.A,c.B):''}, тобто <b>${c.A} : ${c.B}</b></div>
       <div class="ans rv">Відповідь: ${c.A} : ${c.B}</div>`;
     updDown();
   }
@@ -834,6 +878,30 @@ const EXS=[];
      sol:`12 · 15 000 = 180 000 (см) = 1800 м; 8 · 15 000 = 120 000 (см) = 1200 м<br>1800 · 1200 = 2 160 000 (м²) = 216 га<br>216 · 0,24 = <b>51,84</b> (т)`}
   ]});
 
+  /* покрокові розв’язання (без введення) */
+  const NBs=s=>s.replace(/(\d) (?=\d{3}(?!\d))/g,'$1 ');
+  const S=(n,f)=>{const ex=EXS.find(e=>e.n===n);ex.steps=true;f(ex);};
+  S(534,ex=>ex.items.forEach(it=>{it.steps=[it.sol];}));
+  const ST539=[
+    ['= 18 : 54',`= ${fr(18,54)}`,`= ${fr(1,3)}`],
+    ['= 240 : 8','= 30'],
+    ['= 35 : 490',`= ${fr(35,490)}`,`= ${fr(1,14)}`],
+    ['= 960 : 16','= 60'],
+    ['= 30 см : 5 см','= 6'],
+    ['= 8 м : 1000 м',`= ${fr(8,1000)}`,`= ${fr(1,125)}`],
+    ['= 12 м : 1800 м',`= ${fr(12,1800)}`,`= ${fr(1,150)}`],
+    ['= 24 000 г : 480 г','= 50'],
+    ['= 360 г : 5400 г',`= ${fr(360,5400)}`,`= ${fr(1,15)}`],
+    ['= 144 см : 160 см',`= ${fr(144,160)}`,`= ${fr(9,10)}`],
+    ['= 60 хв : 24 хв',`= ${fr(60,24)}`,`= ${mix(2,1,2)}`],
+    ['= 78 см² : 260 см²',`= ${fr(78,260)}`,`= ${fr(3,10)}`]
+  ];
+  S(539,ex=>ex.items.forEach((it,i)=>{it.steps=ST539[i].map(NBs);}));
+  S(549,ex=>{ex.items[0].steps=['1 см на карті — 5 000 000 см на місцевості','12,8 · 5 000 000 = 64 000 000 (см)','64 000 000 см = 640 км','Відповідь: 640 км'].map(NBs);});
+  S(551,ex=>{ex.items[0].steps=['240 км = 24 000 000 см','24 000 000 : 600 000 = 40 (см)','Відповідь: 40 см'].map(NBs);});
+  S(553,ex=>{ex.items[0].steps=['435 км = 43 500 000 см','43 500 000 : 14,5 = 3 000 000','Відповідь: масштаб 1 : 3 000 000'].map(NBs);});
+  S(562,ex=>{ex.items[0].steps=['12 · 15 000 = 180 000 (см) = 1800 м','8 · 15 000 = 120 000 (см) = 1200 м','1800 · 1200 = 2 160 000 (м²)','2 160 000 м² = 216 га','216 · 0,24 = 51,84 (т)','Відповідь: 51,84 т'].map(NBs);});
+
   const DIRS=[['up','збільшиться'],['down','зменшиться'],['same','не зміниться']];
   const kindOf=it=>it.kind||(it.ans[1]===1?'num':'frac');
   function widget(it){
@@ -882,10 +950,13 @@ const EXS=[];
   const panes=$('#panes10'); let curEx=0; const done=EXS.map(ex=>ex.items.map(()=>false));
   EXS.forEach((ex,k)=>{
     const p=document.createElement('div'); p.className='pane'; p.id='ex'+k; if(k>0)p.hidden=true;
-    const hasInput=ex.items.some(it=>!['choice'].includes(kindOf(it)));
+    const hasInput=!ex.steps&&ex.items.some(it=>!['choice'].includes(kindOf(it)));
+    const itemHtml=ex.steps
+      ? (it,i)=>`<div class="xi st rv" data-i="${i}">${ex.single?'':`<div class="xq"><span class="n">${it.label||(i+1)+')'}</span>${it.q}</div>`}${it.steps.map((s,j)=>`<div class="stp rv${j===it.steps.length-1?' fin':''}">${s}</div>`).join('')}</div>`
+      : (it,i)=>`<div class="xi rv" data-i="${i}"><div class="xq">${ex.single?'':`<span class="n">${it.label||(i+1)+')'}</span>`}${it.q}</div><div class="xa">${widget(it)}</div><div class="fb"></div><div class="xs">${it.sol}</div></div>`;
     p.innerHTML=`<div class="exh"><b>№ ${ex.n}.</b> ${ex.head||''}</div>${ex.cond?`<div class="excond">${ex.cond}</div>`:''}
-      <div class="items c${ex.cols}">${ex.items.map((it,i)=>`<div class="xi rv" data-i="${i}"><div class="xq">${ex.single?'':`<span class="n">${it.label||(i+1)+')'}</span>`}${it.q}</div><div class="xa">${widget(it)}</div><div class="fb"></div><div class="xs">${it.sol}</div></div>`).join('')}</div>
-      <div class="bar mid mt">${hasInput?'<button class="btn sm chk">Перевірити</button>':''}<button class="btn light sm solb">Показати розв’язання</button></div><div class="score"></div>`;
+      <div class="items c${ex.cols}">${ex.items.map(itemHtml).join('')}</div>
+      ${ex.steps?'':`<div class="bar mid mt">${hasInput?'<button class="btn sm chk">Перевірити</button>':''}<button class="btn light sm solb">Показати розв’язання</button></div><div class="score"></div>`}`;
     panes.appendChild(p);
   });
   function setFb(box,r,it){
@@ -913,10 +984,10 @@ const EXS=[];
     const first=$('.xi',$('#ex'+k)); if(first)first.classList.add('show');
     stages[9].scrollTop=0; updDown();
   }
-  const exNext=pane=>$$('.xi',pane).find(x=>!x.classList.contains('show'));
+  const exNext=pane=>$$('.rv',pane).find(x=>!x.classList.contains('show'));
   panes.onclick=e=>{
     const pane=e.target.closest('.pane'); if(!pane)return;
-    const k=+pane.id.slice(2), ex=EXS[k];
+    const k=+pane.id.slice(2), ex=EXS[k]; if(ex.steps)return;
     if(e.target.closest('.chk')){runCheck(k);return;}
     if(e.target.closest('.solb')){
       const b=e.target.closest('.solb'), xs=$$('.xs',pane), on=!xs.every(x=>x.classList.contains('on'));
@@ -942,7 +1013,8 @@ const EXS=[];
     prev(){ if(curEx>0){show(curEx-1);return true;} return false; },
     fwd(){ if(curEx<EXS.length-1){show(curEx+1);return true;} return false; },
     reset(){
-      $$('.xi',panes).forEach(b=>{b.classList.remove('show','ok','bad','form');delete b.dataset.dir;$('.fb',b).textContent='';$('.xs',b).classList.remove('on');$$('input',b).forEach(i=>{i.value='';i.disabled=false;});$$('.opt',b).forEach(o=>{o.disabled=false;o.classList.remove('good','bad','sel');});});
+      $$('.rv',panes).forEach(b=>b.classList.remove('show'));
+      $$('.xi',panes).forEach(b=>{if(!$('.fb',b))return;b.classList.remove('ok','bad','form');delete b.dataset.dir;$('.fb',b).textContent='';$('.xs',b).classList.remove('on');$$('input',b).forEach(i=>{i.value='';i.disabled=false;});$$('.opt',b).forEach(o=>{o.disabled=false;o.classList.remove('good','bad','sel');});});
       $$('.solb',panes).forEach(b=>b.textContent='Показати розв’язання'); $$('.score',panes).forEach(s=>s.textContent='');
       done.forEach(d=>d.fill(false)); show(0);
     }};
