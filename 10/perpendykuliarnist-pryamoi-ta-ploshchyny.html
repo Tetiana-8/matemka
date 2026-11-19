@@ -738,6 +738,99 @@ const TASKS=[
     return{P,prims:pr,R:2.5,ctr:[-0.55,0,0.95]};},yaw:0.55,pitch:0.35
 }];
 
+/* =====================================================================
+   Закріплення: три задачі на паралельні перпендикуляри
+   ===================================================================== */
+const up3=(p,h)=>[p[0],p[1],h];
+const lab3=(p,s,c,lo,size=.9,off=1.3)=>({t:'txt',p,s,c:c||C.ink,upright:true,size,lo,off});
+const pt3=(id,lo,c)=>({t:'pt',id,c:c||C.ink,lo});
+const G1=(()=>{const A1=[-1.8,-0.5,0],B1=[1.8,0.7,0],C1=lerp(A1,B1,.2);
+  return{A1,B1,C1,A:up3(A1,1.5),B:up3(B1,2.5),C:up3(C1,1.7),D:up3(B1,1.5),K:up3(C1,1.5)};})();
+const G2=(()=>{const M1=[-1.8,-0.5,0],N1=[1.8,0.7,0],K1=lerp(M1,N1,3/8),x=0.5;
+  return{M1,N1,K1,M:up3(M1,2.1),N:up3(N1,x),K:up3(K1,1.5),T:up3(M1,x),S:up3(K1,x)};})();
+const G3=(()=>{const A1=[-1.6,-0.9,0],B1=[0.9,-1.1,0],D1=[-0.9,0.9,0],C1=[1.6,0.7,0],O1=[0,-0.1,0];
+  return{A1,B1,C1,D1,O1,A:up3(A1,1.1),B:up3(B1,1.8),C:up3(C1,2.3),D:up3(D1,1.6),O:up3(O1,1.7)};})();
+const TASKS2=[
+{ id:'g1',sf:true,tab:'Задача 1',num:'Задача 1.',fig:false,ok:2,
+  cond:<>Через кінці <M>A</M> і <M>B</M> та точку <M>C</M> відрізка <M>AB</M>, що не перетинає площину <span className="cb"><M>α</M></span>, проведено прямі, які перпендикулярні до площини <span className="cb"><M>α</M></span> та перетинають її в точках <M>A₁</M>, <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AA₁</M> = 15 см, <M>BB₁</M> = 25 см, <M>AC</M> : <M>BC</M> = 1 : 4.</>,
+  opts:['16 см','18 см','17 см','19 см','20 см'],
+  ex:<>Відповідь: <b>17 см</b>.</>,
+  steps:[
+    <><span className="cg"><M>AA₁</M>, <M>BB₁</M>, <M>CC₁</M> ⊥ <M>α</M></span> ⇒ ці прямі паралельні (теорема 34.3). Паралельні прямі <M>AA₁</M> і <M>BB₁</M> лежать в одній площині. Точка <M>C</M> лежить на <M>AB</M>, а <M>CC₁ ∥ AA₁</M>, тому <M>CC₁</M> лежить у цій самій площині.</>,
+    <>Ця площина перетинає <span className="cb"><M>α</M></span> по прямій <span className="cb"><M>A₁B₁</M></span>, тому <M>C₁</M> лежить на <M>A₁B₁</M>. Маємо трапецію <M>AA₁B₁B</M> з основами 15 см і 25 см.</>,
+    <>Проведемо через <M>A</M> пряму <span className="ca"><M>AD ∥ A₁B₁</M></span> (<M>D</M> лежить на <M>BB₁</M>). Нехай вона перетинає <M>CC₁</M> у точці <M>K</M>.</>,
+    <><span className="ca"><M>AA₁B₁D</M></span> і <M>AA₁C₁K</M> — прямокутники (<M>AD ∥ A₁B₁</M>, <M>AA₁ ⊥ A₁B₁</M>). Тому <M>KC₁</M> = <M>DB₁</M> = <M>AA₁</M> = 15 см. Тоді <span className="co"><M>BD</M> = <M>BB₁</M> − <M>DB₁</M> = 25 − 15 = 10 см</span>.</>,
+    <><M>AC</M> : <M>BC</M> = 1 : 4 ⇒ <M>AC</M> : <M>AB</M> = 1 : 5. Прямі <M>CK</M> і <M>BD</M> паралельні (обидві паралельні <M>AA₁</M>), тому <span className="ca">△<M>ACK</M> ∼ △<M>ABD</M></span>.</>,
+    <><Fr n="CK" d="BD"/> = <Fr n="AC" d="AB"/> = <Fr n="1" d="5"/>, тому <span className="co"><M>CK</M> = <Fr n="10" d="5"/> = 2 см</span>.</>,
+    <><span className="cr"><M>CC₁</M></span> = <M>CK</M> + <M>KC₁</M> = 2 + 15 = <b>17 см</b>.</>],
+  scene:st=>{const P=G1,k=st.k,pl=FLOOR(2.7,2.0);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al)];
+    if(k>=1)pr.push(plane(['A','B','B1','A1'],C.par,.13,1));
+    pr.push({t:'seg',a:'A',b:'B',c:C.edge,w:3.6},{t:'seg',a:'A',b:'A1',c:C.par,w:5},{t:'seg',a:'B',b:'B1',c:C.par,w:5},{t:'seg',a:'C',b:'C1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    if(k>=2)pr.push({t:'seg',a:'A1',b:'B1',c:C.al,w:5});
+    if(k>=4)pr.push({t:'poly',p:['A','A1','B1','D'],fill:C.gold,op:.2});
+    if(k>=5)pr.push({t:'poly',p:['A','C','K'],fill:C.ga,op:.32},{t:'poly',p:['A','B','D'],fill:C.ga,op:.12});
+    if(k>=3)pr.push({t:'seg',a:'A',b:'D',c:C.gold,w:4.6,dash:true},pt3('D',[1,.5]),pt3('K',[-1,.6]));
+    if(k>=4)pr.push({t:'seg',a:'B',b:'D',c:C.be,w:6.5},lab3(mid(P.B,P.D),'10 см',C.be,[1,0],.9,1.2));
+    if(k>=6)pr.push({t:'seg',a:'C',b:'K',c:C.be,w:6.5},lab3(mid(P.C,P.K),'2 см',C.be,[1,.3],.9,1.2));
+    pr.push(pt3('A',[-1,-.5]),pt3('B',[1,-.5]),pt3('C',[-1,-.6]),pt3('A1',[-1,.8]),pt3('B1',[1,.8]),pt3('C1',[0,1]),
+      lab3(mid(P.A,P.A1),'15 см',C.ink,[-1,0],.9,1.5),lab3(up3(P.B1,.7),'25 см',C.ink,[1,0],.9,1.5),
+      lab3(up3(P.C1,.45),k>=7?'17 см':'?',C.skew,[1,0],1,1.2));
+    return{P,prims:pr,R:3.5,ctr:[0,0,0.95]};},yaw:0.45,pitch:0.38
+},
+{ id:'g2',sf:true,tab:'Задача 2',num:'Задача 2.',fig:false,ok:1,
+  cond:<>Через кінці <M>M</M> і <M>N</M> та точку <M>K</M> відрізка <M>MN</M>, що не перетинає площину <span className="cb"><M>α</M></span>, проведено прямі, які перпендикулярні до площини <span className="cb"><M>α</M></span> та перетинають її в точках <M>M₁</M>, <M>N₁</M> і <M>K₁</M> відповідно. Знайдіть відрізок <M>NN₁</M>, якщо <M>MM₁</M> = 14 см, <M>KK₁</M> = 10 см, <M>MK</M> : <M>KN</M> = 3 : 5.</>,
+  opts:['4 см',<Fr n="10" d="3"/>,'6 см','5 см','2 см'],
+  ex:<>Відповідь: <b><Fr n="10" d="3"/> см</b>.</>,
+  steps:[
+    <><span className="cg"><M>MM₁</M>, <M>KK₁</M>, <M>NN₁</M> ⊥ <M>α</M></span> ⇒ ці прямі паралельні (теорема 34.3). Точки <M>M</M>, <M>K</M>, <M>N</M> лежать на одній прямій, тому всі три перпендикуляри лежать в одній площині. Вона перетинає <span className="cb"><M>α</M></span> по прямій <span className="cb"><M>M₁N₁</M></span>, а <M>K₁</M> лежить на <M>M₁N₁</M>.</>,
+    <>Нехай <M>NN₁</M> = <M>x</M> см. Проведемо через <M>N</M> пряму <span className="ca"><M>NT ∥ N₁M₁</M></span> (<M>T</M> лежить на <M>MM₁</M>, <M>S</M> — на <M>KK₁</M>). <M>NN₁M₁T</M> і <M>NN₁K₁S</M> — прямокутники, тому <M>TM₁</M> = <M>SK₁</M> = <M>NN₁</M> = <M>x</M>.</>,
+    <><span className="co"><M>MT</M> = <M>MM₁</M> − <M>TM₁</M> = 14 − <M>x</M></span>, <span className="co"><M>KS</M> = <M>KK₁</M> − <M>SK₁</M> = 10 − <M>x</M></span>.</>,
+    <><M>MK</M> : <M>KN</M> = 3 : 5 ⇒ <M>NK</M> : <M>NM</M> = 5 : 8. Прямі <M>KS</M> і <M>MT</M> паралельні, тому <span className="ca">△<M>NKS</M> ∼ △<M>NMT</M></span>.</>,
+    <><Fr n="KS" d="MT"/> = <Fr n="NK" d="NM"/>, тобто <Fr n="10 − x" d="14 − x"/> = <Fr n="5" d="8"/>.</>,
+    <>8(10 − <M>x</M>) = 5(14 − <M>x</M>); 80 − 8<M>x</M> = 70 − 5<M>x</M>; 10 = 3<M>x</M>.</>,
+    <><span className="cr"><M>NN₁</M></span> = <M>x</M> = <b><Fr n="10" d="3"/> см</b> (3<Fr n="1" d="3"/> см).</>],
+  scene:st=>{const P=G2,k=st.k,pl=FLOOR(2.7,2.0);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al)];
+    if(k>=1)pr.push(plane(['M','N','N1','M1'],C.par,.13,1));
+    pr.push({t:'seg',a:'M',b:'N',c:C.edge,w:3.6},{t:'seg',a:'M',b:'M1',c:C.par,w:5},{t:'seg',a:'K',b:'K1',c:C.par,w:5},{t:'seg',a:'N',b:'N1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    pr.push({t:'seg',a:'M1',b:'N1',c:C.al,w:k>=1?5:2});
+    if(k>=2)pr.push({t:'poly',p:['N','N1','M1','T'],fill:C.gold,op:.2},{t:'seg',a:'N',b:'T',c:C.gold,w:4.6,dash:true},pt3('T',[-1,.5]),pt3('S',[-1,.6]),
+      lab3(mid(P.N,P.N1),'x',C.gold,[1,0],1.1,.9));
+    if(k>=3)pr.push({t:'seg',a:'M',b:'T',c:C.be,w:6.5},{t:'seg',a:'K',b:'S',c:C.be,w:6.5},lab3(mid(P.M,P.T),'14 − x',C.be,[-1,0],.85,1.5),lab3(mid(P.K,P.S),'10 − x',C.be,[1,0],.85,1.5));
+    if(k>=4)pr.push({t:'poly',p:['N','K','S'],fill:C.ga,op:.34},{t:'poly',p:['N','M','T'],fill:C.ga,op:.12});
+    pr.push(pt3('M',[-1,-.5]),pt3('N',[1,-.5]),pt3('K',[1,-.6]),pt3('M1',[-1,.8]),pt3('N1',[1,.8]),pt3('K1',[0,1]),
+      lab3(up3(P.M1,1.95),'14 см',C.ink,[-1,0],.9,1.6),lab3(up3(P.K1,1.1),'10 см',C.ink,[-1,0],.9,1.6),
+      lab3(up3(P.N1,k>=7?.9:.9),k>=7?'10/3 см':'?',C.skew,[1,0],1,1.7));
+    return{P,prims:pr,R:3.6,ctr:[0,0,0.9]};},yaw:0.45,pitch:0.3
+},
+{ id:'g3',sf:true,tab:'Задача 3',num:'Задача 3.',fig:false,ok:3,
+  cond:<>Паралелограм <M>ABCD</M> не має спільних точок із площиною <span className="cb"><M>α</M></span>. Через вершини <M>A</M>, <M>B</M>, <M>C</M> і <M>D</M> проведено прямі, перпендикулярні до площини <span className="cb"><M>α</M></span>, які перетинають її в точках <M>A₁</M>, <M>B₁</M>, <M>C₁</M> і <M>D₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AA₁</M> = 11 см, <M>BB₁</M> = 18 см, <M>DD₁</M> = 16 см.</>,
+  opts:['21 см','25 см','27 см','23 см','29 см'],
+  ex:<>Відповідь: <b>23 см</b>.</>,
+  steps:[
+    <><span className="cg"><M>AA₁</M>, <M>BB₁</M>, <M>CC₁</M>, <M>DD₁</M> ⊥ <M>α</M></span> ⇒ усі чотири прямі паралельні (теорема 34.3).</>,
+    <>Діагоналі паралелограма <span className="co"><M>AC</M> і <M>BD</M></span> перетинаються в точці <M>O</M>, яка є серединою кожної з них.</>,
+    <>Проведемо через <M>O</M> пряму, паралельну <M>AA₁</M>. За теоремою 34.2 вона перпендикулярна до <span className="cb"><M>α</M></span>. Нехай вона перетинає <span className="cb"><M>α</M></span> у точці <M>O₁</M>.</>,
+    <>Прямі <M>AA₁</M> і <M>CC₁</M> паралельні, тому <M>A</M>, <M>A₁</M>, <M>C₁</M>, <M>C</M> лежать в одній площині — це трапеція <M>AA₁C₁C</M>. Пряма <M>OO₁</M> лежить у цій площині, паралельна основам і проходить через середину <M>AC</M>. Отже, <span className="ca"><M>OO₁</M> — середня лінія трапеції</span>: <M>OO₁</M> = <Fr n="AA₁ + CC₁" d="2"/>.</>,
+    <>Так само <M>B</M>, <M>B₁</M>, <M>D₁</M>, <M>D</M> лежать в одній площині, а <M>O</M> — середина <M>BD</M>. Тому <M>OO₁</M> — середня лінія трапеції <M>BB₁D₁D</M>: <M>OO₁</M> = <Fr n="BB₁ + DD₁" d="2"/>.</>,
+    <><Fr n="AA₁ + CC₁" d="2"/> = <Fr n="BB₁ + DD₁" d="2"/> ⇒ <span className="co"><M>AA₁</M> + <M>CC₁</M> = <M>BB₁</M> + <M>DD₁</M></span>.</>,
+    <><span className="cr"><M>CC₁</M></span> = <M>BB₁</M> + <M>DD₁</M> − <M>AA₁</M> = 18 + 16 − 11 = <b>23 см</b>.</>],
+  scene:st=>{const P=G3,k=st.k,pl=FLOOR(2.7,2.1);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),plane(['A','B','C','D'],'#94a3b8',.12,1)];
+    ['AB','BC','CD','DA'].forEach(e=>pr.push({t:'seg',a:e[0],b:e[1],c:C.edge,w:3.4}));
+    ['A1B1','B1C1','C1D1','D1A1'].forEach(e=>pr.push({t:'seg',a:e.slice(0,2),b:e.slice(2),c:C.grey,w:1.6,dash:true}));
+    pr.push({t:'seg',a:'A',b:'A1',c:C.par,w:5},{t:'seg',a:'B',b:'B1',c:C.par,w:5},{t:'seg',a:'D',b:'D1',c:C.par,w:5},{t:'seg',a:'C',b:'C1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    if(k>=2)pr.push({t:'seg',a:'A',b:'C',c:C.be,w:4.2},{t:'seg',a:'B',b:'D',c:C.be,w:4.2},pt3('O',[0,-1]));
+    if(k===4||k>=6)pr.push(plane(['A','A1','C1','C'],C.al,.2,1));
+    if(k===5||k>=6)pr.push(plane(['B','B1','D1','D'],C.gold,.2,1));
+    if(k>=3)pr.push({t:'seg',a:'O',b:'O1',c:C.ga,w:6},pt3('O1',[0,1]));
+    pr.push(pt3('A',[-1,-.4]),pt3('B',[1,-.5]),pt3('C',[1,-.4]),pt3('D',[-1,-.4]),pt3('A1',[-1,.8]),pt3('B1',[1,.8]),pt3('C1',[1,.8]),pt3('D1',[-1,.8]),
+      lab3(up3(P.A1,.5),'11 см',C.ink,[-1,0],.9,1.5),lab3(up3(P.B1,.9),'18 см',C.ink,[1,0],.9,1.5),lab3(up3(P.D1,.8),'16 см',C.ink,[-1,0],.9,1.5),
+      lab3(up3(P.C1,.55),k>=7?'23 см':'?',C.skew,[1,0],1,1.5));
+    return{P,prims:pr,R:3.5,ctr:[0,0,0.95]};},yaw:0.9,pitch:0.4
+}];
+
 function Tasks({list}){
   const [ti,setTi]=useState(0);const [res,setRes]=useState({});
   const t=list[ti];
@@ -775,6 +868,7 @@ function Tasks({list}){
 }
 const Item5=()=><Tasks list={TEXTBOOK}/>;
 const Item6=()=><Tasks list={TASKS}/>;
+const Item7=()=><Tasks list={TASKS2}/>;
 
 /* =====================================================================
    Оболонка уроку
@@ -786,7 +880,8 @@ const ITEMS=[
   {t:'Дві прямі, перпендикулярні до однієї площини',p:'теорема 34.3 · 3 хв',Cmp:Item3b},
   {t:'Пряма, перпендикулярна до площини, через точку',p:'теорема 34.4 · 4 хв',Cmp:Item4},
   {t:'Задача з підручника',p:'п. 34 · 5 хв',Cmp:Item5},
-  {t:'Вправи',p:'34.1–34.4, 34.6, 34.7, 34.9, 34.11, 34.13 · 17 хв',Cmp:Item6}];
+  {t:'Вправи',p:'34.1–34.4, 34.6, 34.7, 34.9, 34.11, 34.13 · 17 хв',Cmp:Item6},
+  {t:'Закріплення: паралельні перпендикуляри',p:'три задачі · 12 хв',Cmp:Item7}];
 function startScene(){
   const pl=FLOOR(2.4,2.0);
   return{P:{},R:3.5,ctr:[0,0,0.8],prims:[plane(pl,C.al,.2),line([0,0,0],Z,-0.8,2.5,C.ga,5),line([0,0,0],[1,0.3,0],-1.8,1.8,C.be,3.6),line([0,0,0],[-0.3,1,0],-1.6,1.6,C.be,3.6),...rm([0,0,0],Z,[1,0.3,0],.34)]};
