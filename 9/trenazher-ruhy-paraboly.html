@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тренажер. Рухи параболи: вгору, вниз, вправо, вліво (9 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --acc:#1D4ED8;--acc2:#1e40af;--soft:#DBE5FF;--bg1:#EBF0FF;--bg2:#F6F8FF;--ink:#1e293b;--mut:#64748b;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warn:#f59e0b;--grid:#c9d4ea;--axis:#334155;
+  --pm:#7c3aed;--pmbg:#f1ebff;--pn:#ea580c;--pnbg:#fff1e6;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;overflow:hidden;font-size:17px}
+@media (min-width:1500px){body{font-size:20px}}
+i.v{font-family:'Times New Roman',Times,serif;font-style:italic;font-weight:500}
+#wrap{height:100dvh;display:flex;flex-direction:column;max-width:960px;margin:0 auto;padding:8px 12px 4px}
+#head{flex:none}
+#card{flex:1;min-height:0;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 3px 14px rgba(29,78,216,.12);padding:12px 16px}
+#nav{flex:none;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:8px 0 4px}
+#nav .btn{flex:1 1 auto}
+#sign{flex:none;text-align:center;font-size:10px;letter-spacing:.05em;color:#94a3b8;padding:2px 0}
+button{font-family:inherit;touch-action:manipulation}
+.btn{border:0;border-radius:12px;background:var(--acc);color:#fff;font-weight:800;font-size:.98rem;min-height:46px;padding:0 14px;cursor:pointer}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.gh{background:#fff;color:var(--acc);border:2px solid var(--acc)}
+.btn.ok{background:var(--ok)}
+h1{font-size:1.35rem;color:var(--acc);margin:.2rem 0 .7rem;font-weight:900;line-height:1.2}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 6px;font-weight:800;color:var(--acc)}
+.topbar .stg{font-size:.85rem;color:var(--mut)}
+.cells{display:flex;flex-wrap:wrap;gap:5px}
+.cell{width:30px;height:30px;border-radius:8px;border:2px solid var(--soft);background:#fff;font-weight:800;font-size:.8rem;color:var(--mut);padding:0;cursor:default}
+.cell.cur{border:3px solid var(--acc2);box-shadow:0 0 0 2px var(--soft);color:var(--acc)}
+.cell.r1{background:var(--ok);border-color:var(--ok);color:#fff}
+.cell.r5{background:var(--warn);border-color:var(--warn);color:#fff}
+.cell.r0{background:var(--bad);border-color:var(--bad);color:#fff}
+.rule{margin:6px 0 0;border-radius:10px;padding:3px 9px;font-weight:700;font-size:.82rem;line-height:1.3}
+.rule.pm{background:var(--pmbg);border:2px solid #cdb9ff;color:#4c1d95}
+.rule.pn{background:var(--pnbg);border:2px solid #ffc89e;color:#9a3412}
+.rule + .rule{margin-top:4px}
+.pm{color:var(--pm);font-weight:800}.pn{color:var(--pn);font-weight:800}
+.q{font-size:1.05rem;font-weight:700;margin:2px 0 6px;line-height:1.4}
+.q2{font-size:1rem;font-weight:800;color:var(--acc);margin:6px 0 4px}
+.math{font-size:1.25rem;white-space:nowrap;font-weight:700}
+.plane{width:100%;height:auto;display:block;margin:4px auto}
+.plane.small{max-height:30vh}
+.plane.big{max-height:42vh;touch-action:manipulation}
+.plane.tap{cursor:pointer}
+.plane.exp{max-height:36vh}
+.plane.lab{max-height:44vh}
+.plane .gl{stroke:var(--grid);stroke-width:1}.plane .ax{stroke:var(--axis);stroke-width:1.8}
+.plane text{font-family:'Times New Roman',serif;fill:#334155}
+.legend{font-size:.8rem;color:var(--mut);font-weight:700;display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:2px 0 4px}
+.sw{display:inline-block;width:22px;border-top:3px dashed #94a3b8;vertical-align:middle;margin-right:4px}
+.dotl{display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #94a3b8;vertical-align:middle;margin-right:4px}
+.dotb{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--acc);vertical-align:middle;margin-right:4px}
+.mv{border:2px solid var(--soft);border-radius:12px;padding:6px 8px;margin:6px 0}
+.mv.h{border-color:#cdb9ff;background:#faf7ff}.mv.v{border-color:#ffc89e;background:#fffaf5}
+.mv.bad{border-color:var(--bad);background:var(--badbg)}
+.mvl{font-weight:800;font-size:.9rem;margin-bottom:4px}
+.mv.h .mvl{color:var(--pm)}.mv.v .mvl{color:var(--pn)}
+.dirs{display:flex;gap:8px}
+.dir{flex:1;min-height:46px;border-radius:12px;border:2px solid var(--soft);background:#fff;font-weight:800;font-size:1.05rem;color:var(--ink);cursor:pointer}
+.mv.h .dir.sel{background:var(--pm);border-color:var(--pm);color:#fff}
+.mv.v .dir.sel{background:var(--pn);border-color:var(--pn);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-weight:700;font-size:.9rem;color:var(--mut)}
+.chip{width:42px;height:42px;border-radius:10px;border:2px solid var(--soft);background:#fff;font-weight:800;font-size:1rem;cursor:pointer;color:var(--ink)}
+.mv.h .chip.sel{background:var(--pm);border-color:var(--pm);color:#fff}
+.mv.v .chip.sel{background:var(--pn);border-color:var(--pn);color:#fff}
+.msg{font-weight:800;min-height:1.3em;margin-top:6px;line-height:1.35}
+.msg.bad{color:var(--badtx)}.msg.ok{color:var(--oktx)}.msg.tip{color:#b45309}
+.ptlist{font-weight:800;color:var(--acc2);margin:2px 0 0;min-height:1.4em;text-align:center}
+.row2{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn.sm{min-height:38px;font-size:.9rem}
+.hint{color:var(--mut);font-size:.82rem;margin-top:4px;line-height:1.3}
+.fld{display:block;margin:8px 0}.fld span{display:block;font-weight:800;color:var(--acc);margin-bottom:3px}
+.fld input{font:inherit;font-size:1.1rem;width:100%;padding:10px 12px;border:2px solid var(--soft);border-radius:12px}
+.fld input:focus{outline:none;border-color:var(--acc)}.fld input.err{border-color:var(--bad);background:var(--badbg)}
+.stl{margin:6px 0 10px;padding-left:0;list-style:none}
+.stl li{margin:4px 0;font-weight:700;font-size:.95rem;line-height:1.35}
+.stl b.n{display:inline-block;min-width:1.5em;height:1.5em;line-height:1.5em;text-align:center;border-radius:50%;background:var(--acc);color:#fff;margin-right:6px;font-size:.85rem}
+.big-ar{font-size:2.2rem;font-weight:900;text-align:center;letter-spacing:.2em;margin:4px 0}
+.ex1{font-size:1.5rem;text-align:center;margin:6px 0;font-weight:800}
+.lab-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:6px auto}
+.lab-btns button{min-height:48px;border-radius:12px;border:2px solid var(--acc);background:#fff;font-size:1.4rem;font-weight:900;color:var(--acc);cursor:pointer}
+.lab-btns button.hh{border-color:var(--pm);color:var(--pm)}.lab-btns button.vv{border-color:var(--pn);color:var(--pn)}
+.lab-btns button.rs{font-size:.9rem;color:var(--mut);border-color:var(--grid)}
+.res{text-align:center}
+.res .nm{font-size:1.2rem;font-weight:800;color:var(--acc)}
+.res .big{font-size:2.4rem;font-weight:900;color:var(--acc);line-height:1.1;margin:6px 0 2px}
+.res .pc{font-size:2.4rem;font-weight:900;color:var(--ok);line-height:1.1;margin-bottom:10px}
+.res .shot{border:2px dashed var(--acc);background:#F5F9FF;border-radius:12px;padding:10px;margin:10px auto;max-width:30em;font-weight:800;color:var(--acc2)}
+.res .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.warnbox{background:#fffbe6;border:2px solid #f3d36b;color:#7a5a00;border-radius:12px;padding:8px 12px;margin:8px auto;max-width:34em;font-weight:700;text-align:left;font-size:.92rem;line-height:1.4}
+.rlist{text-align:left;margin:10px auto;max-width:34em}
+.rlist div{display:flex;gap:8px;align-items:center;border-bottom:1px solid #e5e9f5;padding:5px 0;font-size:.92rem}
+.rlist .st{flex:none;width:2.2em;text-align:center;font-weight:900}
+.st.s1{color:var(--ok)}.st.s5{color:var(--warn)}.st.s0{color:var(--bad)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:10px}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:16px;padding:14px 16px;width:min(980px,100%);max-height:94vh;overflow:auto}
+.mbox h3{margin:.1rem 0 .5rem;color:var(--acc)}
+#exbox{width:min(640px,100%)}
+#extxt{font-weight:700;font-size:.98rem;line-height:1.45;min-height:5.2em}
+.jt{border-collapse:collapse;font-size:.8rem;width:100%}
+.jt td,.jt th{border:1px solid #cbd5e1;padding:3px 6px;text-align:center;white-space:nowrap}
+.jt td.l,.jt th.l{text-align:left}.jt .nm{cursor:pointer;color:var(--acc);font-weight:800}
+.jt .r{color:var(--bad);font-weight:800}.jt .y{color:var(--ok);font-weight:800}.jt .n{color:var(--bad);font-weight:800}.jt .h{color:var(--warn);font-weight:800}
+.det{text-align:left;white-space:normal;background:#f8fafc;font-size:.78rem}
+.det div{margin:2px 0}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{flex:1 1 auto;min-height:40px;border-radius:10px;border:2px solid var(--soft);background:#fff;font-weight:800;font-size:.88rem;color:var(--acc);cursor:pointer;padding:0 8px}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.cnt{font-size:.82rem;font-weight:700;color:var(--mut);margin:5px 0 0}
+.cnt b{color:var(--acc)}
+.plane.big{max-height:50vh}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="head"></div>
+  <div id="card"></div>
+  <div id="nav"></div>
+  <div id="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+<div class="modal" id="exm"><div class="mbox" id="exbox">
+  <h3>💡 Пояснення</h3>
+  <div class="ex1" id="exfm"></div>
+  <div id="exsvg"></div>
+  <div id="extxt"></div>
+  <div class="row2" style="justify-content:space-between">
+    <button class="btn gh sm" id="exprev">← Назад</button>
+    <span id="exn" style="align-self:center;font-weight:800;color:var(--mut)"></span>
+    <button class="btn sm" id="exnext">Далі →</button>
+  </div>
+  <div class="row2"><button class="btn gh sm" id="exclose" style="flex:1">Закрити й повернутися до завдання</button></div>
+</div></div>
+<script>
+(function(){ "use strict";
+/* ================= Допоміжне ================= */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[].slice.call((r||document).querySelectorAll(s));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=Math.random;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+const N=n=>n<0?'−'+(-n):String(n);
+const iv=s=>String(s).replace(/(<[^>]+>)|([a-z])/g,(m,t,l)=>t?t:'<i class="v">'+l+'</i>');
+const pl=(n,o,f,m)=>{const a=n%100,b=n%10;return (a>10&&a<20)?m:(b===1?o:(b>=2&&b<=4?f:m))};
+const cl=k=>k+' '+pl(k,'клітинку','клітинки','клітинок');
+const core=m=>m===0?'x²':'(x '+(m>0?'− ':'+ ')+Math.abs(m)+')²';
+const tail=n=>n?(n>0?' + ':' − ')+Math.abs(n):'';
+const fplain=(m,n)=>'y = '+core(m)+tail(n);
+const fhtml=(m,n)=>iv('y = '+(m?'<span class="pm">'+core(m)+'</span>':core(m))+(n?'<span class="pn">'+tail(n)+'</span>':''));
+const pt=(x,y)=>'('+N(x)+'; '+N(y)+')';
+const BASE=[[0,0],[1,1],[-1,1]];
+const expPts=t=>[[t.m,t.n],[t.m+1,t.n+1],[t.m-1,t.n+1]];
+const key=p=>p[0]+','+p[1];
+const DIRW={L:'вліво',R:'вправо',U:'вгору',D:'вниз'},DIRA={L:'←',R:'→',U:'↑',D:'↓'};
+function expMove(t,ax){return ax==='h'?{d:t.m>0?'R':'L',k:Math.abs(t.m)}:{d:t.n>0?'U':'D',k:Math.abs(t.n)}}
+function moveText(t){const a=[];if(t.m){const e=expMove(t,'h');a.push(DIRW[e.d]+' на '+cl(e.k))}if(t.n){const e=expMove(t,'v');a.push(DIRW[e.d]+' на '+cl(e.k))}return a.join(', ')}
+
+/* ================= Площина ================= */
+const V={x0:-8,x1:8,y0:-8,y1:8,u:20};
+const PX=x=>(x-V.x0)*V.u,QY=y=>(V.y1-y)*V.u;
+let uidC=0;
+function planeSVG(cls){
+  const u=V.u,W=(V.x1-V.x0)*u,H=(V.y1-V.y0)*u,pad=u,id='cp'+(++uidC),fs=11;
+  let g='',ax='';
+  for(let x=V.x0;x<=V.x1;x++)g+='<line class="gl" x1="'+PX(x)+'" y1="0" x2="'+PX(x)+'" y2="'+H+'"/>';
+  for(let y=V.y0;y<=V.y1;y++)g+='<line class="gl" x1="0" y1="'+QY(y)+'" x2="'+W+'" y2="'+QY(y)+'"/>';
+  ax+='<line class="ax" x1="0" y1="'+QY(0)+'" x2="'+(W+4)+'" y2="'+QY(0)+'"/><line class="ax" x1="'+PX(0)+'" y1="'+H+'" x2="'+PX(0)+'" y2="-4"/>';
+  ax+='<polygon points="'+(W+8)+','+QY(0)+' '+(W-2)+','+(QY(0)-4)+' '+(W-2)+','+(QY(0)+4)+'" fill="#334155"/>';
+  ax+='<polygon points="'+PX(0)+',-8 '+(PX(0)-4)+',2 '+(PX(0)+4)+',2" fill="#334155"/>';
+  ax+='<text x="'+(W+3)+'" y="'+(QY(0)-8)+'" style="font-style:italic;font-size:13px">x</text><text x="'+(PX(0)+8)+'" y="-2" style="font-style:italic;font-size:13px">y</text>';
+  for(let x=V.x0;x<=V.x1;x++){if(x===0)continue;ax+='<text style="font-size:'+fs+'px" text-anchor="middle" x="'+PX(x)+'" y="'+(QY(0)+fs*1.2)+'">'+N(x)+'</text>'}
+  for(let y=V.y0;y<=V.y1;y++){if(y===0)continue;ax+='<text style="font-size:'+fs+'px" text-anchor="end" x="'+(PX(0)-4)+'" y="'+(QY(y)+fs*.35)+'">'+N(y)+'</text>'}
+  ax+='<text style="font-size:'+fs+'px" text-anchor="end" x="'+(PX(0)-4)+'" y="'+(QY(0)+fs*1.2)+'">0</text>';
+  return '<svg class="plane '+cls+'" viewBox="'+(-pad)+' '+(-pad)+' '+(W+2*pad)+' '+(H+2*pad)+'"><defs><clipPath id="'+id+'"><rect x="0" y="0" width="'+W+'" height="'+H+'"/></clipPath></defs><g>'+g+'</g><g>'+ax+'</g><g class="dyn" clip-path="url(#'+id+')"></g></svg>';
+}
+function pcurve(sm,sn,o){
+  o=o||{};let d='';
+  for(let k=0;k<=320;k++){const x=V.x0+(V.x1-V.x0)*k/320,y=(x-sm)*(x-sm)+sn;d+=(k?'L':'M')+PX(x).toFixed(1)+' '+QY(y).toFixed(1)}
+  return '<path d="'+d+'" fill="none" stroke="'+(o.stroke||'#1D4ED8')+'" stroke-width="'+(o.w||3.4)+'" stroke-linecap="round" stroke-linejoin="round"'+
+    (o.len!==undefined?' pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="'+(1-o.len)+'"':(o.dash?' stroke-dasharray="'+o.dash+'"':''))+'/>';
+}
+function pdot(x,y,o){o=o||{};return '<circle cx="'+PX(x).toFixed(1)+'" cy="'+QY(y).toFixed(1)+'" r="'+(o.r||V.u*.36)+'" fill="'+(o.fill||'#1D4ED8')+'" stroke="'+(o.stroke||'#fff')+'" stroke-width="'+(o.sw||2)+'"/>'}
+function plabel(x,y,txt,o){o=o||{};return '<text x="'+(PX(x)+(o.dx===undefined?8:o.dx)).toFixed(1)+'" y="'+(QY(y)+(o.dy===undefined?-9:o.dy)).toFixed(1)+'" style="font-size:'+(o.fs||11)+'px;font-weight:700" fill="'+(o.c||'#1e3a8a')+'" text-anchor="'+(o.a||'start')+'">'+txt+'</text>'}
+function parrow(x1,y1,x2,y2,c){
+  const ax=PX(x1),ay=QY(y1),bx=PX(x2),by=QY(y2),dx=bx-ax,dy=by-ay,L=Math.sqrt(dx*dx+dy*dy);if(L<4)return '';
+  const ux=dx/L,uy=dy/L,h=10,w=5;
+  return '<line x1="'+ax+'" y1="'+ay+'" x2="'+(bx-ux*h*.6)+'" y2="'+(by-uy*h*.6)+'" stroke="'+c+'" stroke-width="3.4" stroke-linecap="round"/>'+
+    '<polygon points="'+bx+','+by+' '+(bx-ux*h-uy*w)+','+(by-uy*h+ux*w)+' '+(bx-ux*h+uy*w)+','+(by-uy*h-ux*w)+'" fill="'+c+'"/>';
+}
+const ghost=()=>pcurve(0,0,{stroke:'#94a3b8',w:2.4,dash:'6 5'});
+const baseDots=()=>BASE.map(b=>pdot(b[0],b[1],{fill:'#fff',stroke:'#94a3b8',sw:2.4})).join('');
+const baseLabels=()=>plabel(0,0,'(0; 0)',{c:'#64748b',dx:-8,dy:16,a:'end'})+plabel(1,1,'(1; 1)',{c:'#64748b'})+plabel(-1,1,'(−1; 1)',{c:'#64748b',dx:-8,a:'end'});
+function arrowsHV(sm,sn){
+  let h='';
+  if(Math.abs(sm)>.01)h+=parrow(0,0,sm,0,'#7c3aed');
+  if(Math.abs(sn)>.01)h+=parrow(sm,0,sm,sn,'#ea580c');
+  return h;
+}
+function movedDots(sm,sn){return BASE.map(b=>pdot(b[0]+sm,b[1]+sn,{})).join('')}
+
+/* ================= Анімація ================= */
+function tween(ms,step,done){
+  let stop=false;const t0=performance.now();
+  function f(now){
+    if(stop)return;
+    let p=Math.min(1,(now-t0)/ms);const e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    step(e,p);
+    if(p<1)requestAnimationFrame(f);else if(done)done();
+  }
+  requestAnimationFrame(f);
+  return {cancel:function(){stop=true}};
+}
+let mainAnim=null;
+function cancelMain(){if(mainAnim){mainAnim.cancel();mainAnim=null}}
+
+
+/* ================= Завдання ================= */
+const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const rsg=()=>Math.random()<.5?-1:1;
+let S={task:null,pts:[],msg:'',msgc:'',done:false,len:0};
+let nextTimer=null;
+function genTask(){
+  for(let g=0;g<60;g++){
+    const kind=rint(1,3);let m=0,n=0;
+    if(kind===1)n=rsg()*rint(1,5);
+    else if(kind===2)m=rsg()*rint(1,5);
+    else{m=rsg()*rint(1,5);n=rsg()*rint(1,5)}
+    if(S.task&&S.task.m===m&&S.task.n===n)continue;
+    return {m:m,n:n};
+  }
+}
+function newTask(){
+  cancelMain();if(nextTimer){clearTimeout(nextTimer);nextTimer=null}
+  S.task=genTask();S.pts=[];S.msg='';S.msgc='';S.done=false;S.len=0;
+  render();
+}
+
+/* ================= Відображення ================= */
+const card=$('#card'),head=$('#head'),nav=$('#nav');
+function render(){
+  cancelMain();
+  const t=S.task;
+  head.innerHTML='';
+  let h='<div class="q">Побудуй графік функції <span class="math">'+fhtml(t.m,t.n)+'</span></div>'+
+    '<div class="hint" style="margin:0 0 2px">Постав <b>три точки</b>, через які пройде графік: торкайся вузлів сітки. Повторний дотик прибирає точку.</div>'+
+    planeSVG('big tap')+'<div class="ptlist" id="ptl"></div>'+
+    '<div class="row2" style="justify-content:center;margin-top:0"><button class="btn gh sm" id="clr">Стерти точки</button></div>'+
+    '<div class="msg" id="msg"></div>';
+  card.innerHTML=h;
+  nav.innerHTML='<button class="btn gh" id="exp">❓ Як це робити?</button>';
+  drawMain();
+}
+function drawMain(){
+  const t=S.task,g=card.querySelector('.dyn');if(!g)return;
+  let h='';
+  if(S.done)h+=pcurve(t.m,t.n,{len:S.len});
+  S.pts.forEach(function(p){
+    const fill=S.done?'#1e9e62':'#1D4ED8',c=S.done?'#14663f':'#1e3a8a';
+    h+=pdot(p[0],p[1],{fill:fill,r:V.u*.27,sw:1.6})+plabel(p[0],p[1],pt(p[0],p[1]),{c:c,fs:11,dy:-9});
+  });
+  g.innerHTML=h;
+  const el=$('#ptl');if(el)el.textContent=S.pts.length?'Поставлено: '+S.pts.map(function(p){return pt(p[0],p[1])}).join('  ')+' ('+S.pts.length+' з 3)':'Поставлено 0 з 3 точок';
+}
+function startDraw(){
+  cancelMain();S.len=0;const tk=S.task;
+  mainAnim=tween(1200,function(p){if(S.task!==tk)return;S.len=p;drawMain()},function(){if(S.task===tk){S.len=1;drawMain()}});
+}
+function setMsg(m,c){S.msg=m;S.msgc=c;const el=$('#msg');if(el){el.className='msg '+(c||'');el.innerHTML=m}}
+
+/* --- автоперевірка після третьої точки --- */
+function autoCheck(){
+  const t=S.task,ek=expPts(t).map(key);
+  if(S.pts.map(key).every(k=>ek.indexOf(k)>=0)){
+    S.done=true;
+    setMsg('Правильно, молодець! 🎉','ok');
+    const el=$('#clr');if(el)el.style.display='none';
+    startDraw();
+    const tk=S.task;
+    nextTimer=setTimeout(function(){nextTimer=null;if(S.task===tk)newTask()},3200);
+  }else{
+    setMsg('Ти помилився. Подумай ще раз.','bad');
+  }
+}
+/* ================= Пояснення ================= */
+let EX=null,exAnim=null;
+function exSteps(t){
+  const m=t.m,n=t.n,st=[];
+  const stepN=()=>'<b>Крок '+(st.length+1)+'.</b> ';
+  st.push({txt:stepN()+'Береш основну параболу '+iv('y = x²')+' (сіра пунктирна лінія). Три її базові точки: <b>(0; 0), (1; 1), (−1; 1)</b> — вершина й по одній точці праворуч і ліворуч від неї. Саме їх ти й зсуватимеш.',to:{sm:0,sn:0,len:0},dur:500});
+  if(m){const k=Math.abs(m);
+    st.push({txt:stepN()+'У формулі є дужка <span class="pm">'+iv(core(m))+'</span>. Щоб зрозуміти, куди рухатись, спитай себе: <b>коли дужка дорівнює нулю?</b><br>'+iv('x '+(m>0?'− ':'+ ')+k+' = 0')+', тоді '+iv('x = '+N(m))+'.<br>Вершина тепер при '+iv('x = '+N(m))+', тож усі три точки зсуваються <b class="pm">'+(m>0?'вправо':'вліво')+' на '+cl(k)+'</b>.',to:{sm:m,sn:0,len:0},dur:1300});}
+  if(n){const k=Math.abs(n);
+    st.push({txt:stepN()+'Число <span class="pn">'+iv(tail(n).trim())+'</span> у кінці додається до кожного '+iv('y')+': «+» піднімає, «−» опускає. Усі три точки зсуваються <b class="pn">'+(n>0?'вгору':'вниз')+' на '+cl(k)+'</b>.',to:{sm:m,sn:n,len:0},dur:1300});}
+  const E=expPts(t);
+  st.push({txt:stepN()+'Нові координати трьох точок: <b>'+E.map(function(p){return pt(p[0],p[1])}).join(', ')+'</b>. Став їх і проводь параболу — така сама, як '+iv('y = x²')+', тільки в іншому місці.',to:{sm:m,sn:n,len:1},dur:1500,lab:true});
+  return st;
+}
+function drawEx(){
+  const g=$('#exsvg .dyn');if(!g||!EX)return;
+  const s=EX.st,t=EX.t;
+  let h=ghost()+arrowsHV(s.sm,s.sn);
+  if(s.len>0)h+=pcurve(t.m,t.n,{len:s.len});
+  h+=movedDots(s.sm,s.sn);
+  if(EX.lab)BASE.forEach(function(b){const x=Math.round(b[0]+s.sm),y=Math.round(b[1]+s.sn);h+=plabel(x,y,pt(x,y),{c:'#1e3a8a',fs:11.5,dy:-11})});
+  g.innerHTML=h;
+}
+function goEx(i){
+  EX.i=i;const step=EX.steps[i];
+  $('#extxt').innerHTML=step.txt;$('#exn').textContent=(i+1)+' з '+EX.steps.length;
+  $('#exprev').disabled=i===0;$('#exnext').disabled=i===EX.steps.length-1;
+  if(exAnim)exAnim.cancel();
+  EX.lab=!!step.lab;
+  const from={sm:EX.st.sm,sn:EX.st.sn,len:EX.st.len},to=step.to;
+  exAnim=tween(step.dur||1000,function(p){EX.st.sm=from.sm+(to.sm-from.sm)*p;EX.st.sn=from.sn+(to.sn-from.sn)*p;EX.st.len=from.len+(to.len-from.len)*p;drawEx()},function(){EX.st={sm:to.sm,sn:to.sn,len:to.len};drawEx()});
+}
+function openEx(){
+  const t=S.task;
+  EX={t:t,steps:exSteps(t),i:0,st:{sm:0,sn:0,len:0},lab:false};
+  $('#exfm').innerHTML=fhtml(t.m,t.n);
+  $('#exsvg').innerHTML=planeSVG('exp');
+  $('#exm').classList.add('on');
+  goEx(0);
+}
+function closeEx(){if(exAnim)exAnim.cancel();$('#exm').classList.remove('on')}
+
+
+/* ================= Події ================= */
+document.addEventListener('click',function(e){
+  const t=e.target;
+  const svg=t.closest&&t.closest('svg.plane.tap');
+  if(svg){
+    if(S.done)return;
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const loc=p.matrixTransform(svg.getScreenCTM().inverse());
+    const x=Math.round(loc.x/V.u+V.x0),y=Math.round(V.y1-loc.y/V.u);
+    if(x<V.x0||x>V.x1||y<V.y0||y>V.y1)return;
+    const k=key([x,y]),idx=S.pts.findIndex(q=>key(q)===k);
+    if(idx>=0){S.pts.splice(idx,1);setMsg('','');drawMain();return}
+    if(S.pts.length>=3){setMsg('Уже три точки. Торкнись точки, щоб її прибрати.','tip');return}
+    S.pts.push([x,y]);setMsg('','');drawMain();
+    if(S.pts.length===3)autoCheck();
+    return;
+  }
+  const id=t.id||(t.closest('button')&&t.closest('button').id);
+  if(id==='exp'){openEx();return}
+  if(id==='clr'){if(!S.done){S.pts=[];setMsg('','');drawMain()}return}
+  if(id==='exprev'){if(EX&&EX.i>0)goEx(EX.i-1);return}
+  if(id==='exnext'){if(EX&&EX.i<EX.steps.length-1)goEx(EX.i+1);return}
+  if(id==='exclose'){closeEx();return}
+});
+if(/[?&]selftest/.test(location.search))window.__ST={get S(){return S},expPts:expPts};
+S.task=null;newTask();
+})();
+</script>
+</body>
+</html>
