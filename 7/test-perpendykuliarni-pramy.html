@@ -46,7 +46,7 @@ h1{margin:4px 0 8px;padding:0 38px;font-size:clamp(19px,3.2vw,28px);color:var(--
 .stat{display:flex;gap:14px;flex-wrap:wrap;color:var(--accD);font-weight:700;margin:2px 0 6px}
 .stat span{background:var(--accL);border-radius:999px;padding:3px 12px}
 .nums{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
-.num{width:36px;height:36px;border-radius:9px;border:2px solid var(--line);background:#fff;font:800 15px Nunito,sans-serif;color:var(--accD);cursor:pointer;padding:0}
+.num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:2px solid var(--line);background:#fff;font:800 15px Nunito,sans-serif;color:var(--accD);cursor:pointer;padding:0}
 .num.fill{background:var(--acc);border-color:var(--acc);color:#fff}
 .num.cur{border-width:4px}
 .num.r{background:var(--ok);border-color:var(--ok);color:#fff}.num.w{background:var(--bad);border-color:var(--bad);color:#fff}
@@ -81,7 +81,7 @@ h1{margin:4px 0 8px;padding:0 38px;font-size:clamp(19px,3.2vw,28px);color:var(--
 svg .vt{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:700;font-size:22px;fill:#173F5F;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
 svg .lt2{font-family:Nunito,Arial,sans-serif;font-weight:800;font-size:16px;fill:#173F5F;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
 svg .lt2.q{font-size:22px}
-@media(max-width:560px){.hintl{display:none}#app{padding:6px 8px 0}.card{padding:10px 12px}.num{width:34px;height:34px}}
+@media(max-width:560px){.tk .fig svg{max-height:25vh}.msg{margin-top:6px;padding:6px 12px}.leg{font-size:12px}.hintl{display:none}#app{padding:6px 8px 0}.card{padding:10px 12px}.num{width:34px;height:34px}}
 </style>
 </head>
 <body>
@@ -109,7 +109,7 @@ const AN=x=>'∠<i>'+x+'</i>';
 const DG=n=>n+'°';
 
 /* ---- рисунок: прямі й промені з точки O ---- */
-const D2R=Math.PI/180, ORG='#e8590c', VIO='#7048e8', LINE='#1F4E73';
+const D2R=Math.PI/180, LINE='#1F4E73', RIGHT='#173F5F', COLS=['#e8590c','#1971c2','#2f9e44','#d6336c'];
 const f1=n=>Number(n).toFixed(1);
 const CX=190, CY=134, RR=100;
 const pol=(a,r)=>[CX+r*Math.cos(a*D2R),CY-r*Math.sin(a*D2R)];
@@ -126,14 +126,14 @@ function bestLa(a1,a2,all){
   ts.forEach(t=>{const a=a1+d*t;let m=360;all.forEach(r=>{const x=adist(a,r);if(x<m)m=x;});if(m>bs+0.5){bs=m;best=a;}});
   return best;}
 function mark(m){
-  const col=m.c||ORG;let s='';const d=dd(m.a1,m.a2);
+  const col=m.c||COLS[0];let s='';const d=dd(m.a1,m.a2);
   if(m.right){
     const z=m.size||16,u=uv(m.a1),v=uv(m.a2);
     const p1=[CX+u[0]*z,CY+u[1]*z],p3=[CX+v[0]*z,CY+v[1]*z],p2=[p1[0]+v[0]*z,p1[1]+v[1]*z];
     return '<polyline points="'+f1(p1[0])+','+f1(p1[1])+' '+f1(p2[0])+','+f1(p2[1])+' '+f1(p3[0])+','+f1(p3[1])+'" fill="none" stroke="'+col+'" stroke-width="2.8"/>';}
-  const r=m.r||44;
-  const p=pol(m.a1,r),q=pol(m.a2,r);
-  s+='<path d="M '+f1(p[0])+' '+f1(p[1])+' A '+r+' '+r+' 0 0 '+(d>0?0:1)+' '+f1(q[0])+' '+f1(q[1])+'" fill="none" stroke="'+col+'" stroke-width="2.8"/>';
+  const r0=m.r||44,nn=m.n||1;
+  for(let k=0;k<nn;k++){const r=r0+k*5,p=pol(m.a1,r),q=pol(m.a2,r);
+    s+='<path d="M '+f1(p[0])+' '+f1(p[1])+' A '+r+' '+r+' 0 0 '+(d>0?0:1)+' '+f1(q[0])+' '+f1(q[1])+'" fill="none" stroke="'+col+'" stroke-width="2.8"/>';}
   if(m.t!=null)s+=txt(pol(m.la,m.lr),m.t,'lt2'+(m.q?' q':''),col);
   return s;}
 function oAngle(rays,marks){
@@ -155,16 +155,22 @@ function figSvg(rays,marks){
 // o: {rays, rights:[[a1,a2,size]], given:[[a1,a2,r,val]], sought:[a1,a2,r], ...}
 function build(o){
   const all=o.rays.map(r=>r[1]);
-  const arc=(a1,a2,r,t,c,q)=>{
+  const vals=[];(o.given||[]).forEach(g=>{if(vals.indexOf(g[3])<0)vals.push(g[3]);});if(vals.indexOf(o.ans)<0)vals.push(o.ans);
+  const hasOuter=(o.given||[]).concat([o.sought]).some(a=>a[2]>=60);
+  const arc=(a1,a2,r,t,val,q)=>{
+    const k=vals.indexOf(val),n=k+1;
     const span=Math.abs(dd(a1,a2));
     const la=bestLa(a1,a2,all);
-    let lr=r+20;if(span<42)lr=Math.max(r+22,90);else if(r>=70)lr=r+17;
-    return {a1:a1,a2:a2,r:r,t:t,c:c,q:q,la:la,lr:lr};};
+    const outer=r>=60;let rr=outer?80:(hasOuter?36:r),lr;
+    if(outer)lr=rr+(n-1)*5+16;
+    else if(hasOuter)lr=rr+(n-1)*5+(span<35?27:18);
+    else lr=span<42?90:rr+(n-1)*5+20;
+    return {a1:a1,a2:a2,r:rr,n:n,t:t,c:COLS[k],q:q,la:la,lr:lr};};
   o.fig=function(show){
     const m=[];
-    (o.rights||[]).forEach(k=>m.push({right:true,a1:k[0],a2:k[1],size:k[2]||18,c:ORG}));
-    (o.given||[]).forEach(g=>m.push(arc(g[0],g[1],g[2],g[3]+'°',ORG,false)));
-    const s=o.sought;m.push(arc(s[0],s[1],s[2],show?o.ans+'°':'?',VIO,!show));
+    (o.rights||[]).forEach(k=>m.push({right:true,a1:k[0],a2:k[1],size:k[2]||18,c:RIGHT}));
+    (o.given||[]).forEach(g=>m.push(arc(g[0],g[1],g[2],g[3]+'°',g[3],false)));
+    const s=o.sought;m.push(arc(s[0],s[1],s[2],show?o.ans+'°':'?',o.ans,!show));
     return figSvg(o.rays,m);};
   return o;}
 function rayA(rays,n){const r=rays.filter(x=>x[0]===n)[0];return r?r[1]:null;}
@@ -172,7 +178,7 @@ function rayA(rays,n){const r=rays.filter(x=>x[0]===n)[0];return r?r[1]:null;}
 const TPL=[];
 // 1: суміжний або вертикальний кут
 TPL.push(function(){
-  const vert=rnd()<.5;let u=ri(35,145);while(u>78&&u<102)u=ri(35,145);
+  const vert=false;let u=ri(35,145);while(u>78&&u<102)u=ri(35,145);
   const A=160,K=160-u;
   const rays=[['A',A],['B',A+180],['K',K],['L',K+180]];
   const ans=vert?u:180-u;
@@ -293,7 +299,8 @@ function mkOpts(ans,wrong){
   let g=0;while(out.length<6&&g++<200){const w=ans+pick([-1,1])*pick([5,8,10,12,15,18,20,25]);if(w>=1&&w<=179&&!s[w]){s[w]=1;out.push(w);}}
   return out.sort((x,y)=>x-y);}
 function genTask(i){
-  const t=TPL[i]();t.f=FORM[i];
+  let t;for(let k=0;k<40;k++){t=TPL[i]();if(!t.given.some(g=>g[3]===t.ans))break;}
+  t.f=FORM[i];
   if(t.f==='sel'){t.opts=mkOpts(t.ans,t.wrong);}
   return t;}
 function plainQ(h){return String(h).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();}
@@ -328,10 +335,10 @@ function plural(n,a,b,c){n=Math.abs(n)%100;const k=n%10;if(n>10&&n<20)return c;i
 
 // ---------- стан ----------
 let V={view:'start',name:{sur:'',nam:''}};
-let T={tasks:null,i:0,view:'task',ans:[],seed:0,rec:null};
+let T={tasks:null,i:0,view:'task',ans:[],done:[],seed:0,rec:null};
 let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
 function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};}
-function inTest(){return V.view==='test'&&(T.view==='task'||T.view==='review');}
+function inTest(){return V.view==='test'&&T.view==='task'&&!T.rec;}
 function leave(){if(!inTest()||W.awayAt)return;W.awayAt=Date.now();W.leaves++;}
 function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0;}
 document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
@@ -343,7 +350,7 @@ function render(){
   S.innerHTML=testHtml();updKbd();
 }
 function updKbd(){
-  const need=COARSE&&V.view==='test'&&T.view==='task'&&T.tasks&&T.tasks[T.i].f==='num';
+  const need=COARSE&&V.view==='test'&&T.view==='task'&&T.tasks&&T.tasks[T.i].f==='num'&&!T.done[T.i];
   KBD.classList.toggle('show',!!need);
   if(need&&!KBD.innerHTML){
     const k=(c,l,w)=>'<button type="button" data-k="'+c+'"'+(w?' class="wide"':'')+'>'+l+'</button>';
@@ -359,7 +366,11 @@ function startHtml(){
 }
 function answered(i){const a=T.ans[i];return !!(a&&a[0]!==undefined&&String(a[0]).trim()!=='');}
 function numsHtml(res){
-  return '<div class="nums" id="nums">'+T.tasks.map((t,i)=>{let c='num';if(res)c+=res.marks[i]?' r':' w';else if(answered(i))c+=' fill';if(i===T.i&&T.view!=='review')c+=' cur';return '<button class="'+c+'" data-act="go" data-i="'+i+'">'+(i+1)+'</button>';}).join('')+'</div>';
+  const nav=!!res;
+  return '<div class="nums" id="nums">'+T.tasks.map((t,i)=>{let c='num';
+    if(res)c+=res.marks[i]?' r':' w';else if(T.done[i])c+=T.done[i].ok?' r':' w';
+    if(i===T.i&&!res)c+=' cur';
+    return nav?'<button class="'+c+'" data-act="go" data-i="'+i+'">'+(i+1)+'</button>':'<span class="'+c+'">'+(i+1)+'</span>';}).join('')+'</div>';
 }
 function fieldHtml(t,ans,res,locked){
   const v=ans&&ans[0]!==undefined?ans[0]:'';const cl=res?(res.ok?' ok':' bad'):'';
@@ -368,22 +379,17 @@ function fieldHtml(t,ans,res,locked){
   }
   return '<input class="fld'+cl+'" id="fld" value="'+esc(v)+'" autocomplete="off" autocapitalize="off" spellcheck="false"'+(COARSE?' inputmode="none" readonly':' inputmode="numeric"')+(locked?' disabled':'')+'><span>°</span>';
 }
-function taskInner(t,ans,res,locked){
-  return '<div class="tk"><div class="fig">'+t.fig(!!res)+'<div class="leg"><span><i style="background:#e8590c"></i>дано</span><span><i style="background:#7048e8"></i>знайти</span></div></div>'+
+function taskInner(t,ans,res,locked,reveal){
+  return '<div class="tk"><div class="fig">'+t.fig(!!reveal)+'<div class="leg">Кути з однаковими дугами рівні. «?» — кут, який треба знайти.</div></div>'+
     '<div><div class="q m">'+t.cond+'</div><div class="ansrow"><span>'+AN(t.ask[0]+'O'+t.ask[1])+' =</span> '+fieldHtml(t,ans,res,locked)+'</div>'+
     '<div class="hintl">'+(t.f==='sel'?'Оберіть відповідь зі списку.':'Введіть число (градусів).')+'</div></div></div>';
 }
 function testHtml(){
   if(T.view==='task'){
-    const t=T.tasks[T.i];
-    return numsHtml(null)+'<div class="card"><div class="stat"><span>Завдання '+(T.i+1)+' з '+T.tasks.length+'</span></div>'+taskInner(t,T.ans[T.i],null,false)+
-    '<div class="row-btn"><button class="btn light" data-act="tprev"'+(T.i===0?' disabled':'')+'>← Назад</button><span class="sp"></span><button class="btn" data-act="tnext">Далі →</button></div></div>';
-  }
-  if(T.view==='review'){
-    const cnt=T.tasks.filter((t,i)=>answered(i)).length,miss=T.tasks.length-cnt;
-    return '<div class="card"><div class="q" style="margin-top:0">Перед здачею</div><div class="stat"><span>Відповіли на '+cnt+' з '+T.tasks.length+'</span></div>'+numsHtml(null)+
-    (miss?'<div class="msg hint">Ви не завершили '+miss+' '+plural(miss,'завдання','завдання','завдань')+'</div>':'')+
-    '<div class="row-btn"><button class="btn light" data-act="tprev">← Назад</button><span class="sp"></span><button class="btn" data-act="tcheck">'+(miss?'Все одно перевірити':'Перевірити')+'</button></div></div>';
+    const t=T.tasks[T.i],d=T.done[T.i],last=T.i===T.tasks.length-1;
+    return numsHtml(null)+'<div class="card"><div class="stat"><span>Завдання '+(T.i+1)+' з '+T.tasks.length+'</span></div>'+taskInner(t,T.ans[T.i],d?{ok:d.ok}:null,!!d,false)+
+    (d?'<div class="msg '+(d.ok?'ok':'bad')+'">'+(d.ok?'Молодець! Правильно!':'Помилка.')+'</div>':'')+
+    '<div class="row-btn"><span class="sp"></span>'+(d?'<button class="btn" data-act="tnext">'+(last?'Результат →':'Далі →')+'</button>':'<button class="btn" data-act="tans"'+(answered(T.i)?'':' disabled')+' id="ansBtn">Відповісти</button>')+'</div></div>';
   }
   const R=T.rec;
   if(T.view==='result'){
@@ -395,7 +401,7 @@ function testHtml(){
   }
   const t=T.tasks[T.i],res=checkTask(t,T.ans[T.i]);
   return '<div class="card"><div class="row-btn" style="margin:0 0 6px"><button class="btn light sm" data-act="tres">← До результату</button></div>'+numsHtml({marks:R.tasks})+
-  '<div class="stat"><span>Завдання '+(T.i+1)+' з '+T.tasks.length+' · '+R.weights[T.i]+' б.</span></div>'+taskInner(t,T.ans[T.i],res,true)+
+  '<div class="stat"><span>Завдання '+(T.i+1)+' з '+T.tasks.length+' · '+R.weights[T.i]+' б.</span></div>'+taskInner(t,T.ans[T.i],res,true,true)+
   (res.ok?'<div class="msg ok">Правильно!</div>':'<div class="msg bad">Неправильно. Правильна відповідь: '+t.ans+'°</div>')+'<div class="sol m">'+t.sol+'</div>'+
   '<div class="row-btn"><button class="btn light" data-act="eprev"'+(T.i===0?' disabled':'')+'>← Назад</button><span class="sp"></span><button class="btn light" data-act="enext"'+(T.i===T.tasks.length-1?' disabled':'')+'>Далі →</button></div></div>';
 }
@@ -403,7 +409,7 @@ function testStart(seed){
   T.seed=seed||(Math.floor(Math.random()*9e8)+1);
   setSeed(T.seed);
   T.tasks=TPL.map((f,i)=>genTask(i));
-  T.ans=T.tasks.map(()=>[]);T.i=0;T.view='task';T.rec=null;V.view='test';resetWatch();render();
+  T.ans=T.tasks.map(()=>[]);T.done=T.tasks.map(()=>null);T.i=0;T.view='task';T.rec=null;V.view='test';resetWatch();render();
 }
 function testCheck(){
   back();
@@ -416,22 +422,22 @@ function testCheck(){
     answers:T.tasks.map((t,i)=>String((T.ans[i]&&T.ans[i][0])||'').trim()),
     correct:T.tasks.map(t=>String(t.ans)),
     durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,variant:T.seed,test:TEST_NAME};
-  T.rec=rec;T.view='result';T.i=0;
+  T.rec=rec;
   saveResult(rec);
-  render();window.scrollTo(0,0);
 }
 
 // ---------- події ----------
 function setAns(v){
   if(V.view!=='test'||T.view!=='task')return;
+  if(T.done[T.i])return;
   T.ans[T.i]=[v];
-  const n=$('#nums');if(n)n.outerHTML=numsHtml(null);
+  const bt=$('#ansBtn');if(bt)bt.disabled=!answered(T.i);
 }
 S.addEventListener('input',e=>{if(e.target.id==='fld'&&e.target.tagName==='INPUT')setAns(e.target.value);});
 S.addEventListener('change',e=>{if(e.target.id==='fld'&&e.target.tagName==='SELECT')setAns(e.target.value);});
 S.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
-    if(V.view==='test'&&T.view==='task'&&answered(T.i)&&e.target.tagName!=='BUTTON'){e.preventDefault();act('tnext');}
+    if(V.view==='test'&&T.view==='task'&&e.target.tagName!=='BUTTON'){e.preventDefault();if(T.done[T.i])act('tnext');else if(answered(T.i))act('tans');}
   }
 });
 KBD.addEventListener('pointerdown',e=>{
@@ -445,7 +451,7 @@ KBD.addEventListener('pointerdown',e=>{
 document.addEventListener('keydown',e=>{
   if(V.view!=='test'||!T.tasks)return;
   const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='SELECT')return;
-  if(T.view==='task'){if(e.key==='ArrowRight')act('tnext');else if(e.key==='ArrowLeft')act('tprev');}
+  if(T.view==='task'&&T.done[T.i]&&e.key==='ArrowRight')act('tnext');
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;act(b.dataset.act,b);});
 function act(a,b){
@@ -457,10 +463,12 @@ function act(a,b){
       if(!su||!na){$('#nmErr').textContent='Введіть прізвище та ім\'я, щоб почати';return;}
       V.name={sur:su,nam:na};testStart(+(new URLSearchParams(location.search).get('v'))||0);break;}
     case 'tagain':testStart(0);window.scrollTo(0,0);break;
-    case 'tprev':if(T.view==='review'){T.view='task';T.i=T.tasks.length-1;}else if(T.i>0)T.i--;render();break;
-    case 'tnext':if(T.i<T.tasks.length-1)T.i++;else T.view='review';render();break;
-    case 'go':if(T.view==='review')T.view='task';if(T.view==='result')T.view='errors';T.i=+d.i;render();break;
-    case 'tcheck':testCheck();break;
+    case 'tans':{if(T.done[T.i]||!answered(T.i))break;
+      const ok=checkTask(T.tasks[T.i],T.ans[T.i]).ok;T.done[T.i]={ok:ok};
+      if(T.i===T.tasks.length-1)testCheck();
+      render();break;}
+    case 'tnext':if(!T.done[T.i])break;if(T.i<T.tasks.length-1){T.i++;}else{T.view='result';T.i=0;}render();window.scrollTo(0,0);break;
+    case 'go':if(T.view==='result')T.view='errors';if(T.view==='errors'){T.i=+d.i;render();}break;
     case 'terrs':{const f=T.rec.tasks.indexOf(0);T.i=f<0?0:f;T.view='errors';render();break;}
     case 'tres':T.view='result';render();break;
     case 'eprev':if(T.i>0)T.i--;render();break;
