@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Тест. Додавання і віднімання дробів з різними знаменниками (6 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Кольори 6 класу (персиковий / помаранчевий) */
+:root{
+  --bg:#FFF9F1; --head:#FFF1E3; --acc:#C2410C; --acch:#9A3412; --acc2:#EA580C;
+  --soft:#FFEDD5; --l1:#FED7AA; --l2:#FDBA74; --ink:#431407; --mut:#7c4a2d;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b;
+  --blue:#1d6fd0; --bluebg:#e8f1fc;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(14px,2.1vh,21px);height:100%}
+body{margin:0;height:100dvh;overflow:hidden;color:var(--ink);font-family:'Nunito',system-ui,'Segoe UI',Arial,sans-serif;font-weight:600;
+  background:linear-gradient(165deg,#FFF9F1 0%,#FFEDD5 55%,#FED7AA 100%);-webkit-text-size-adjust:100%}
+button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+#app{position:relative;display:flex;flex-direction:column;height:100dvh;width:100%;max-width:60rem;margin:0 auto}
+.scr{display:none;flex:1;min-height:0}
+.scr.on{display:flex;flex-direction:column}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+footer b{color:#374151}
+#keyBtn{position:fixed;top:6px;right:8px;z-index:2147483000;background:rgba(255,255,255,.55);border:0;border-radius:50%;width:34px;height:34px;font-size:17px;cursor:pointer;opacity:.45;padding:0}
+#keyBtn:hover{opacity:.95}
+
+/* кнопки */
+.btn{background:var(--acc);color:#fff;border:2px solid var(--acc);border-radius:999px;padding:.35rem 1.2rem;font-weight:800;font-size:1.05rem;cursor:pointer;min-height:46px;white-space:nowrap}
+.btn:hover{background:var(--acch);border-color:var(--acch)}
+.btn.light{background:var(--soft);color:var(--acc);border-color:var(--l2)}
+.btn.light:hover{background:var(--l1)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.big{font-size:1.35rem;padding:.5rem 2.2rem}
+.btn.sm{font-size:.9rem;min-height:38px;padding:.2rem .9rem}
+
+/* початок */
+#sStart{align-items:center;justify-content:center;padding:1rem;background:var(--head)}
+.start{background:var(--head);border:2px solid var(--l1);border-radius:1.4rem;padding:1.6rem 1.8rem;width:100%;max-width:34rem;text-align:center;box-shadow:0 8px 30px rgba(194,65,12,.12)}
+.start .tag{font-size:1rem;color:var(--mut);font-weight:800;letter-spacing:.04em}
+.start h1{margin:.3rem 0 .4rem;font-size:1.7rem;line-height:1.2;color:var(--acc);font-weight:900}
+.start .demo{font-size:1.5rem;font-weight:800;color:var(--acc2);margin-bottom:1rem}
+.start label{display:block;text-align:left;font-weight:800;font-size:.95rem;margin:.6rem 0 .2rem;color:var(--mut)}
+.start input{width:100%;font-size:1.2rem;font-weight:700;padding:.55rem .8rem;border:2px solid var(--l2);border-radius:.8rem;background:#fff;color:var(--ink);outline:none}
+.start input:focus{border-color:var(--acc)}
+.start input.err{border-color:var(--bad);background:var(--badbg)}
+.start .msg{min-height:1.4rem;color:var(--badtx);font-weight:800;font-size:.95rem;margin:.5rem 0}
+
+/* дроби */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-weight:800}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .22em .04em;display:flex;justify-content:center;min-width:1.2em}
+.fr>span:last-child{padding:.04em .22em 0}
+.hl{color:var(--acc)}
+.bl{color:var(--blue)}
+
+/* додатковий множник: коса риска + число справа від чисельника */
+.mf{display:inline-flex;align-items:stretch;vertical-align:middle}
+.ad{display:inline-flex;align-items:flex-start;margin-left:.1em}
+.ad .sl{display:inline-block;align-self:flex-start;width:0;height:1.05em;border-left:1.6px solid var(--acc);
+  transform:translateY(-2.5mm) rotate(-35deg);margin:.12em .38em 0 -.15em}
+.ad .fill{align-self:flex-start;font-size:.85em;transform:translateY(-3.4mm);color:var(--acc);font-weight:900}
+
+/* тест */
+#sTest{padding:.4rem .6rem 0}
+.thead{flex:none;display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.2rem 0 .4rem}
+.trow{display:flex;align-items:center;gap:.8rem}
+#tcount{font-weight:900;color:var(--acc);font-size:1.15rem}
+#tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;max-width:44rem}
+.tile{width:2.1rem;height:2.1rem;min-width:30px;min-height:30px;border-radius:.5rem;border:2px solid var(--l2);background:#fff;color:var(--acc);font-weight:800;font-size:.9rem;cursor:pointer;padding:0}
+.tile.fill{background:var(--l1)}
+.tile.cur{border-color:var(--acc);border-width:3px}
+.tile.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.tile.bad{background:var(--badbg);border-color:var(--bad);color:var(--badtx)}
+#card{flex:1;min-height:0;overflow:auto;background:rgba(255,255,255,.95);border:2px solid var(--l1);border-radius:1.2rem;padding:.9rem 1.1rem}
+.ask{font-size:1.3rem;font-weight:800;line-height:1.35;margin:.1rem 0 .9rem;text-align:center}
+.ask b{color:var(--acc)}
+.eqrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:.6rem;font-size:2.4rem;font-weight:800;margin:1rem 0 .8rem;padding-top:.3rem}
+.eqrow .op{color:var(--acc);font-weight:900}
+.cell{width:4rem;height:3.1rem;font-size:1.6rem;font-weight:800;text-align:center;border:2px solid var(--l2);border-radius:.7rem;background:#fff;color:var(--ink);outline:none;padding:0;display:block}
+.fr .cell{margin:.15rem 0}
+.cell:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(234,88,12,.25)}
+.cell:read-only{cursor:pointer}
+.cell.good{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.cell.wrong{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.hint{font-size:1rem;color:var(--mut);font-weight:700;text-align:center;margin:.5rem auto;max-width:34rem;line-height:1.4}
+.fb{margin-top:.8rem;border-radius:.9rem;padding:.7rem 1rem;font-size:1.05rem;line-height:1.5;font-weight:700}
+.fb.ok{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx)}
+.fb.bad{background:var(--badbg);border:2px solid var(--bad);color:var(--badtx)}
+.fb b.t{display:block;font-size:1.15rem;margin-bottom:.2rem}
+.fb .why{color:var(--ink);margin-top:.4rem;font-weight:600}
+.fb .why .solv{font-size:1.5rem;text-align:center;line-height:2.3;margin:.3rem 0;font-weight:800}
+.fb .tip{margin-top:.4rem;color:var(--mut);font-weight:700}
+.tnav{flex:none;display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.5rem 0 .3rem}
+#kb{flex:none;display:none;padding:.35rem;background:rgba(255,241,227,.97);border-top:2px solid var(--l1);border-radius:1rem 1rem 0 0}
+#kb.on{display:block}
+#kb .kr{display:flex;gap:.3rem;margin-bottom:.3rem}
+#kb .kr:last-child{margin-bottom:0}
+.key{flex:1;min-height:44px;border:2px solid var(--l2);border-radius:.7rem;background:#fff;color:var(--acc);font-size:1.35rem;font-weight:900;cursor:pointer;padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.key:active{background:var(--l1)}
+.key.fn{background:var(--soft);font-size:1.15rem}
+
+/* перед здачею, результат */
+#sPre,#sRes{padding:.6rem .8rem 0;align-items:center;justify-content:center}
+.box{background:rgba(255,255,255,.96);border:2px solid var(--l1);border-radius:1.3rem;padding:1.3rem 1.5rem;width:100%;max-width:36rem;text-align:center;max-height:100%;overflow:auto}
+.box h2{margin:0 0 .5rem;color:var(--acc);font-size:1.6rem;font-weight:900}
+.box .meta{font-size:1.1rem;font-weight:800;color:var(--mut);margin:.4rem 0}
+.box .warn{color:var(--acch);font-weight:800;background:var(--soft);border-radius:.7rem;padding:.4rem .8rem;margin:.6rem 0}
+.box .btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:.9rem}
+.res-name{font-size:1.4rem;font-weight:900;color:var(--ink)}
+.res-big{font-size:3rem;font-weight:900;color:var(--acc);line-height:1.1;margin:.2rem 0}
+.res-lbl{font-size:1rem;font-weight:800;color:var(--mut)}
+.res-sc{font-size:2.6rem;font-weight:900;color:var(--acch);line-height:1.1;margin:.1rem 0 .4rem}
+.res-fr{border:3px dashed var(--acc2);border-radius:1rem;padding:.6rem .9rem;margin:.9rem 0 .3rem;font-weight:800;background:var(--head);color:var(--acch)}
+.integ{background:#FFF8DB;border:2px solid #F2D27A;border-radius:.9rem;padding:.6rem .9rem;margin:.7rem 0 .2rem;text-align:left;font-size:.98rem;line-height:1.45;font-weight:700;color:#5b4308}
+.integ p{margin:.2rem 0}
+
+/* вікна */
+.ov{position:fixed;inset:0;background:rgba(67,20,7,.38);display:none;align-items:center;justify-content:center;z-index:2147483100;padding:.8rem}
+.ov.on{display:flex}
+.ovb{background:#fff;border:3px solid var(--l2);border-radius:1.2rem;width:100%;max-width:44rem;max-height:94dvh;overflow-y:auto;overflow-x:hidden;padding:1rem 1.2rem}
+.ovb h3{margin:.1rem 0 .5rem;color:var(--acc);font-size:1.3rem}
+
+/* журнал */
+#jr .ovb{max-width:78rem}
+#jr table{border-collapse:collapse;font-size:.85rem;width:100%}
+#jr th,#jr td{border:1px solid var(--l1);padding:.25rem .4rem;text-align:center;white-space:nowrap}
+#jr th{background:var(--head);color:var(--acch)}
+#jr td.nm{text-align:left;cursor:pointer;color:var(--acc);font-weight:800;white-space:normal}
+#jr .tw{overflow:auto;max-height:62dvh}
+#jr .det td{text-align:left;white-space:normal}
+#jr .red{color:var(--badtx);font-weight:900}
+#jr .okc{color:var(--ok);font-weight:900}
+#jr .badc{color:var(--bad);font-weight:900}
+#jr .jb{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+#jr input.pw{font-size:1.1rem;padding:.4rem .7rem;border:2px solid var(--l2);border-radius:.6rem}
+#jr .err{color:var(--badtx);font-weight:800;margin:.4rem 0}
+
+@media (max-width:520px){
+  .eqrow{gap:.3rem;font-size:1.8rem}
+  .cell{width:3.3rem;height:2.7rem;font-size:1.4rem}
+  .hint{font-size:.88rem;margin:.3rem auto}
+  .ask{font-size:1.1rem;margin-bottom:.5rem}
+  #card{padding:.7rem .7rem}
+  .fb .why .solv{font-size:1.25rem}
+  .ovb{padding:.8rem .8rem}
+  .key{min-height:42px}
+  .start h1{font-size:1.4rem}
+}
+@media (max-height:620px){ .ask{margin-bottom:.3rem} .eqrow{margin:.5rem 0 .4rem} }
+</style>
+</head>
+<body>
+<button id="keyBtn" title="Журнал учителя" aria-label="Журнал учителя">🔑</button>
+
+<div id="app">
+  <!-- початок -->
+  <section class="scr on" id="sStart">
+    <div class="start">
+      <div class="tag">Математика, 6 клас</div>
+      <h1>Тест. Додавання і віднімання дробів з різними знаменниками (6 клас)</h1>
+      <div class="demo"><span class="fr"><span>1</span><span>2</span></span> + <span class="fr"><span>1</span><span>3</span></span></div>
+      <label for="inSur">Прізвище</label>
+      <input id="inSur" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="40">
+      <label for="inNam">Ім'я</label>
+      <input id="inNam" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="30">
+      <div class="msg" id="stMsg"></div>
+      <button class="btn big" id="startBtn">Почати ▶</button>
+    </div>
+  </section>
+
+  <!-- завдання -->
+  <section class="scr" id="sTest">
+    <div class="thead">
+      <div class="trow"><span id="tcount"></span><button class="btn light sm" id="toRes" hidden>← До результату</button></div>
+      <div id="tiles"></div>
+    </div>
+    <div id="card"></div>
+    <div class="tnav">
+      <button class="btn light" id="tBack">← Назад</button>
+      <button class="btn" id="tNext">Далі →</button>
+    </div>
+    <div id="kb">
+      <div class="kr"><button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button><button class="key" data-k="4">4</button><button class="key" data-k="5">5</button></div>
+      <div class="kr"><button class="key" data-k="6">6</button><button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key" data-k="0">0</button></div>
+      <div class="kr"><button class="key fn" data-k="bs" aria-label="Стерти">⌫</button><button class="key fn" data-k="next" aria-label="Наступна клітинка">→</button></div>
+    </div>
+  </section>
+
+  <!-- перед здачею -->
+  <section class="scr" id="sPre">
+    <div class="box">
+      <h2>Перед здачею</h2>
+      <div id="preTiles" style="display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.6rem 0"></div>
+      <div class="meta" id="preMeta"></div>
+      <div class="warn" id="preWarn" hidden></div>
+      <div class="btns">
+        <button class="btn light" id="preBack">← До завдань</button>
+        <button class="btn" id="preGo">Перевірити</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- результат -->
+  <section class="scr" id="sRes">
+    <div class="box">
+      <div class="res-name" id="rName"></div>
+      <div class="res-big" id="rBig"></div>
+      <div class="res-lbl">правильних відповідей</div>
+      <div id="rInteg"></div>
+      <div class="res-lbl" style="margin-top:.8rem">Оцінка за 100-бальною шкалою</div>
+      <div class="res-sc" id="rSc"></div>
+      <div class="res-fr">Зробіть скріншот результату та надішліть його вчителю</div>
+      <div class="btns">
+        <button class="btn" id="rErr">Дивитись помилки</button>
+        <button class="btn light" id="rAgain">Пройти ще раз</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+
+<!-- журнал -->
+<div class="ov" id="jr"><div class="ovb" id="jrBody"></div></div>
+
+<script>
+(function(){ "use strict";
+
+/* ================= Firebase (дослівно з інструкції) ================= */
+const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
+const APP_ID='default-app-id', COLLECTION='results_fractions_addsub_6', TEACHER_EMAIL='vchytel@matemka.invalid', FBV='10.12.2', TEST_NAME='Додавання і віднімання дробів з різними знаменниками (6 клас)';
+let fbPromise=null;
+function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); const auth=authM.getAuth(app); await authM.signInAnonymously(auth); return {db:fs.getFirestore(app),fs,auth,authM}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){ try{rec=JSON.parse(JSON.stringify(rec));}catch(e){} try{ let q=JSON.parse(localStorage.getItem('pending_'+COLLECTION)||'[]'); q=q.filter(x=>x&&x.id!==rec.id); q.push(rec); localStorage.setItem('pending_'+COLLECTION,JSON.stringify(q)); }catch(e){} await flushPending(); }
+let _flushing=false;
+async function flushPending(){ if(_flushing)return; _flushing=true; try{ const key='pending_'+COLLECTION, tried={}; for(;;){ let q; try{q=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){q=[]} const item=q.find(x=>x&&!tried[x.id]); if(!item)break; tried[item.id]=1; let ok=false; for(let a=0;a<4&&!ok;a++){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),item.id),item); ok=true; }catch(e){ console.warn('Save failed',e); await new Promise(r=>setTimeout(r,1500*(a+1))); } } if(ok){ try{ const cur=JSON.parse(localStorage.getItem(key)||'[]').filter(x=>x&&x.id!==item.id); localStorage.setItem(key,JSON.stringify(cur)); }catch(e){} } } } finally { _flushing=false; } }
+window.addEventListener('online',()=>{flushPending()}); setTimeout(()=>{flushPending()},2000);
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,pw); return true; }catch(e){ return false; } }
+async function teacherLogout(){ try{ const {auth,authM}=await fb(); await authM.signOut(auth); await authM.signInAnonymously(auth); }catch(e){} }
+async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
+async function clearResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); await Promise.all(snap.docs.map(d=>fs.deleteDoc(d.ref))); }
+fb().catch(()=>{});
+
+/* ================= допоміжне ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const fr=(n,d,c='')=>`<span class="fr ${c}"><span>${n}</span><span>${d}</span></span>`;
+/* дріб із додатковим множником: риска справа від чисельника */
+const mf=(n,d,m)=>`<span class="mf">${fr(n,d)}<span class="ad"><span class="sl"></span><span class="fill">${m}</span></span></span>`;
+const comma=x=>String(x).replace('.',',');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const TOUCH=(function(){
+  try{
+    if(/[?&]kb=1/.test(location.search))return true;
+    if(window.matchMedia&&matchMedia('(pointer:coarse)').matches)return true;
+    return navigator.maxTouchPoints>0&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  }catch(e){return false;}
+})();
+
+/* ================= завдання ================= */
+/* 12 завдань, у кожному два правильні дроби a/b ± c/d (чисельник менший за знаменник, дріб нескоротний).
+   Сума завжди менша за 1, різниця додатна, тож у відповіді немає цілої частини.
+   1–6: знаменники менші від 10, жоден не ділиться на інший.
+   7–12: більший знаменник = менший · k (більший знаменник від 10 до 45).
+   У кожній половині 3 додавання й 3 віднімання, від простішого до складнішого. */
+function coprimes(b){ const r=[]; for(let a=1;a<b;a++) if(gcd(a,b)===1) r.push(a); return r; }
+function mkTasks(seed){
+  const R=mulberry32(seed);
+  const pick=a=>a[Math.floor(R()*a.length)];
+  const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  const used=new Set();
+  function build(b,d,op){
+    for(let g=0;g<600;g++){
+      let a=pick(coprimes(b)), c=pick(coprimes(d)), B=b, D=d;
+      if(op==='-' && a*D<c*B){ [a,c]=[c,a]; [B,D]=[D,B]; }          /* від більшого віднімаємо менше */
+      if(op==='-' && a*D===c*B) continue;
+      const L=lcm(B,D), m1=L/B, m2=L/D;
+      const N=op==='+'?a*m1+c*m2:a*m1-c*m2;
+      if(N<=0||N>=L) continue;                                        /* без цілої частини */
+      const key=a+'/'+B+op+c+'/'+D; if(used.has(key)) continue;
+      used.add(key);
+      const gg=gcd(N,L);
+      return {a,b:B,c,d:D,op,L,m1,m2,N,num:N/gg,den:L/gg};
+    }
+    throw new Error('gen');
+  }
+  const T=[];
+  /* частина 1: знаменники < 10 */
+  const tiers1=[
+    [[2,3],[2,5],[3,4],[3,5],[4,5],[5,6]],
+    [[2,7],[2,9],[3,7],[3,8],[4,7],[4,9],[5,7],[5,8],[5,9],[6,7],[7,8],[7,9],[8,9]],
+    [[4,6],[6,8],[6,9]]
+  ];
+  tiers1.forEach(pairs=>{
+    const ps=shuffle(pairs).slice(0,2), ops=shuffle(['+','-']);
+    ps.forEach((p,i)=>{ let [b,d]=p; if(R()<.5)[b,d]=[d,b]; T.push(build(b,d,ops[i])); });
+  });
+  /* частина 2: один знаменник утворюється з іншого множенням */
+  const tiers2=[
+    {bs:[2,3,4,5],ks:[2,3,4,5],max:24},
+    {bs:[3,4,5,6,7],ks:[2,3,4,5],max:35},
+    {bs:[6,7,8,9],ks:[2,3,4,5],max:45}
+  ];
+  tiers2.forEach(tr=>{
+    const combos=[]; tr.bs.forEach(b=>tr.ks.forEach(k=>{ const D=b*k; if(D>=10&&D<=tr.max) combos.push([b,D]); }));
+    const cs=shuffle(combos).slice(0,2), ops=shuffle(['+','-']);
+    cs.forEach((p,i)=>{ let [b,d]=p; if(R()<.5)[b,d]=[d,b]; T.push(build(b,d,ops[i])); });
+  });
+  return T;
+}
+const emptyAns=()=>({n:'',d:''});
+const isAns=(t,a)=>a.n!==''&&a.d!=='';
+/* зараховується будь-який рівний за значенням дріб: нескорочений теж */
+function gradeTask(t,a){
+  const n=+a.n, d=+a.d;
+  const ok=a.n!==''&&a.d!==''&&d>0&&n>0&&n*t.den===t.num*d;
+  return {m:ok?1:0, ans:`${a.n===''?'?':a.n} | ${a.d===''?'?':a.d}`};
+}
+const sg=t=>t.op==='+'?'+':'−';
+const correctText=t=>`${t.num} | ${t.den}`;
+const qText=t=>`${t.a}/${t.b} ${sg(t)} ${t.c}/${t.d}`;
+function whyHtml(t){
+  const f1=t.m1>1?mf(t.a,t.b,t.m1):fr(t.a,t.b);
+  const f2=t.m2>1?mf(t.c,t.d,t.m2):fr(t.c,t.d);
+  const red=t.num!==t.N?` = ${fr(t.num,t.den)}`:'';
+  return `Спільний знаменник: <b>${t.L}</b>. Додаткові множники: <b>${t.m1}</b> і <b>${t.m2}</b>.
+  <div class="solv">${f1} ${sg(t)} ${f2} = ${fr(t.N,t.L)}${red}</div>
+  Чисельник: ${t.a} · ${t.m1} ${sg(t)} ${t.c} · ${t.m2} = <b>${t.N}</b>.`;
+}
+
+/* ================= стан ================= */
+const S={sur:'',nam:'',phase:'start',seed:0,tasks:[],ans:[],idx:0,checked:false,review:false,marks:[],t0:0,focusEl:null,rec:null};
+let W={leaves:0,awaySec:0,awayAt:0};
+function resetWatch(){ W={leaves:0,awaySec:0,awayAt:0}; }
+function leave(){ if(S.phase==='start'||S.checked||W.awayAt) return; W.awayAt=Date.now(); W.leaves++; }
+function back(){ if(!W.awayAt) return; W.awaySec+=Math.round((Date.now()-W.awayAt)/1000); W.awayAt=0; }
+document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+
+function showScr(id){ $$('.scr').forEach(s=>s.classList.toggle('on',s.id===id)); }
+
+/* ================= початок ================= */
+$('#inSur').focus();
+$('#startBtn').onclick=()=>{
+  const a=$('#inSur'), b=$('#inNam'), sur=a.value.trim(), nam=b.value.trim();
+  a.classList.toggle('err',!sur); b.classList.toggle('err',!nam);
+  if(!sur||!nam){ $('#stMsg').textContent='Введіть прізвище та ім\'я, щоб почати'; (sur?b:a).focus(); return; }
+  $('#stMsg').textContent='';
+  S.sur=sur; S.nam=nam; resetWatch();
+  const qv=/[?&]v=(\d+)/.exec(location.search);
+  S.seed=qv?+qv[1]:((Math.random()*4294967296)>>>0);
+  startTasks();
+};
+['#inSur','#inNam'].forEach(id=>$(id).addEventListener('input',e=>{e.target.classList.remove('err');$('#stMsg').textContent='';}));
+$('#inSur').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#inNam').focus();}});
+$('#inNam').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#startBtn').click();}});
+
+/* ================= завдання ================= */
+function startTasks(){
+  S.tasks=mkTasks(S.seed); S.ans=S.tasks.map(emptyAns);
+  S.idx=0; S.checked=false; S.review=false; S.marks=[]; S.rec=null;
+  S.t0=Date.now(); S.phase='test';
+  showScr('sTest'); goTo(0);
+}
+function tileHtml(i){
+  let c='tile';
+  if(i===S.idx&&$('#sTest').classList.contains('on')) c+=' cur';
+  if(S.checked){ c+=S.marks[i]===1?' ok':' bad'; }
+  else if(isAns(S.tasks[i],S.ans[i])) c+=' fill';
+  return `<button class="${c}" data-i="${i}" aria-label="Завдання ${i+1}">${i+1}</button>`;
+}
+function paintTiles(){
+  $('#tcount').textContent=`Завдання ${S.idx+1} з ${S.tasks.length}`;
+  $('#tiles').innerHTML=S.tasks.map((t,i)=>tileHtml(i)).join('');
+}
+function goTo(i){
+  S.idx=Math.max(0,Math.min(S.tasks.length-1,i)); S.focusEl=null;
+  renderTask(); paintTiles();
+  $('#tBack').disabled=S.idx===0;
+  const last=S.idx===S.tasks.length-1;
+  $('#tNext').disabled=S.review&&last;
+  $('#toRes').hidden=!S.review;
+  $('#kb').classList.toggle('on',TOUCH&&!S.checked);
+  $('#card').scrollTop=0;
+  if(!S.checked&&!TOUCH){ const f=$('#card input'); if(f) f.focus({preventScroll:true}); }
+}
+$('#tiles').addEventListener('click',e=>{const b=e.target.closest('.tile');if(b)goTo(+b.dataset.i);});
+$('#tBack').onclick=()=>goTo(S.idx-1);
+$('#tNext').onclick=()=>{
+  if(S.idx<S.tasks.length-1) goTo(S.idx+1);
+  else if(!S.review) showPre();
+};
+$('#toRes').onclick=()=>showResult();
+
+function cellIn(k,val,dis,label,good,wrong){
+  const ro=(TOUCH||dis)?' readonly':'';
+  return `<input class="cell${good?' good':''}${wrong?' wrong':''}" data-k="${k}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="3" ${TOUCH?'inputmode="none"':'inputmode="numeric"'}${ro} value="${esc(val)}" aria-label="${label}">`;
+}
+function renderTask(){
+  const t=S.tasks[S.idx], a=S.ans[S.idx], dis=S.checked;
+  const g=dis?gradeTask(t,a):null;
+  const good=dis&&g.m===1, wrong=dis&&g.m!==1;
+  let h=`<p class="ask">${t.op==='+'?'Додайте дроби':'Виконайте віднімання'}. Відповідь запишіть дробом.</p>
+  <div class="eqrow">${fr(t.a,t.b)}<span class="op">${sg(t)}</span>${fr(t.c,t.d)}<span>=</span><span class="fr"><span>${cellIn('n',a.n,dis,'чисельник',good,wrong)}</span><span>${cellIn('d',a.d,dis,'знаменник',good,wrong)}</span></span></div>
+  <div class="hint">У верхню клітинку впишіть чисельник, у нижню — знаменник. Нескорочений дріб теж зараховується.</div>`;
+  if(dis){
+    const cls=g.m===1?'ok':'bad';
+    const title=g.m===1?'✓ Правильно':'✗ Неправильно';
+    let extra='';
+    if(g.m<1) extra=`Ваша відповідь: ${a.n===''||a.d===''?'—':fr(esc(a.n),esc(a.d))}<br>Правильно: ${fr(t.num,t.den)}`;
+    else { const q=gcd(+a.n,+a.d); if(q>1) extra=`<div class="tip">Ваш дріб можна скоротити: ${fr(a.n,a.d)} = ${fr(t.num,t.den)}. На оцінку це не впливає.</div>`; }
+    h+=`<div class="fb ${cls}"><b class="t">${title}</b>${extra}<div class="why">${whyHtml(t)}</div></div>`;
+  }
+  $('#card').innerHTML=h;
+}
+function updTile(){ const b=$(`#tiles .tile[data-i="${S.idx}"]`); if(b&&!S.checked) b.classList.toggle('fill',isAns(S.tasks[S.idx],S.ans[S.idx])); }
+
+/* введення: клавіатура комп'ютера й екранна клавіатура телефона */
+function storeFromEl(el){
+  const v=el.value.replace(/\D/g,'');
+  if(v!==el.value) el.value=v;
+  S.ans[S.idx][el.dataset.k]=v;                      // одразу в стан
+  updTile();
+}
+$('#card').addEventListener('input',e=>{ const el=e.target.closest('.cell'); if(el&&!S.checked) storeFromEl(el); });
+$('#card').addEventListener('focusin',e=>{ const el=e.target.closest('.cell'); if(el) S.focusEl=el; });
+$('#card').addEventListener('click',e=>{ const el=e.target.closest('.cell'); if(el&&!S.checked){ S.focusEl=el; el.focus({preventScroll:true}); } });
+$('#card').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.closest('.cell')){
+    e.preventDefault();
+    const ins=$$('.cell',$('#card')), i=ins.indexOf(e.target);
+    if(i<ins.length-1) ins[i+1].focus();
+    else if(isAns(S.tasks[S.idx],S.ans[S.idx])) $('#tNext').click();
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(S.phase!=='test'||!$('#sTest').classList.contains('on')) return;
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')) return;
+  if($('#jr').classList.contains('on')) return;
+  if(e.key==='ArrowRight') $('#tNext').click();
+  else if(e.key==='ArrowLeft') $('#tBack').click();
+});
+function kbPress(k){
+  if(S.checked) return;
+  const ins=$$('.cell',$('#card')); if(!ins.length) return;
+  let el=S.focusEl&&ins.includes(S.focusEl)?S.focusEl:(ins.find(x=>x.value==='')||ins[0]);
+  if(!ins.includes(S.focusEl)){ el.focus({preventScroll:true}); S.focusEl=el; }
+  if(k==='next'){ const i=ins.indexOf(el); if(i<ins.length-1){ ins[i+1].focus({preventScroll:true}); S.focusEl=ins[i+1]; } return; }
+  if(k==='bs') el.value=el.value.slice(0,-1);
+  else { if(el.value.length>=(+el.maxLength||3)) return; el.value+=k; }
+  storeFromEl(el);
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+$$('#kb .key').forEach(b=>{
+  b.addEventListener('pointerdown',e=>{ e.preventDefault(); kbPress(b.dataset.k); });
+  b.addEventListener('mousedown',e=>e.preventDefault());
+  b.addEventListener('click',e=>e.preventDefault());
+});
+
+/* ================= перед здачею ================= */
+function showPre(){
+  S.phase='pre'; showScr('sPre'); $('#kb').classList.remove('on');
+  const cnt=S.tasks.filter((t,i)=>isAns(t,S.ans[i])).length, N=S.tasks.length, left=N-cnt;
+  $('#preTiles').innerHTML=S.tasks.map((t,i)=>`<button class="tile${isAns(t,S.ans[i])?' fill':''}" data-i="${i}">${i+1}</button>`).join('');
+  $('#preMeta').textContent=`Відповіли на ${cnt} з ${N}`;
+  const w=$('#preWarn'); w.hidden=left===0; w.textContent=left?`Ви не завершили ${left} ${left===1?'завдання':(left<5?'завдання':'завдань')}. Натисніть на номер, щоб до нього повернутися.`:'';
+  $('#preGo').textContent=left?'Все одно перевірити':'Перевірити';
+}
+$('#preTiles').addEventListener('click',e=>{ const b=e.target.closest('.tile'); if(b){ S.phase='test'; showScr('sTest'); goTo(+b.dataset.i); } });
+$('#preBack').onclick=()=>{ S.phase='test'; showScr('sTest'); goTo(S.tasks.length-1); };
+$('#preGo').onclick=()=>finish();
+
+/* ================= перевірка, збереження ================= */
+function finish(){
+  if(S.checked) return;
+  back();
+  const now=Date.now(), N=S.tasks.length;
+  const gr=S.tasks.map((t,i)=>gradeTask(t,S.ans[i]));
+  S.marks=gr.map(x=>x.m);
+  const score=S.marks.reduce((a,b)=>a+b,0);
+  const grade100=Math.round(score/N*100);
+  S.checked=true; S.phase='result';
+  const rec={
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:`${S.sur} ${S.nam}`, surname:S.sur, firstName:S.nam,
+    ts:now, date:new Date(now).toISOString(),
+    score, max:N, percent:grade100, grade100, tasks:S.marks.slice(),
+    qtext:S.tasks.map(qText), answers:gr.map(x=>x.ans), correct:S.tasks.map(correctText),
+    durationSec:Math.round((now-S.t0)/1000),
+    leaves:W.leaves, awaySec:W.awaySec, variant:S.seed,
+    test:TEST_NAME
+  };
+  S.rec=rec;
+  saveResult(rec);                       // один раз; учневі нічого не показується
+  showResult();
+}
+function showResult(){
+  const r=S.rec; showScr('sRes');
+  $('#rName').textContent=r.name;
+  $('#rBig').textContent=`${comma(r.score)} з ${r.max}`;
+  $('#rSc').textContent=`${r.grade100} з 100`;
+  $('#rInteg').innerHTML=r.leaves>=3?`<div class="integ"><p>💡 <b>Ви забагато виходили з вікна тесту</b> (разів: ${r.leaves}), тому є підозра, що завдання виконано недоброчесно.</p><p>Недоброчесне виконання не дає знань, а лише створює ілюзію гарної оцінки.</p></div>`:'';
+  $('#kb').classList.remove('on');
+}
+$('#rErr').onclick=()=>{
+  S.review=true; S.phase='test'; showScr('sTest');
+  let first=S.marks.findIndex(m=>m<1); if(first<0) first=0;
+  goTo(first);
+};
+$('#rAgain').onclick=()=>{
+  resetWatch(); S.seed=(Math.random()*4294967296)>>>0;
+  $('#kb').classList.remove('on');
+  startTasks();
+};
+
+/* ================= журнал учителя ================= */
+let JR={rows:[],open:{}};
+function fmtT(s){ s=+s; if(!isFinite(s)) return '—'; return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); }
+function fmtD(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}); }catch(e){return '—';} }
+function openJr(){
+  $('#jr').classList.add('on');
+  $('#jrBody').innerHTML=`<h3>Журнал учителя</h3><div><input class="pw" id="jpw" type="password" placeholder="Пароль" autocomplete="off"> <button class="btn sm" id="jgo">Увійти</button> <button class="btn light sm" id="jx0">Скасувати</button></div><div class="err" id="jerr"></div>`;
+  $('#jx0').onclick=closeJr; $('#jgo').onclick=tryPw;
+  $('#jpw').addEventListener('keydown',e=>{if(e.key==='Enter')tryPw();}); $('#jpw').focus();
+}
+function closeJr(){ $('#jr').classList.remove('on'); teacherLogout(); }
+async function tryPw(){
+  const pw=$('#jpw').value; if(!pw) return;
+  $('#jgo').disabled=true;
+  const ok=await teacherLogin(pw);
+  if(ok) loadJr(); else { $('#jerr').textContent='Неправильний пароль'; $('#jgo').disabled=false; }
+}
+async function loadJr(){
+  $('#jrBody').innerHTML='<h3>Журнал учителя</h3><div>Завантаження…</div>';
+  try{ JR.rows=await loadResults(); JR.open={}; drawJr(); }
+  catch(e){ $('#jrBody').innerHTML='<h3>Журнал учителя</h3><div class="err">Не вдалося підключитися до бази результатів</div><div class="jb"><button class="btn light sm" id="jx1">Закрити</button></div>'; $('#jx1').onclick=closeJr; }
+}
+function mark(m){ return m===1?'<span class="okc">✓</span>':(m>0?'<span style="color:#EA580C;font-weight:900" title="Часткова відповідь">½</span>':'<span class="badc">✗</span>'); }
+const grOf=r=>r.grade100!==undefined?r.grade100:Math.round((r.score||0)/(r.max||1)*100);
+function drawJr(){
+  const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
+  let h=`<h3>Журнал учителя (${rows.length})</h3><div class="jb"><button class="btn light sm" id="jRef">Оновити</button><button class="btn light sm" id="jCsv">Завантажити CSV</button><button class="btn light sm" id="jClr">Очистити</button><button class="btn light sm" id="jX">Закрити</button></div><div id="jConf"></div><div class="tw"><table><thead><tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Оцінка (100)</th>`;
+  for(let i=1;i<=NT;i++) h+=`<th>${i}</th>`;
+  h+='</tr></thead><tbody>';
+  rows.forEach((r,k)=>{
+    const g=grOf(r);
+    const hasT=r.durationSec!==undefined, hasL=r.leaves!==undefined;
+    h+=`<tr><td>${k+1}</td><td class="nm" data-k="${k}">${esc(r.name||'')}</td><td>${esc(fmtD(r.date))}</td>`;
+    h+=hasT?`<td class="${r.durationSec<120?'red':''}"${r.durationSec<120?' title="Дуже швидко"':''}>${fmtT(r.durationSec)}</td>`:'<td>—</td>';
+    h+=hasL?`<td class="${r.leaves>=3?'red':''}" title="Поза вікном: ${fmtT(r.awaySec||0)}">${r.leaves}</td>`:'<td>—</td>';
+    h+=`<td>${comma(r.score)}/${r.max}</td><td>${g}</td>`;
+    for(let i=0;i<NT;i++) h+=`<td>${(r.tasks&&r.tasks[i]!==undefined)?mark(r.tasks[i]):''}</td>`;
+    h+='</tr>';
+    if(JR.open[k]){
+      h+=`<tr class="det"><td colspan="${7+NT}"><div>Оцінка: <b>${g} з 100</b> (${g} %) · Бал: ${comma(r.score)} з ${r.max} · Виходів: ${r.leaves!==undefined?r.leaves:'—'}, поза вікном: ${r.awaySec!==undefined?fmtT(r.awaySec)+' хв':'—'} · Варіант: ${r.variant!==undefined?r.variant:'—'}</div><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня (чисельник | знаменник)</th><th>Правильна відповідь</th><th>Бал</th></tr>`;
+      (r.qtext||[]).forEach((q,i)=>{ const m=(r.tasks||[])[i]; h+=`<tr><td>${i+1}</td><td>${esc(q)}</td><td>${esc((r.answers||[])[i]||'')}</td><td>${esc((r.correct||[])[i]||'')}</td><td>${m===undefined?'':comma(m)}</td></tr>`; });
+      h+='</table></td></tr>';
+    }
+  });
+  h+='</tbody></table></div>';
+  $('#jrBody').innerHTML=h;
+  $('#jX').onclick=closeJr; $('#jRef').onclick=loadJr; $('#jCsv').onclick=csvJr;
+  $('#jClr').onclick=()=>{
+    $('#jConf').innerHTML=`<div class="warn" style="background:#FFEDD5;border-radius:.7rem;padding:.5rem .8rem;margin:.4rem 0">Видалити всі записи (${JR.rows.length})? <button class="btn sm" id="jYes">Так, видалити</button> <button class="btn light sm" id="jNo">Скасувати</button></div>`;
+    $('#jNo').onclick=()=>{$('#jConf').innerHTML='';};
+    $('#jYes').onclick=async()=>{
+      try{ await clearResults(); JR.rows=[]; drawJr(); }
+      catch(e){ $('#jConf').innerHTML='<div class="err">Не вдалося очистити записи. Перевірте правила бази Firebase</div>'; }
+    };
+  };
+  $$('#jrBody td.nm').forEach(td=>td.onclick=()=>{ JR.open[td.dataset.k]=!JR.open[td.dataset.k]; drawJr(); });
+}
+function csvJr(){
+  const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
+  const hd=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка (100)'];
+  for(let i=1;i<=NT;i++) hd.push('Завд. '+i);
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const lines=[hd.map(q).join(';')];
+  rows.forEach(r=>{
+    const c=[r.name||'',fmtD(r.date),r.durationSec!==undefined?fmtT(r.durationSec):'',r.leaves!==undefined?r.leaves:'',r.awaySec!==undefined?fmtT(r.awaySec):'',comma(r.score)+'/'+r.max,grOf(r)];
+    for(let i=0;i<NT;i++){ const m=r.tasks&&r.tasks[i]; c.push(m===undefined?'':(m===1?'+':(m>0?'0,5':'-'))); }
+    lines.push(c.map(q).join(';'));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Дроби_різні_знаменники_6клас_результати.csv';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+$('#keyBtn').onclick=openJr;
+$('#jr').addEventListener('click',e=>{ if(e.target.id==='jr') closeJr(); });
+
+if(/[?&]debug=1/.test(location.search)) window.__t={mkTasks,gradeTask,S,isAns};
+})();
+</script>
+</body>
+</html>
