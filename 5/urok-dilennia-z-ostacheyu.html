@@ -1,0 +1,1505 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ділення з остачею (5 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3a1736;--muted:#8a5a78;
+  --acc:#be185d;--acc2:#e5508a;--accL:#fce7f3;--soft:#fdeff5;--soft2:#fff7fa;--line:#f3cfe0;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --o1:#0f766e;--o2:#7c3aed;--o3:#b45309;--o4:#3b6ea8;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px);background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);touch-action:manipulation;
+  background:linear-gradient(135deg,#fdeff5 0%,#fce7f3 45%,#fbcfe8 100%) fixed}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+button:focus{outline:none}
+button:focus-visible{outline:3px solid rgba(190,24,93,.55);outline-offset:2px}
+b,strong{font-weight:900}
+i.v{font-family:"STIX Two Text","Cambria Math","Times New Roman",serif;font-style:italic;font-size:1.08em}
+
+#app{flex:1;min-height:0;display:flex;flex-direction:column;padding:.5rem .7rem .2rem}
+.stage{display:none;flex:1;min-height:0;flex-direction:column}
+.stage.on{display:flex}
+.card{position:relative;flex:1;min-height:0;overflow:auto;background:#fff;border:2px solid var(--line);border-radius:.9rem;
+  box-shadow:0 .5rem 1.6rem rgba(120,20,70,.14);padding:.9rem 1.1rem;display:flex;flex-direction:column;align-items:center}
+.card.start{background:linear-gradient(160deg,#fff 0%,#fff7fa 100%)}
+.inner{margin:auto;width:100%;max-width:58rem;display:flex;flex-direction:column;align-items:center;gap:.8rem}
+.inner.xw{max-width:80rem;margin:0 auto auto}
+.h1{font-size:2.8rem;font-weight:900;color:var(--acc);margin:0;text-align:center;line-height:1.25;max-width:40rem}
+.title2{font-size:1.5rem;font-weight:900;color:var(--acc);margin:0;text-align:center}
+.q{font-size:1.5rem;font-weight:800;text-align:center;line-height:1.45;margin:0}
+.hl{color:var(--acc)}
+.o1{color:var(--o1)}.o2{color:var(--o2)}.o3{color:var(--o3)}.o4{color:var(--o4)}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.6rem}
+.box{width:100%;background:var(--soft2);border:2px solid var(--line);border-radius:.8rem;padding:.8rem 1rem;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.box.white{background:#fff}
+.eq{font-size:1.9rem;font-weight:900;text-align:center;line-height:1.35}
+.sit{font-size:1.45rem;font-weight:800;text-align:center;line-height:1.45}
+
+/* кнопки */
+.btn{border:0;border-radius:.6rem;padding:.5rem 1.05rem;color:#fff;font-weight:800;font-size:1.05rem;
+  box-shadow:0 .2rem .5rem rgba(190,24,93,.25);transition:transform .1s;white-space:nowrap;min-height:2.6rem}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.a{background:var(--acc)}
+.btn.b{background:var(--acc2)}
+.btn.g{background:#fff;color:var(--acc);border:2px solid var(--line);box-shadow:none}
+.btn.big{font-size:1.45rem;padding:.65rem 1.9rem;border-radius:2rem}
+.btn.s{font-size:.95rem;padding:.35rem .8rem;min-height:2.3rem}
+
+/* відгук */
+.fb{padding:.4rem .9rem;border:2px solid;border-radius:.6rem;font-weight:800;font-size:1.05rem;text-align:center;line-height:1.35}
+.fb.ok{color:var(--oktx);background:var(--okbg);border-color:var(--okln)}
+.fb.bad{color:var(--badtx);background:var(--badbg);border-color:var(--badln)}
+.fb.warn{color:var(--warntx);background:var(--warnbg);border-color:var(--warnln)}
+
+/* варіанти відповідей */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;width:100%;max-width:42rem}
+.opt{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:#fff;border:2px solid var(--line);border-radius:.7rem;
+  font-weight:900;font-size:1.4rem;color:var(--ink);box-shadow:0 2px 6px rgba(120,20,70,.08);min-height:3rem}
+.opt:hover{border-color:var(--acc2)}
+.opt .let{flex:none;width:2rem;height:2rem;border-radius:.5rem;background:var(--accL);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.opt .val{flex:1;text-align:center}
+.opt.good{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+
+/* стрілка ↓ і кружечок «1» */
+.ctl{display:flex;justify-content:center;min-height:2.8rem;align-items:center}
+.go{flex:none;width:2.7rem;height:2.7rem;border:0;border-radius:50%;background:var(--acc2);color:#fff;font-size:1.45rem;font-weight:900;padding:0;
+  box-shadow:0 .25rem .7rem rgba(190,24,93,.35);animation:bounce 1.1s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(.3rem)}}
+.one{flex:none;width:2.6rem;height:2.6rem;border-radius:50%;border:2px dashed var(--acc2);background:#fff;color:var(--acc);font-weight:900;font-size:1.25rem;padding:0;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,80,138,.35)}50%{box-shadow:0 0 0 .45rem rgba(229,80,138,0)}}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+.fd{animation:fdin .45s ease}
+
+/* ===== цукерки ===== */
+.pile{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:.35rem;width:16rem;min-height:3.4rem;padding:.45rem .6rem;background:var(--soft2);border:2px dashed var(--line);border-radius:1rem}
+.cd{display:inline-block;width:1.3rem;height:1.3rem;border-radius:50%;background:#f472b6;box-shadow:inset -.15rem -.15rem 0 rgba(0,0,0,.13)}
+.cd.q{background:#2bb3a3}
+.cd.rm{background:#9b6cf0}
+.cd.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:translateY(-1.2rem) scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.plates{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.6rem;width:100%;max-width:50rem}
+.pl{display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.pl svg{width:2.3rem;height:2.3rem}
+.dish{width:100%;max-width:7rem;min-height:3.6rem;border-radius:50%/45%;background:#f7fbff;border:2px solid #b9cbe3;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:.22rem;padding:.4rem .5rem}
+.cap{font-size:1.4rem;font-weight:800;text-align:center;min-height:2rem;line-height:1.4}
+.eqlab{display:flex;align-items:flex-start;justify-content:center;gap:.45rem;font-weight:900;animation:fdin .4s}
+.eqlab .t{display:flex;flex-direction:column;align-items:center;min-width:2.6rem}
+.eqlab .t>span,.eqlab .op{font-size:2.6rem;line-height:1.2}
+.eqlab small{font-size:1.05rem;font-weight:900;visibility:hidden;border-top:.2rem solid currentColor;padding-top:.1rem;white-space:nowrap}
+.eqlab.lab small{visibility:visible;animation:fdin .45s}
+.eqlab.sm .t>span,.eqlab.sm .op{font-size:1.6rem}
+.eqlab.sm small{font-size:.9rem}
+.rule{background:var(--accL);border:3px solid var(--acc2);border-radius:1rem;padding:.55rem 1.3rem;font-size:1.75rem;font-weight:900;color:var(--acc);text-align:center;line-height:1.35;animation:fdin .4s}
+.note{font-size:1.4rem;font-weight:800;text-align:center;line-height:1.45;animation:fdin .4s}
+.bigeq{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.35;animation:fdin .4s}
+.gt{display:inline-block;color:var(--badtx);background:var(--badbg);border:2px solid var(--badln);border-radius:.5rem;padding:0 .45rem}
+.okm{display:inline-block;color:var(--oktx);background:var(--okbg);border:2px solid var(--okln);border-radius:.5rem;padding:0 .45rem}
+
+/* ===== ділення куточком ===== */
+.kutw{display:flex;gap:1.6rem;align-items:flex-start;justify-content:center;flex-wrap:wrap;width:100%}
+.kutw .colb{padding:.6rem 1rem}
+.kutw .cg{font-size:2.4rem}
+.knotes{display:flex;flex-direction:column;gap:.3rem;min-width:14rem;font-weight:900;font-size:1.4rem;padding-top:.3rem}
+.knotes div{animation:fdin .35s}
+.knotes div:last-child{color:var(--acc)}
+.ftab{border-collapse:collapse;font-weight:900;font-size:2.3rem;text-align:center}
+.ftab td{padding:0 .3rem;line-height:1.3}
+.ftab tr.ex td{font-size:.75em;color:var(--muted)}
+.ftab tr.ex td.o1{color:var(--o1)}.ftab tr.ex td.o2{color:var(--o2)}.ftab tr.ex td.o4{color:var(--o4)}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.2rem .9rem;font-size:1.3rem;font-weight:800;text-align:center;line-height:1.5;animation:fdin .4s}
+.legend span{white-space:nowrap}
+
+/* запис куточком */
+.colb{flex:none;background:#fff;border:2px solid var(--line);border-radius:.7rem;padding:.45rem .7rem;display:flex;flex-direction:column;align-items:center;gap:.3rem;animation:fdin .35s ease;
+  background-image:linear-gradient(#f6dbe8 1px,transparent 1px),linear-gradient(90deg,#f6dbe8 1px,transparent 1px);background-size:.75rem .75rem}
+.cg{display:grid;grid-auto-rows:1.32em;font-size:1.9rem;font-weight:900;line-height:1.32em;font-variant-numeric:tabular-nums}
+.cg span{display:flex;align-items:center;justify-content:center}
+.cg .ul{border-bottom:.14rem solid var(--ink)}
+.cg .vl{border-left:.14rem solid var(--ink)}
+.cg .sg{color:var(--acc2);font-size:.9em}
+.cg .qd{color:var(--o1)}
+.cg .rm2{color:var(--o2)}
+.cg .o4c{color:var(--o4)}
+.cg .hz{visibility:hidden}
+
+/* ===== завдання ===== */
+.tk{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1rem;width:100%;align-items:start}
+.tk1{width:100%;max-width:60rem;margin:0 auto;display:flex;flex-direction:column;gap:.6rem}
+.tkL,.tkR{display:flex;flex-direction:column;gap:.6rem;min-width:0}
+.tkR{align-items:center}
+.ttlrow{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%}
+.ttl{font-size:1.35rem;font-weight:900;color:var(--acc);background:var(--accL);border:2px solid var(--line);border-radius:2rem;padding:.05rem 1rem}
+.plus{flex:none;width:2.4rem;height:2.4rem;border-radius:50%;border:2px solid var(--warnln);background:var(--warnbg);color:var(--warntx);font-size:1.5rem;font-weight:900;padding:0;line-height:1}
+.cnd{width:100%;background:var(--warnbg);border:2px solid var(--warnln);border-radius:.8rem;padding:.45rem .9rem;font-weight:800;font-size:1.35rem;line-height:1.45}
+.cnd .cl{display:block}
+.cnd .ask{color:var(--acc);font-weight:900}
+.xl{display:grid;grid-template-columns:1fr;gap:.5rem;width:100%}
+.xl.two{grid-template-columns:1fr 1fr}
+.xr{display:flex;align-items:flex-start;gap:.7rem;background:#fff;border:2px solid var(--line);border-radius:.7rem;padding:.45rem .7rem;min-height:3.4rem}
+.xq{flex:none;font-weight:900;font-size:1.55rem;line-height:2.5rem;white-space:nowrap}
+.xq .ld{transition:color .3s}
+.xq .ld.on{color:var(--o2);background:#f1eafd;border-radius:.25rem;padding:0 .05em}
+.slot{flex:1;min-width:0;min-height:2.5rem;border-radius:.5rem;display:flex;flex-direction:column;justify-content:center;font-weight:900;font-size:1.5rem;line-height:1.3}
+.slot.hid{border:2px dashed var(--acc2);background:var(--soft);cursor:pointer;animation:pulse 1.8s ease-in-out infinite}
+.slot.on{animation:fdin .35s;justify-content:flex-start}
+.slot.on>div{font-size:1.55rem;line-height:2.5rem}
+.slot.on>small{line-height:1.3;padding-bottom:.15rem}
+.slot small{font-size:1.02rem;color:var(--muted);font-weight:800}
+.sols{display:flex;flex-direction:column;gap:.45rem;width:100%;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.5rem .9rem;min-height:4rem}
+.solh{font-size:1.2rem;font-weight:900;color:var(--acc)}
+.sline{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .5rem;font-weight:900;font-size:1.55rem;line-height:1.45;animation:fdin .35s}
+.sline .n{flex:none;color:var(--acc)}
+.sline .ex{font-weight:800;font-size:1.1rem;color:var(--ink)}
+.ansb{width:100%;background:var(--okbg);border:2px solid var(--ok);border-radius:.7rem;padding:.4rem .8rem;font-weight:900;font-size:1.45rem;color:var(--oktx);animation:fdin .4s ease}
+.concl{width:100%;background:var(--accL);border:3px solid var(--acc2);border-radius:.9rem;padding:.45rem 1rem;font-weight:900;font-size:1.45rem;color:var(--acc);text-align:center;animation:fdin .4s}
+.newrow{width:100%;display:flex;justify-content:flex-end;align-items:center;gap:.6rem}
+.bonus{width:100%;background:var(--warnbg);border:2px solid var(--warnln);border-radius:.8rem;padding:.5rem .9rem;font-weight:800;font-size:1.2rem;line-height:1.45;display:flex;flex-direction:column;gap:.35rem;animation:fdin .35s}
+.bonus .bh{font-weight:900;color:var(--warntx)}
+.bonus .ba{font-weight:900;color:var(--oktx)}
+.viz{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;align-items:flex-end;width:100%}
+.vcap{width:100%;text-align:center;font-weight:900;font-size:1.3rem;animation:fdin .4s}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:.05rem;padding:.2rem .35rem;border-radius:.6rem;border:2px solid;font-weight:900;font-size:1rem;animation:fdin .4s;background:#fff}
+.chip svg{width:2.7rem;height:1.9rem}
+.chip.q{color:var(--o1);border-color:#8fd0c8;background:#ecf8f6}
+.chip.r{color:var(--o2);border-color:#c9b3f5;background:#f4effd}
+.chip.dash{border-style:dashed}
+table.mt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:2px solid var(--line);border-radius:.7rem;overflow:hidden;font-weight:900;font-size:1.55rem;text-align:center}
+table.mt th{background:var(--accL);color:var(--acc);font-size:1rem;padding:.3rem .35rem;line-height:1.2;border-bottom:2px solid var(--line)}
+table.mt td{padding:.25rem .4rem;border-top:1px solid var(--line);height:2.8rem}
+table.mt th+th,table.mt td+td{border-left:2px solid var(--line)}
+.mc{display:inline-flex;align-items:center;justify-content:center;min-width:3.4rem;height:2.1rem;border-radius:.45rem}
+.mc.hid{border:2px dashed var(--acc2);background:var(--soft);cursor:pointer;animation:pulse 1.8s ease-in-out infinite}
+.mc.on{animation:fdin .35s ease}
+td .rec{font-size:1.25rem;white-space:nowrap}
+
+/* дошка усної лічби */
+.bd{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;width:100%;max-width:56rem}
+.bc{position:relative;min-height:4.4rem;border-radius:.9rem;border:2px solid var(--line);background:#fff;font-weight:900;font-size:2rem;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;gap:.35rem;padding:.3rem;box-shadow:0 2px 6px rgba(120,20,70,.08)}
+.bc.hard{background:var(--warnbg);border-color:var(--warnln)}
+.bc .r{color:var(--acc)}
+.bc.open{border-color:var(--acc2)}
+
+/* підсумок */
+.sumwrap{width:100%;max-width:54rem;display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.sb{width:100%;background:#fff;border:2px solid var(--line);border-radius:.9rem;overflow:hidden}
+.sb>button{width:100%;border:0;background:var(--soft2);display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.3rem 1rem;font-weight:900;font-size:1.25rem;color:var(--acc);text-align:left}
+.sb>button .ar{font-size:1.1rem;color:var(--acc2)}
+.sb.shut>button{animation:pulse 1.8s ease-in-out infinite}
+.sb .sbc{padding:.25rem 1rem .4rem;font-weight:900;font-size:1.3rem;line-height:1.38;text-align:center;animation:fdin .45s ease;display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.sb .sbc small{display:block;font-size:1.05rem;font-weight:800;color:var(--muted)}
+.endr{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;width:100%;font-weight:800;font-size:1.35rem;line-height:1.4}
+.endr .ans{color:var(--acc);font-weight:900}
+
+/* нижня панель */
+#bottomNav{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.4rem .9rem}
+#bottomNav .left{display:flex;align-items:center;gap:.6rem}
+.gem{flex:none;width:2.4rem;height:2.4rem;padding:0;border-radius:.6rem;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center}
+.gem svg{width:1.6rem;height:1.6rem}
+.gem.corner{position:absolute;right:.9rem;top:.9rem}
+#candle{position:relative;flex:none;width:.55rem;height:2.2rem;border:1px solid var(--line);border-radius:9px;background:#fff;padding:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer}
+#candleFill{width:100%;background:var(--acc2);border-radius:9px;transition:height 1s linear}
+#candle .tip{display:none;position:absolute;left:1.2rem;top:50%;transform:translateY(-50%);background:#fff;border:2px solid var(--line);border-radius:.6rem;
+  padding:.2rem .6rem;font-weight:900;font-size:.85rem;white-space:nowrap;text-align:center;z-index:50;box-shadow:0 4px 12px rgba(120,20,70,.18)}
+#candle:hover .tip{display:block}
+.tip b{display:block;color:var(--acc);font-size:1rem}
+.tip span{color:var(--muted)}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+
+/* вікно вчителя */
+.modal{position:fixed;inset:0;z-index:2147483000;background:rgba(58,23,54,.45);display:flex;align-items:center;justify-content:center;padding:1rem}
+.mbox{position:relative;width:100%;max-width:40rem;max-height:100%;overflow:auto;background:#fff;border:2px solid var(--line);border-radius:1rem;padding:1rem 1.2rem;box-shadow:0 1rem 3rem rgba(58,23,54,.35)}
+.mbox h3{display:flex;align-items:center;gap:.6rem;margin:0 0 .6rem;font-size:1.2rem;color:var(--acc);border-bottom:2px solid var(--line);padding-bottom:.4rem;padding-right:2rem}
+.mbox h4{margin:0 0 .2rem;font-size:1rem;color:var(--acc)}
+.mbox p{margin:0;font-size:.95rem;line-height:1.4;font-weight:600}
+.mcard{background:var(--soft2);border:2px solid var(--line);border-radius:.7rem;padding:.5rem .7rem;margin-bottom:.5rem}
+.mbox ul{list-style:none;margin:0;padding:0}
+.mbox li{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.35rem .5rem;border-bottom:1px solid var(--line);cursor:pointer;font-weight:800;font-size:.95rem;border-radius:.4rem}
+.mbox li:hover{background:var(--accL)}
+.mbox li:last-child{border-bottom:0}
+.mbox li span.m{flex:none;background:var(--accL);color:var(--acc);border-radius:2rem;padding:.05rem .6rem;font-size:.85rem}
+.x{position:absolute;right:.7rem;top:.5rem;border:0;background:none;font-size:1.8rem;color:var(--muted);line-height:1}
+
+/* світлофор */
+.tlv{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%;max-width:44rem}
+.tlb{position:relative;display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .6rem;border-radius:1rem;border:3px solid;font-family:inherit;text-align:center}
+.tlb.g{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.tlb.y{background:var(--warnbg);border-color:#e0a82e;color:var(--warntx)}
+.tlb.r{background:var(--badbg);border-color:var(--bad);color:var(--badtx)}
+.tlb .dot{width:2.6rem;height:2.6rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;font-weight:900}
+.tlb.g .dot{background:var(--ok)}.tlb.y .dot{background:#f0b429}.tlb.r .dot{background:var(--bad)}
+.tlb b{font-size:1.2rem}.tlb small{font-size:.9rem;font-weight:700}
+.tlb .cnt{position:absolute;top:-.6rem;right:-.6rem;min-width:1.8rem;height:1.8rem;padding:0 .4rem;border-radius:2rem;background:var(--acc);color:#fff;font-weight:900;font-size:1rem;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.light{display:flex;flex-direction:column;align-items:center}
+.light .house{background:#7a4a68;border:3px solid #5d3650;border-radius:1rem;padding:.6rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 .4rem 1rem rgba(58,23,54,.3)}
+.lamp{width:3rem;height:3rem;border-radius:50%;border:2px solid rgba(255,255,255,.35);transition:all .3s}
+.lamp.r{background:#c98a93}.lamp.y{background:#cdbb8b}.lamp.g{background:#8fb9a0}
+.lamp.r.on{background:#f0475b;box-shadow:0 0 1.6rem #f0475b;transform:scale(1.08)}
+.lamp.y.on{background:#f5b82e;box-shadow:0 0 1.6rem #f5b82e;transform:scale(1.08)}
+.lamp.g.on{background:#2dbd73;box-shadow:0 0 1.6rem #2dbd73;transform:scale(1.08)}
+.light .stand{width:1rem;height:1.2rem;background:#5d3650;border-radius:0 0 .3rem .3rem}
+.end{background:var(--ok);color:#fff;border-radius:1rem;padding:.8rem 1.2rem;font-weight:900;font-size:1.4rem;text-align:center}
+.cf{position:fixed;top:40vh;width:.5rem;height:.8rem;border-radius:2px;z-index:2147483100;pointer-events:none;animation:cf 1.4s ease-out forwards}
+@keyframes cf{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+
+@media (max-width:900px){
+  .tk{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .legend span{white-space:normal}
+  .opts{grid-template-columns:1fr}
+  .tlv{grid-template-columns:1fr}
+  .bd{grid-template-columns:repeat(2,1fr)}
+  .h1{font-size:2.1rem}
+  .plates{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .xl.two{grid-template-columns:1fr}
+  .eqlab .t>span,.eqlab .op{font-size:2rem}
+  .eqlab small{font-size:.8rem}
+  .rule{font-size:1.4rem}
+  .ftab{font-size:1.7rem}
+  table.mt{font-size:1.15rem}
+  table.mt th{font-size:.75rem;padding:.25rem .15rem}
+  td .rec{font-size:.95rem;white-space:normal}
+  .mc{min-width:2.2rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .go,.one,.mc.hid,.slot.hid,.sb.shut>button{animation:none}
+  .cd.pop{animation:none}
+  .cf{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- старт -->
+<section class="stage" id="stage-0"><div class="card start"><div class="inner">
+  <button class="gem corner" onclick="toggleModal()" title="Методична картка для вчителя"><span class="gemsvg"></span></button>
+  <h1 class="h1">Ділення з остачею</h1>
+  <button class="btn a big" onclick="goTo(1)">Почати ▶</button>
+</div></div></section>
+
+<!-- актуалізація -->
+<section class="stage" id="stage-1"><div class="card"><div class="inner">
+  <div class="box white">
+    <div id="acExp" class="sit"></div>
+    <p class="q hl" id="acQ"></p>
+  </div>
+  <div class="opts" id="acOpts"></div>
+  <div class="row"><div id="acFb" class="fb" hidden></div></div>
+  <div class="row">
+    <button class="btn g s" onclick="acGen()">Інше запитання</button>
+    <button class="btn a" id="acNext" onclick="acNextQ()" hidden>Далі ▶</button>
+  </div>
+</div></div></section>
+
+<!-- дошка усної лічби -->
+<section class="stage" id="stage-2"><div class="card"><div class="inner">
+  <div class="bd" id="board"></div>
+  <div class="row"><button class="btn b s" onclick="newBoard()">↻ Нова дошка</button></div>
+</div></div></section>
+
+<!-- цукерки: по три -->
+<section class="stage" id="stage-3"><div class="card"><div class="inner">
+  <p class="q">Як поділити порівну <b>20 цукерок</b> між <b class="o4">шістьма друзями</b>?</p>
+  <div class="pile" id="pile3"></div>
+  <div class="plates" id="plates3"></div>
+  <div class="cap" id="cap3"></div>
+  <div id="eq3"></div>
+  <div class="ctl" id="ctl3"></div>
+</div></div></section>
+
+<!-- цукерки: по дві? -->
+<section class="stage" id="stage-4"><div class="card"><div class="inner">
+  <p class="q">А якщо дати кожному по <b>дві</b> цукерки?</p>
+  <div class="pile" id="pile4"></div>
+  <div class="plates" id="plates4"></div>
+  <div id="eq4" class="bigeq"></div>
+  <div id="n4a" class="note" hidden></div>
+  <div id="eq4b" class="bigeq" hidden></div>
+  <div id="n4b" class="note" hidden></div>
+  <div id="r4" class="rule" hidden>Остача завжди менша від дільника.</div>
+  <div class="ctl" id="ctl4"></div>
+</div></div></section>
+
+<!-- ділення куточком -->
+<section class="stage" id="stage-5"><div class="card"><div class="inner">
+  <p class="q" id="kq"></p>
+  <div class="kutw"><div class="colb" id="kut"></div><div class="knotes" id="knotes"></div></div>
+  <div id="kres" class="bigeq" hidden></div>
+  <div class="ctl" id="ctl5"></div>
+  <div class="newrow" id="knewrow" hidden><button class="btn b s" onclick="initKut(true)">↻ Новий приклад</button></div>
+</div></div></section>
+
+<!-- правило -->
+<section class="stage" id="stage-6"><div class="card"><div class="inner">
+  <div class="bigeq" id="r6eq"></div>
+  <div class="rule rv6" hidden>Щоб знайти ділене, треба дільник помножити на неповну частку й додати остачу.</div>
+  <div class="rv6" hidden>
+    <table class="ftab">
+      <tr><td><i class="v">a</i></td><td>=</td><td class="o4"><i class="v">b</i></td><td>·</td><td class="o1"><i class="v">q</i></td><td>+</td><td class="o2"><i class="v">r</i></td></tr>
+      <tr class="ex" id="r6ex"></tr>
+    </table>
+  </div>
+  <div class="legend rv6" hidden>
+    <span><i class="v">a</i> — ділене,</span><span class="o4"><i class="v">b</i> — дільник,</span><span class="o1"><i class="v">q</i> — неповна частка,</span><span class="o2"><i class="v">r</i> — остача,</span>
+    <span class="okm"><i class="v o2">r</i> &lt; <i class="v o4">b</i></span>
+  </div>
+  <div class="box rv6" hidden>
+    <div class="bigeq">21 = <span class="o4">7</span> · <span class="o1">3</span> + <span class="o2">0</span></div>
+    <div class="note">Остача дорівнює нулю. Число 21 <b class="hl">ділиться націло</b> на число 7.</div>
+  </div>
+  <div class="ctl" id="ctl6"></div>
+</div></div></section>
+
+<!-- завдання -->
+<section class="stage" id="stage-7"><div class="card"><div class="inner xw" id="t543"></div></div></section>
+<section class="stage" id="stage-8"><div class="card"><div class="inner xw" id="t544"></div></div></section>
+<section class="stage" id="stage-9"><div class="card"><div class="inner xw" id="t546"></div></div></section>
+<section class="stage" id="stage-10"><div class="card"><div class="inner xw" id="t548"></div></div></section>
+<section class="stage" id="stage-11"><div class="card"><div class="inner xw" id="t550"></div></div></section>
+<section class="stage" id="stage-12"><div class="card"><div class="inner xw" id="t552"></div></div></section>
+<section class="stage" id="stage-13"><div class="card"><div class="inner xw" id="t553"></div></div></section>
+<section class="stage" id="stage-14"><div class="card"><div class="inner xw" id="t555"></div></div></section>
+<section class="stage" id="stage-15"><div class="card"><div class="inner xw" id="t557"></div></div></section>
+<section class="stage" id="stage-16"><div class="card"><div class="inner xw" id="t559"></div></div></section>
+
+<!-- підсумок -->
+<section class="stage" id="stage-17"><div class="card"><div class="inner">
+  <h2 class="title2" id="sumTitle">Підсумок уроку</h2>
+  <div class="sumwrap" id="sumBlocks"></div>
+  <button class="btn a" id="sumCheckBtn" onclick="sumCheck(true)" hidden>Перевірте себе ▶</button>
+  <div class="box sumwrap" id="sumCheck" hidden>
+    <div id="endList" class="sumwrap"></div>
+    <button class="btn g s" onclick="sumCheck(false)">↩ До підсумку</button>
+  </div>
+</div></div></section>
+
+<!-- світлофор -->
+<section class="stage" id="stage-18"><div class="card"><div class="inner">
+  <div id="tlVote" style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
+    <p class="q">Оцініть свою роботу на уроці</p>
+    <div class="tlv">
+      <button class="tlb g" onclick="vote('green')"><span class="cnt" id="cnt-green">0</span><span class="dot">✓</span><b>Зелений</b><small>Знаходжу неповну частку й остачу, розв’язую задачі без помилок</small></button>
+      <button class="tlb y" onclick="vote('yellow')"><span class="cnt" id="cnt-yellow">0</span><span class="dot">–</span><b>Жовтий</b><small>Розумію ділення з остачею, але трапляються помилки</small></button>
+      <button class="tlb r" onclick="vote('red')"><span class="cnt" id="cnt-red">0</span><span class="dot">!</span><b>Червоний</b><small>Ще плутаю неповну частку й остачу, потрібна допомога</small></button>
+    </div>
+    <div class="row"><button class="btn a big" onclick="confirmVote()">ОК</button><button class="btn g" onclick="resetVote()">Скинути</button></div>
+    <div id="tlHint" class="fb warn" hidden></div>
+  </div>
+  <div id="tlResult" hidden style="display:flex;flex-direction:column;align-items:center;gap:.8rem">
+    <div class="light"><div class="house"><div class="lamp r" id="lamp-red"></div><div class="lamp y" id="lamp-yellow"></div><div class="lamp g" id="lamp-green"></div></div><div class="stand"></div></div>
+    <div id="tlMsg" class="fb"></div>
+    <div class="row"><button class="btn a big" onclick="finishLesson()">Завершити урок</button><button class="btn b" onclick="restartLesson()">↻ Почати спочатку</button></div>
+  </div>
+</div></div></section>
+
+</div>
+
+<nav id="bottomNav" hidden>
+  <div class="left">
+    <button class="btn g" id="prevBtn" onclick="nav(-1)">← Назад</button>
+    <button class="gem" onclick="toggleModal()" title="Методична картка для вчителя"><span class="gemsvg"></span></button>
+    <div id="candle" onclick="resetTimer()" title="Натисніть, щоб перезапустити таймер"><div class="tip"><b id="tLeft">--:--</b><span id="tTotal">-- хв</span></div><div id="candleFill" style="height:100%"></div></div>
+  </div>
+  <button class="btn a" id="nextBtn" onclick="nav(1)">Далі →</button>
+</nav>
+
+<footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+
+<div id="teacherModal" class="modal" hidden onclick="if(event.target===this)toggleModal()"><div class="mbox">
+  <button class="x" onclick="toggleModal()" title="Закрити">&times;</button>
+  <h3><span class="gemsvg" style="width:1.6rem;height:1.6rem;display:inline-flex"></span>Методична картка уроку</h3>
+  <div class="mcard"><h4>Мета уроку</h4><p>Ознайомити учнів із діленням з остачею (п. 19): поняттями неповної частки й остачі, тим, що остача завжди менша від дільника, правилом знаходження діленого <i>a</i> = <i>bq</i> + <i>r</i>; формувати вміння виконувати ділення з остачею усно й куточком та розв’язувати задачі (№ 543, 544, 546, 548, 550, 552, 553, 555, 557, 559).</p></div>
+  <div class="mcard"><h4>Ключові компетентності</h4><p>Математична компетентність; уміння вчитися впродовж життя; підприємливість і фінансова грамотність (задача про покупку); екологічна грамотність і здорове життя (раціональне використання ресурсів у задачах про перевезення).</p></div>
+  <div class="mcard"><h4>Як працювати</h4><p>Кольори однакові в усьому уроці: <b style="color:#3b6ea8">дільник</b>, <b style="color:#0f766e">неповна частка</b>, <b style="color:#7c3aed">остача</b>. Кружечок «1» відкриває першу відповідь, стрілка ↓ наступні. Пунктирні клітинки можна відкривати й натисканням у будь-якому порядку. Кнопка «+» біля номера — додаткове завдання для тих, хто вже виконав. Номери, на які не вистачить часу, можна задати додому.</p></div>
+  <div class="mcard"><h4>Перебіг уроку (натисніть, щоб перейти)</h4><ul id="planList"></ul></div>
+</div></div>
+
+<script>
+/* ===== спільне ядро ===== */
+var cur = 0, TOTAL = 0, LAST = 0, totalScore = 0, tTot = 0, tLeft = 0, tInt = null;
+var GEM = '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="18,14 46,14 58,28 6,28" fill="#f472b6"/><polygon points="18,14 32,14 32,28 18,28" fill="#f9a8d4"/><polygon points="25,14 32,14 32,28" fill="#fdf2f8"/><polygon points="32,14 46,14 32,28" fill="#db2777"/><polygon points="6,28 18,14 18,28" fill="#fbcfe8"/><polygon points="58,28 46,14 46,28" fill="#be185d"/><polygon points="6,28 58,28 32,58" fill="#db2777"/><polygon points="6,28 32,28 32,58" fill="#f472b6"/><polygon points="58,28 32,28 32,58" fill="#be185d"/><polygon points="20,28 32,28 32,58" fill="#f9a8d4" opacity="0.6"/><path d="M50,6 L52,10 L56,12 L52,14 L50,18 L48,14 L44,12 L48,10 Z" fill="#fde68a"/><path d="M10,42 L11.5,45 L14.5,46.5 L11.5,48 L10,51 L8.5,48 L5.5,46.5 L8.5,45 Z" fill="#fde68a" opacity="0.9"/></svg>';
+function $(i){ return document.getElementById(i); }
+function rnd(a, b){ return Math.floor(Math.random() * (b - a + 1)) + a; }
+function pick(a){ return a[rnd(0, a.length - 1)]; }
+function shuffle(a){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function plural(n, f1, f2, f5){ var m = Math.abs(n) % 100, k = m % 10; if (m > 10 && m < 20) return f5; if (k > 1 && k < 5) return f2; if (k === 1) return f1; return f5; }
+function pf(n, f){ return plural(n, f[0], f[1], f[2]); }
+function fmt(n){ var s = String(n); return s.length < 5 ? s : s.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+function mk(tag, cls, html){ var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function show(id, kind, html){ var e = $(id); e.className = 'fb ' + kind; e.innerHTML = html; e.hidden = false; return e; }
+function hide(id){ var e = $(id); if (e) e.hidden = true; }
+function addScore(p){ totalScore += p; }
+function confetti(n){
+  var cols = ['#be185d', '#e5508a', '#f9a8d4', '#1e9e62', '#f0b429', '#7c3aed'];
+  for (var i = 0; i < (n || 30); i++){
+    var p = document.createElement('i'); p.className = 'cf';
+    p.style.left = (35 + Math.random() * 30) + 'vw'; p.style.background = cols[i % cols.length];
+    p.style.setProperty('--dx', (Math.random() * 60 - 30) + 'vw'); p.style.setProperty('--dy', (35 + Math.random() * 50) + 'vh');
+    p.style.animationDelay = (Math.random() * .15) + 's';
+    document.body.appendChild(p);
+    setTimeout((function(q){ return function(){ q.remove(); }; })(p), 1700);
+  }
+}
+function minText(sec){ var m = sec / 60; return (Math.round(m * 10) / 10).toString().replace('.', ',') + ' хв'; }
+function toggleModal(){ var m = $('teacherModal'); m.hidden = !m.hidden; }
+
+/* таймер-паличка */
+function startTimer(n){
+  if (tInt) clearInterval(tInt);
+  tTot = DUR[n] || 0; tLeft = tTot;
+  var c = $('candle');
+  if (tTot <= 0){ c.hidden = true; return; }
+  c.hidden = false; paintTimer();
+  tInt = setInterval(function(){ if (tLeft > 0){ tLeft--; paintTimer(); } else { clearInterval(tInt); } }, 1000);
+}
+function paintTimer(){
+  $('candleFill').style.height = Math.max(0, tLeft / tTot * 100) + '%';
+  var m = Math.floor(tLeft / 60), s = tLeft % 60;
+  $('tLeft').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  $('tTotal').textContent = minText(tTot);
+}
+function resetTimer(){ if (cur > 0 && cur < LAST) startTimer(cur); }
+
+function goTo(n){
+  cur = n;
+  var st = document.querySelectorAll('.stage');
+  for (var i = 0; i < st.length; i++) st[i].classList.toggle('on', i === n);
+  $('bottomNav').hidden = (n === 0 || n === LAST);
+  $('prevBtn').disabled = (n === 0);
+  $('nextBtn').disabled = (n === LAST) || (n === 1 && !acAll);
+  startTimer(n);
+  var c = st[n].querySelector('.card'); if (c) c.scrollTop = 0;
+}
+function nav(d){ var n = cur + d; if (n >= 0 && n <= LAST) goTo(n); }
+
+/* світлофор */
+var tlVotes = { green: 0, yellow: 0, red: 0 };
+var TL_MSG = { green: 'Чудова робота! Ви впевнено виконуєте ділення з остачею.', yellow: 'Добре! Ще трохи практики, і помилок не буде.', red: 'Не здавайтеся! Ми ще раз розберемо ділення з остачею разом.' };
+function vote(c){ tlVotes[c]++; $('cnt-' + c).textContent = tlVotes[c]; hide('tlHint'); }
+function resetVote(){
+  tlVotes = { green: 0, yellow: 0, red: 0 };
+  ['green', 'yellow', 'red'].forEach(function(c){ $('cnt-' + c).textContent = 0; });
+  $('tlVote').hidden = false; $('tlResult').hidden = true; hide('tlHint');
+}
+function confirmVote(){
+  var total = tlVotes.green + tlVotes.yellow + tlVotes.red;
+  if (!total){ show('tlHint', 'warn', 'Натисніть на кольори, щоб врахувати голоси учнів.'); return; }
+  $('tlVote').hidden = true; $('tlResult').hidden = false;
+  var w = 'green'; if (tlVotes.yellow > tlVotes[w]) w = 'yellow'; if (tlVotes.red > tlVotes[w]) w = 'red';
+  ['red', 'yellow', 'green'].forEach(function(c){ $('lamp-' + c).classList.toggle('on', c === w); });
+  var m = $('tlMsg'); m.className = 'fb ' + (w === 'green' ? 'ok' : w === 'yellow' ? 'warn' : 'bad');
+  m.style.fontSize = '1.4rem'; m.innerHTML = TL_MSG[w];
+}
+function finishLesson(){
+  confetti(90);
+  var m = $('tlMsg'); m.className = 'end'; m.style.fontSize = '';
+  m.innerHTML = '🎉 Урок завершено! Балів: <b>' + totalScore + '</b>. Молодці!';
+}
+function restartLesson(){ totalScore = 0; resetVote(); resetAll(); goTo(0); }
+
+/* ===== план уроку (сума 2700 с = 45 хв) ===== */
+var DUR = [0, 270, 180, 180, 120, 240, 60, 120, 270, 120, 90, 150, 120, 120, 180, 120, 90, 150, 120];
+var PLAN = ['', 'Ділення: усні запитання', 'Усна лічба', 'Ділимо цукерки', 'Остача і дільник', 'Ділення куточком', 'Як знайти ділене', '№ 543', '№ 544', '№ 546', '№ 548', '№ 550', '№ 552', '№ 553', '№ 555', '№ 557', '№ 559', 'Підсумок уроку', 'Рефлексія «Світлофор»'];
+function fillPlan(){
+  var h = '';
+  for (var i = 1; i < PLAN.length; i++) h += '<li onclick="goTo(' + i + ');toggleModal()"><span>' + PLAN[i] + '</span><span class="m">' + minText(DUR[i]) + '</span></li>';
+  $('planList').innerHTML = h;
+}
+
+/* ===== кольори: дільник, неповна частка, остача ===== */
+function cb(x){ return '<span class="o4">' + x + '</span>'; }
+function cq(x){ return '<span class="o1">' + x + '</span>'; }
+function cr(x){ return '<span class="o2">' + x + '</span>'; }
+function c3(x){ return '<span class="o3">' + x + '</span>'; }
+function EQ(a, b, q, r){ return fmt(a) + ' = ' + cb(fmt(b)) + ' · ' + cq(fmt(q)) + ' + ' + cr(fmt(r)); }
+function DV(a, b, ca){ var q = Math.floor(a / b), r = a % b; return (ca ? ca(fmt(a)) : fmt(a)) + ' : ' + cb(fmt(b)) + ' = ' + cq(fmt(q)) + ' (ост. ' + cr(fmt(r)) + ')'; }
+function eqLab(a, b, q, r, sm, lab){
+  function t(v, cls, l){ return '<div class="t ' + cls + '"><span>' + v + '</span><small>' + l + '</small></div>'; }
+  return '<div class="eqlab' + (sm ? ' sm' : '') + (lab ? ' lab' : '') + '">' + t(a, '', 'ділене') + '<div class="op">=</div>' + t(b, 'o4', 'дільник') + '<div class="op">·</div>' + t(q, 'o1', 'неповна частка') + '<div class="op">+</div>' + t(r, 'o2', 'остача') + '</div>';
+}
+/* кнопки кроків: кружечок «1» або стрілка ↓ */
+function Seq(ctlId, fns, circle){
+  var i = 0, ctl = $(ctlId);
+  function put(){
+    ctl.innerHTML = '';
+    if (i >= fns.length) return;
+    var b = (circle && i === 0) ? mk('button', 'one', '1') : mk('button', 'go', '↓');
+    b.title = 'Далі'; b.onclick = function(){ fns[i++](); put(); };
+    ctl.appendChild(b);
+  }
+  put();
+}
+
+/* ===== актуалізація: усне ділення ===== */
+var LET = ['А', 'Б', 'В', 'Г'];
+function fourN(right, cands){
+  var out = [right], i;
+  for (i = 0; i < cands.length && out.length < 4; i++) if (cands[i] >= 0 && out.indexOf(cands[i]) < 0) out.push(cands[i]);
+  var k = 2; while (out.length < 4){ var v = right + k; if (out.indexOf(v) < 0) out.push(v); k++; }
+  return out.map(String);
+}
+function acNames(){
+  var b = rnd(3, 9), c; do { c = rnd(3, 9); } while (c === b);
+  var a = b * c, k = rnd(0, 2), q, ans;
+  if (k === 0){ q = 'Як називають число ' + c + ' та запис ' + a + ' : ' + b + '?'; ans = 'частка'; }
+  else if (k === 1){ q = 'Як називають число ' + a + '?'; ans = 'ділене'; }
+  else { q = 'Як називають число ' + b + '?'; ans = 'дільник'; }
+  return { exp: '<span class="eq">' + a + ' : ' + b + ' = ' + c + '</span>', q: q, opts: ['частка', 'ділене', 'дільник', 'добуток'], ans: ans };
+}
+function acTable(){
+  var b = rnd(4, 9), c = rnd(4, 9), a = b * c;
+  return { exp: '<span class="eq">' + a + ' : ' + b + '</span>', q: 'Чому дорівнює значення частки?', opts: fourN(c, [c + 1, c - 1, b, c + 2]), ans: String(c) };
+}
+function acCheck(){
+  var b = rnd(3, 9), c; do { c = rnd(3, 9); } while (c === b);
+  var a = b * c, r = c + ' · ' + b + ' = ' + a;
+  return { exp: '<span class="eq">' + a + ' : ' + b + ' = ' + c + '</span>', q: 'Якою рівністю можна перевірити це ділення?',
+    opts: [r, a + ' · ' + b + ' = ' + (a * b), a + ' − ' + b + ' = ' + (a - b), a + ' + ' + c + ' = ' + (a + c)], ans: r };
+}
+function acZeroOne(){
+  var n = rnd(5, 19), k = rnd(0, 2), e, ans;
+  if (k === 0){ e = '0 : ' + n + ' = □'; ans = 0; }
+  else if (k === 1){ e = n + ' : 1 = □'; ans = n; }
+  else { e = n + ' : ' + n + ' = □'; ans = 1; }
+  var o = [0, 1, n, n * 10].map(String);
+  return { exp: '<span class="eq">' + e + '</span>', q: 'Яке число треба записати замість □?', opts: o, ans: String(ans) };
+}
+function acTwoDigit(){
+  var d, q;
+  for (;;){ d = rnd(2, 6); q = rnd(12, 29); if (d * q < 100 && q % 10 !== 0) break; }
+  return { exp: '<span class="eq">' + (d * q) + ' : ' + d + '</span>', q: 'Чому дорівнює значення частки?', opts: fourN(q, [q + 1, q - 1, q + 10, q - 10]), ans: String(q) };
+}
+function acRound(){
+  var d = rnd(2, 9) * 10, q = rnd(2, 9) * 10, a = d * q;
+  return { exp: '<span class="eq">' + fmt(a) + ' : ' + d + '</span>', q: 'Чому дорівнює значення частки?', opts: fourN(q, [q / 10, q * 10, q + 10]), ans: String(q) };
+}
+function acMax(){
+  var b, N;
+  for (;;){ b = rnd(3, 9); N = rnd(15, 60); if (N % b !== 0 && Math.floor(N / b) >= 2) break; }
+  var q = Math.floor(N / b);
+  return { exp: '<span class="eq">' + b + ' · □ &lt; ' + N + '</span>', q: 'Яке найбільше натуральне число можна записати замість □?', opts: [q - 1, q, q + 1, q + 2].map(String), ans: String(q) };
+}
+var AC = [acNames, acTable, acCheck, acZeroOne, acTwoDigit, acRound, acMax], ac = { k: 0, done: false }, acAll = false;
+function acGen(){
+  var g = AC[ac.k](); ac.g = g; ac.done = false;
+  $('acExp').innerHTML = g.exp; $('acQ').textContent = g.q;
+  hide('acFb'); $('acNext').hidden = true;
+  var list = shuffle(g.opts.slice()), h = '';
+  ac.o = list;
+  list.forEach(function(t, i){ h += '<button class="opt" id="acO' + i + '" onclick="acPick(' + i + ')"><span class="let">' + LET[i] + '</span><span class="val">' + t + '</span></button>'; });
+  $('acOpts').innerHTML = h;
+}
+function acPick(i){
+  if (ac.done) return;
+  var b = $('acO' + i);
+  if (ac.o[i] === ac.g.ans){
+    b.classList.add('good'); ac.done = true; show('acFb', 'ok', '✓ Правильно!'); addScore(5); confetti(20);
+    if (ac.k >= AC.length - 1){ acAll = true; $('nextBtn').disabled = false; show('acFb', 'ok', '✓ Правильно! Усі запитання виконано.'); }
+    else $('acNext').hidden = false;
+  } else { b.classList.add('wrong'); b.disabled = true; show('acFb', 'bad', '✗ Неправильно. Спробуйте інший варіант.'); }
+}
+function acNextQ(){ if (ac.k < AC.length - 1){ ac.k++; acGen(); } }
+
+/* ===== дошка усної лічби ===== */
+function newBoard(){
+  var cells = [], used = {}, a, b, d, q;
+  while (cells.length < 8){
+    a = rnd(2, 9); b = rnd(2, 9); if (a * b < 16 || used[a * b + ':' + a]) continue;
+    used[a * b + ':' + a] = 1; cells.push([a * b, a, b, false]);
+  }
+  while (cells.length < 12){
+    d = rnd(3, 8); q = rnd(12, 25); if (d * q > 160 || used[d * q + ':' + d]) continue;
+    used[d * q + ':' + d] = 1; cells.push([d * q, d, q, false]);
+  }
+  shuffle(cells);
+  var hard = [[91, 7, 13, true], [51, 3, 17, true]];
+  while (hard.length < 4){
+    d = rnd(4, 9); q = rnd(13, 19); if (d * q > 160 || used[d * q + ':' + d] || (d === 7 && q === 13) || (d === 3 && q === 17)) continue;
+    used[d * q + ':' + d] = 1; hard.push([d * q, d, q, true]);
+  }
+  cells = cells.concat(shuffle(hard));
+  var h = '';
+  cells.forEach(function(c){
+    h += '<button class="bc' + (c[3] ? ' hard' : '') + '" onclick="bdTog(this)"><span>' + c[0] + ' : ' + c[1] + '</span><span class="r" hidden>= ' + c[2] + '</span></button>';
+  });
+  $('board').innerHTML = h;
+}
+function bdTog(b){ var r = b.querySelector('.r'); r.hidden = !r.hidden; b.classList.toggle('open', !r.hidden); }
+
+/* ===== цукерки ===== */
+var FRIEND = '<svg viewBox="0 0 40 40"><circle cx="20" cy="12" r="7.5" fill="#dbe7f5" stroke="#3b6ea8" stroke-width="2.4"/><path d="M6 37c1.5-9 7-13.5 14-13.5S32.5 28 34 37z" fill="#dbe7f5" stroke="#3b6ea8" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+var CANDY = {};
+function drawCandy(k, anim){
+  var s = CANDY[k], h = '', i, j;
+  for (i = 0; i < s.pile; i++) h += '<i class="cd' + (s.left ? ' rm' : '') + (s.left && anim ? ' pop' : '') + '"></i>';
+  $('pile' + k).innerHTML = h;
+  h = '';
+  for (i = 0; i < 6; i++){
+    h += '<div class="pl">' + FRIEND + '<div class="dish">';
+    for (j = 0; j < s.per; j++) h += '<i class="cd q' + (anim === 'give' && j === s.per - 1 ? ' pop' : '') + '"></i>';
+    h += '</div></div>';
+  }
+  $('plates' + k).innerHTML = h;
+}
+function give(k){ var s = CANDY[k]; s.per++; s.pile -= 6; drawCandy(k, 'give'); }
+var EACH = ['', 'Кожному по одній.', 'Кожному по дві.', 'Кожному по три.'];
+function initStage3(){
+  CANDY['3'] = { pile: 20, per: 0, left: false }; drawCandy('3');
+  $('cap3').innerHTML = ''; $('eq3').innerHTML = '';
+  Seq('ctl3', [
+    function(){ give('3'); $('cap3').innerHTML = EACH[1]; },
+    function(){ give('3'); $('cap3').innerHTML = EACH[2]; },
+    function(){ give('3'); $('cap3').innerHTML = EACH[3]; },
+    function(){ CANDY['3'].left = true; drawCandy('3', true); $('cap3').innerHTML = 'Кожному по <b class="o1">три</b>. Залишилось <b class="o2">2</b> цукерки: на всіх не вистачить.'; },
+    function(){ $('eq3').innerHTML = eqLab(20, 6, 3, 2); },
+    function(){ $('eq3').firstChild.classList.add('lab'); }
+  ]);
+}
+function initStage4(){
+  CANDY['4'] = { pile: 8, per: 2, left: true }; drawCandy('4');
+  $('eq4').innerHTML = ''; ['n4a', 'eq4b', 'n4b', 'r4'].forEach(hide);
+  Seq('ctl4', [
+    function(){ $('eq4').innerHTML = '20 = ' + cb(6) + ' · ' + cq(2) + ' + ' + cr(8); },
+    function(){ $('n4a').innerHTML = '<span class="gt">' + cr(8) + ' &gt; ' + cb(6) + '</span> Можна дати кожному ще по одній цукерці.'; $('n4a').hidden = false; },
+    function(){
+      give('4'); $('eq4b').innerHTML = '20 = ' + cb(6) + ' · ' + cq(3) + ' + ' + cr(2) + ' <span class="okm" style="margin-left:1rem">' + cr(2) + ' &lt; ' + cb(6) + '</span>'; $('eq4b').hidden = false;
+      $('n4b').innerHTML = cq(3) + ' — це найбільше число, добуток якого на дільник ' + cb(6) + ' менший від діленого 20.'; $('n4b').hidden = false;
+    },
+    function(){ $('r4').hidden = false; }
+  ]);
+}
+
+/* ===== ділення куточком ===== */
+function divModel(a, b){
+  var D = String(a).split('').map(Number), n = D.length, i = 0, c = 0, steps = [], rem, qd;
+  do { c = c * 10 + D[i]; i++; } while (c < b && i < n);
+  var m = i;
+  qd = Math.floor(c / b); steps.push({ end: i - 1, cur: c, qd: qd, prod: qd * b, rem: c - qd * b }); rem = c - qd * b;
+  for (; i < n; i++){
+    c = rem * 10 + D[i]; qd = Math.floor(c / b);
+    if (qd === 0){ rem = c; continue; }
+    steps.push({ end: i, cur: c, qd: qd, prod: qd * b, rem: c - qd * b }); rem = c - qd * b;
+  }
+  return { D: D, n: n, m: m, steps: steps, q: Math.floor(a / b), r: a % b };
+}
+/* t — скільки кроків показано (Infinity — увесь запис) */
+function kutHTML(a, b, t){
+  var M = divModel(a, b), n = M.n, S = M.steps.length, Q = String(M.q).split(''), Lb = String(b).length, wR = Math.max(Lb, Q.length), W = n + 1 + wR, out = [], i;
+  function cell(r, c, txt, cls, tag){ out.push('<span style="grid-row:' + r + ';grid-column:' + c + '" class="' + (cls || '') + (tag != null && tag > t ? ' hz' : '') + '">' + txt + '</span>'); }
+  for (i = 0; i < n; i++) cell(1, i + 2, M.D[i]);
+  var bd = String(b).split('');
+  for (i = 0; i < wR; i++) cell(1, n + 2 + i, i < Lb ? bd[i] : '', 'ul o4c' + (i === 0 ? ' vl' : ''));
+  for (i = 0; i < wR; i++){
+    if (i >= Q.length){ cell(2, n + 2 + i, '', i === 0 ? 'vl' : ''); continue; }
+    var pos = M.m - 1 + i, tag = null, j;
+    for (j = 0; j < S; j++) if (M.steps[j].end === pos){ tag = 3 * j + 1; break; }
+    if (tag == null){ for (j = 0; j < S; j++) if (M.steps[j].end > pos){ tag = 3 * j + 1; break; } }
+    if (tag == null) tag = 3 * S;
+    cell(2, n + 2 + i, Q[i], 'qd' + (i === 0 ? ' vl' : ''), tag);
+  }
+  M.steps.forEach(function(s, j){
+    var e = s.end + 2, x;
+    if (j > 0){ var cd = String(s.cur).split(''); for (x = 0; x < cd.length; x++) cell(2 * j + 1, e - cd.length + 1 + x, cd[x], '', 3 * (j - 1) + 3); }
+    var pd = String(s.prod).split(''), st = e - pd.length + 1, pr = 2 * j + 2;
+    cell(pr, st - 1, '−', 'sg', 3 * j + 2);
+    for (x = 0; x < pd.length; x++) cell(pr, st + x, pd[x], 'ul', 3 * j + 2);
+  });
+  var rd = String(M.r).split('');
+  for (i = 0; i < rd.length; i++) cell(2 * S + 1, n + 1 - rd.length + 1 + i, rd[i], 'rm2', 3 * S);
+  return '<div class="cg" style="grid-template-columns:repeat(' + W + ',1.02em)">' + out.join('') + '</div>';
+}
+function kutGen(){
+  for (;;){
+    var b = rnd(11, 29), q = rnd(11, 79), r = rnd(1, b - 1), a = b * q + r;
+    if (a < 100 || a > 999 || q % 10 === 0) continue;
+    var M = divModel(a, b);
+    if (M.m === 2 && M.steps.length === 2) return { a: a, b: b };
+  }
+}
+var KUT = { a: 189, b: 13 };
+function initKut(gen){
+  if (gen){ KUT = kutGen(); setRuleEx(); } else KUT = { a: 189, b: 13 };
+  var a = KUT.a, b = KUT.b, M = divModel(a, b), t = 0;
+  $('kq').innerHTML = 'Поділимо число <b>' + a + '</b> на число <b class="o4">' + b + '</b>:';
+  function paint(){ $('kut').innerHTML = kutHTML(a, b, t); }
+  function note(h){ $('knotes').appendChild(mk('div', '', h)); }
+  $('knotes').innerHTML = ''; hide('kres'); $('knewrow').hidden = true; paint();
+  var fns = [];
+  M.steps.forEach(function(s, j){
+    var nx = M.steps[j + 1];
+    fns.push(function(){ t++; paint(); note(s.cur + ' : ' + cb(b) + ' → ' + cq(s.qd)); });
+    fns.push(function(){ t++; paint(); note(cb(b) + ' · ' + cq(s.qd) + ' = ' + s.prod); });
+    fns.push(function(){ t++; paint(); note(s.cur + ' − ' + s.prod + ' = ' + (nx ? s.rem : cr(s.rem)) + (nx ? ', зносимо ' + String(nx.cur).slice(-1) : '')); });
+  });
+  fns.push(function(){
+    note('<span class="okm">' + cr(M.r) + ' &lt; ' + cb(b) + '</span>');
+    var k = $('kres'); k.innerHTML = EQ(a, b, M.q, M.r) + '<div class="note">неповна частка ' + cq(M.q) + ', остача ' + cr(M.r) + '</div>'; k.hidden = false;
+    $('knewrow').hidden = false;
+  });
+  Seq('ctl5', fns);
+}
+
+/* ===== правило ===== */
+function setRuleEx(){
+  var a = KUT.a, b = KUT.b, q = Math.floor(a / b), r = a % b;
+  $('r6eq').innerHTML = EQ(a, b, q, r);
+  $('r6ex').innerHTML = '<td>' + a + '</td><td>=</td><td class="o4">' + b + '</td><td>·</td><td class="o1">' + q + '</td><td>+</td><td class="o2">' + r + '</td>';
+}
+function initRule(){
+  setRuleEx();
+  var i, rv = document.querySelectorAll('.rv6');
+  for (var i = 0; i < rv.length; i++) rv[i].hidden = true;
+  var fns = [];
+  for (i = 0; i < rv.length; i++) fns.push((function(e){ return function(){ e.hidden = false; }; })(rv[i]));
+  Seq('ctl6', fns);
+}
+
+/* ===== іконки для задач ===== */
+var ICON = {
+  truck: '<svg viewBox="0 0 44 28"><rect x="2" y="5" width="25" height="14" rx="2" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="2"/><path d="M27 9h8l6 6v4H27z" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="10" cy="22" r="3.6" fill="#fff" stroke="currentColor" stroke-width="2"/><circle cx="34" cy="22" r="3.6" fill="#fff" stroke="currentColor" stroke-width="2"/></svg>',
+  crate: '<svg viewBox="0 0 44 28"><rect x="6" y="4" width="32" height="21" rx="2" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="2"/><path d="M6 11h32M6 18h32M16 4v21M28 4v21" stroke="currentColor" stroke-width="1.6"/></svg>',
+  box: '<svg viewBox="0 0 44 28"><rect x="7" y="8" width="30" height="17" rx="2" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="2"/><path d="M22 8v17M7 14h30" stroke="currentColor" stroke-width="1.8"/><path d="M22 8c-3-6-9-5-7-1 1 1.5 4 1.5 7 1zM22 8c3-6 9-5 7-1-1 1.5-4 1.5-7 1z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+  heap: '<svg viewBox="0 0 44 28"><path d="M6 24c3-10 8-15 16-15s13 5 16 15z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
+};
+function chips(n, label, ic, cls){ var h = ''; for (var i = 0; i < n; i++) h += '<span class="chip ' + cls + '">' + (ic ? ICON[ic] : '') + '<b>' + label + '</b></span>'; return h; }
+
+/* ===== завдання з підручника ===== */
+function fmtLD(n){ var s = fmt(n); return s.slice(0, -1) + '<span class="ld">' + s.slice(-1) + '</span>'; }
+function itemDiv(i, a, b, col){
+  var q = Math.floor(a / b), r = a % b;
+  return { q: (i + 1) + ') ' + fmt(a) + ' : ' + cb(b), a: '<div>= ' + cq(fmt(q)) + ' (ост. ' + cr(r) + ')</div><small>' + EQ(a, b, q, r) + '</small>', col: col ? { a: a, b: b } : null };
+}
+function itemRem(a, d, ld){
+  var q = Math.floor(a / d), r = a % d;
+  return { q: ld ? fmtLD(a) : fmt(a), a: '<div>остача ' + cr(r) + '</div><small>' + EQ(a, d, q, r) + '</small>' };
+}
+function remList(d){
+  var a = [], i;
+  if (d <= 13){ for (i = 0; i < d; i++) a.push(i); return cr(a.join(', ')); }
+  return cr('0, 1, 2, …, ' + (d - 1));
+}
+
+/* № 543 */
+var P543 = { it: [[13, 6], [9, 2], [42, 5], [27, 6]] };
+function B543(p){ return { cond: ['Виконайте ділення з остачею:'], kind: 'list', two: true, items: p.it.map(function(x, i){ return itemDiv(i, x[0], x[1], false); }) }; }
+function R543(){
+  var it = [], used = {};
+  while (it.length < 4){ var b = rnd(2, 9), q = rnd(1, 9), r = rnd(1, b - 1), a = b * q + r; if (used[a + ':' + b] || b === 2 && r !== 1) continue; used[a + ':' + b] = 1; it.push([a, b]); }
+  return { it: it };
+}
+/* № 544 */
+var P544 = { it: [[592, 24], [428, 37], [684, 30], [1372, 13]] };
+function B544(p){ return { cond: ['Виконайте ділення з остачею:'], kind: 'list', col: true, items: p.it.map(function(x, i){ return itemDiv(i, x[0], x[1], true); }) }; }
+function R544(){
+  var it = [], used = {};
+  while (it.length < 4){
+    var b = rnd(12, 39), q = rnd(11, 60), r = rnd(1, b - 1), a = b * q + r;
+    if (a < 100 || a > 1999 || used[b]) continue; used[b] = 1; it.push([a, b]);
+  }
+  return { it: it };
+}
+/* № 546 */
+var P546 = { d: 5, n: [14, 61, 86, 235, 2658, 54769, 687903] };
+function B546(p){
+  return { cond: ['Знайдіть остачу при діленні на ' + cb(p.d) + ' числа:'], kind: 'list', two: true, items: p.n.map(function(a){ return itemRem(a, p.d, false); }),
+    bonus: { no: '№ 547', cond: 'Знайдіть остачу при діленні на 100 числа: 106; 202; 421; 836; 2764; 100 098; 672 305; 1 306 579; 562 400.', ans: 'Остачі: 6; 2; 21; 36; 64; 98; 5; 79; 0.' } };
+}
+function randNums(){ return [rnd(10, 99), rnd(10, 99), rnd(100, 999), rnd(1000, 9999), rnd(10000, 99999), rnd(100000, 999999), rnd(100000, 999999)].sort(function(x, y){ return x - y; }); }
+function R546(){ return { d: 5, n: randNums() }; }
+/* № 548 */
+var P548 = { d: [7, 13, 24] };
+function B548(p){
+  return { cond: ['Які остачі можна одержати при діленні на:'], kind: 'list',
+    items: p.d.map(function(d, i){ return { q: (i + 1) + ') ' + cb(d), a: '<div>' + remList(d) + '</div><small>' + d + ' ' + plural(d, 'різна остача', 'різні остачі', 'різних остач') + '</small>' }; }),
+    concl: 'Остача завжди менша від дільника.',
+    bonus: { no: '№ 549', cond: 'Запишіть остачі, які можна одержати при діленні на: 1) 5; 2) 19.', ans: '1) 0, 1, 2, 3, 4; 2) 0, 1, 2, …, 18.' } };
+}
+function R548(){ return { d: [rnd(3, 9), rnd(10, 15), rnd(16, 30)] }; }
+/* № 550 */
+var GOODS = [
+  { one: 'Коробка цукерок коштує', pl: 'таких коробок', nom: ['коробка', 'коробки', 'коробок'], ex: ['коробку', 'коробки', 'коробок'], ic: 'box' },
+  { one: 'Набір фломастерів коштує', pl: 'таких наборів', nom: ['набір', 'набори', 'наборів'], ex: ['набір', 'набори', 'наборів'], ic: 'box' }
+];
+var P550 = { p: 76, m: 450, g: 0 };
+function B550(p){
+  var G = GOODS[p.g], q = Math.floor(p.m / p.p), r = p.m % p.p;
+  return {
+    cond: [G.one + ' ' + cb('<b>' + p.p + ' грн</b>') + '.', '<span class="ask">Яку найбільшу кількість ' + G.pl + ' можна купити, маючи ' + c3('<b>' + p.m + ' грн</b>') + '?</span>'],
+    kind: 'sol', col: true, viz: true,
+    items: [{ a: DV(p.m, p.p, c3), col: { a: p.m, b: p.p }, ex: 'можна купити ' + q + ' ' + pf(q, G.ex) + ', залишиться ' + r + ' грн',
+      viz: chips(q, p.p + ' грн', G.ic, 'q') + chips(1, r + ' грн', '', 'r dash') + '<div class="vcap">' + cr(r) + ' &lt; ' + cb(p.p) + ': на ще одну не вистачить</div>' }],
+    answer: 'Відповідь: ' + q + ' ' + pf(q, G.nom) + '.'
+  };
+}
+function R550(){
+  var pr, m;
+  for (;;){ pr = rnd(25, 95); m = rnd(150, 900); if (m % pr && Math.floor(m / pr) >= 3 && Math.floor(m / pr) <= 12 && m % 10 === 0) break; }
+  return { p: pr, m: m, g: rnd(0, GOODS.length - 1) };
+}
+/* № 552 */
+var P552 = { c: 5, T: 42, mat: 'піску' };
+function B552(p){
+  var q = Math.floor(p.T / p.c), r = p.T % p.c, n = q + 1;
+  return {
+    cond: [cb('На одну вантажівку можна навантажити <b>' + p.c + ' т</b> ' + p.mat) + '.',
+      '<span class="ask">Яка найменша кількість таких вантажівок потрібна, щоб перевезти ' + c3('<b>' + p.T + ' т</b>') + ' ' + p.mat + ', якщо кожний автомобіль виконує один рейс?</span>'],
+    kind: 'sol', viz: true,
+    items: [
+      { a: DV(p.T, p.c, c3), col: q >= 10 ? { a: p.T, b: p.c } : null, ex: q + ' ' + pf(q, ['вантажівка перевезе', 'вантажівки перевезуть', 'вантажівок перевезуть']) + ' по ' + p.c + ' т, залишиться ' + r + ' т',
+        viz: chips(q, p.c + ' т', 'truck', 'q') + chips(1, r + ' т', 'heap', 'r dash') },
+      { a: cq(q) + ' + 1 = <b>' + n + '</b>', ex: 'ще одна вантажівка для ' + r + ' т', viz: chips(q, p.c + ' т', 'truck', 'q') + chips(1, r + ' т', 'truck', 'r') }
+    ],
+    answer: 'Відповідь: ' + n + ' ' + pf(n, ['вантажівка', 'вантажівки', 'вантажівок']) + '.'
+  };
+}
+function R552(){
+  var c, T;
+  for (;;){ c = rnd(3, 9); T = rnd(20, 90); if (T % c && Math.floor(T / c) >= 3 && Math.floor(T / c) <= 12) break; }
+  return { c: c, T: T, mat: pick(['піску', 'щебеню', 'гравію']) };
+}
+/* № 553 */
+var P553 = { w: 20, T: 176, fr: 'яблук' };
+function B553(p){
+  var q = Math.floor(p.T / p.w), r = p.T % p.w, n = q + 1;
+  return {
+    cond: [cb('В один ящик уміщується <b>' + p.w + ' кг</b> ' + p.fr) + '.', '<span class="ask">У яку найменшу кількість таких ящиків можна розкласти ' + c3('<b>' + p.T + ' кг</b>') + ' ' + p.fr + '?</span>'],
+    kind: 'sol', viz: true,
+    items: [
+      { a: DV(p.T, p.w, c3), col: { a: p.T, b: p.w }, ex: 'у ' + q + ' ' + pf(q, ['повний ящик', 'повні ящики', 'повних ящиків']) + ' по ' + p.w + ' кг, залишиться ' + r + ' кг',
+        viz: chips(q, p.w + ' кг', 'crate', 'q') + chips(1, r + ' кг', 'heap', 'r dash') },
+      { a: cq(q) + ' + 1 = <b>' + n + '</b>', ex: 'ще один ящик для ' + r + ' кг', viz: chips(q, p.w + ' кг', 'crate', 'q') + chips(1, r + ' кг', 'crate', 'r') }
+    ],
+    answer: 'Відповідь: ' + n + ' ' + pf(n, ['ящик', 'ящики', 'ящиків']) + '.',
+    bonus: { no: '№ 551', cond: 'Яку найбільшу кількість букетів, кожний із яких містить 7 троянд, можна скласти, маючи 100 троянд?', ans: '100 : 7 = 14 (ост. 2). Відповідь: 14 букетів.' }
+  };
+}
+function R553(){
+  var w, T;
+  for (;;){ w = rnd(10, 25); T = rnd(100, 300); if (T % w && Math.floor(T / w) >= 4 && Math.floor(T / w) <= 12) break; }
+  return { w: w, T: T, fr: pick(['яблук', 'груш', 'помідорів', 'огірків']) };
+}
+/* № 555 */
+var P555 = { rows: [{ a: 22, b: 6 }, { a: 45, b: 7 }, { b: 5, q: 2, r: 3 }, { b: 8, q: 3, r: 5 }] };
+function B555(p){
+  return { cond: ['Заповніть таблицю:'], kind: 'table', items: p.rows.map(function(x){
+    var a = x.a != null ? x.a : x.b * x.q + x.r, q = Math.floor(a / x.b), r = a % x.b, known = x.a != null;
+    return { a: a, b: x.b, q: q, r: r, known: known, rec: known ? EQ(a, x.b, q, r) : cb(x.b) + ' · ' + cq(q) + ' + ' + cr(r) + ' = <b>' + a + '</b>' };
+  }) };
+}
+function R555(){
+  var rows = [], i, b, q, r;
+  for (i = 0; i < 2; i++){ b = rnd(3, 9); q = rnd(2, 9); r = rnd(1, b - 1); rows.push({ a: b * q + r, b: b }); }
+  for (i = 0; i < 2; i++){ b = rnd(3, 9); q = rnd(2, 9); r = rnd(1, b - 1); rows.push({ b: b, q: q, r: r }); }
+  return { rows: rows };
+}
+/* № 557 */
+var P557 = { n: [31, 47, 53, 148, 1596, 67389, 240750] };
+function B557(p){
+  return { cond: ['Знайдіть остачу при діленні на ' + cb(10) + ' числа:'], kind: 'list', two: true, ld: true, items: p.n.map(function(a){ return itemRem(a, 10, true); }),
+    concl: 'Гіпотеза: остача при діленні на 10 дорівнює останній цифрі числа.' };
+}
+function R557(){ return { n: randNums() }; }
+/* № 559 */
+var P559 = { a: 82, b: 8 };
+function legendABQR(){ return '<i class="v">a</i> = ' + cb('<i class="v">b</i>') + cq('<i class="v">q</i>') + ' + ' + cr('<i class="v">r</i>'); }
+function B559(p){
+  var q = Math.floor(p.a / p.b), r = p.a % p.b;
+  return {
+    cond: ['Виразіть ділене через неповну частку, дільник і остачу у вигляді рівності ' + legendABQR() + '.', '<span class="ask">' + '<i class="v">a</i> = ' + p.a + ', ' + cb('<i class="v">b</i> = ' + p.b) + '</span>'],
+    kind: 'sol', col: q >= 10,
+    items: [
+      { a: DV(p.a, p.b), col: q >= 10 ? { a: p.a, b: p.b } : null, ex: 'неповна частка ' + q + ', остача ' + r },
+      { a: EQ(p.a, p.b, q, r), ex: 'рівність <i class="v">a</i> = <i class="v">bq</i> + <i class="v">r</i>' }
+    ],
+    answer: 'Відповідь: ' + EQ(p.a, p.b, q, r) + '.',
+    bonus: { no: '№ 560', cond: 'Виразіть ділене через неповну частку, дільник і остачу у вигляді рівності <i class="v">a</i> = <i class="v">bq</i> + <i class="v">r</i>, якщо <i class="v">a</i> = 45, <i class="v">b</i> = 7.', ans: '45 = 7 · 6 + 3' }
+  };
+}
+function R559(){ var b = rnd(3, 9), q = rnd(5, 15), r = rnd(1, b - 1); return { a: b * q + r, b: b }; }
+
+var TASK = {
+  t543: { B: B543, P: P543, R: R543, no: '№ 543', gt: 'Завдання' },
+  t544: { B: B544, P: P544, R: R544, no: '№ 544', gt: 'Завдання' },
+  t546: { B: B546, P: P546, R: R546, no: '№ 546', gt: 'Завдання' },
+  t548: { B: B548, P: P548, R: R548, no: '№ 548', gt: 'Завдання' },
+  t550: { B: B550, P: P550, R: R550, no: '№ 550', gt: 'Задача' },
+  t552: { B: B552, P: P552, R: R552, no: '№ 552', gt: 'Задача' },
+  t553: { B: B553, P: P553, R: R553, no: '№ 553', gt: 'Задача' },
+  t555: { B: B555, P: P555, R: R555, no: '№ 555', gt: 'Завдання' },
+  t557: { B: B557, P: P557, R: R557, no: '№ 557', gt: 'Завдання' },
+  t559: { B: B559, P: P559, R: R559, no: '№ 559', gt: 'Завдання' }
+};
+var KEYS = ['t543', 't544', 't546', 't548', 't550', 't552', 't553', 't555', 't557', 't559'], ST = {};
+
+/* ===== рушій завдань ===== */
+function initTask(k, gen){
+  var T = TASK[k], g = T.B(gen ? T.R() : T.P), st = { g: g, open: g.items.map(function(){ return false; }), nOpen: 0, conclOn: false, done: false, gen: gen };
+  ST[k] = st;
+  var two = g.col || g.viz, bonus = g.bonus && !gen;
+  var L = '<div class="ttlrow"><div class="ttl">' + (gen ? T.gt : T.no) + '</div>' + (bonus ? '<button class="plus" title="Додаткове завдання" onclick="bonusTog(\'' + k + '\')">+</button>' : '') + '</div>' +
+    '<div class="cnd">' + g.cond.map(function(l){ return '<span class="cl">' + l + '</span>'; }).join('') + '</div>' +
+    '<div id="' + k + '-body" style="width:100%"></div>' +
+    '<div class="ctl" id="' + k + '-ctl"></div>' +
+    '<div class="concl" id="' + k + '-concl" hidden></div>' +
+    '<div class="ansb" id="' + k + '-ans" hidden></div>' +
+    '<div class="newrow" id="' + k + '-nr" hidden><button class="btn b s" onclick="initTask(\'' + k + '\', true)">↻ Нова задача</button></div>' +
+    (bonus ? '<div class="bonus" id="' + k + '-bonus" hidden><span class="bh">Додаткове завдання: ' + g.bonus.no + '</span><span>' + g.bonus.cond + '</span><span><button class="btn g s" onclick="this.parentNode.hidden=true;this.parentNode.nextSibling.hidden=false">Показати відповідь</button></span><span class="ba" hidden>' + g.bonus.ans + '</span></div>' : '');
+  var root = $(k);
+  if (two) root.innerHTML = '<div class="tk"><div class="tkL">' + L + '</div><div class="tkR"><div class="colb" id="' + k + '-col" hidden></div><div class="viz" id="' + k + '-viz"></div></div></div>';
+  else root.innerHTML = '<div class="tk1">' + L + '</div>';
+  var body = $(k + '-body'), h = '';
+  if (g.kind === 'list'){
+    h = '<div class="xl' + (g.two ? ' two' : '') + '">';
+    g.items.forEach(function(it, i){ h += '<div class="xr"><span class="xq" id="' + k + '-q' + i + '">' + it.q + '</span><span class="slot hid" id="' + k + '-s' + i + '" onclick="openItem(\'' + k + '\',' + i + ')"></span></div>'; });
+    body.innerHTML = h + '</div>';
+  } else if (g.kind === 'sol'){
+    body.innerHTML = '<div class="sols"><div class="solh">Розв’язання</div><div id="' + k + '-sl" style="display:flex;flex-direction:column;gap:.4rem"></div></div>';
+  } else if (g.kind === 'table'){
+    h = '<table class="mt"><thead><tr><th>Ділене</th><th>Дільник</th><th>Неповна частка</th><th>Остача</th><th>Запис</th></tr></thead><tbody>';
+    g.items.forEach(function(it, i){
+      var hid = '<span class="mc hid" data-v="" onclick="openItem(\'' + k + '\',' + i + ')"></span>';
+      h += '<tr id="' + k + '-r' + i + '">' +
+        '<td>' + (it.known ? it.a : hid.replace('data-v=""', 'data-v="' + it.a + '"')) + '</td>' +
+        '<td class="o4">' + it.b + '</td>' +
+        '<td class="o1">' + (it.known ? hid.replace('data-v=""', 'data-v="' + it.q + '"') : it.q) + '</td>' +
+        '<td class="o2">' + (it.known ? hid.replace('data-v=""', 'data-v="' + it.r + '"') : it.r) + '</td>' +
+        '<td><span class="rec" id="' + k + '-rec' + i + '"></span></td></tr>';
+    });
+    body.innerHTML = h + '</tbody></table>';
+  }
+  setCtl(k);
+}
+function bonusTog(k){ var b = $(k + '-bonus'); b.hidden = !b.hidden; }
+function setCtl(k){
+  var st = ST[k], g = st.g, ctl = $(k + '-ctl'), nx = st.open.indexOf(false);
+  ctl.innerHTML = '';
+  if (nx >= 0){
+    var b = st.nOpen === 0 ? mk('button', 'one', '1') : mk('button', 'go', '↓');
+    b.title = st.nOpen === 0 ? 'Показати першу відповідь' : 'Наступна відповідь';
+    b.onclick = function(){ openItem(k, nx); };
+    ctl.appendChild(b); return;
+  }
+  if (g.concl && !st.conclOn){
+    var c = mk('button', 'go', '↓'); c.title = 'Висновок';
+    c.onclick = function(){ st.conclOn = true; var e = $(k + '-concl'); e.innerHTML = g.concl; e.hidden = false; setCtl(k); };
+    ctl.appendChild(c); return;
+  }
+  finishTask(k);
+}
+function openItem(k, i){
+  var st = ST[k], g = st.g, it = g.items[i];
+  if (st.open[i]) return;
+  if (g.kind === 'sol' && i !== st.open.indexOf(false)) return;
+  st.open[i] = true; st.nOpen++;
+  if (g.kind === 'list'){
+    var s = $(k + '-s' + i); s.className = 'slot on'; s.innerHTML = it.a; s.onclick = null;
+    if (g.ld){ var ld = $(k + '-q' + i).querySelector('.ld'); if (ld) ld.classList.add('on'); }
+  } else if (g.kind === 'sol'){
+    var row = mk('div', 'sline'); row.innerHTML = '<span class="n">' + (i + 1) + ')</span><span class="t">' + it.a + '</span><span class="ex" hidden></span>';
+    $(k + '-sl').appendChild(row);
+  } else if (g.kind === 'table'){
+    var tr = $(k + '-r' + i), hs = tr.querySelectorAll('.mc.hid');
+    for (var j = 0; j < hs.length; j++){ hs[j].className = 'mc on'; hs[j].textContent = hs[j].getAttribute('data-v'); hs[j].onclick = null; }
+    $(k + '-rec' + i).innerHTML = it.rec;
+  }
+  var cbx = $(k + '-col');
+  if (cbx && it.col){ cbx.innerHTML = kutHTML(it.col.a, it.col.b, Infinity); cbx.hidden = false; }
+  if (it.viz){ $(k + '-viz').innerHTML = it.viz; }
+  addScore(1);
+  setCtl(k);
+}
+function finishTask(k){
+  var st = ST[k], g = st.g;
+  if (st.done) return; st.done = true;
+  if (g.kind === 'sol'){
+    var rows = $(k + '-sl').querySelectorAll('.sline');
+    for (var i = 0; i < rows.length; i++){ var e = rows[i].querySelector('.ex'); e.innerHTML = '— ' + g.items[i].ex + (i === rows.length - 1 ? '.' : ';'); e.hidden = false; }
+  }
+  if (g.answer){ var a = $(k + '-ans'); a.innerHTML = g.answer; a.hidden = false; }
+  $(k + '-nr').hidden = false;
+  addScore(5); confetti(30);
+}
+
+/* ===== підсумок ===== */
+var SUM = [
+  { h: 'Неповна частка й остача', c: eqLab(20, 6, 3, 2, true, true) },
+  { h: 'Остача і дільник', c: 'Остача завжди менша від дільника.<span>' + cr('<i class="v">r</i>') + ' &lt; ' + cb('<i class="v">b</i>') + '</span>' },
+  { h: 'Як знайти ділене', c: 'Щоб знайти ділене, треба дільник помножити на неповну частку й додати остачу.<span>' + legendABQR() + '</span>' },
+  { h: 'Ділиться націло', c: '<span>21 = ' + cb(7) + ' · ' + cq(3) + ' + ' + cr(0) + '</span><small>остача дорівнює нулю: 21 ділиться націло на 7</small>' },
+  { h: 'Задачі', c: '<span>450 : ' + cb(76) + ' = ' + cq(5) + ' (ост. ' + cr(70) + ') → ' + cq(5) + ' коробок</span><span>42 : ' + cb(5) + ' = ' + cq(8) + ' (ост. ' + cr(2) + ') → ' + cq(8) + ' + 1 = 9 вантажівок</span>' }
+];
+var ENDINGS = [
+  { s: 'Остача завжди', e: 'менша від дільника.' },
+  { s: 'Щоб знайти ділене, треба', e: 'дільник помножити на неповну частку й додати остачу.' },
+  { s: 'Якщо остача дорівнює нулю, то ділене', e: 'ділиться націло на дільник.' },
+  { s: 'При діленні на 4 можна одержати остачі', e: '0, 1, 2, 3.' },
+  { s: 'Остача при діленні на 10 дорівнює', e: 'останній цифрі числа.' }
+];
+var sumOpen = [];
+function resetSum(){
+  sumOpen = SUM.map(function(){ return false; });
+  var h = '';
+  SUM.forEach(function(b, i){ h += '<div class="sb shut" id="sb' + i + '"><button onclick="sumTog(' + i + ')"><span>' + b.h + '</span><span class="ar">▼</span></button><div class="sbc" id="sbc' + i + '" hidden>' + b.c + '</div></div>'; });
+  $('sumBlocks').innerHTML = h; $('sumBlocks').hidden = false;
+  $('sumCheckBtn').hidden = true; $('sumCheck').hidden = true; $('sumTitle').textContent = 'Підсумок уроку';
+  var e = '';
+  ENDINGS.forEach(function(x, i){ e += '<div class="endr"><span>' + x.s + '</span><button class="btn g s" id="endB' + i + '" onclick="endShow(' + i + ')">Показати</button><span class="ans" id="endA' + i + '" hidden>' + x.e + '</span></div>'; });
+  $('endList').innerHTML = e;
+}
+function sumTog(i){
+  var c = $('sbc' + i), b = $('sb' + i);
+  c.hidden = !c.hidden;
+  b.querySelector('.ar').textContent = c.hidden ? '▼' : '▲';
+  if (!c.hidden){ sumOpen[i] = true; b.classList.remove('shut'); if (b.scrollIntoView) b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  if (sumOpen.every(function(x){ return x; })) $('sumCheckBtn').hidden = false;
+}
+function sumCheck(on){
+  $('sumBlocks').hidden = on; $('sumCheck').hidden = !on; $('sumCheckBtn').hidden = on;
+  $('sumTitle').textContent = on ? 'Перевірте себе' : 'Підсумок уроку';
+  var cd = document.querySelector('#stage-17 .card'); if (cd) cd.scrollTop = 0;
+}
+function endShow(i){ $('endB' + i).hidden = true; $('endA' + i).hidden = false; }
+
+/* ===== запуск ===== */
+function resetAll(){
+  ac.k = 0; acAll = false; acGen();
+  newBoard();
+  initStage3(); initStage4(); initKut(false); initRule();
+  KEYS.forEach(function(k){ initTask(k, false); });
+  resetSum();
+}
+(function(){
+  var g = document.querySelectorAll('.gemsvg'); for (var i = 0; i < g.length; i++) g[i].innerHTML = GEM;
+  TOTAL = document.querySelectorAll('.stage').length; LAST = TOTAL - 1;
+  fillPlan(); resetVote(); resetAll(); goTo(0);
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+
+</body>
+</html>
