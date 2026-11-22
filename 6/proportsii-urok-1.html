@@ -281,6 +281,12 @@ footer b{color:#374151}
 }
 @media (max-height:620px){ .stage h2{font-size:1.5rem;margin-bottom:.4rem} .qt{font-size:1.5rem} }
 @media (prefers-reduced-motion:reduce){ #down{animation:none} .rv.show{animation:none} }
+
+.r1{color:var(--blue);font-weight:900}.r2{color:var(--vio);font-weight:900}
+.rv.inl{display:none}.rv.inl.show{display:inline;animation:pop .35s both}
+.pbig{font-size:2.3rem;justify-content:center;align-items:center}
+.rv.flex:not(.show),.rv.row2:not(.show),.rv.bar:not(.show){display:none}
+.rv.row2.show{display:flex}
 </style>
 </head>
 <body>
@@ -946,11 +952,13 @@ const I=t=>`<i>${t}</i>`;
 
 /* пропорція: два рівні відношення */
 function buildProp(inner){
+  const R1=t=>`<span class="r1">${t}</span>`, R2=t=>`<span class="r2">${t}</span>`;
   inner.innerHTML=`<h2>Пропорція</h2><div class="lines">
-    <div class="card rv flex row2" id="pr1"></div>
-    <div class="card rv flex row2" id="pr2"></div>
-    <div class="card rv flex row2" id="pr3" style="font-size:2.4rem"></div>
-    <div class="rule rv">Якщо відношення ${I('a')} : ${I('b')} дорівнює відношенню ${I('c')} : ${I('d')}, то рівність <b>${I('a')} : ${I('b')} = ${I('c')} : ${I('d')}</b> (або рівність ${fr(I('a'),I('b'))} = ${fr(I('c'),I('d'))}) називають <b>пропорцією</b>.</div>
+    <div class="card rv flex row2 pbig"><span id="a1"></span><span class="rv inl" id="e1"></span></div>
+    <div class="card rv flex row2 pbig"><span id="a2"></span><span class="rv inl" id="e2"></span></div>
+    <div class="card rv flex row2 pbig"><span id="a3"></span><span class="rv inl" id="e3"></span></div>
+    <div class="note rv" style="font-size:1.7rem"><b>Рівність двох відношень — це пропорція.</b></div>
+    <div class="rule rv">Якщо відношення ${I('a')} : ${I('b')} дорівнює відношенню ${I('c')} : ${I('d')},<br>то рівність <b>${I('a')} : ${I('b')} = ${I('c')} : ${I('d')}</b> (або рівність ${fr(I('a'),I('b'))} = ${fr(I('c'),I('d'))}) називають <b>пропорцією</b>.</div>
     <div class="note rv">Читають: «відношення ${I('a')} до ${I('b')} дорівнює відношенню ${I('c')} до ${I('d')}» або «${I('a')} відноситься до ${I('b')}, як ${I('c')} відноситься до ${I('d')}»</div>
     <div class="card rv flex row2">2 : 4 = ${fr(1,2)} &nbsp;&nbsp; 3 : 9 = ${fr(1,3)} &nbsp; → &nbsp; 2 : 4 ≠ 3 : 9 <span class="tag no">не пропорція</span></div>
     <div class="bar mid rv flex"><button class="btn light sm" id="newpr">Інший приклад ↻</button></div></div>`;
@@ -959,9 +967,12 @@ function buildProp(inner){
     if(first){a1=3.6;b1=0.9;a2=1.2;b2=0.3;v=4;}
     else{ v=rand(2,9); let x,y; do{x=rand(2,9);y=rand(2,9);}while(x===y);
       const d=Math.random()<.5?10:1; b1=x/d; b2=y/(Math.random()<.5?10:1); a1=r6(v*b1); a2=r6(v*b2); }
-    $('#pr1',inner).innerHTML=`${N(a1)} : ${N(b1)} = ${v} <span class="tag">відношення</span>`;
-    $('#pr2',inner).innerHTML=`${N(a2)} : ${N(b2)} = ${v} <span class="tag">відношення</span>`;
-    $('#pr3',inner).innerHTML=`<b>${N(a1)} : ${N(b1)} = ${N(a2)} : ${N(b2)}</b> <span class="tag pr">пропорція</span>`;
+    $('#a1',inner).innerHTML=R1(`${N(a1)} : ${N(b1)}`);
+    $('#e1',inner).innerHTML=`&nbsp;= ${R1(v)} &nbsp;<span class="tag">відношення</span>`;
+    $('#a2',inner).innerHTML=R2(`${N(a2)} : ${N(b2)}`);
+    $('#e2',inner).innerHTML=`&nbsp;= ${R2(v)} &nbsp;<span class="tag">відношення</span>`;
+    $('#a3',inner).innerHTML=`<b>${R1(`${N(a1)} : ${N(b1)}`)} = ${R2(`${N(a2)} : ${N(b2)}`)}</b>`;
+    $('#e3',inner).innerHTML=`&nbsp;<span class="tag pr">пропорція</span>`;
   }
   paint(true);
   $('#newpr',inner).onclick=()=>paint(false);
@@ -1064,24 +1075,26 @@ boot({par:'§ 19 · Урок 1', title:'Пропорції',
   goal:'Повторити розв’язування задач на масштаб і знаходження відношень; ознайомитися з поняттям пропорції, її крайніми й середніми членами та основною властивістю; навчитися читати й записувати пропорції та встановлювати, чи можна скласти пропорцію з двох відношень.',
   comp:'Математична компетентність; уміння вчитися впродовж життя; спілкування державною мовою (читання пропорцій).',
   stages:[
-    {name:'Масштаб: відстань на місцевості',dur:150,build:inn=>genStage(inn,{h:'Відстань на місцевості',gen:genMapToGround})},
-    {name:'Масштаб: відстань на карті',dur:150,build:inn=>genStage(inn,{h:'Відстань на карті',gen:genGroundToMap})},
+    {name:'Масштаб: відстань на місцевості',dur:120,build:inn=>genStage(inn,{h:'Відстань на місцевості',gen:genMapToGround})},
+    {name:'Масштаб: відстань на карті',dur:120,build:inn=>genStage(inn,{h:'Відстань на карті',gen:genGroundToMap})},
     {name:'Усно: відношення',dur:150,top:true,build:inn=>exStage(inn,EXO1)},
     {name:'Усно: рівні відношення',dur:90,top:true,build:inn=>exStage(inn,EXO2)},
     {name:'Пропорція',dur:210,build:buildProp},
     {name:'Члени пропорції',dur:180,build:buildMembers},
     {name:'Крайні чи середні?',dur:90,build:buildClick},
-    {name:'№ 572',dur:420,top:true,build:inn=>exStage(inn,EX572)},
+    {name:'№ 572',dur:390,top:true,build:inn=>exStage(inn,EX572)},
     {name:'№ 573',dur:120,top:true,build:inn=>exStage(inn,EX573)},
     {name:'№ 574',dur:90,top:true,build:inn=>exStage(inn,EX574)},
-    {name:'№ 575',dur:300,top:true,build:inn=>exStage(inn,EX575)},
-    {name:'№ 576',dur:270,top:true,build:inn=>exStage(inn,EX576)},
-    {name:'Основна властивість пропорції',dur:180,build:buildMain},
+    {name:'№ 575',dur:270,top:true,build:inn=>exStage(inn,EX575)},
+    {name:'№ 576',dur:240,top:true,build:inn=>exStage(inn,EX576)},
+    {name:'Основна властивість пропорції',dur:150,build:buildMain},
     {name:'Перевіримо на числах',dur:90,build:buildCheckProd},
-    {name:'Підсумок уроку',dur:150,build:inn=>sumStage(inn,[
+    {name:'Невідомий член пропорції',dur:210,build:inn=>genStage(inn,{h:'Невідомий член пропорції',gen:f=>genUnknown(f,false)})},
+    {name:'Підсумок уроку',dur:120,build:inn=>sumStage(inn,[
       `<b>Пропорція</b> — рівність двох відношень: ${I('a')} : ${I('b')} = ${I('c')} : ${I('d')}`,
       `${K(I('a'))} і ${K(I('d'))} — <span class="ke">крайні члени</span>; &nbsp; ${S(I('b'))} і ${S(I('c'))} — <span class="se">середні члени</span>`,
       `<b>Основна властивість:</b> добуток <span class="ke">крайніх</span> членів дорівнює добутку <span class="se">середніх</span>: ${K(I('a')+' · '+I('d'))} = ${S(I('b')+' · '+I('c'))}`,
+      `<b>Невідомий член</b> знаходимо з рівності добутків: 12 : ${X} = 4 : 9 → ${S(X+' · 4')} = ${K('12 · 9')} → ${X} = 27`,
       `<b>Чи можна скласти пропорцію?</b> Знаходимо відношення й порівнюємо: рівні — пропорція є; не рівні — пропорції немає`],
       [['Рівність двох відношень називають …','пропорцією'],
        ['У пропорції a : b = c : d числа a і d називають …','крайніми членами пропорції'],
