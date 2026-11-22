@@ -653,12 +653,12 @@ function genGroundToMap(first){
       `Відповідь: ${N(y)} см`]};
 }
 /* невідомий член пропорції */
-function genUnknown(first,hard){
+function genUnknown(first,hard,easy){
   let m,pos,frm;
   if(first){ m=[12,27,4,9]; pos=1; frm=false; }
   else for(let t=0;t<2000;t++){
-    let p=rand(1,9),q=rand(1,9); if(p===q||gcd(p,q)!==1)continue;
-    let k1=rand(2,8),k2=rand(2,8); if(k1===k2)continue;
+    let p=rand(1,easy?5:9),q=rand(1,easy?5:9); if(p===q||gcd(p,q)!==1)continue;
+    let k1=rand(2,easy?4:8),k2=rand(2,easy?4:8); if(k1===k2)continue;
     m=[p*k1,q*k1,p*k2,q*k2];
     if(Math.random()<.5) m=[m[0],m[2],m[1],m[3]];          // інше розташування того самого
     if(hard){ const s=pick([[10,1],[1,10],[10,10]]); m=[m[0]/s[0],m[1]/s[0],m[2]/s[1],m[3]/s[1]].map(r6); }
@@ -719,10 +719,26 @@ function qtUnknown(){ let m; do{ m=propNums(5,3);}while(m.some(v=>v>24));
   const opts=[{h:String(ans),ok:1}]; for(const v of cand){ if(opts.length>=4)break; if(!set.has(v)){set.add(v);opts.push({h:String(v)});} }
   return {txt:`Знайдіть невідомий член пропорції:<div class="big">${plainProp(sh,Math.random()<.4)}</div>`,opts}; }
 
+/* ---------- вправи § 19: спільні помічники ---------- */
+const Y='<i class="x">y</i>', Bv='<i class="x">b</i>';
+const ONEOF=(items,ok)=>{ const a=shuf(items.map((h,i)=>({h,ok:i===ok}))); return {opts:a.map(x=>x.h),ok:a.findIndex(x=>x.ok)}; };
+const sayProp=(a,b,c,d)=>`${a} відноситься до ${b}, як ${c} відноситься до ${d}`;
+/* «Прочитайте пропорцію, назвіть крайні та середні члени» */
+function memPart(a,b,c,d,o={}){
+  const eq=o.frm?prop(a,b,c,d,{plain:true,frac:true}):prop(a,b,c,d,{plain:true});
+  const c1=ONEOF([`крайні: ${a} і ${d}; середні: ${b} і ${c}`,`крайні: ${b} і ${c}; середні: ${a} і ${d}`,`крайні: ${a} і ${b}; середні: ${c} і ${d}`],0);
+  return {cond:`<div class="big">${eq}</div>`,cc:true,w:{k:'ch',opts:c1.opts,ok:c1.ok},hint:'Крайні члени стоять на краях запису, середні — посередині.',
+    steps:[`<span class="mut">читаємо:</span> «${o.say||sayProp(a,b,c,d)}»`,o.frm?prop(a,b,c,d,{frac:true}):prop(a,b,c,d),
+      `${K('крайні')}: ${K(a)} і ${K(d)}; &nbsp; ${S('середні')}: ${S(b)} і ${S(c)}`]};
+}
+/* «Чи можна скласти пропорцію?» (так / ні) */
+const CAN2=['можна','не можна'];
+function canPart(cond,steps,yes,ans){
+  return {cond:`<div class="big">${cond}</div>`,cc:true,w:{k:'ch',opts:CAN2,ok:yes?0:1},hint:'Знайдіть кожне відношення й порівняйте їх.',steps:steps.concat([ans])};
+}
+
 /* ===================== УРОК 1 ===================== */
 const I=t=>`<i>${t}</i>`;
-const mf=(h,m)=>`<span class="mf">${h}<span class="ad"><span class="sl"></span><span class="fill">${m}</span></span></span>`;
-const CH2=['порушиться','не порушиться'];
 
 /* пропорція: два рівні відношення */
 function buildProp(inner){
@@ -875,52 +891,25 @@ function genPart(first){
   return pctTask({txt:s.txt(W,P), let:s.let, W, P, part:r6(W*P/100), unk:'part', uW:s.uW, uP:s.uP, uAns:s.uAns});
 }
 
-/* ---------- вправи підручника ---------- */
-const P1=prop('2','3','4','6'), P2=prop('4','8','6','12');
-const EX599={n:599,head:'Чи порушиться пропорція, якщо:',parts:[
-  {t:()=>({cond:'обидва члени одного з відношень помножити на 8?', w:{k:'ch',opts:CH2,ok:1}, hint:'Згадайте основну властивість відношення.',
-    steps:[P1,`(${K('2')} · 8) : (${S('3')} · 8) = ${S('4')} : ${K('6')}`,`${K('16')} : ${S('24')} = ${S('4')} : ${K('6')}`,`${K('16 · 6')} = ${K('96')}; &nbsp; ${S('24 · 4')} = ${S('96')}`,'Пропорція не порушиться']})},
-  {t:()=>({cond:'обидва члени одного з відношень поділити на 2, а обидва члени другого відношення помножити на 5?', w:{k:'ch',opts:CH2,ok:1}, hint:'Кожне відношення окремо не змінюється.',
-    steps:[P1,`(${K('2')} : 2) : (${S('3')} : 2) = (${S('4')} · 5) : (${K('6')} · 5)`,`${K('1')} : ${S('1,5')} = ${S('20')} : ${K('30')}`,`${K('1 · 30')} = ${K('30')}; &nbsp; ${S('1,5 · 20')} = ${S('30')}`,'Пропорція не порушиться']})},
-  {t:()=>({cond:'обидва середніх члени поділити на 3,6?', w:{k:'ch',opts:CH2,ok:0}, hint:'Порівняйте добуток крайніх і добуток середніх членів.',
-    steps:[P1,`${K('2 · 6')} = ${K('12')}`,`(${S('3')} : 3,6) · (${S('4')} : 3,6) = ${S('12 : 12,96')}`,`${K('12')} ≠ ${S('12 : 12,96')}`,'Пропорція порушиться']})}
+/* ---------- вправи підручника (Мерзляк, 2023, § 19) ---------- */
+const EX572={n:572,head:'Прочитайте пропорцію, назвіть її крайні та середні члени:',parts:[
+  {t:()=>memPart('5','3','20','12')},
+  {t:()=>memPart('13','4','39','12')},
+  {t:()=>memPart('18','63','16','56',{frm:true})},
+  {t:()=>memPart('16','12','68','51',{frm:true})},
+  {t:()=>memPart(X,'9','2','23')},
+  {t:()=>memPart('8','64',Y,'15',{frm:true})}
 ]};
-const EX600={n:600,head:'Чи порушиться пропорція, якщо:',parts:[
-  {t:()=>({cond:'обидва члени одного з відношень поділити на 4?', w:{k:'ch',opts:CH2,ok:1}, hint:'Згадайте основну властивість відношення.',
-    steps:[P2,`(${K('4')} : 4) : (${S('8')} : 4) = ${S('6')} : ${K('12')}`,`${K('1')} : ${S('2')} = ${S('6')} : ${K('12')}`,`${K('1 · 12')} = ${K('12')}; &nbsp; ${S('2 · 6')} = ${S('12')}`,'Пропорція не порушиться']})},
-  {t:()=>({cond:'обидва крайніх члени помножити на 10?', w:{k:'ch',opts:CH2,ok:0}, hint:'Що станеться з добутком крайніх членів?',
-    steps:[P2,`(${K('4')} · 10) : ${S('8')} = ${S('6')} : (${K('12')} · 10)`,`${K('40')} : ${S('8')} = ${S('6')} : ${K('120')}`,`${K('40 · 120')} = ${K('4800')}; &nbsp; ${S('8 · 6')} = ${S('48')}`,`${K('4800')} ≠ ${S('48')}`,'Пропорція порушиться']})},
-  {t:()=>({cond:'один з її крайніх членів і один із середніх членів помножити на 6?', w:{k:'ch',opts:CH2,ok:1}, hint:'Обидва добутки збільшаться в однакову кількість разів.',
-    steps:[P2,`(${K('4')} · 6) : ${S('8')} = (${S('6')} · 6) : ${K('12')}`,`${K('24')} : ${S('8')} = ${S('36')} : ${K('12')}`,`${K('24 · 12')} = ${K('288')}; &nbsp; ${S('8 · 36')} = ${S('288')}`,'Пропорція не порушиться']})}
+const EX573={n:573,head:'Поясніть, чому рівність 1 : 3 = 6 : 18 є пропорцією, назвіть її крайні та середні члени.',parts:[
+  {chip:'Чому пропорція?',t:()=>{ const c=ONEOF(['Бо відношення 1 : 3 і 6 : 18 рівні','Бо числа 1 і 3 менші від чисел 6 і 18','Бо 1 + 18 = 3 + 6'],0);
+    return {cond:'<div class="big">1 : 3 = 6 : 18</div>',cc:true,w:{k:'ch',opts:c.opts,ok:c.ok},hint:'Пропорція — це рівність двох відношень.',
+      steps:[`1 : 3 = ${fr(1,3)}`,`6 : 18 = ${fr(6,18)} = ${fr(1,3)}`,`${fr(1,3)} = ${fr(1,3)}`,'Відношення рівні, тому рівність є пропорцією']}; }},
+  {chip:'Члени пропорції',t:()=>memPart('1','3','6','18')}
 ]};
-const ia=I('a'),ib=I('b'),ic=I('c'),id=I('d');
-const EX601={n:601,head:`Доведіть, що коли ${fr(ia,ib)} = ${fr(ic,id)}, то:`,parts:[
-  {t:()=>({cond:`<div class="big">${fr(ia+' − '+ib,ib)} = ${fr(ic+' − '+id,id)}</div>`,cc:true,
-    steps:[`${fr(6,2)} = ${fr(9,3)}`,`${fr('6 − 2','2')} = ${fr(4,2)} = 2; &nbsp;&nbsp; ${fr('9 − 3','3')} = ${fr(6,3)} = 2`,
-      `${fr(ia,ib)} = ${fr(ic,id)}`,`${fr(ia,ib)} − 1 = ${fr(ic,id)} − 1`,`${fr(ia,ib)} − ${fr(ib,ib)} = ${fr(ic,id)} − ${fr(id,id)}`,`${fr(ia+' − '+ib,ib)} = ${fr(ic+' − '+id,id)}`]})},
-  {t:()=>({cond:`<div class="big">${fr(ia,ia+' + '+ib)} = ${fr(ic,ic+' + '+id)}</div>`,cc:true,
-    steps:[`${fr(6,2)} = ${fr(9,3)}`,`${fr(6,'6 + 2')} = ${fr(6,8)} = ${fr(3,4)}; &nbsp;&nbsp; ${fr(9,'9 + 3')} = ${fr(9,12)} = ${fr(3,4)}`,
-      `${fr(K(ia),S(ib))} = ${fr(S(ic),K(id))}`,`${K(ia+id)} = ${S(ib+ic)}`,`${ia}${id} + ${ia}${ic} = ${ib}${ic} + ${ia}${ic}`,
-      `${K(ia)} · ${K('('+ic+' + '+id+')')} = ${S(ic)} · ${S('('+ia+' + '+ib+')')}`,`${fr(K(ia),S(ia+' + '+ib))} = ${fr(S(ic),K(ic+' + '+id))}`]})}
-]};
-const EX603={n:603,head:'У скільки разів число менше від оберненого до нього числа:',parts:[
-  {t:()=>({cond:`<div class="big">${fr(1,6)}</div>`,cc:true,w:{k:'num',ans:[36,1]},hint:'Знайдіть обернене число і поділіть його на дане.',
-    steps:[`<span class="mut">обернене:</span> ${fr(6,1)} = 6`,`6 : ${fr(1,6)} = 6 · 6 = 36`,'Відповідь: у 36 разів']})},
-  {t:()=>({cond:`<div class="big">${fr(3,5)}</div>`,cc:true,w:{k:'frac',ans:[25,9]},hint:'Знайдіть обернене число і поділіть його на дане.',
-    steps:[`<span class="mut">обернене:</span> ${fr(5,3)}`,`${fr(5,3)} : ${fr(3,5)} = ${fr(5,3)} · ${fr(5,3)} = ${fr(25,9)} = ${mix(2,7,9)}`,`Відповідь: у ${mix(2,7,9)} раза`]})},
-  {t:()=>({cond:`<div class="big">0,6</div>`,cc:true,w:{k:'frac',ans:[25,9]},hint:'Запишіть 0,6 звичайним дробом.',
-    steps:[`0,6 = ${fr(6,10)} = ${fr(3,5)}`,`<span class="mut">обернене:</span> ${fr(5,3)}`,`${fr(5,3)} : ${fr(3,5)} = ${fr(5,3)} · ${fr(5,3)} = ${fr(25,9)} = ${mix(2,7,9)}`,`Відповідь: у ${mix(2,7,9)} раза`]})}
-]};
-const EX605={n:605,head:'Знайдіть значення виразу:',parts:[
-  {t:()=>({cond:`<div class="big" style="font-size:2rem">(${mix(3,1,3)} + 2,5) · (4,6 − ${mix(2,1,3)})</div>`,cc:true,w:{k:'frac',ans:[119,9]},hint:'Виконайте спочатку дії в дужках.',
-    steps:[`${mix(3,1,3)} + 2,5 = ${mf(mix(3,1,3),2)} + ${mf(mix(2,1,2),3)} = ${mix(3,2,6)} + ${mix(2,3,6)} = ${mix(5,5,6)}`,
-      `4,6 − ${mix(2,1,3)} = ${mf(mix(4,3,5),3)} − ${mf(mix(2,1,3),5)} = ${mix(4,9,15)} − ${mix(2,5,15)} = ${mix(2,4,15)}`,
-      `${mix(5,5,6)} · ${mix(2,4,15)} = ${fr(35,6)} · ${fr(34,15)} = ${fr('35 · 34','6 · 15')} = ${fr(119,9)} = ${mix(13,2,9)}`,
-      `Відповідь: ${mix(13,2,9)}`]})},
-  {t:()=>({cond:`<div class="big" style="font-size:2rem">(4,5 · ${mix(1,2,3)} − 6,75) · (${mix(1,1,3)})<span class="pw">3</span></div>`,cc:true,w:{k:'frac',ans:[16,9]},hint:'Виконайте спочатку дії в дужках.',
-    steps:[`4,5 · ${mix(1,2,3)} = ${fr(9,2)} · ${fr(5,3)} = ${fr(15,2)} = 7,5`,`7,5 − 6,75 = 0,75`,
-      `(${mix(1,1,3)})<span class="pw">3</span> = (${fr(4,3)})<span class="pw">3</span> = ${fr('4 · 4 · 4','3 · 3 · 3')} = ${fr(64,27)}`,
-      `0,75 · ${fr(64,27)} = ${fr(3,4)} · ${fr(64,27)} = ${fr(16,9)} = ${mix(1,7,9)}`,`Відповідь: ${mix(1,7,9)}`]})}
+const EX574={n:574,head:'Поясніть, чому з відношень 12 : 4 і 20 : 5 не можна скласти пропорцію.',parts:[
+  {t:()=>{ const c=ONEOF(['Бо ці відношення не рівні','Бо число 12 більше за число 4','Бо число 20 ділиться на 5'],0);
+    return {cond:'<div class="big">12 : 4 &nbsp;і&nbsp; 20 : 5</div>',cc:true,w:{k:'ch',opts:c.opts,ok:c.ok},hint:'Знайдіть значення кожного відношення.',
+      steps:['12 : 4 = 3','20 : 5 = 4','3 ≠ 4','Відношення не рівні, тому пропорцію скласти не можна']}; }}
 ]};
 
 boot({par:'§ 19 · Урок 1', title:'Пропорції',
@@ -932,17 +921,15 @@ boot({par:'§ 19 · Урок 1', title:'Пропорції',
     {name:'Пропорція',dur:210,build:buildProp},
     {name:'Члени пропорції',dur:180,build:buildMembers},
     {name:'Крайні чи середні?',dur:120,build:buildClick},
+    {name:'№ 572',dur:300,top:true,build:inn=>exStage(inn,EX572)},
+    {name:'№ 573',dur:150,top:true,build:inn=>exStage(inn,EX573)},
+    {name:'№ 574',dur:120,top:true,build:inn=>exStage(inn,EX574)},
     {name:'Основна властивість пропорції',dur:180,build:buildMain},
     {name:'Перевіримо на числах',dur:90,build:buildCheckProd},
-    {name:'Невідомий член пропорції',dur:240,build:inn=>genStage(inn,{h:'Невідомий член пропорції',gen:f=>genUnknown(f,false)})},
-    {name:'Задача про тканину',dur:210,build:inn=>genStage(inn,{h:'Задача',gen:genCloth})},
-    {name:'Задача на відсотки',dur:210,build:inn=>genStage(inn,{h:'Задача',gen:genPart})},
-    {name:'№ 599',dur:150,top:true,build:inn=>exStage(inn,EX599)},
-    {name:'№ 600',dur:150,top:true,build:inn=>exStage(inn,EX600)},
-    {name:'№ 601',dur:150,top:true,build:inn=>exStage(inn,EX601)},
-    {name:'№ 603',dur:120,top:true,build:inn=>exStage(inn,EX603)},
-    {name:'№ 605',dur:150,top:true,build:inn=>exStage(inn,EX605)},
-    {name:'Підсумок уроку',dur:120,build:inn=>sumStage(inn,[
+    {name:'Невідомий член пропорції',dur:270,build:inn=>genStage(inn,{h:'Невідомий член пропорції',gen:f=>genUnknown(f,false)})},
+    {name:'Задача про тканину',dur:240,build:inn=>genStage(inn,{h:'Задача',gen:genCloth})},
+    {name:'Задача на відсотки',dur:240,build:inn=>genStage(inn,{h:'Задача',gen:genPart})},
+    {name:'Підсумок уроку',dur:180,build:inn=>sumStage(inn,[
       `<b>Пропорція</b> — рівність двох відношень: ${I('a')} : ${I('b')} = ${I('c')} : ${I('d')}`,
       `${K(I('a'))} і ${K(I('d'))} — <span class="ke">крайні члени</span>; &nbsp; ${S(I('b'))} і ${S(I('c'))} — <span class="se">середні члени</span>`,
       `<b>Основна властивість:</b> добуток <span class="ke">крайніх</span> членів дорівнює добутку <span class="se">середніх</span>: ${K(I('a')+' · '+I('d'))} = ${S(I('b')+' · '+I('c'))}`,
