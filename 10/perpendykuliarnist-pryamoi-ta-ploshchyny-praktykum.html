@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Перпендикулярність прямої та площини. Практикум</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<style>
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --ink:#1e293b; --muted:#64748b; --line:#e9d5ff;
+  --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#2563eb; --orange:#ea580c; --violet:#7e22ce;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffffff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{height:100dvh;width:100%}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;font-size:14px;background:#fff}
+@media(min-width:768px){.app{font-size:15px}}
+@media(min-width:1024px){.app{font-size:17px}}
+@media(min-width:1280px){.app{font-size:20px}}
+@media(min-width:1536px){.app{font-size:22px}}
+.main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+/* сторінка задачі: одне спільне поле */
+.page{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panelRight)}
+.head{flex:none;display:flex;gap:.6em;align-items:flex-start;padding:.55em max(12px,env(safe-area-inset-left,0px)) .45em;flex-wrap:wrap}
+.cond{flex:1 1 30em;min-width:0;background:#fff;border:1px solid var(--line);border-radius:.8em;padding:.5em .85em;line-height:1.4}
+.cond b{color:var(--brand);font-weight:800}
+.navb{flex:none;display:flex;gap:.4em;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.fig{flex:none;position:relative;min-height:120px;margin:0 max(12px,env(safe-area-inset-left,0px));background:#fff;border:1px solid var(--line);border-radius:.8em;overflow:hidden}
+.split{flex:none;height:18px;cursor:row-resize;display:grid;place-items:center;touch-action:none}
+.split i{width:64px;height:5px;border-radius:3px;background:#d8b4fe;transition:background .15s}
+.split:hover i,.split.on i{background:var(--brand)}
+.lower{flex:1;min-height:0;display:flex;flex-direction:column}
+.optq{margin:0 max(12px,env(safe-area-inset-left,0px)) .3em;font-weight:700;line-height:1.35}
+.optrow{flex:none;display:flex;flex-wrap:wrap;gap:.4em;padding:0 max(12px,env(safe-area-inset-left,0px)) .45em}
+.optrow .opt{flex:1 1 6.5em;width:auto;margin:0;align-items:center;justify-content:center;cursor:default;text-align:center}
+.sol{flex:1;min-height:0;overflow-y:auto;padding:.1em max(12px,env(safe-area-inset-left,0px)) 1.2em;scrollbar-width:thin}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,19em),1fr));gap:.5em;align-items:start}
+.sctl{display:flex;gap:.6em;align-items:center;margin-top:.5em;flex-wrap:wrap}
+@media(max-width:767px){.optrow{gap:.3em}.optrow .opt{flex:1 1 3.4em;padding:.25em .2em;gap:.25em;font-size:.86em;white-space:nowrap}.navb{width:100%;order:-1}.navb .btn{min-height:40px;font-size:.9em;padding:0 .8em}}
+.btn{min-height:44px;padding:0 1.05em;border-radius:999px;border:1px solid #d8b4fe;background:var(--brandLight);
+  color:var(--brand);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  box-shadow:0 2px 6px rgba(107,33,168,.12);transition:transform .15s,background .15s}
+.btn:hover{background:#ebdcff}.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+.btn.sm{min-height:40px;font-size:.92em;padding:0 .9em;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:.4em;margin:.55em 0}
+.tab{min-height:42px;padding:.2em .85em;border-radius:999px;border:1px solid #d8b4fe;background:#fff;color:var(--brand);
+  font:inherit;font-weight:700;cursor:pointer;line-height:1.15;text-align:center}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.note{background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em .8em;margin:.5em 0;line-height:1.4}
+.note b{font-weight:700}
+.lead{margin:.2em 0 .1em;line-height:1.4;font-weight:600}
+.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:600;white-space:nowrap}
+.cg{color:var(--green);font-weight:700}.cr{color:var(--red);font-weight:700}.cv{color:var(--violet);font-weight:700}
+.cb{color:var(--blue);font-weight:700}.co{color:var(--orange);font-weight:700}.ca{color:var(--amber);font-weight:700}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .15em;font-size:.95em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em .05em}
+.fr>span:last-child{padding:.05em .2em 0}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:.5em 0}
+.step{display:flex;gap:.5em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.55em .75em;line-height:1.5;animation:fadeUp .4s ease both}
+.step .sn{font-weight:800;color:var(--brand)}
+.step.last{border-color:#86efac;background:#f0fdf4}
+.down{flex:none;align-self:center;width:46px;height:46px;border-radius:50%;border:1px solid #d8b4fe;background:var(--brandLight);color:var(--brand);
+  font-size:1.3em;cursor:pointer;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
+.fade{animation:fadeUp .45s ease both}
+.tools{position:absolute;left:.6em;top:.6em;display:flex;gap:.4em;z-index:5}
+.tool{width:44px;height:44px;border-radius:50%;border:1px solid #d8b4fe;background:#fff;color:var(--brand);cursor:pointer;display:grid;place-items:center;padding:0}
+.tool.on{background:var(--brand);color:#fff}
+.hint{position:absolute;right:.6em;top:.7em;display:flex;align-items:center;gap:.4em;background:rgba(255,255,255,.9);border:1px solid var(--line);
+  border-radius:999px;padding:.3em .75em;font-size:.82em;font-weight:700;color:var(--brand);pointer-events:none;z-index:5}
+.legend{position:absolute;left:.6em;bottom:.6em;display:flex;flex-wrap:wrap;gap:.2em .85em;background:rgba(255,255,255,.9);
+  padding:.35em .65em;border-radius:.6em;font-size:.82em;font-weight:700;max-width:calc(100% - 1.2em);z-index:5;border:1px solid var(--line)}
+.legend span{white-space:nowrap}
+.dot{display:inline-block;width:1em;height:.32em;border-radius:3px;margin-right:.35em;vertical-align:middle}
+.opt{display:flex;gap:.6em;align-items:flex-start;width:100%;text-align:left;min-height:46px;padding:.45em .75em;margin:.3em 0;border-radius:.7em;border:2px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.3}
+.opt b{color:var(--brand);min-width:1.1em}
+.opt.ok{border-color:#16a34a;background:#dcfce7}.opt.bad{border-color:#dc2626;background:#fee2e2;opacity:.85}
+.fb{border-radius:.7em;padding:.5em .8em;margin:.5em 0;font-weight:700;line-height:1.4}
+.fb.ok{background:#dcfce7;border:1px solid #86efac;color:#166534}.fb.bad{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1em;text-align:center}
+.start{background:var(--panelLeft)}
+.start h1{margin:.2em 0 .25em;font-size:1.9em;line-height:1.1;color:#1e1b4b;font-weight:800;animation:fadeUp .6s ease both}
+.start h1 span{color:var(--brand)}
+.start .sub{margin:0 0 .9em;font-weight:800;color:var(--brand);letter-spacing:.12em;text-transform:uppercase;font-size:.95em}
+@media(min-width:768px){.start h1{font-size:2.5em}}
+.go{display:flex;align-items:center;gap:.9em;background:#fff;border:1px solid #e9d5ff;border-radius:999px;padding:.55em .6em .55em 1.4em;color:#581c87;font:inherit;font-weight:800;
+  letter-spacing:.14em;cursor:pointer;box-shadow:0 2px 10px rgba(88,28,135,.1);animation:pop .5s ease both}
+.go i{width:2.2em;height:2.2em;border-radius:50%;background:#f3e8ff;display:grid;place-items:center;font-style:normal;font-size:.8em}
+.menu{position:absolute;inset:0;overflow-y:auto;padding:1em max(16px,env(safe-area-inset-left,0px)) 5em;background:var(--panelLeft)}
+.menu h2{margin:.1em 0 .7em;font-size:1.25em;color:var(--brand)}
+.mgrid{display:grid;grid-template-columns:1fr;gap:.7em;max-width:70em;margin:0 auto}
+@media(min-width:768px){.mgrid{grid-template-columns:1fr 1fr}}
+.mcard{display:flex;align-items:center;gap:.9em;background:var(--panelRight);border:1px solid #e2e8f0;border-radius:.9em;padding:.8em 1em;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s;min-height:56px}
+.mcard:hover{border-color:#c084fc;background:#faf5ff;box-shadow:0 3px 12px rgba(107,33,168,.1)}
+.mcard.dn{border-color:#86efac;background:#f0fdf4}
+.mcard .n{width:2.5em;height:2.5em;border-radius:50%;background:#ede9fe;color:#5b21b6;font-weight:800;display:grid;place-items:center;flex:none}
+.mcard.dn .n{background:#dcfce7;color:#15803d}
+.mcard b{display:block;line-height:1.2}.mcard small{color:var(--muted);font-weight:600}
+.sign{flex:none;text-align:center;padding:.35em .5em;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;letter-spacing:.05em}
+.sign b{color:#64748b}
+svg text{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useContext, createContext } = React;
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.sqrt(dot(a,a));
+const nrm=a=>{const l=len(a)||1;return mul(a,1/l);};
+const lerp=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const mid=(a,b)=>lerp(a,b,.5);
+const cen=arr=>mul(arr.reduce(add,[0,0,0]),1/arr.length);
+const rad=d=>d*Math.PI/180;
+const L=id=>String(id).replace(/1$/,'₁');
+const rectPlane=(Cn,e1,e2,hw,hh)=>[
+  add(Cn,add(mul(e1,hw),mul(e2,hh))),add(Cn,add(mul(e1,-hw),mul(e2,hh))),
+  add(Cn,add(mul(e1,-hw),mul(e2,-hh))),add(Cn,add(mul(e1,hw),mul(e2,-hh)))];
+const C={edge:'#334155',ink:'#0f172a',par:'#16a34a',skew:'#dc2626',
+  al:'#2563eb',be:'#ea580c',ga:'#7e22ce',gold:'#d97706',grey:'#64748b',halo:'#FAF5FF'};
+const boxP=(hx,hy,hz)=>({
+  A:[-hx,-hy,-hz],B:[hx,-hy,-hz],C:[hx,hy,-hz],D:[-hx,hy,-hz],
+  A1:[-hx,-hy,hz],B1:[hx,-hy,hz],C1:[hx,hy,hz],D1:[-hx,hy,hz]});
+const BOXF=[['A','B','C','D'],['A1','B1','C1','D1'],['A','B','B1','A1'],['B','C','C1','B1'],['C','D','D1','C1'],['D','A','A1','D1']];
+const plane=(p,color,op=.14,sw=1.6)=>({t:'poly',p,fill:color,op,stroke:color,sw});
+const vp=(ids,c)=>ids.map(id=>({t:'pt',id,c:c||C.ink}));
+
+function Scene3D({scene,yaw0=0.7,pitch0=0.42,auto0=false,bare=false,legend=null,fit=false}){
+  const fitRef=useRef({});
+  const wrap=useRef(null);
+  const [sz,setSz]=useState({w:600,h:500});
+  const [cam,setCam]=useState({yaw:yaw0,pitch:pitch0});
+  const [auto,setAuto]=useState(auto0);
+  const drag=useRef(null),moved=useRef(false);
+  useEffect(()=>{
+    const el=wrap.current;
+    const upd=()=>setSz({w:el.clientWidth||600,h:el.clientHeight||500});
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();
+    return()=>ro.disconnect();
+  },[]);
+  useEffect(()=>{
+    if(!auto)return;let raf,last=performance.now();
+    const tick=t=>{const dt=t-last;last=t;
+      if(!drag.current)setCam(c=>({...c,yaw:c.yaw+dt*0.0005}));
+      raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  },[auto]);
+  const onDown=e=>{drag.current={x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,id:e.pointerId};moved.current=false;};
+  const onMove=e=>{
+    const d=drag.current;if(!d)return;
+    if(!moved.current){
+      if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;
+      moved.current=true;
+      try{e.currentTarget.setPointerCapture(d.id);}catch(_){}
+    }
+    const dx=e.clientX-d.px,dy=e.clientY-d.py;d.px=e.clientX;d.py=e.clientY;
+    setCam(c=>({yaw:c.yaw+dx*0.0085,pitch:Math.max(-1.25,Math.min(1.45,c.pitch+dy*0.0085))}));
+  };
+  const onUp=()=>{drag.current=null;setTimeout(()=>{moved.current=false;},0);};
+  const {w,h}=sz;
+  const R=scene.R||2.8,ctr=scene.ctr||[0,0,0],P=scene.P||{};
+  const D=R*5.5,S0=Math.min(w,h)/(2*R)*0.97;
+  const get=p=>typeof p==='string'?P[p]:p;
+  const fs=Math.max(15,Math.min(26,w/32)),big=w>900?1.25:1;
+  const rot=(yaw,pitch)=>{const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+    return v=>{const x1=v[0]*cy-v[1]*sy,y1=v[0]*sy+v[1]*cy;return[x1,y1*sp+v[2]*cp,y1*cp-v[2]*sp];};};
+  /* автопідгонка: фігура заповнює свою область (рахується один раз для початкового ракурсу) */
+  let S=S0,ox=0,oy=0;
+  if(fit){
+    const key=w+'x'+h;
+    if(!fitRef.current[key]){
+      const pts=[];
+      scene.prims.forEach(pr=>{if(!pr)return;
+        if(pr.t==='poly')pr.p.forEach(x=>pts.push(get(x)));
+        else if(pr.t==='seg'){pts.push(get(pr.a),get(pr.b));}
+        else if(pr.t==='pt')pts.push(pr.p||P[pr.id]);
+        else if(pr.t==='txt')pts.push(get(pr.p));
+        else if(pr.t==='solid')pr.faces.flat().forEach(x=>pts.push(get(x)));});
+      const tr=rot(yaw0,pitch0);let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+      pts.filter(Boolean).forEach(p=>{const q=tr(sub(p,ctr)),k=D/(D+q[2]);const x=q[0]*k*S0,y=-q[1]*k*S0;
+        x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);});
+      const padX=fs*2.4,padT=Math.max(58,fs*1.8),padB=fs*1.6;
+      let f=Math.min((w-2*padX)/Math.max(1,x1-x0),(h-padT-padB)/Math.max(1,y1-y0));
+      f=Math.max(.6,Math.min(2.2,f));
+      fitRef.current[key]={f,ox:(x0+x1)/2*f,oy:(y0+y1)/2*f-(padT-padB)/2};
+    }
+    ({ox,oy}=fitRef.current[key]);S=S0*fitRef.current[key].f;
+  }
+  const tfv=rot(cam.yaw,cam.pitch);
+  const tf=p=>tfv(sub(p,ctr));
+  const pj=p=>{const q=tf(p),k=D/(D+q[2]);return{x:w/2+q[0]*k*S-ox,y:h/2-q[1]*k*S-oy,d:q[2]};};
+  const polys=[],hid=[],vis=[],dots=[],lbls=[];let kk=0;
+  const pushSeg=(a,b,o,hidden)=>{
+    const A=pj(get(a)),B=pj(get(b));const col=o.c||C.edge,sw=(o.w||2.2)*big;
+    const el=<line key={'s'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={col} strokeWidth={sw}
+      strokeLinecap="round" strokeDasharray={(hidden||o.dash)?`${sw*2.6} ${sw*2.2}`:undefined} opacity={hidden?.7:(o.op||1)}/>;
+    (hidden||o.dash?hid:vis).push(el);
+  };
+  const pushPoly=(pts3,o)=>{
+    const q=pts3.map(p=>pj(get(p)));const dm=q.reduce((s,a)=>s+a.d,0)/q.length;
+    polys.push({dm,el:<polygon key={'p'+(kk++)} points={q.map(a=>a.x+','+a.y).join(' ')} fill={o.fill||'none'} fillOpacity={o.op==null?.15:o.op}
+      stroke={o.stroke||'none'} strokeWidth={(o.sw||1.5)*big} strokeDasharray={o.dash?'6 5':undefined} strokeLinejoin="round"/>});
+  };
+  scene.prims.forEach(pr=>{
+    if(!pr)return;
+    if(pr.t==='poly')pushPoly(pr.p,pr);
+    else if(pr.t==='seg')pushSeg(pr.a,pr.b,pr,false);
+    else if(pr.t==='solid'){
+      const verts=[...new Set(pr.faces.flat())];const c0=cen(verts.map(get));
+      const em=new Map();
+      pr.faces.forEach((f,i)=>{
+        const p3=f.map(get);const n0=cross(sub(p3[1],p3[0]),sub(p3[2],p3[0]));
+        const n=dot(n0,sub(cen(p3),c0))<0?mul(n0,-1):n0;const front=tfv(n)[2]<0;
+        if(pr.tint)pushPoly(f,{fill:'#7c3aed',op:front?.06:.025});
+        f.forEach((v,j)=>{const u=f[(j+1)%f.length];const key=[v,u].sort().join('|');
+          const e=em.get(key)||{a:v,b:u,vis:false};e.vis=e.vis||front;em.set(key,e);});
+      });
+      em.forEach(e=>pushSeg(e.a,e.b,{c:pr.c||C.edge,w:pr.w||2.4},!e.vis));
+    }
+    else if(pr.t==='pt'){
+      const p=pr.p||P[pr.id];const q=pj(p);const col=pr.c||C.ink;
+      dots.push(<circle key={'d'+(kk++)} cx={q.x} cy={q.y} r={(pr.r||fs*.27)*(big>1?1.1:1)} fill={col} stroke="#fff" strokeWidth="1.5"/>);
+      const label=pr.label===false?null:(pr.label||L(pr.id||''));
+      if(label){
+        let dx=q.x-(w/2-ox),dy=q.y-(h/2-oy);let l=Math.hypot(dx,dy);
+        if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+        const off=fs*(pr.off||1.0);
+        lbls.push(<text key={'l'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+          fontFamily='"Times New Roman",Georgia,serif' fontStyle="italic" fontWeight="700" fontSize={fs*(pr.size||1)} fill={pr.lc||col}
+          stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{label}</text>);
+      }
+    }
+    else if(pr.t==='txt'){
+      const q=pj(get(pr.p));let dx=q.x-(w/2-ox),dy=q.y-(h/2-oy);let l=Math.hypot(dx,dy);
+      if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+      const off=fs*(pr.off==null?.8:pr.off);
+      lbls.push(<text key={'t'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+        fontFamily={pr.upright?'-apple-system,Segoe UI,Roboto,sans-serif':'"Times New Roman",Georgia,serif'} fontStyle={pr.upright?'normal':'italic'}
+        fontWeight="700" fontSize={fs*(pr.size||1.1)} fill={pr.c||C.ink} stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{pr.s}</text>);
+    }
+  });
+  polys.sort((a,b)=>b.dm-a.dm);
+  return(
+    <div ref={wrap} style={{position:'absolute',inset:0}}>
+      <svg width={w} height={h} style={{position:'absolute',inset:0,touchAction:'none',cursor:drag.current?'grabbing':'grab',display:'block'}}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={()=>{if(!moved.current)drag.current=null;}}>
+        <g>{polys.map(p=>p.el)}</g><g>{hid}</g><g>{vis}</g><g>{dots}</g><g>{lbls}</g>
+      </svg>
+      {!bare&&<div className="tools">
+        <button className="tool" aria-label="Скинути вигляд" title="Скинути вигляд" onClick={()=>setCam({yaw:yaw0,pitch:pitch0})}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button className={'tool'+(auto?' on':'')} aria-label="Автообертання" title="Автообертання" onClick={()=>setAuto(a=>!a)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M17 16l3.5.5.5-3.5"/></svg>
+        </button>
+      </div>}
+      {!bare&&<div className="hint">Тягни — обертай</div>}
+      {legend&&<div className="legend">{legend.map((l,i)=><span key={i}><i className="dot" style={{background:l[0]}}/>{l[1]}</span>)}</div>}
+    </div>
+  );
+}
+
+const NavCtx=createContext(null);
+function useScrollTo(dep){
+  const ref=useRef(null);
+  useEffect(()=>{if(dep&&ref.current&&ref.current.scrollIntoView)setTimeout(()=>{try{ref.current.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}},60);},[dep]);
+  return ref;
+}
+const M=({children})=><i className="m">{children}</i>;
+const Fr=({n,d})=><span className="fr"><span>{n}</span><span>{d}</span></span>;
+function Steps({items,k,setK,label='Показати розв’язання'}){
+  const ref=useScrollTo(k>0?k:0);
+  return(<div className="steps">
+    {items.slice(0,k).map((t,i)=><div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}
+    {k===0&&<button className="btn" style={{alignSelf:'flex-start'}} onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&k<items.length&&<button className="down" aria-label="Далі" onClick={()=>setK(k+1)}>↓</button>}
+    {k>0&&<button className="btn ghost sm" style={{alignSelf:'flex-start'}} onClick={()=>setK(0)}>↻ Спочатку</button>}
+    <div ref={ref} style={{height:'3.2em'}}/>
+  </div>);
+}
+const txtPl=(poly,i,s,c,lo)=>({t:'txt',p:poly[i],s,c,size:1.35,lo});
+/* позначка прямого кута між напрямами u і v у точці O */
+const rm=(O,u,v,s=.3,c=C.par)=>{const a=add(O,mul(nrm(u),s)),b=add(a,mul(nrm(v),s)),d=add(O,mul(nrm(v),s));
+  return[{t:'seg',a,b,c,w:2.4},{t:'seg',a:d,b,c,w:2.4}];};
+const line=(Q,d,t0,t1,c,w=4)=>({t:'seg',a:add(Q,mul(d,t0)),b:add(Q,mul(d,t1)),c,w});
+const FLOOR=(hw=2.4,hh=1.9,z=0)=>rectPlane([0,0,z],[1,0,0],[0,1,0],hw,hh);
+const Z=[0,0,1];
+const outline=(pts,fill='#94a3b8',op=.1)=>({t:'poly',p:pts,fill,op,stroke:C.edge,sw:2.4});
+const up3=(p,h)=>[p[0],p[1],h];
+const lab3=(p,s,c,lo,size=.9,off=1.3)=>({t:'txt',p,s,c:c||C.ink,upright:true,size,lo,off});
+const pt3=(id,lo,c)=>({t:'pt',id,c:c||C.ink,lo});
+const CB=boxP(1.1,1.1,1.1);
+const cubeSolid=()=>({t:'solid',faces:BOXF,tint:true,w:2.2});
+
+/* =====================================================================
+   Задачі практикуму
+   ===================================================================== */
+const P7={A:[-1.4,-0.808,0],B:[0,1.617,0],C:[1.4,-0.808,0],O:[0,0,0],D:[0,0,2.567]};
+const P11={K:[-1.7,0,0],L:[0,-1.1,0],M:[1.7,0,0],N:[0,1.1,0],O:[0,0,0],F:[0,-1.1,1.8]};
+const P13={C:[-1.0,0,0],D:[0.05,0,0],A:[-1.0,0,1.89],B:[0.05,0,1.33],H:[-1.0,0,1.33]};
+const G1=(()=>{const A1=[-1.8,-0.5,0],B1=[1.8,0.7,0],C1=lerp(A1,B1,.4);
+  return{A1,B1,C1,A:up3(A1,1.08),B:up3(B1,2.43),C:up3(C1,1.62),D:up3(B1,1.08),K:up3(C1,1.08)};})();
+const G2=(()=>{const M1=[-1.8,-0.5,0],N1=[1.8,0.7,0],K1=lerp(M1,N1,2/3),x=1.1;
+  return{M1,N1,K1,M:up3(M1,2.0),N:up3(N1,x),K:up3(K1,1.4),T:up3(M1,x),S:up3(K1,x)};})();
+const G3=(()=>{const A1=[-1.6,-0.9,0],B1=[0.9,-1.1,0],D1=[-0.9,0.9,0],C1=[1.6,0.7,0],O1=[0,-0.1,0];
+  return{A1,B1,C1,D1,O1,A:up3(A1,1.17),B:up3(B1,1.53),C:up3(C1,2.34),D:up3(D1,1.98),O:up3(O1,1.755)};})();
+
+const LIST=[
+{ id:'p1',tab:'Задача 1',num:'Задача 1.',fig:true,ok:2,
+  cond:<>Через центр <M>O</M> правильного трикутника <M>ABC</M> проведено пряму <M>DO</M>, перпендикулярну до площини <M>ABC</M>. Знайдіть відрізок <M>DO</M>, якщо <M>AB</M> = 12 см, <M>DA</M> = 13 см.</>,
+  opts:['√217 см','4√3 см','11 см','5 см','12 см'],
+  ex:<><M>DO</M> = 11 см.</>,
+  steps:[
+    <><M>AO</M> — радіус описаного кола: <span className="cg"><M>AO</M> = <Fr n="12" d="√3"/> = 4√3 см</span>.</>,
+    <><span className="cr"><M>DO</M></span> ⊥ <M>ABC</M> ⇒ <M>DO</M> ⊥ <M>AO</M>, △<span className="ca"><M>DOA</M></span> — прямокутний.</>,
+    <><M>DO</M> = √(<M>DA</M>² − <M>AO</M>²) = √(169 − 48) = √121 = <b>11 см</b>.</>],
+  scene:st=>{const P=P7;const pr=[outline(['A','B','C']),{t:'seg',a:'D',b:'O',c:C.edge,w:3},{t:'seg',a:'D',b:'A',c:C.edge,w:2.4},{t:'seg',a:'D',b:'B',c:C.edge,w:1.6,dash:true},{t:'seg',a:'D',b:'C',c:C.edge,w:1.6,dash:true},
+      {t:'seg',a:'A',b:'B',c:C.edge,w:3},{t:'seg',a:'B',b:'C',c:C.edge,w:3},{t:'seg',a:'A',b:'C',c:C.edge,w:3}];
+    if(st.k>=2)pr.push({t:'poly',p:['D','O','A'],fill:C.gold,op:.28},...rm(P.O,Z,sub(P.A,P.O),.3));
+    if(st.k>=1)pr.push({t:'seg',a:'O',b:'A',c:C.par,w:6});
+    if(st.k>=3)pr.push({t:'seg',a:'D',b:'O',c:C.skew,w:6.5});
+    pr.push(...vp(['A','B','C','D']),{t:'pt',id:'O',c:C.ink,lo:[1,.9]},
+      lab3(mid(P.A,P.B),'12 см',C.ink,[-1,.6],.9,1.6),lab3(mid(P.D,P.A),'13 см',C.ink,[-1,0],.9,1.5));
+    if(st.k>=3)pr.push(lab3(mid(P.D,P.O),'11 см',C.skew,[1,0],.95,1.3));
+    return{P,prims:pr,R:2.7,ctr:[0,0,0.95]};},yaw:0.35,pitch:0.45
+},
+{ id:'p2',tab:'Задача 2',num:'Задача 2.',fig:true,ok:0,
+  cond:<>Точка <M>O</M> — центр грані <M>ABCD</M> куба <M>ABCDA₁B₁C₁D₁</M>, ребро якого дорівнює 4 см. Знайдіть відстань від точки <M>O</M> до вершини <M>D₁</M> куба.</>,
+  opts:['2√6 см','2√3 см','2√2 см','4√3 см','4√2 см'],
+  ex:<><M>OD₁</M> = 2√6 см.</>,
+  steps:[
+    <><M>OD</M> — половина діагоналі квадрата <M>ABCD</M>: <M>BD</M> = 4√2 см, <span className="cg"><M>OD</M> = 2√2 см</span>.</>,
+    <><M>DD₁</M> ⊥ <M>ABC</M> ⇒ <M>DD₁</M> ⊥ <M>OD</M>, △<span className="ca"><M>ODD₁</M></span> — прямокутний.</>,
+    <><span className="cr"><M>OD₁</M></span> = √(<M>OD</M>² + <M>DD₁</M>²) = √(8 + 16) = √24 = <b>2√6 см</b>.</>],
+  scene:st=>{const P={...CB,O:[0,0,-1.1]};const pr=[cubeSolid()];
+    if(st.k>=2)pr.push({t:'poly',p:['O','D','D1'],fill:C.gold,op:.28},...rm(P.D,Z,sub(P.O,P.D),.28));
+    if(st.k>=1)pr.push({t:'seg',a:'O',b:'D',c:C.par,w:6});
+    if(st.k>=3)pr.push({t:'seg',a:'O',b:'D1',c:C.skew,w:6.5});
+    pr.push(...vp(Object.keys(CB)),{t:'pt',id:'O',c:C.ink,lo:[0,1]},lab3(mid(P.A,P.B),'4 см',C.ink,[0,1],.9,1.3));
+    return{P,prims:pr,R:2.8};}
+},
+{ id:'p3',tab:'Задача 3',num:'Задача 3.',fig:true,ok:4,
+  cond:<>Точка <M>O</M> — центр грані <M>ABCD</M> куба <M>ABCDA₁B₁C₁D₁</M>, ребро якого дорівнює 4 см. Знайдіть косинус кута між прямими <M>D₁O</M> і <M>BB₁</M>.</>,
+  opts:[<Fr n="√3" d="3"/>,<Fr n="√2" d="2"/>,<Fr n="√3" d="2"/>,<Fr n="√6" d="6"/>,<Fr n="√6" d="3"/>],
+  ex:<>cos = <Fr n="√6" d="3"/>.</>,
+  steps:[
+    <><span className="cg"><M>BB₁ ∥ DD₁</M></span> ⇒ кут між <M>D₁O</M> і <M>BB₁</M> дорівнює куту <span className="ca"><M>OD₁D</M></span>.</>,
+    <><M>OD</M> = 2√2 см, △<M>ODD₁</M> — прямокутний: <M>OD₁</M> = √(8 + 16) = 2√6 см.</>,
+    <>cos ∠<M>OD₁D</M> = <Fr n="DD₁" d="OD₁"/> = <Fr n="4" d="2√6"/> = <Fr n="2" d="√6"/> = <b><Fr n="√6" d="3"/></b>.</>],
+  scene:st=>{const P={...CB,O:[0,0,-1.1]};const pr=[cubeSolid()];
+    if(st.k>=1)pr.push({t:'seg',a:'B',b:'B1',c:C.par,w:6},{t:'seg',a:'D',b:'D1',c:C.par,w:6},{t:'seg',a:'O',b:'D1',c:C.skew,w:6.5});
+    if(st.k>=2)pr.push({t:'poly',p:['O','D','D1'],fill:C.gold,op:.28},{t:'seg',a:'O',b:'D',c:C.edge,w:3},...rm(P.D,Z,sub(P.O,P.D),.28));
+    pr.push(...vp(Object.keys(CB)),{t:'pt',id:'O',c:C.ink,lo:[0,1]},lab3(mid(P.A,P.B),'4 см',C.ink,[0,1],.9,1.3));
+    return{P,prims:pr,R:2.8};}
+},
+{ id:'p4',tab:'Задача 4',num:'Задача 4.',fig:true,ok:1,proof:true,
+  cond:<>Через вершину <M>L</M> ромба <M>KLMN</M> проведено пряму <M>LF</M>, перпендикулярну до площини ромба. Діагоналі ромба перетинаються в точці <M>O</M>. Доведіть, що пряма <M>KM</M> перпендикулярна до площини <M>LFO</M>.</>,
+  q:'Які дві прямі площини LFO треба взяти для ознаки перпендикулярності?',
+  opts:['KL і LF','LN і LF','LO і LN','LM і LF'],
+  ex:<><M>LN</M> і <M>LF</M> перетинаються в точці <M>L</M> та лежать у площині <M>LFO</M>.</>,
+  steps:[
+    <><span className="co"><M>KM</M> ⊥ <M>LN</M></span> — діагоналі ромба перпендикулярні.</>,
+    <><span className="cv"><M>LF</M> ⊥ <M>KLM</M></span> ⇒ <span className="cv"><M>LF</M> ⊥ <M>KM</M></span>.</>,
+    <><M>KM</M> ⊥ <M>LN</M> і <M>KM</M> ⊥ <M>LF</M>; <M>LN</M> і <M>LF</M> перетинаються та лежать у площині <span className="cb"><M>LFO</M></span>.</>,
+    <>За ознакою перпендикулярності <span className="cr"><M>KM</M> ⊥ <M>LFO</M></span>. <i>Доведено.</i></>],
+  scene:st=>{const P=P11,N2=[0,1.1,1.8];const pr=[outline(['K','L','M','N']),
+      {t:'seg',a:'K',b:'M',c:C.grey,w:1.6},{t:'seg',a:'L',b:'N',c:C.grey,w:1.6},{t:'seg',a:'L',b:'F',c:C.edge,w:3.4}];
+    ['K','L','M','N'].forEach((v,i)=>pr.push({t:'seg',a:v,b:['L','M','N','K'][i],c:C.edge,w:3}));
+    if(st.k>=3)pr.push(plane([P.L,P.N,N2,P.F],C.al,.22));
+    if(st.k>=1)pr.push({t:'seg',a:'K',b:'M',c:C.be,w:5.6},{t:'seg',a:'L',b:'N',c:C.be,w:5.6},...rm(P.O,[1,0,0],[0,1,0],.3));
+    if(st.k>=2)pr.push({t:'seg',a:'L',b:'F',c:C.ga,w:6},...rm(P.L,Z,[1,0,0],.3));
+    if(st.k>=4)pr.push({t:'seg',a:'K',b:'M',c:C.skew,w:6.5});
+    pr.push(...vp(['K','L','M','N','F']),{t:'pt',id:'O',c:C.ink,lo:[0,1]});
+    return{P,prims:pr,R:2.9,ctr:[0,0,0.6]};},yaw:0.3,pitch:0.5
+},
+{ id:'p5',tab:'Задача 5',num:'Задача 5.',fig:true,ok:3,
+  cond:<>Відрізок <M>AB</M> не перетинає площину <span className="cb"><M>α</M></span>. Через точки <M>A</M> і <M>B</M> проведено прямі, які перпендикулярні до площини <span className="cb"><M>α</M></span> та перетинають її в точках <M>C</M> і <M>D</M> відповідно. Знайдіть відрізок <M>CD</M>, якщо <M>AC</M> = 27 см, <M>BD</M> = 19 см, <M>AB</M> = 17 см.</>,
+  opts:['9 см','8 см','12 см','15 см','√353 см'],
+  ex:<><M>CD</M> = 15 см.</>,
+  steps:[
+    <><span className="cg"><M>AC</M> ⊥ <M>α</M>, <M>BD</M> ⊥ <M>α</M></span> ⇒ <span className="cg"><M>AC ∥ BD</M></span> (теорема 34.3). Точки <M>A, B, C, D</M> лежать в одній площині.</>,
+    <>Проведемо <M>BH</M> ⊥ <M>AC</M>. <M>HC</M> = <M>BD</M> = 19 см, тому <span className="ca"><M>AH</M> = 27 − 19 = 8 см</span>.</>,
+    <>△<M>ABH</M>: <M>BH</M> = √(17² − 8²) = √(289 − 64) = √225 = 15 см.</>,
+    <><span className="cr"><M>CD</M> = <M>BH</M> = 15 см</span>.</>],
+  scene:st=>{const P=P13,pl=rectPlane([-0.47,0,0],[1,0,0],[0,1,0],1.9,1.5);
+    const pr=[plane(pl,C.al,.16),txtPl(pl,3,'α',C.al),{t:'seg',a:'A',b:'C',c:C.edge,w:3.6},{t:'seg',a:'B',b:'D',c:C.edge,w:3.6},{t:'seg',a:'A',b:'B',c:C.edge,w:3.6},
+      {t:'seg',a:'C',b:'D',c:C.edge,w:2.4,dash:true}];
+    if(st.k>=1)pr.push(plane(['A','B','D','C'],C.par,.14,1),{t:'seg',a:'A',b:'C',c:C.par,w:6},{t:'seg',a:'B',b:'D',c:C.par,w:6});
+    if(st.k>=3)pr.push({t:'poly',p:['A','B','H'],fill:C.gold,op:.28});
+    if(st.k>=2)pr.push({t:'seg',a:'B',b:'H',c:C.gold,w:5,dash:true},{t:'seg',a:'A',b:'H',c:C.gold,w:5},{t:'pt',id:'H',c:C.ink,lo:[-1,0.3]});
+    if(st.k>=4)pr.push({t:'seg',a:'C',b:'D',c:C.skew,w:6.5});
+    pr.push(...vp(['A','B','C','D']),
+      lab3(mid(P.A,P.C),'27 см',C.ink,[-1,0],.9,1.6),lab3(mid(P.B,P.D),'19 см',C.ink,[1,0],.9,1.3),
+      lab3(mid(P.A,P.B),'17 см',C.ink,[1,-.6],.9,1.3),lab3(mid(P.C,P.D),st.k>=4?'15 см':'?',C.skew,[0,1],1,2.4));
+    return{P,prims:pr,R:2.5,ctr:[-0.47,0,0.9]};},yaw:0.55,pitch:0.35
+},
+{ id:'p6',tab:'Задача 6',num:'Задача 6.',fig:true,ok:0,
+  cond:<>Через кінці <M>A</M> і <M>B</M> та точку <M>C</M> відрізка <M>AB</M>, що не перетинає площину <span className="cb"><M>α</M></span>, проведено прямі, які перпендикулярні до площини <span className="cb"><M>α</M></span> та перетинають її в точках <M>A₁</M>, <M>B₁</M> і <M>C₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AA₁</M> = 12 см, <M>BB₁</M> = 27 см, <M>AC</M> : <M>BC</M> = 2 : 3.</>,
+  opts:['18 см','20 см','16 см','21 см','15 см'],
+  ex:<><M>CC₁</M> = 18 см.</>,
+  steps:[
+    <><span className="cg"><M>AA₁</M>, <M>BB₁</M>, <M>CC₁</M> ⊥ <M>α</M></span> ⇒ ці прямі паралельні (теорема 34.3). Паралельні прямі <M>AA₁</M> і <M>BB₁</M> лежать в одній площині. Точка <M>C</M> лежить на <M>AB</M>, а <M>CC₁ ∥ AA₁</M>, тому <M>CC₁</M> лежить у цій самій площині.</>,
+    <>Ця площина перетинає <span className="cb"><M>α</M></span> по прямій <span className="cb"><M>A₁B₁</M></span>, тому <M>C₁</M> лежить на <M>A₁B₁</M>. Маємо трапецію <M>AA₁B₁B</M> з основами 12 см і 27 см.</>,
+    <>Проведемо через <M>A</M> пряму <span className="ca"><M>AD ∥ A₁B₁</M></span> (<M>D</M> лежить на <M>BB₁</M>). Нехай вона перетинає <M>CC₁</M> у точці <M>K</M>.</>,
+    <><span className="ca"><M>AA₁B₁D</M></span> і <M>AA₁C₁K</M> — прямокутники (<M>AD ∥ A₁B₁</M>, <M>AA₁ ⊥ A₁B₁</M>). Тому <M>KC₁</M> = <M>DB₁</M> = <M>AA₁</M> = 12 см. Тоді <span className="co"><M>BD</M> = <M>BB₁</M> − <M>DB₁</M> = 27 − 12 = 15 см</span>.</>,
+    <><M>AC</M> : <M>BC</M> = 2 : 3 ⇒ <M>AC</M> : <M>AB</M> = 2 : 5. Прямі <M>CK</M> і <M>BD</M> паралельні (обидві паралельні <M>AA₁</M>), тому <span className="ca">△<M>ACK</M> ∼ △<M>ABD</M></span>.</>,
+    <><Fr n="CK" d="BD"/> = <Fr n="AC" d="AB"/> = <Fr n="2" d="5"/>, тому <span className="co"><M>CK</M> = <Fr n="15 · 2" d="5"/> = 6 см</span>.</>,
+    <><span className="cr"><M>CC₁</M></span> = <M>CK</M> + <M>KC₁</M> = 6 + 12 = <b>18 см</b>.</>],
+  scene:st=>{const P=G1,k=st.k,pl=FLOOR(2.7,2.0);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al)];
+    if(k>=1)pr.push(plane(['A','B','B1','A1'],C.par,.13,1));
+    pr.push({t:'seg',a:'A',b:'B',c:C.edge,w:3.6},{t:'seg',a:'A',b:'A1',c:C.par,w:5},{t:'seg',a:'B',b:'B1',c:C.par,w:5},{t:'seg',a:'C',b:'C1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    if(k>=2)pr.push({t:'seg',a:'A1',b:'B1',c:C.al,w:5});
+    if(k>=4)pr.push({t:'poly',p:['A','A1','B1','D'],fill:C.gold,op:.2});
+    if(k>=5)pr.push({t:'poly',p:['A','C','K'],fill:C.ga,op:.32},{t:'poly',p:['A','B','D'],fill:C.ga,op:.12});
+    if(k>=3)pr.push({t:'seg',a:'A',b:'D',c:C.gold,w:4.6,dash:true},pt3('D',[1,-.3]),pt3('K',[1,.6]));
+    if(k>=4)pr.push({t:'seg',a:'B',b:'D',c:C.be,w:6.5},lab3(mid(P.B,P.D),'15 см',C.be,[1,0],.9,1.3));
+    if(k>=6)pr.push({t:'seg',a:'C',b:'K',c:C.be,w:6.5},lab3(mid(P.C,P.K),'6 см',C.be,[1,.3],.9,1.2));
+    pr.push(pt3('A',[-1,-.5]),pt3('B',[1,-.5]),pt3('C',[-1,-.6]),pt3('A1',[-1,.8]),pt3('B1',[1,.8]),pt3('C1',[0,1]),
+      lab3(mid(P.A,P.A1),'12 см',C.ink,[-1,0],.9,1.5),lab3(up3(P.B1,.3),'27 см',C.ink,[1,0],.9,1.6),
+      lab3(up3(P.C1,.22),k>=7?'18 см':'?',C.skew,[-1,0],1,1.4));
+    return{P,prims:pr,R:3.5,ctr:[0,0,0.95]};},yaw:0.45,pitch:0.38
+},
+{ id:'p7',tab:'Задача 7',num:'Задача 7.',fig:true,ok:1,
+  cond:<>Через кінці <M>M</M> і <M>N</M> та точку <M>K</M> відрізка <M>MN</M>, що не перетинає площину <span className="cb"><M>α</M></span>, проведено прямі, які перпендикулярні до площини <span className="cb"><M>α</M></span> та перетинають її в точках <M>M₁</M>, <M>N₁</M> і <M>K₁</M> відповідно. Знайдіть відрізок <M>NN₁</M>, якщо <M>MM₁</M> = 20 см, <M>KK₁</M> = 14 см, <M>MK</M> : <M>KN</M> = 2 : 1.</>,
+  opts:['8 см','11 см','10 см','12 см','9 см'],
+  ex:<><M>NN₁</M> = 11 см.</>,
+  steps:[
+    <><span className="cg"><M>MM₁</M>, <M>KK₁</M>, <M>NN₁</M> ⊥ <M>α</M></span> ⇒ ці прямі паралельні (теорема 34.3). Точки <M>M</M>, <M>K</M>, <M>N</M> лежать на одній прямій, тому всі три перпендикуляри лежать в одній площині. Вона перетинає <span className="cb"><M>α</M></span> по прямій <span className="cb"><M>M₁N₁</M></span>, а <M>K₁</M> лежить на <M>M₁N₁</M>.</>,
+    <>Нехай <M>NN₁</M> = <M>x</M> см. Проведемо через <M>N</M> пряму <span className="ca"><M>NT ∥ N₁M₁</M></span> (<M>T</M> лежить на <M>MM₁</M>, <M>S</M> — на <M>KK₁</M>). <M>NN₁M₁T</M> і <M>NN₁K₁S</M> — прямокутники, тому <M>TM₁</M> = <M>SK₁</M> = <M>NN₁</M> = <M>x</M>.</>,
+    <><span className="co"><M>MT</M> = <M>MM₁</M> − <M>TM₁</M> = 20 − <M>x</M></span>, <span className="co"><M>KS</M> = <M>KK₁</M> − <M>SK₁</M> = 14 − <M>x</M></span>.</>,
+    <><M>MK</M> : <M>KN</M> = 2 : 1 ⇒ <M>NK</M> : <M>NM</M> = 1 : 3. Прямі <M>KS</M> і <M>MT</M> паралельні, тому <span className="ca">△<M>NKS</M> ∼ △<M>NMT</M></span>.</>,
+    <><Fr n="KS" d="MT"/> = <Fr n="NK" d="NM"/>, тобто <Fr n="14 − x" d="20 − x"/> = <Fr n="1" d="3"/>.</>,
+    <>3(14 − <M>x</M>) = 20 − <M>x</M>; 42 − 3<M>x</M> = 20 − <M>x</M>; 22 = 2<M>x</M>.</>,
+    <><span className="cr"><M>NN₁</M></span> = <M>x</M> = <b>11 см</b>.</>],
+  scene:st=>{const P=G2,k=st.k,pl=FLOOR(2.7,2.0);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al)];
+    if(k>=1)pr.push(plane(['M','N','N1','M1'],C.par,.13,1));
+    pr.push({t:'seg',a:'M',b:'N',c:C.edge,w:3.6},{t:'seg',a:'M',b:'M1',c:C.par,w:5},{t:'seg',a:'K',b:'K1',c:C.par,w:5},{t:'seg',a:'N',b:'N1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    pr.push({t:'seg',a:'M1',b:'N1',c:C.al,w:k>=1?5:2});
+    if(k>=2)pr.push({t:'poly',p:['N','N1','M1','T'],fill:C.gold,op:.2},{t:'seg',a:'N',b:'T',c:C.gold,w:4.6,dash:true},pt3('T',[-1,.5]),pt3('S',[-1,.6]),
+      lab3(up3(P.N1,.7),'x',C.gold,[1,0],1.1,1.0));
+    if(k>=3)pr.push({t:'seg',a:'M',b:'T',c:C.be,w:6.5},{t:'seg',a:'K',b:'S',c:C.be,w:6.5},lab3(mid(P.M,P.T),'20 − x',C.be,[-1,0],.85,2.0),lab3(mid(P.K,P.S),'14 − x',C.be,[-1,-.5],.85,1.9));
+    if(k>=4)pr.push({t:'poly',p:['N','K','S'],fill:C.ga,op:.34},{t:'poly',p:['N','M','T'],fill:C.ga,op:.12});
+    pr.push(pt3('M',[-1,-.5]),pt3('N',[1,-.5]),pt3('K',[1,-.6]),pt3('M1',[-1,.8]),pt3('N1',[1,.8]),pt3('K1',[0,1]),
+      lab3(up3(P.M1,0.6),'20 см',C.ink,[-1,0],.9,1.6),lab3(up3(P.K1,0.5),'14 см',C.ink,[-1,0],.9,1.6),
+      lab3(up3(P.N1,.25),k>=7?'11 см':'?',C.skew,[1,0],1,1.6));
+    return{P,prims:pr,R:3.6,ctr:[0,0,0.9]};},yaw:0.45,pitch:0.3
+},
+{ id:'p8',tab:'Задача 8',num:'Задача 8.',fig:true,ok:3,
+  cond:<>Паралелограм <M>ABCD</M> не має спільних точок із площиною <span className="cb"><M>α</M></span>. Через вершини <M>A</M>, <M>B</M>, <M>C</M> і <M>D</M> проведено прямі, перпендикулярні до площини <span className="cb"><M>α</M></span>, які перетинають її в точках <M>A₁</M>, <M>B₁</M>, <M>C₁</M> і <M>D₁</M> відповідно. Знайдіть відрізок <M>CC₁</M>, якщо <M>AA₁</M> = 13 см, <M>BB₁</M> = 17 см, <M>DD₁</M> = 22 см.</>,
+  opts:['24 см','30 см','28 см','26 см','22 см'],
+  ex:<><M>CC₁</M> = 26 см.</>,
+  steps:[
+    <><span className="cg"><M>AA₁</M>, <M>BB₁</M>, <M>CC₁</M>, <M>DD₁</M> ⊥ <M>α</M></span> ⇒ усі чотири прямі паралельні (теорема 34.3).</>,
+    <>Діагоналі паралелограма <span className="co"><M>AC</M> і <M>BD</M></span> перетинаються в точці <M>O</M>, яка є серединою кожної з них.</>,
+    <>Проведемо через <M>O</M> пряму, паралельну <M>AA₁</M>. За теоремою 34.2 вона перпендикулярна до <span className="cb"><M>α</M></span>. Нехай вона перетинає <span className="cb"><M>α</M></span> у точці <M>O₁</M>.</>,
+    <>Прямі <M>AA₁</M> і <M>CC₁</M> паралельні, тому <M>A</M>, <M>A₁</M>, <M>C₁</M>, <M>C</M> лежать в одній площині — це трапеція <M>AA₁C₁C</M>. Пряма <M>OO₁</M> лежить у цій площині, паралельна основам і проходить через середину <M>AC</M>. Отже, <span className="ca"><M>OO₁</M> — середня лінія трапеції</span>: <M>OO₁</M> = <Fr n="AA₁ + CC₁" d="2"/>.</>,
+    <>Так само <M>B</M>, <M>B₁</M>, <M>D₁</M>, <M>D</M> лежать в одній площині, а <M>O</M> — середина <M>BD</M>. Тому <M>OO₁</M> — середня лінія трапеції <M>BB₁D₁D</M>: <M>OO₁</M> = <Fr n="BB₁ + DD₁" d="2"/>.</>,
+    <><Fr n="AA₁ + CC₁" d="2"/> = <Fr n="BB₁ + DD₁" d="2"/> ⇒ <span className="co"><M>AA₁</M> + <M>CC₁</M> = <M>BB₁</M> + <M>DD₁</M></span>.</>,
+    <><span className="cr"><M>CC₁</M></span> = <M>BB₁</M> + <M>DD₁</M> − <M>AA₁</M> = 17 + 22 − 13 = <b>26 см</b>.</>],
+  scene:st=>{const P=G3,k=st.k,pl=FLOOR(2.7,2.1);
+    const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),plane(['A','B','C','D'],'#94a3b8',.12,1)];
+    ['AB','BC','CD','DA'].forEach(e=>pr.push({t:'seg',a:e[0],b:e[1],c:C.edge,w:3.4}));
+    ['A1B1','B1C1','C1D1','D1A1'].forEach(e=>pr.push({t:'seg',a:e.slice(0,2),b:e.slice(2),c:C.grey,w:1.6,dash:true}));
+    pr.push({t:'seg',a:'A',b:'A1',c:C.par,w:5},{t:'seg',a:'B',b:'B1',c:C.par,w:5},{t:'seg',a:'D',b:'D1',c:C.par,w:5},{t:'seg',a:'C',b:'C1',c:k>=7?C.skew:C.par,w:k>=7?6.5:5});
+    if(k>=2)pr.push({t:'seg',a:'A',b:'C',c:C.be,w:4.2},{t:'seg',a:'B',b:'D',c:C.be,w:4.2},pt3('O',[0,-1]));
+    if(k===4||k>=6)pr.push(plane(['A','A1','C1','C'],C.al,.2,1));
+    if(k===5||k>=6)pr.push(plane(['B','B1','D1','D'],C.gold,.2,1));
+    if(k>=3)pr.push({t:'seg',a:'O',b:'O1',c:C.ga,w:6},pt3('O1',[0,1]));
+    pr.push(pt3('A',[-1,-.4]),pt3('B',[1,-.5]),pt3('C',[-1,-.7]),pt3('D',[-1,-.4]),pt3('A1',[-1,.8]),pt3('B1',[1,.8]),pt3('C1',[1,.8]),pt3('D1',[-1,.8]),
+      lab3(P.A1,'13 см',C.ink,[1,.9],.9,1.7),lab3(up3(P.B1,.76),'17 см',C.ink,[1,0],.9,1.5),lab3(up3(P.D1,.99),'22 см',C.ink,[-1,0],.9,1.5),
+      lab3(P.C,k>=7?'26 см':'?',C.skew,[1,-.3],1,1.9));
+    return{P,prims:pr,R:3.5,ctr:[0,0,0.95]};},yaw:0.9,pitch:0.4
+}];
+
+/* =====================================================================
+   Сторінка задачі: умова → рисунок → варіанти → розв'язання по кроках,
+   правильна відповідь підсвічується після останнього кроку
+   ===================================================================== */
+function SolSteps({items,k,setK,label}){
+  const endRef=useScrollTo(k);
+  return(<>
+    {k===0&&<button className="btn" onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&<div className="sgrid">{items.slice(0,k).map((t,i)=>
+      <div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}</div>}
+    {k>0&&<div className="sctl">
+      {k<items.length&&<button className="down" aria-label="Наступний крок" title="Наступний крок" onClick={()=>setK(k+1)}>↓</button>}
+      <button className="btn ghost sm" onClick={()=>setK(0)}>↻ Спочатку</button>
+    </div>}
+    <div ref={endRef} style={{height:'.5em'}}/>
+  </>);
+}
+const SplitCtx=createContext(null);
+function TaskPage({t,res,setRes}){
+  const k=res[t.id]||0;
+  const setK=v=>setRes(o=>({...o,[t.id]:v}));
+  const done=k>=t.steps.length;
+  const nav=useContext(NavCtx);
+  const [frac,setFrac]=useContext(SplitCtx);
+  const bodyRef=useRef(null);
+  const [bh,setBh]=useState(500);
+  const [drag,setDrag]=useState(false);
+  useEffect(()=>{const el=bodyRef.current;const upd=()=>setBh(el.clientHeight||500);
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();return()=>ro.disconnect();},[]);
+  const fbRef=useScrollTo(done?t.id:null);
+  const onSplit=e=>{
+    e.preventDefault();const r=bodyRef.current.getBoundingClientRect();setDrag(true);
+    const move=ev=>setFrac(Math.max(.25,Math.min(.8,(ev.clientY-r.top)/r.height)));
+    const up=()=>{setDrag(false);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);};
+    window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+  };
+  const figH=Math.max(120,Math.round(bh*frac)-18);
+  return(<div className="page">
+    <div className="head">
+      <div className="cond fade" key={t.id}><b>{t.num}</b> {t.cond}</div>
+      {nav}
+    </div>
+    <div className="body" ref={bodyRef}>
+      <div className="fig" style={{height:figH}}>
+        <Scene3D key={t.id} fit scene={t.scene({k})} yaw0={t.yaw||0.65} pitch0={t.pitch||0.42}/>
+      </div>
+      <div className={'split'+(drag?' on':'')} onPointerDown={onSplit} title="Тягни, щоб змінити розмір рисунка"><i/></div>
+      <div className="lower">
+        {t.q&&<p className="optq">{t.q}</p>}
+        <div className="optrow">{t.opts.map((o,i)=>
+          <div key={i} className={'opt'+(done&&i===t.ok?' ok':'')}><b>{'АБВГД'[i]}</b><span>{o}</span></div>)}</div>
+        <div className="sol">
+          <SolSteps k={k} setK={setK} items={t.steps} label={t.proof?'Показати доведення':'Показати розв’язання'}/>
+          {done&&<div ref={fbRef} className="fb ok fade">Правильна відповідь — <b>{'АБВГД'[t.ok]}</b>: <span style={{fontWeight:600}}>{t.ex}</span></div>}
+        </div>
+      </div>
+    </div>
+  </div>);
+}
+
+/* =====================================================================
+   Оболонка уроку
+   ===================================================================== */
+function startScene(){
+  const pl=FLOOR(2.4,2.0);
+  return{P:{},R:3.5,ctr:[0,0,0.8],prims:[plane(pl,C.al,.2),line([0,0,0],Z,-0.8,2.5,C.ga,5),line([0,0,0],[1,0.3,0],-1.8,1.8,C.be,3.6),line([0,0,0],[-0.3,1,0],-1.6,1.6,C.be,3.6),...rm([0,0,0],Z,[1,0.3,0],.34)]};
+}
+function App(){
+  const [scr,setScr]=useState('start');
+  const [res,setRes]=useState({});
+  const split=useState(typeof window!=='undefined'&&window.innerWidth<768?0.44:0.52);
+  const isItem=typeof scr==='number';
+  const nav=isItem&&(<div className="navb">
+    <button className="btn sm" onClick={()=>setScr('menu')}>☰ Зміст</button>
+    {scr>0&&<button className="btn sm ghost" onClick={()=>setScr(scr-1)}>← Назад</button>}
+    {scr<LIST.length-1?<button className="btn sm" onClick={()=>setScr(scr+1)}>Далі →</button>:<button className="btn sm" onClick={()=>setScr('start')}>На початок</button>}
+  </div>);
+  return(
+    <div className="app">
+      <div className="main">
+        {scr==='start'&&<div className="center start">
+          <div style={{width:'min(78vw,330px)',height:'min(34vh,260px)',position:'relative',marginBottom:'.4em'}}><Scene3D scene={startScene()} bare auto0 yaw0={0.5} pitch0={0.4}/></div>
+          <h1><span>Перпендикулярність</span><br/>прямої та площини</h1>
+          <p className="sub">Практикум</p>
+          <button className="go" onClick={()=>setScr('menu')}>ПОЧАТИ<i>▶</i></button>
+        </div>}
+        {scr==='menu'&&<div className="menu"><div style={{maxWidth:'70em',margin:'0 auto'}}><h2>§ 5. Перпендикулярність у просторі · п. 34 · Практикум</h2>
+          <div className="mgrid">{LIST.map((it,i)=>{const dn=(res[it.id]||0)>=it.steps.length;
+            return <button key={it.id} className={'mcard'+(dn?' dn':'')} onClick={()=>setScr(i)}><span className="n">{dn?'✓':i+1}</span><span><b>{it.tab}</b></span></button>;})}</div></div></div>}
+        {isItem&&<SplitCtx.Provider value={split}><NavCtx.Provider value={nav}><TaskPage key={scr} t={LIST[scr]} res={res} setRes={setRes}/></NavCtx.Provider></SplitCtx.Provider>}
+      </div>
+      <div className="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
