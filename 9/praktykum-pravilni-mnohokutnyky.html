@@ -295,12 +295,71 @@ TASKS.forEach((t,i)=>{ const o=WR[i].slice(); o.splice(POS[i],0,t.show); t.opts=
 const normId=id=>id.replace(/^a/,'');
 const needOf=t=>Array.from(new Set(t.st.filter(s=>s.c).map(s=>normId(s.c))));
 
+
+/* ===== Задача 11: генератор нових задач ===== */
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+// число виду (p/q)·√m, m без квадратних множників; p,q цілі
+function RN(p,q,m){ return {p:p,q:q,m:m}; }
+function rnMul(a,b){
+  let p=a.p*b.p, q=a.q*b.q, m=a.m*b.m, d=1;
+  for(let k=2;k*k<=m;k++){ while(m%(k*k)===0){ m/=k*k; d*=k; } }
+  p*=d; const g=gcd(p,q); return RN(p/g,q/g,m);
+}
+const rnVal=a=>a.p/a.q*Math.sqrt(a.m);
+const rnInt=a=>a.q===1;
+const rnStr=a=>{ const c=a.p; const r=a.m>1?'√'+a.m:''; return (c===1&&r)?r:(c+r); };
+const KONST={aR3:RN(1,1,3),aR4:RN(1,1,2),aR6:RN(1,1,1),ar3:RN(2,1,3),ar4:RN(2,1,1),ar6:RN(2,3,3)};
+const GN={3:'правильний трикутник',4:'квадрат',6:'правильний шестикутник'};
+const GG={3:'правильного трикутника',4:'квадрата',6:'правильного шестикутника'};
+const rnd=n=>Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+const hasRad=str=>str.indexOf('√')>=0;
+const mulTxt=(A,r)=>hasRad(A)?A+' · '+r:A+r;
+function genTask(){
+  for(let guard=0;guard<5000;guard++){
+    const gn=[3,4,6][rnd(3)], grel=rnd(2)?'in':'out', tn_=[3,4,6][rnd(3)], trel=rnd(2)?'in':'out';
+    if(gn===tn_&&grel===trel) continue;
+    const rho=RN(2+rnd(11),1,[1,2,3][rnd(3)]);
+    const kg=KONST[(grel==='in'?'aR':'ar')+gn], kt=KONST[(trel==='in'?'aR':'ar')+tn_];
+    const ag=rnMul(rho,kg), at=rnMul(rho,kt);
+    if(!rnInt(ag)||!rnInt(at)||ag.p>60||at.p>60) continue;
+    if(ag.m===1&&at.m===1&&rho.m===1&&0) continue;
+    if(gn===6&&grel==='out'&&rnStr(ag)==='4√3') continue;   // умова 6.34
+    if(gn===4&&grel==='in'&&rnStr(ag)==='6√2') continue;    // умова 6.35
+    const A=rnStr(ag), RH=rnStr(rho), ans=rnStr(at);
+    const L1=grel==='in'?'R':'r', L2=trel==='in'?'R':'r';
+    const key1=L1+gn, key2='a'+L2+tn_;
+    const F1={R3:FR(mulTxt(A,'√3'),'3'),R4:FR(mulTxt(A,'√2'),'2'),R6:A,r3:FR(mulTxt(A,'√3'),'6'),r4:FR(A,'2'),r6:FR(mulTxt(A,'√3'),'2')}[key1];
+    const step1=(key1==='R6')?R_(6)+' = '+a_(6)+' = '+A:V(L1,gn)+' = '+F1+' = '+RH;
+    const step2=V(L2,tn_)+' = '+V(L1,gn)+' = '+RH;
+    const Lt=V(L2,tn_), sub=RH;
+    const F3={aR3:[Lt+'√3',mulTxt(sub,'√3')],aR4:[Lt+'√2',mulTxt(sub,'√2')],aR6:[Lt,sub],
+              ar3:['2'+Lt+'√3','2 · '+mulTxt(sub,'√3')],ar4:['2'+Lt,'2 · '+sub],
+              ar6:[FR('2'+Lt+'√3','3'),FR('2 · '+mulTxt(sub,'√3'),'3')]}[key2];
+    const step3=a_(tn_)+' = '+F3[0]+' = '+F3[1]+' = '+ans;
+    // варіанти відповіді: типові помилки + запасні
+    const altK=KONST[(trel==='in'?'ar':'aR')+tn_];
+    const pool=[rnMul(rho,altK),rho,rnMul(rho,RN(2,1,1)),ag,rnMul(at,RN(2,1,1)),RN(at.p,1,at.m===2?3:2),
+                rnMul(rho,RN(1,1,2)),rnMul(rho,RN(1,1,3)),rnMul(rho,RN(2,1,3)),rnMul(rho,RN(2,1,2)),RN(at.p+1,1,at.m),RN(Math.max(1,at.p-1),1,at.m)];
+    const seen={}; seen[ans]=1; const wr=[];
+    pool.forEach(c=>{ if(wr.length>=3||!rnInt(c)||c.p<1) return; const sv=rnStr(c); if(seen[sv]||Math.abs(rnVal(c)-rnVal(at))<1e-9) return; seen[sv]=1; wr.push(sv); });
+    if(wr.length<3) continue;
+    const opts=shuffle([ans].concat(wr)); const ci=opts.indexOf(ans);
+    const text=(grel==='in'?'У коло вписано '+GN[gn]+' зі стороною '+A+' см.':'Навколо кола описано '+GN[gn]+' зі стороною '+A+' см.')+' Знайдіть сторону '+GG[tn_]+', '+(trel==='in'?'вписаного в це коло.':'описаного навколо цього кола.');
+    return {text:text,g:{n:gn,rel:grel,side:A},t:{n:tn_,rel:trel},ans:rnVal(at),show:ans,approx:at.m>1?'≈ '+rnVal(at).toFixed(1).replace('.',','):'',
+            st:[{h:step1,c:key1},{h:step2},{h:step3,c:key2}],opts:opts,ci:ci,gen:true};
+  }
+  return null;
+}
+
+TASKS.push(genTask());
+let GC=0;
 /* ===== Сторінки ===== */
 const STATE=TASKS.map(()=>({sel:[],fok:false,fmsg:'',opts:false,bad:[],done:false,shown:0}));
 let cur=0;
 const LET=['А','Б','В','Г'];
 function drawTabs(){
-  $('#tabs').innerHTML=TASKS.map((t,i)=>'<button type="button" class="tab'+(i===cur?' on':'')+(STATE[i].done?' ok':'')+'" data-i="'+i+'">'+(i+1)+'</button>').join('');
+  $('#tabs').innerHTML=TASKS.map((t,i)=>'<button type="button" class="tab'+(i===cur?' on':'')+(STATE[i].done?' ok':'')+'" data-i="'+i+'">'+(i+1)+(t.gen?' ↻':'')+'</button>').join('');
 }
 function legend(g,t){
   const rl=r=>r==='in'?'вписаний у коло':'описаний навколо кола', L=r=>r==='in'?'R':'r';
@@ -345,7 +404,7 @@ function optsHTML(i){
 }
 function outHTML(i){
   const S=STATE[i];
-  if(S.done) return '<span class="fm ok">✓ '+(i===TASKS.length-1?'Правильно! Усі задачі виконано.':'Правильно!')+'</span>';
+  if(S.done) return '<span class="fm ok">✓ '+'Правильно!'+'</span>';
   if(S.bad.length) return '<span class="fm no">Неправильно. Спробуйте інший варіант.</span>';
   return '';
 }
@@ -361,16 +420,16 @@ function render(){
   document.documentElement.style.setProperty('--q',q);
   $('#tblHost').innerHTML=tableHTML();
   $('#task').innerHTML=
-   '<p class="tt"><span class="tn">Задача '+(cur+1)+'</span>'+t.text+'</p>'+
+   '<p class="tt"><span class="tn">'+(t.gen?'Задача '+(cur+1)+' · генератор (розв\'язано: '+GC+')':'Задача '+(cur+1))+'</span>'+t.text+'</p>'+
    '<div class="cols"><div class="figc">'+figure(t.g,t.t)+'<div class="leg">'+legend(t.g,t.t)+'</div></div>'+
    '<div class="work">'+
    '<div class="bt"><span class="k">Крок 1</span>Оберіть '+nd+' формули <span class="bb"><button type="button" class="btn sec sm" id="tbBtn">📋 Таблиця</button>'+(S.fok?'':'<button type="button" class="btn sm" id="fchk"'+(S.sel.length?'':' disabled')+'>Перевірити</button>')+'</span><span id="fout">'+fmsgHTML(cur)+'</span></div>'+
    '<div class="chips" id="chips">'+chipsHTML(cur)+'</div>'+
-   '<div class="bt"><span class="k">Крок 2</span>Обчисліть, а далі <span class="bb">'+(S.opts?'':'<button type="button" class="btn sm" id="ans"'+(S.fok?'':' disabled')+'>✍️ Назвати відповідь</button><span class="or">або</span>')+'<button type="button" class="btn sec sm" id="stp">'+(S.shown?'↓ Далі':'📖 Показати розв\'язання')+'</button><button type="button" class="btn sm next" id="nx">Наступна →</button></span><span id="out">'+outHTML(cur)+'</span></div>'+
+   '<div class="bt"><span class="k">Крок 2</span>Обчисліть, а далі <span class="bb">'+(S.opts?'':'<button type="button" class="btn sm" id="ans"'+(S.fok?'':' disabled')+'>✍️ Назвати відповідь</button><span class="or">або</span>')+'<button type="button" class="btn sec sm" id="stp">'+(S.shown?'↓ Далі':'📖 Показати розв\'язання')+'</button>'+(t.gen?'<button type="button" class="btn sm'+(S.done?'':' sec')+'" id="gen">↻ Нова задача</button>':'<button type="button" class="btn sm next" id="nx">Наступна →</button>')+'</span><span id="out">'+outHTML(cur)+'</span></div>'+
    (S.opts?'<div class="opts" id="opts">'+optsHTML(cur)+'</div>':'')+
    '<div class="steps" id="steps">'+stepHTML(cur)+'</div></div></div>';
   if(S.shown>=t.st.length) $('#stp').style.display='none';
-  if(S.done && cur<TASKS.length-1) $('#nx').style.display='inline-block';
+  if(S.done && !t.gen && $('#nx')) $('#nx').style.display='inline-block';
   syncPanel(); markCells(cur); drawTabs();
 }
 function refreshSel(){
@@ -382,6 +441,7 @@ function refreshSel(){
 document.addEventListener('click',e=>{
   const S=STATE[cur], t=TASKS[cur];
   const tb=e.target.closest('.tab'); if(tb){ cur=+tb.dataset.i; render(); return; }
+  if(e.target.id==='gen'){ const g=genTask(); if(g){ TASKS[cur]=g; STATE[cur]={sel:[],fok:false,fmsg:'',opts:false,bad:[],done:false,shown:0}; render(); } return; }
   if(e.target.id==='tbBtn'){ $('#ov').classList.add('on'); return; }
   if(e.target.id==='tbX'||e.target.id==='ov'){ $('#ov').classList.remove('on'); return; }
   const td=e.target.closest('#tblHost td.pk');
@@ -395,7 +455,7 @@ document.addEventListener('click',e=>{
   }
   if(e.target.id==='ans'){ if(S.fok){ S.opts=true; render(); } return; }
   const op=e.target.closest('.opt');
-  if(op){ const k=+op.dataset.o; if(k===t.ci) S.done=true; else if(S.bad.indexOf(k)<0) S.bad.push(k); render(); return; }
+  if(op){ const k=+op.dataset.o; if(k===t.ci){ S.done=true; if(t.gen) GC++; } else if(S.bad.indexOf(k)<0) S.bad.push(k); render(); return; }
   if(e.target.id==='stp'){
     if(S.shown<t.st.length) S.shown++;
     $('#steps').innerHTML=stepHTML(cur); markCells(cur);
@@ -406,7 +466,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='nx'){ cur++; render(); window.scrollTo({top:0,behavior:'smooth'}); }
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#ov').classList.remove('on'); });
-window.__P={TASKS,needOf};
+window.__P={TASKS,needOf,genTask,rnVal,KONST};
 render();
 })();
 </script>
