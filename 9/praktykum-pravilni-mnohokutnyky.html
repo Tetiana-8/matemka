@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Практикум. Правильні многокутники й кола (9 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#13203f; --muted:#5b6b8f; --acc:#1d4ed8; --acc2:#4f7cf0; --accL:#dbe5ff;
+  --soft:#ebf0ff; --soft2:#f6f8ff; --line:#c9d6f5;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b; --badln:#efa3a8;
+  --q:#2f9e44;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#ebf0ff 0%,#dbe5ff 45%,#c7d6ff 100%) fixed;min-height:100vh;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding:16px 14px 60px}
+i,.m{font-family:'STIX Two Text','Times New Roman',Times,serif;font-style:italic;font-size:1.06em}
+sup,sub{font-size:.7em;line-height:0}
+button,input{font-family:inherit}
+
+.hero{background:var(--acc);color:#fff;border-radius:20px;padding:16px 22px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(29,78,216,.25)}
+.pill{display:inline-block;background:#ffb938;color:#4a3000;font-weight:900;font-size:13px;letter-spacing:.06em;padding:5px 14px;border-radius:999px}
+.hero h1{margin:8px 0 2px;font-size:clamp(22px,4.4vw,32px);line-height:1.15;font-weight:900;padding-right:80px}
+.hero p{margin:0;font-size:16px;opacity:.95;padding-right:80px}
+.hero svg{position:absolute;right:14px;top:12px;width:70px;height:64px;opacity:.9}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.tab{min-width:48px;min-height:44px;border:2px solid var(--line);background:#fff;color:var(--ink);font-weight:900;font-size:17px;border-radius:12px;cursor:pointer;padding:6px 12px;touch-action:manipulation}
+.tab.on{background:var(--q);border-color:var(--q);color:#fff}
+.tab.ok::after{content:" ✓";font-weight:900}
+.tab.ok:not(.on){background:var(--okbg);border-color:var(--okln);color:var(--oktx)}
+
+.card{margin-top:12px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 2px;font-size:.95em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}.fr>span:last-child{padding:0 3px}
+.tbw{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:18px}
+.tbl th,.tbl td{border:2px solid var(--line);padding:6px 8px;text-align:center}
+.tbl th{background:var(--soft);font-size:16px}
+.tbl td.rl,.tbl th.rl{text-align:left;font-weight:800;font-size:15.5px;width:30%}
+.tbl tr.sep td{background:var(--soft2);font-weight:900;color:var(--acc);text-align:left;font-size:14.5px;padding:4px 8px}
+.cc{padding:1px 3px;border-radius:3px}
+.cc.m1{background:linear-gradient(transparent 38%,rgba(255,212,59,.75) 38%)}
+.cc.m2{background:linear-gradient(transparent 38%,rgba(105,219,124,.65) 38%)}
+.cnote{font-size:15px;color:var(--muted);margin:8px 2px 0;font-weight:700}
+
+.task{border-left:8px solid var(--q)}
+.th{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.tn{background:var(--q);color:#fff;font-weight:900;padding:4px 12px;border-radius:10px;font-size:18px}
+.tt{font-size:19px;font-weight:700;margin:0 0 6px}
+.cols{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.figc{flex:1 1 300px;max-width:380px;margin:0 auto}
+.gf{width:100%;height:auto;display:block}
+.leg{font-size:15px;margin-top:2px}
+.leg div{margin:3px 0}
+.sq{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.work{flex:1 1 300px}
+.arow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.arow label{font-weight:800;font-size:18px}
+.arow input{width:140px;font-size:20px;padding:10px;text-align:center;border:2px solid var(--line);border-radius:10px;font-family:'STIX Two Text','Times New Roman',serif;color:var(--ink)}
+.arow input:focus{outline:none;border-color:var(--q);box-shadow:0 0 0 3px rgba(0,0,0,.07)}
+.arow input.good{border-color:var(--ok);background:var(--okbg)}
+.arow input.badi{border-color:var(--bad);background:var(--badbg)}
+.btn{background:var(--q);color:#fff;border:0;border-radius:12px;font-weight:900;font-size:17px;padding:10px 18px;cursor:pointer;touch-action:manipulation;min-height:46px}
+.btn.sec{background:#fff;color:var(--q);border:2px solid var(--q)}
+.btn.rt{background:#fff;color:var(--ink);border:2px solid var(--line);min-width:46px;padding:10px 12px;font-size:20px}
+.btn:disabled{opacity:.5;cursor:default}
+.msg{margin-top:6px;border-radius:12px;padding:8px 12px;font-size:16px;font-weight:700}
+.msg.ok{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx)}
+.msg.no{background:var(--badbg);border:2px solid var(--badln);color:var(--badtx)}
+.steps{margin-top:8px}
+.st{font-size:20px;padding:7px 10px;margin:6px 0;border-left:4px solid var(--line);background:var(--soft2);border-radius:8px}
+.st.fin{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx);font-weight:900;border-left-width:6px}
+.next{margin-top:0;display:none;margin-left:auto}
+.auth{text-align:center;font-size:10px;color:var(--muted);margin-top:22px}
+@media(max-width:520px){
+  .hero{padding:14px}.hero svg{width:54px;height:48px}.hero h1,.hero p{padding-right:56px}
+  .tbl{font-size:14px}.tbl th,.tbl td{padding:4px 3px}.tbl td.rl,.tbl th.rl{font-size:12.5px}.tbl th{font-size:12.5px}
+  .tt{font-size:17px}.st{font-size:17px}
+}
+
+/* компактний макет: усе в один екран, таблиця у спливній панелі */
+.wrap{padding:10px 12px 16px}
+.hero{padding:8px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 4px 14px rgba(29,78,216,.22)}
+.hero h1{margin:0;font-size:22px;padding-right:0}
+.hero p{font-size:14px;padding-right:0}
+.hero svg{display:none}
+.hero .pill{font-size:11px;padding:3px 10px}
+.tabs{margin:8px 0 0;gap:6px}
+.tab{min-height:38px;min-width:42px;font-size:16px;padding:4px 10px}
+.task{margin-top:8px;padding:10px 14px}
+.th .tbtn{margin-left:auto;min-height:40px;padding:6px 14px;font-size:16px}
+.tt{font-size:18px;margin:0 0 4px}
+.cols{gap:12px}
+.figc{flex:0 1 300px}
+.gf{max-height:200px}
+.leg{font-size:14px}
+.arow{margin:6px 0}
+.st{font-size:18px;padding:5px 10px;margin:4px 0}
+.next{margin-top:8px}
+.ov{position:fixed;inset:0;background:rgba(19,32,63,.38);display:none;align-items:flex-start;justify-content:center;padding:56px 10px 10px;z-index:50;overflow:auto}
+.ov.on{display:flex}
+.pnl{background:#fff;border-radius:16px;padding:10px 14px 12px;max-width:780px;width:100%;box-shadow:0 14px 44px rgba(0,0,0,.35);border:2px solid var(--line)}
+.pnl .ph{display:flex;align-items:center;justify-content:space-between;font-weight:900;font-size:17px;margin-bottom:6px}
+.pnl .ph .btn{min-height:38px;padding:4px 14px}
+@media(max-width:520px){
+  .hero p{display:none}.hero h1{font-size:19px}
+  .gf{max-height:170px}.figc{flex-basis:100%}
+  .th .tbtn{font-size:14px;padding:6px 10px}
+}
+
+.msg{margin-top:2px;padding:4px 10px;font-size:15px}
+.st{font-size:17px;padding:3px 10px;margin:3px 0}
+.steps{margin-top:4px}
+.arow{margin:4px 0}
+.task{padding:8px 14px}
+.next{margin-top:0}
+
+/* практикум: вибір формул і варіанти відповіді */
+.tt .tn{font-size:15px;margin-right:8px;display:inline-block;padding:2px 10px;vertical-align:1px}
+.bt{font-weight:800;font-size:16.5px;margin:6px 0 2px}
+.bt .k{background:var(--q);color:#fff;border-radius:8px;padding:1px 9px;margin-right:6px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;align-items:center;padding:5px 8px;border:2px dashed var(--line);border-radius:12px;margin:4px 0;background:var(--soft2);font-size:18px}
+.chips .ph{color:var(--muted);font-size:14.5px;font-weight:700}
+.chip{background:#fff;border:2px solid var(--q);border-radius:10px;padding:2px 10px;display:inline-flex;align-items:center;gap:8px}
+.chip.ok{background:var(--okbg);border-color:var(--ok)}
+.chip.bad{background:var(--badbg);border-color:var(--bad)}
+.chip .x{border:0;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0}
+.opt{background:#fff;border:2px solid var(--q);color:var(--ink);border-radius:12px;font-size:20px;font-weight:700;padding:5px 16px;min-height:44px;cursor:pointer;font-family:'STIX Two Text','Times New Roman',serif;touch-action:manipulation}
+.opt b{font-family:'Nunito',sans-serif;color:var(--q);margin-right:6px;font-size:17px}
+.opt.good{background:var(--okbg);border-color:var(--ok)}
+.opt.wrong{background:var(--badbg);border-color:var(--bad);opacity:.7}
+.opt:disabled{cursor:default}
+.tbl td.pk{cursor:pointer}
+.tbl td.pk:hover{background:var(--soft2)}
+.tbl td.pk.sel{outline:3px solid var(--q);outline-offset:-3px;background:#f0f6ff}
+.tbl td.pk.lock{cursor:default}
+.fm{display:inline-block;margin-left:6px;font-size:15.5px;font-weight:700;vertical-align:middle}
+.fm.ok{color:var(--oktx)}.fm.no{color:var(--badtx)}
+.sw{font-size:15px;color:var(--muted);font-weight:700;margin:0 0 4px}
+
+.bt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:6px 0 3px}
+.bb{display:inline-flex;gap:8px;flex-wrap:wrap}
+.btn.sm{min-height:38px;padding:4px 12px;font-size:15px}
+.next{margin-left:0}
+.chips{min-height:44px}
+.chip .fx{display:inline-block}
+
+.auth{margin-top:6px}
+.wrap{padding-bottom:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <span class="pill">ГЕОМЕТРІЯ · 9 КЛАС</span>
+    <h1>Практикум</h1>
+    <p>Правильні многокутники й спільне коло: комбіновані задачі</p>
+    <svg viewBox="0 0 84 76" fill="none"><circle cx="42" cy="38" r="34" stroke="#fff" stroke-opacity=".45" stroke-width="2"/><polygon points="76,38 59,67.4 25,67.4 8,38 25,8.6 59,8.6" stroke="#ffb938" stroke-width="3" stroke-linejoin="round"/><circle cx="42" cy="38" r="29.4" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></svg>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="ov" id="ov"><div class="pnl">
+    <div class="ph"><span>Таблиця формул: клацніть на потрібні</span><button type="button" class="btn sec" id="tbX">✓ Готово</button></div>
+    <div class="tbw" id="tblHost"></div>
+    <div class="cnote">Вписаний многокутник: коло для нього описане, радіус <i>R</i>. Многокутник описано навколо кола: коло для нього вписане, радіус <i>r</i>.</div>
+  </div></div>
+
+  <div class="card task" id="task"></div>
+  <div class="auth">Автор розробки <b>Ковтун Тетяна</b></div>
+</div>
+
+<script>
+(function(){ "use strict";
+const $=(s,r)=>(r||document).querySelector(s);
+const FR=(a,b)=>'<span class="fr"><span>'+a+'</span><span>'+b+'</span></span>';
+const V=(x,n)=>'<i>'+x+'</i>'+(n?'<sub>'+n+'</sub>':'');
+const a_=n=>V('a',n), R_=n=>V('R',n), r_=n=>V('r',n);
+
+/* ===== Таблиця (на кожній сторінці) ===== */
+const CELLS={
+ R3:R_(3)+' = '+FR(V('a')+'√3','3'), R4:R_(4)+' = '+FR(V('a')+'√2','2'), R6:R_(6)+' = '+V('a'),
+ r3:r_(3)+' = '+FR(V('a')+'√3','6'), r4:r_(4)+' = '+FR(V('a'),'2'), r6:r_(6)+' = '+FR(V('a')+'√3','2'),
+ aR3:a_(3)+' = '+V('R')+'√3', aR4:a_(4)+' = '+V('R')+'√2', aR6:a_(6)+' = '+V('R'),
+ ar3:a_(3)+' = 2'+V('r')+'√3', ar4:a_(4)+' = 2'+V('r'), ar6:a_(6)+' = '+FR('2'+V('r')+'√3','3')
+};
+function tableHTML(){
+  const c=(id)=>'<td class="pk" data-c="'+id+'"><span class="cc">'+CELLS[id]+'</span></td>';
+  const row=(lab,ids)=>'<tr><td class="rl">'+lab+'</td>'+ids.map(c).join('')+'</tr>';
+  return '<table class="tbl"><tr><th class="rl">Правильний <i>n</i>-кутник</th><th>трикутник<br><i>n</i> = 3</th><th>квадрат<br><i>n</i> = 4</th><th>шестикутник<br><i>n</i> = 6</th></tr>'+
+   '<tr class="sep"><td colspan="4">Знаходимо радіус за стороною <i>a</i></td></tr>'+
+   row('Радіус описаного кола <i>R</i>',['R3','R4','R6'])+
+   row('Радіус вписаного кола <i>r</i>',['r3','r4','r6'])+
+   '<tr class="sep"><td colspan="4">Знаходимо сторону <i>a</i> за радіусом</td></tr>'+
+   row('Сторона <i>a</i> за радіусом описаного кола <i>R</i>',['aR3','aR4','aR6'])+
+   row('Сторона <i>a</i> за радіусом вписаного кола <i>r</i>',['ar3','ar4','ar6'])+'</table>';
+}
+
+/* ===== Рисунки ===== */
+const DEG=Math.PI/180, CX=150, CY=138, RHO=60;
+const NAME={3:'правильний трикутник',4:'квадрат',6:'правильний шестикутник'};
+function polyPts(n,rel){
+  const Rp=rel==='in'?RHO:RHO/Math.cos(Math.PI/n);
+  const st=n===3?-90:(n===4?(rel==='in'?0:45):0);
+  return Array.from({length:n},(_,k)=>{const g=(st+k*360/n)*DEG;return [CX+Rp*Math.cos(g),CY+Rp*Math.sin(g)];});
+}
+const pstr=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+function radiusSvg(g){
+  const th=(g.rel==='out'?90:(g.n===3?30:0))*DEG, lab=g.rel==='in'?'R':'r';
+  const x2=CX+RHO*Math.cos(th), y2=CY+RHO*Math.sin(th);
+  const lx=CX+RHO/2*Math.cos(th)+12*Math.sin(th), ly=CY+RHO/2*Math.sin(th)-12*Math.cos(th)+5;
+  return '<line x1="'+CX+'" y1="'+CY+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="#111" stroke-width="2.8" stroke-linecap="round"/>'+
+    '<circle cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="3.4" fill="#111"/>'+
+    '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" font-family="STIX Two Text,Times New Roman,serif" font-style="italic" font-size="18" fill="#111" stroke="#fff" stroke-width="3.5" paint-order="stroke">'+lab+'</text>';
+}
+function figure(g,t){
+  const A=polyPts(g.n,g.rel), B=polyPts(t.n,t.rel);
+  return '<svg class="gf" viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="рисунок">'+
+   '<polygon points="'+pstr(A)+'" fill="rgba(29,78,216,.08)" stroke="#1d4ed8" stroke-width="2.6" stroke-linejoin="round"/>'+
+   '<polygon points="'+pstr(B)+'" fill="rgba(224,70,78,.07)" stroke="#e0464e" stroke-width="2.6" stroke-linejoin="round"/>'+
+   '<circle cx="'+CX+'" cy="'+CY+'" r="'+RHO+'" fill="none" stroke="#e08a00" stroke-width="2.4"/>'+
+   radiusSvg(g)+'<circle cx="'+CX+'" cy="'+CY+'" r="3.2" fill="#111"/>'+
+   '<text x="'+(CX-8)+'" y="'+(CY-6)+'" text-anchor="end" font-family="STIX Two Text,Times New Roman,serif" font-style="italic" font-size="17" fill="#13203f">O</text></svg>';
+}
+
+/* ===== Задачі ===== */
+const sq2='√2', sq3='√3';
+const TASKS=[
+ {text:'У коло вписано правильний трикутник зі стороною 12 см. Знайдіть сторону квадрата, вписаного в це коло.',
+  g:{n:3,rel:'in',side:'12'},t:{n:4,rel:'in'},ans:4*Math.sqrt(6),show:'4√6',approx:'≈ 9,8',
+  st:[{h:R_(3)+' = '+FR('12'+sq3,'3')+' = 4'+sq3,c:'R3'},
+      {h:R_(4)+' = 4'+sq3},
+      {h:a_(4)+' = '+R_(4)+sq2+' = 4'+sq3+' · '+sq2+' = 4√6',c:'aR4'}]},
+ {text:'Правильний шестикутник зі стороною 8 см вписано в коло. Знайдіть сторону правильного трикутника, описаного навколо цього кола.',
+  g:{n:6,rel:'in',side:'8'},t:{n:3,rel:'out'},ans:16*Math.sqrt(3),show:'16√3',approx:'≈ 27,7',
+  st:[{h:R_(6)+' = '+a_(6)+' = 8',c:'R6'},
+      {h:r_(3)+' = '+R_(6)+' = 8'},
+      {h:a_(3)+' = 2'+r_(3)+sq3+' = 2 · 8 · '+sq3+' = 16'+sq3,c:'ar3'}]},
+ {text:'Навколо кола описано квадрат зі стороною 10 см. Знайдіть сторону правильного шестикутника, вписаного в це коло.',
+  g:{n:4,rel:'out',side:'10'},t:{n:6,rel:'in'},ans:5,show:'5',approx:'',
+  st:[{h:r_(4)+' = '+FR('10','2')+' = 5',c:'r4'},
+      {h:R_(6)+' = '+r_(4)+' = 5'},
+      {h:a_(6)+' = '+R_(6)+' = 5',c:'aR6'}]},
+ {text:'Навколо кола описано правильний трикутник зі стороною 18√3 см. Знайдіть сторону правильного шестикутника, описаного навколо цього кола.',
+  g:{n:3,rel:'out',side:'18√3'},t:{n:6,rel:'out'},ans:6*Math.sqrt(3),show:'6√3',approx:'≈ 10,4',
+  st:[{h:r_(3)+' = '+FR('18'+sq3+' · '+sq3,'6')+' = '+FR('54','6')+' = 9',c:'r3'},
+      {h:r_(6)+' = '+r_(3)+' = 9'},
+      {h:a_(6)+' = '+FR('2 · 9 · '+sq3,'3')+' = 6'+sq3,c:'ar6'}]},
+ {text:'У коло вписано правильний шестикутник зі стороною 9√2 см. Знайдіть сторону квадрата, описаного навколо цього кола.',
+  g:{n:6,rel:'in',side:'9√2'},t:{n:4,rel:'out'},ans:18*Math.sqrt(2),show:'18√2',approx:'≈ 25,5',
+  st:[{h:R_(6)+' = '+a_(6)+' = 9'+sq2,c:'R6'},
+      {h:r_(4)+' = '+R_(6)+' = 9'+sq2},
+      {h:a_(4)+' = 2'+r_(4)+' = 2 · 9'+sq2+' = 18'+sq2,c:'ar4'}]},
+ {text:'Навколо кола описано квадрат зі стороною 14√3 см. Знайдіть сторону правильного трикутника, вписаного в це коло.',
+  g:{n:4,rel:'out',side:'14√3'},t:{n:3,rel:'in'},ans:21,show:'21',approx:'',
+  st:[{h:r_(4)+' = '+FR('14'+sq3,'2')+' = 7'+sq3,c:'r4'},
+      {h:R_(3)+' = '+r_(4)+' = 7'+sq3},
+      {h:a_(3)+' = '+R_(3)+sq3+' = 7'+sq3+' · '+sq3+' = 21',c:'aR3'}]},
+ {text:'У коло вписано правильний трикутник зі стороною 6 см. Знайдіть сторону правильного шестикутника, описаного навколо цього кола.',
+  g:{n:3,rel:'in',side:'6'},t:{n:6,rel:'out'},ans:4,show:'4',approx:'',
+  st:[{h:R_(3)+' = '+FR('6'+sq3,'3')+' = 2'+sq3,c:'R3'},
+      {h:r_(6)+' = '+R_(3)+' = 2'+sq3},
+      {h:a_(6)+' = '+FR('2 · 2'+sq3+' · '+sq3,'3')+' = '+FR('12','3')+' = 4',c:'ar6'}]},
+ {text:'Навколо кола описано правильний шестикутник зі стороною 12 см. Знайдіть сторону правильного трикутника, вписаного в це коло.',
+  g:{n:6,rel:'out',side:'12'},t:{n:3,rel:'in'},ans:18,show:'18',approx:'',
+  st:[{h:r_(6)+' = '+FR('12'+sq3,'2')+' = 6'+sq3,c:'r6'},
+      {h:R_(3)+' = '+r_(6)+' = 6'+sq3},
+      {h:a_(3)+' = '+R_(3)+sq3+' = 6'+sq3+' · '+sq3+' = 18',c:'aR3'}]},
+ {text:'У коло вписано квадрат зі стороною 8√2 см. Знайдіть сторону правильного трикутника, вписаного в це коло.',
+  g:{n:4,rel:'in',side:'8√2'},t:{n:3,rel:'in'},ans:8*Math.sqrt(3),show:'8√3',approx:'≈ 13,9',
+  st:[{h:R_(4)+' = '+FR('8'+sq2+' · '+sq2,'2')+' = '+FR('16','2')+' = 8',c:'R4'},
+      {h:R_(3)+' = '+R_(4)+' = 8'},
+      {h:a_(3)+' = '+R_(3)+sq3+' = 8'+sq3,c:'aR3'}]},
+ {text:'Навколо кола описано правильний трикутник зі стороною 24√3 см. Знайдіть сторону квадрата, вписаного в це коло.',
+  g:{n:3,rel:'out',side:'24√3'},t:{n:4,rel:'in'},ans:12*Math.sqrt(2),show:'12√2',approx:'≈ 17,0',
+  st:[{h:r_(3)+' = '+FR('24'+sq3+' · '+sq3,'6')+' = '+FR('72','6')+' = 12',c:'r3'},
+      {h:R_(4)+' = '+r_(3)+' = 12'},
+      {h:a_(4)+' = '+R_(4)+sq2+' = 12'+sq2,c:'aR4'}]}
+];
+const QC=['#2f9e44','#1971c2','#7a8a1d','#4c3fb5'];
+
+/* ===== Варіанти відповіді ===== */
+const WR=[['4√3','12','2√6'],['8√3','8','16'],['10','5√3','5√2'],['9','18','9√3'],['9√2','18','18√3'],
+          ['7√3','14√3','21√3'],['2√3','6','4√3'],['6√3','12','18√3'],['8√2','16','8'],['12','12√3','24√2']];
+const POS=[2,0,3,1,2,0,1,3,0,2];
+TASKS.forEach((t,i)=>{ const o=WR[i].slice(); o.splice(POS[i],0,t.show); t.opts=o; t.ci=POS[i]; });
+const normId=id=>id.replace(/^a/,'');
+const needOf=t=>Array.from(new Set(t.st.filter(s=>s.c).map(s=>normId(s.c))));
+
+/* ===== Сторінки ===== */
+const STATE=TASKS.map(()=>({sel:[],fok:false,fmsg:'',opts:false,bad:[],done:false,shown:0}));
+let cur=0;
+const LET=['А','Б','В','Г'];
+function drawTabs(){
+  $('#tabs').innerHTML=TASKS.map((t,i)=>'<button type="button" class="tab'+(i===cur?' on':'')+(STATE[i].done?' ok':'')+'" data-i="'+i+'">'+(i+1)+'</button>').join('');
+}
+function legend(g,t){
+  const rl=r=>r==='in'?'вписаний у коло':'описаний навколо кола', L=r=>r==='in'?'R':'r';
+  return '<div><span class="sq" style="background:#1d4ed8"></span>Дано: '+NAME[g.n]+' зі стороною '+g.side+' см, '+rl(g.rel)+'</div>'+
+         '<div><span class="sq" style="background:#e0464e"></span>Знайти: сторону фігури ('+NAME[t.n]+', '+rl(t.rel)+')</div>'+
+         '<div><span class="sq" style="background:#e08a00"></span>Спільне коло з центром <i>O</i></div>'+
+         '<div><span class="sq" style="background:#111"></span>Радіус спільного кола: '+(L(g.rel)===L(t.rel)?'для обох многокутників <i>'+L(g.rel)+'</i>':'для даного <i>'+L(g.rel)+'</i>, для шуканого <i>'+L(t.rel)+'</i>')+'</div>';
+}
+function markCells(i){
+  document.querySelectorAll('.cc').forEach(e=>e.classList.remove('m1','m2'));
+  const t=TASKS[i], k=STATE[i].shown; let n=0;
+  t.st.slice(0,k).forEach(s=>{ if(s.c){ n++; const el=document.querySelector('td[data-c="'+s.c+'"] .cc'); if(el) el.classList.add(n===1?'m1':'m2'); } });
+}
+function stepHTML(i){
+  const t=TASKS[i], k=STATE[i].shown; let n=0, h='';
+  t.st.slice(0,k).forEach(s=>{
+    if(s.c) n++;
+    h+='<div class="st"'+(s.c?' style="border-left-color:'+(n===1?'#f0b400':'#2f9e44')+'"':'')+'>'+s.h+'</div>';
+  });
+  if(k>=t.st.length) h+='<div class="st fin">Відповідь: '+t.show+' см'+(t.approx?' '+t.approx+' см':'')+'</div>';
+  return h;
+}
+function chipsHTML(i){
+  const S=STATE[i];
+  if(!S.sel.length) return '<span class="ph">Тут з\'являться обрані формули</span>';
+  return S.sel.map(id=>'<span class="chip'+(S.fok?' ok':(S.fmsg==='no'?' bad':''))+'"><span class="fx">'+CELLS[id]+'</span>'+(S.fok?'':'<button type="button" class="x" data-x="'+id+'" aria-label="прибрати">✕</button>')+'</span>').join('');
+}
+function fmsgHTML(i){
+  const S=STATE[i];
+  if(S.fok) return '<span class="fm ok">✓ Формули правильні</span>';
+  if(S.fmsg==='no') return '<span class="fm no">Неправильно. Спробуйте ще.</span>';
+  return '';
+}
+function optsHTML(i){
+  const t=TASKS[i], S=STATE[i];
+  return t.opts.map((o,k)=>{
+    let c='opt', dis='';
+    if(S.done){ dis=' disabled'; if(k===t.ci) c+=' good'; }
+    else if(S.bad.indexOf(k)>=0){ c+=' wrong'; dis=' disabled'; }
+    return '<button type="button" class="'+c+'" data-o="'+k+'"'+dis+'><b>'+LET[k]+')</b>'+o+'</button>';
+  }).join('');
+}
+function outHTML(i){
+  const S=STATE[i];
+  if(S.done) return '<span class="fm ok">✓ '+(i===TASKS.length-1?'Правильно! Усі задачі виконано.':'Правильно!')+'</span>';
+  if(S.bad.length) return '<span class="fm no">Неправильно. Спробуйте інший варіант.</span>';
+  return '';
+}
+function syncPanel(){
+  const S=STATE[cur];
+  document.querySelectorAll('#tblHost td.pk').forEach(td=>{
+    td.classList.toggle('sel',S.sel.indexOf(td.dataset.c)>=0);
+    td.classList.toggle('lock',!!S.fok);
+  });
+}
+function render(){
+  const t=TASKS[cur], q=QC[cur%QC.length], S=STATE[cur], nd=needOf(t).length;
+  document.documentElement.style.setProperty('--q',q);
+  $('#tblHost').innerHTML=tableHTML();
+  $('#task').innerHTML=
+   '<p class="tt"><span class="tn">Задача '+(cur+1)+'</span>'+t.text+'</p>'+
+   '<div class="cols"><div class="figc">'+figure(t.g,t.t)+'<div class="leg">'+legend(t.g,t.t)+'</div></div>'+
+   '<div class="work">'+
+   '<div class="bt"><span class="k">Крок 1</span>Оберіть '+nd+' формули <span class="bb"><button type="button" class="btn sec sm" id="tbBtn">📋 Таблиця</button>'+(S.fok?'':'<button type="button" class="btn sm" id="fchk"'+(S.sel.length?'':' disabled')+'>Перевірити</button>')+'</span><span id="fout">'+fmsgHTML(cur)+'</span></div>'+
+   '<div class="chips" id="chips">'+chipsHTML(cur)+'</div>'+
+   '<div class="bt"><span class="k">Крок 2</span>Обчисліть і оберіть відповідь <span class="bb">'+(S.opts?'':'<button type="button" class="btn sm" id="ans"'+(S.fok?'':' disabled')+'>Відповідь</button>')+'<button type="button" class="btn sec sm" id="stp">'+(S.shown?'↓':'Показати кроки')+'</button><button type="button" class="btn sm next" id="nx">Наступна →</button></span><span id="out">'+outHTML(cur)+'</span></div>'+
+   (S.opts?'<div class="opts" id="opts">'+optsHTML(cur)+'</div>':'')+
+   '<div class="steps" id="steps">'+stepHTML(cur)+'</div></div></div>';
+  if(S.shown>=t.st.length) $('#stp').style.display='none';
+  if(S.done && cur<TASKS.length-1) $('#nx').style.display='inline-block';
+  syncPanel(); markCells(cur); drawTabs();
+}
+function refreshSel(){
+  const S=STATE[cur]; S.fmsg='';
+  $('#chips').innerHTML=chipsHTML(cur); $('#fout').innerHTML=''; 
+  const b=$('#fchk'); if(b) b.disabled=!S.sel.length;
+  syncPanel();
+}
+document.addEventListener('click',e=>{
+  const S=STATE[cur], t=TASKS[cur];
+  const tb=e.target.closest('.tab'); if(tb){ cur=+tb.dataset.i; render(); return; }
+  if(e.target.id==='tbBtn'){ $('#ov').classList.add('on'); return; }
+  if(e.target.id==='tbX'||e.target.id==='ov'){ $('#ov').classList.remove('on'); return; }
+  const td=e.target.closest('#tblHost td.pk');
+  if(td){ if(S.fok) return; const id=td.dataset.c, k=S.sel.indexOf(id); if(k>=0) S.sel.splice(k,1); else S.sel.push(id); refreshSel(); return; }
+  const x=e.target.closest('.x'); if(x){ const k=S.sel.indexOf(x.dataset.x); if(k>=0) S.sel.splice(k,1); refreshSel(); return; }
+  if(e.target.id==='fchk'){
+    const nd=needOf(t), have=S.sel.map(normId);
+    const ok=S.sel.length===nd.length && nd.every(id=>have.indexOf(id)>=0);
+    if(ok){ S.fok=true; S.fmsg='ok'; } else { S.fmsg='no'; }
+    render(); return;
+  }
+  if(e.target.id==='ans'){ if(S.fok){ S.opts=true; render(); } return; }
+  const op=e.target.closest('.opt');
+  if(op){ const k=+op.dataset.o; if(k===t.ci) S.done=true; else if(S.bad.indexOf(k)<0) S.bad.push(k); render(); return; }
+  if(e.target.id==='stp'){
+    if(S.shown<t.st.length) S.shown++;
+    $('#steps').innerHTML=stepHTML(cur); markCells(cur);
+    $('#stp').textContent='↓';
+    if(S.shown>=t.st.length) $('#stp').style.display='none';
+    return;
+  }
+  if(e.target.id==='nx'){ cur++; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#ov').classList.remove('on'); });
+window.__P={TASKS,needOf};
+render();
+})();
+</script>
+</body>
+</html>
