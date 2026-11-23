@@ -59,6 +59,7 @@ h2.st{margin:0 0 .6rem;font-size:1.5rem;color:var(--acc);font-weight:900;display
 #candle:hover #ctip{display:block}
 footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
 
+.pgi{font-weight:800;font-size:.95rem;color:var(--muted);min-width:7.5rem;text-align:right}
 .tabbar{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.7rem}
 .tab{border:2.5px solid var(--line);background:var(--soft2);color:var(--accD);font-weight:900;border-radius:999px;padding:.35em 1.2em;cursor:pointer;font-size:1.15rem}
 .tab:not(.seen):not(.on){animation:glow 1.6s infinite;border-color:var(--acc2)}
@@ -83,10 +84,15 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 @media (max-width:820px){.cols{grid-template-columns:1fr}}
 .figbox{background:var(--soft2);border:1.5px solid var(--line);border-radius:1rem;padding:.4rem;display:flex;align-items:center;justify-content:center}
 .figbox svg{width:100%;height:auto;max-height:var(--mh,46vh);display:block}
-.figbox.big svg{max-height:58vh}
+.figbox.big svg{max-height:56vh}
+.cols.wide{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media (max-width:820px){.cols.wide{grid-template-columns:1fr}}
+.unit{font-size:.95rem;font-weight:700;color:var(--muted);text-align:center;margin-top:.3rem}
 .vt{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:700;font-size:21px;fill:#173F5F;text-anchor:middle;dominant-baseline:central}
 .lt2{font-family:Nunito,Arial,sans-serif;font-weight:800;font-size:16px;fill:#173F5F;text-anchor:middle;dominant-baseline:central}
 .lt2.c0f{fill:var(--c0)}.lt2.c1f{fill:var(--c1)}.lt2.c2f{fill:var(--c2)}.lt2.okf{fill:var(--ok)}.lt2.blf{fill:#1d4ed8}.lt2.qf{fill:var(--bad);font-size:22px}
+.lt2.sd{font-size:19px}.lt2.sd:not(.okf){fill:#111}
+.lt2.ang{font-size:19px}
 .lt3{font-family:Nunito,Arial,sans-serif;font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:central}
 
 .ask{font-weight:800;color:var(--accD);font-size:1.25rem;margin:.2rem 0 .5rem}
@@ -152,7 +158,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .cards{display:flex;flex-direction:column;gap:.5rem}
 .card2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:1rem;align-items:center;border:1.5px solid var(--line);border-radius:1rem;padding:.4rem .8rem;animation:pop .35s ease;background:#fff}
 @media (max-width:820px){.card2{grid-template-columns:1fr}}
-.card2 svg{width:100%;height:auto;max-height:24vh}
+.card2 svg{width:100%;height:auto;max-height:21vh}
 .card2 .txt{font-size:1.3rem}
 .card2 .txt .hd{font-weight:900;color:var(--acc);display:block;margin-bottom:.2rem}
 .fin-q{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:.8rem;padding:.5rem .9rem;margin:.4rem 0;font-size:1.2rem;background:var(--soft2)}
@@ -194,6 +200,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
   <div id="nav" class="nav" hidden>
     <button class="btn light" id="bBack">← Назад</button>
     <button class="dia" id="bDia" title="Методична картка" style="position:static"></button>
+    <span id="pgi" class="pgi"></span>
     <div id="candle" title=""><div class="wax"></div><div id="ctip"></div></div>
     <button class="btn" id="bNext">Далі →</button>
   </div>
@@ -263,9 +270,9 @@ function drawTri(P,o){o=o||{};const c=cen3(P);
   for(let i=0;i<3;i++){const m=o.sm&&o.sm[i];if(m)s+=ticks(P[i],P[(i+1)%3],m[0],m[1]);}
   for(let i=0;i<3;i++){const m=o.am&&o.am[i];if(m)s+=arcs(P[(i+2)%3],P[i],P[(i+1)%3],m[0],m[1],o.ar||19,m[2]);}
   for(let i=0;i<3;i++){if(o.sl&&o.sl[i]){const a=P[i],b=P[(i+1)%3],m=mid(a,b),u=vun(vsub(b,a));let n=[-u[1],u[0]];if((m[0]-c[0])*n[0]+(m[1]-c[1])*n[1]<0)n=[-n[0],-n[1]];
-      const tw=String(o.sl[i]).replace(/<[^>]*>/g,'').length*8.5,off=(o.slr||20)-8+(tw/2)*Math.abs(n[0])+11*Math.abs(n[1]);
+      const tw=String(o.sl[i]).replace(/<[^>]*>/g,'').length*10,off=(o.slr||20)-8+(tw/2)*Math.abs(n[0])+11*Math.abs(n[1]);
       s+=txt(vadd(m,vmul(n,off)),o.sl[i],'lt2'+(o.slc&&o.slc[i]?' '+o.slc[i]:''));}}
-  for(let i=0;i<3;i++){if(o.at&&o.at[i]){let r=o.atr||40;if(r==='auto'){const g=angDeg(P[(i+2)%3],P[i],P[(i+1)%3]);r=Math.max(38,Math.min(62,22/Math.sin(g*D2R/2)+10));const Lm=Math.min(vlen(vsub(P[i],P[(i+1)%3])),vlen(vsub(P[i],P[(i+2)%3])));r=Math.min(r,Math.max(34,Lm*.5));}s+=angTxt(P,i,r,o.at[i],'lt2'+(o.atc&&o.atc[i]?' '+o.atc[i]:''));}}
+  for(let i=0;i<3;i++){if(o.at&&o.at[i]){let r=o.atr||40;if(r==='auto'){const g=angDeg(P[(i+2)%3],P[i],P[(i+1)%3]);const nA=o.am&&o.am[i]&&o.am[i][0]?o.am[i][0]:1,outer=(o.ar||19)+(nA-1)*5.5;r=Math.max(38,Math.min(62,22/Math.sin(g*D2R/2)+10));const Lm=Math.min(vlen(vsub(P[i],P[(i+1)%3])),vlen(vsub(P[i],P[(i+2)%3])));r=Math.min(r,Math.max(34,Lm*.5));if(o.am)r=Math.max(r,outer+25);}s+=angTxt(P,i,r,o.at[i],'lt2'+(o.atc&&o.atc[i]?' '+o.atc[i]:''));}}
   if(o.lab)for(let i=0;i<3;i++){const d=vun(vsub(P[i],c));s+=txt(vadd(P[i],vmul(d,o.lr||19)),o.lab[i],'vt');}
   return s;}
 const svgWrap=(vb,inner,extra)=>'<svg viewBox="'+vb+'" xmlns="http://www.w3.org/2000/svg" role="img"'+(extra||'')+'>'+inner+'</svg>';
@@ -278,16 +285,6 @@ function isoQapex(deg){const r=deg*D2R/2;return [[-Math.sin(r),0],[0,-Math.cos(r
 const QP=[{tc:'#2A6592',tl:'#eaf2f7',tb:'#a8cadd'}];
 function qColor(e,i){const q=QP[i%QP.length];e.style.setProperty('--tc',q.tc);e.style.setProperty('--tl',q.tl);e.style.setProperty('--tb',q.tb);}
 const LET=['А','Б','В','Г'];
-
-function tabs(parent,items,onShow){
-  const bar=el('div','tabbar'),panels=[],btns=[];parent.appendChild(bar);
-  const holder=el('div');parent.appendChild(holder);
-  function sel(i){btns.forEach((b,k)=>b.classList.toggle('on',k===i));panels.forEach((p,k)=>p.style.display=k===i?'':'none');
-    btns[i].classList.add('seen');if(!panels[i].dataset.b){panels[i].dataset.b=1;items[i].build(panels[i],()=>btns[i].classList.add('done'));
-      if(i<items.length-1){const nb=el('button','btn tabnext','Далі: '+items[i+1].name+' ▶');nb.onclick=()=>sel(i+1);panels[i].appendChild(nb);}}
-    if(onShow)onShow(i);}
-  items.forEach((it,i)=>{const b=el('button','tab',it.name);b.onclick=()=>sel(i);bar.appendChild(b);btns.push(b);const p=el('div');p.style.display='none';holder.appendChild(p);panels.push(p);});
-  sel(0);return {sel};}
 
 /* покрокове розкриття стрілкою ↓ */
 function stepper(parent,steps,cb,fin){
@@ -309,23 +306,27 @@ function mc(box,ask,opts,ci,why,done){
     wrap.appendChild(b);});
   box.appendChild(wrap);box.appendChild(msg);}
 
-/* «Так / Ні» */
+/* «Так / Ні»: твердження з'являються по одному */
 function ynW(box,items,done){
-  const w=el('div','yn');box.appendChild(w);let left=items.length;
-  items.forEach(it=>{
+  const w=el('div','yn');box.appendChild(w);const rows=[];
+  items.forEach((it,k)=>{
     const row=el('div','ynrow'+(it.v?'':' false'));
     row.innerHTML='<div><div class="mt">'+it.t+'</div><div class="fix">'+(it.fix||'')+'</div></div>';
     const bt=el('div','mbtns');
     [['Так',true],['Ні',false]].forEach(([l,val])=>{const b=el('button','mb',l);
       b.onclick=()=>{if(row.classList.contains('ok'))return;
-        if(val===it.v){row.classList.add('ok');b.classList.add('ok');left--;if(!left)done&&done();}
+        if(val===it.v){row.classList.add('ok');b.classList.add('ok');SCORE+=0;
+          if(k+1<rows.length){rows[k+1].style.display='';rows[k+1].classList.add('pop');scrollTo_(rows[k+1]);}else done&&done();}
         else{b.classList.add('bad');b.disabled=true;}};
       bt.appendChild(b);});
-    row.appendChild(bt);w.appendChild(row);});}
+    row.appendChild(bt);if(k)row.style.display='none';rows.push(row);w.appendChild(row);});}
 
-/* ===================== ЕТАПИ ===================== */
-const STAGES=[];
-function addStage(id,title,dur,build){STAGES.push({id,title,dur,build,built:false,node:null});}
+/* ===================== ЕТАПИ І СТОРІНКИ ===================== */
+const STAGES=[],SDEF={};
+function addStage(id,title,dur,build,sub){SDEF[id]={title,dur};STAGES.push({id,title,dur,sub:sub||'',first:true,build,built:false,node:null});}
+function addPage(id,build,sub){const d=SDEF[id];STAGES.push({id,title:d.title,dur:d.dur,sub:sub||'',first:false,build,built:false,node:null});}
+/* порожня сторінка із заголовком; повертає контейнер для вмісту */
+function pg(c,title){c.innerHTML='<div class="inner"><h2 class="st">'+title+'</h2><div class="pgb"></div></div>';return $('.pgb',c);}
 addStage('start','Старт',0,()=>{});
 /* ===================== 1. АКТУАЛІЗАЦІЯ: ознаки рівності ===================== */
 const ACT=[
@@ -343,70 +344,65 @@ function prepAct(d){
   const r=rnd(0,2),cyc=a=>[a[r],a[(r+1)%3],a[(r+2)%3]];
   const Q=cyc(d.Q()),sides=cyc(d.sides),angs=cyc(d.angs);
   const given=d.given.map(p=>({t:p.t,i:(p.i-r+3)%3})),ask=(d.ask-r+3)%3;
-  const sh=rnd(0,2),flip=Math.random()<.5,r1=rnd(-18,18),r2=rnd(-60,60);
+  const sh=rnd(0,2),flip=Math.random()<.5,r1=rnd(-8,8),r2=rnd(-35,35);
   const ext=P=>[Math.max(...P.map(p=>p[0]))-Math.min(...P.map(p=>p[0])),Math.max(...P.map(p=>p[1]))-Math.min(...P.map(p=>p[1]))];
   const e1=ext(xf(Q,{k:1,rot:r1})),e2=ext(xf(Q,{k:1,rot:r2,flip}));
-  const k=Math.min(34,150/Math.max(e1[0],e2[0]),150/Math.max(e1[1],e2[1]));
-  const T1=xf(Q,{k,cx:140,cy:135,rot:r1}),T2=xf(Q,{k,cx:420,cy:135,rot:r2,flip});
+  const k=Math.min(70,275/Math.max(e1[0],e2[0]),215/Math.max(e1[1],e2[1]));
+  const T1=xf(Q,{k,cx:165,cy:165,rot:r1}),T2=xf(Q,{k,cx:495,cy:165,rot:r2,flip});
   const R=[0,1,2].map(i=>T2[(i+sh)%3]);
   const nm2=shuffle(pick(NAMESETS));
   return {d,T1,R,sh,sides,angs,given,ask,nm1:['A','B','C'],nm2};}
+/* Кути: кожен свого кольору й з відповідною кількістю дуг (1, 2, 3); градуси того ж кольору.
+   Сторони: чорні числа без «см». lv: 0 — умова; 1 — ознаку знайдено (позначки рівних сторін); 2 — знайдено шукану сторону */
 function actSVG(S,lv){
   const {T1,R,sh,given,ask}=S;
   const sl1=[],sl2=[],slc1=[],slc2=[],at1=[],at2=[],atc1=[],atc2=[],sm1=[0,0,0],sm2=[0,0,0],am1=[0,0,0],am2=[0,0,0];
-  for(let i=0;i<3;i++){sl1[i]=S.sides[i]+' см';at1[i]=S.angs[i];}
-  let ns=0,na=0;
-  given.forEach((p,k)=>{const j=(p.i-sh+3)%3,cls='c'+k+'f';
-    if(p.t==='s'){sl2[j]=S.sides[p.i]+' см';if(lv>=1){slc1[p.i]=cls;slc2[j]=cls;ns++;sm1[p.i]=[ns,PC[k]];sm2[j]=[ns,PC[k]];}}
-    else{at2[j]=S.angs[p.i];if(lv>=1){atc1[p.i]=cls;atc2[j]=cls;na++;am1[p.i]=[na,PC[k]];am2[j]=[na,PC[k]];}}});
+  for(let i=0;i<3;i++){sl1[i]=S.sides[i];slc1[i]='sd';at1[i]=S.angs[i];atc1[i]='c'+i+'f ang';am1[i]=[i+1,PC[i]];}
+  let ns=0;
+  given.forEach(p=>{const j=(p.i-sh+3)%3;
+    if(p.t==='s'){sl2[j]=S.sides[p.i];slc2[j]='sd';if(lv>=1){ns++;sm1[p.i]=[ns,'#173F5F'];sm2[j]=[ns,'#173F5F'];}}
+    else{at2[j]=S.angs[p.i];atc2[j]='c'+p.i+'f ang';am2[j]=[p.i+1,PC[p.i]];}});
   const aj=(ask-sh+3)%3;
-  if(lv===1){sl2[aj]='?';slc2[aj]='qf';slc1[ask]='blf';sm1[ask]=[ns+1,'#1d4ed8'];sm2[aj]=[ns+1,'#1d4ed8'];}
-  if(lv>=2){sl2[aj]=S.sides[ask]+' см';slc2[aj]='okf';slc1[ask]='okf';sm1[ask]=[ns+1,'#1e9e62'];sm2[aj]=[ns+1,'#1e9e62'];}
-  const base={atr:'auto',slr:25,lr:21,ar:21};
-  return svgWrap('0 0 560 270',
+  if(lv===0){sl2[aj]='?';slc2[aj]='qf';}
+  if(lv===1){sl2[aj]='?';slc2[aj]='qf';sm1[ask]=[ns+1,'#1d4ed8'];sm2[aj]=[ns+1,'#1d4ed8'];}
+  if(lv>=2){sl2[aj]=S.sides[ask];slc2[aj]='okf sd';slc1[ask]='okf sd';sm1[ask]=[ns+1,'#1e9e62'];sm2[aj]=[ns+1,'#1e9e62'];}
+  const base={atr:'auto',slr:27,lr:23,ar:26};
+  return svgWrap('0 0 660 330',
     drawTri(T1,Object.assign({lab:S.nm1,sm:sm1,am:am1,sl:sl1,slc:slc1,at:at1,atc:atc1},base))+
     drawTri(R,Object.assign({lab:S.nm2,sm:sm2,am:am2,sl:sl2,slc:slc2,at:at2,atc:atc2},base)));}
 const sideName=(nm,i)=>'<i>'+nm[i]+nm[(i+1)%3]+'</i>';
 
-addStage('act','Ознаки рівності трикутників',7,c=>{
-  c.innerHTML='<div class="inner"><div id="qz"></div></div>';
-  const host=$('#qz',c);let idx=0;
-  function show(){
-    host.innerHTML='';const S=prepAct(ACT[idx]);const d=S.d;
-    const box=el('div','task pop');qColor(box,idx);host.appendChild(box);
-    box.appendChild(el('div','ask','<span class="badge">'+(idx+1)+'/'+ACT.length+'</span>Чи рівні трикутники <i>ABC</i> і <i>'+S.nm2.join('')+'</i>? Якщо так, то за якою ознакою?'));
-    const cols=el('div','cols');box.appendChild(cols);const lc=el('div'),rc=el('div');cols.appendChild(lc);cols.appendChild(rc);
-    const fb=el('div','figbox big',actSVG(S,0));lc.appendChild(fb);
-    const q=el('div');rc.appendChild(q);
-    const msg=el('div','msg');rc.appendChild(msg);
-    const bar=el('div','bar');const nx=el('button','btn',idx<ACT.length-1?'Далі ▶':'Готово ✓');nx.style.display='none';bar.appendChild(nx);rc.appendChild(bar);
-    nx.onclick=()=>{if(idx<ACT.length-1){idx++;show();}else{nx.disabled=true;msg.className='msg ok';msg.textContent='Усі завдання виконано. Натисніть «Далі →» внизу.';}};
-    /* питання 1: ознака */
-    const want=d.kind==='sas'?'first':'second';
-    const gs=S.given.filter(p=>p.t==='s').map(p=>S.sides[p.i]+' см'),ga=S.given.filter(p=>p.t==='a').map(p=>S.angs[p.i]);
-    const why=d.kind==='sas'?'Рівні дві сторони ('+gs.join(' і ')+') та кут між ними ('+ga[0]+'): перша ознака.':'Рівні сторона ('+gs[0]+') та два прилеглих до неї кути ('+ga.join(' і ')+'): друга ознака.';
-    const hint=d.kind==='sas'?'Скільки пар рівних сторін? Де лежить рівний кут: між ними чи ні?':'Яка сторона рівна? Чи прилягають до неї обидва рівні кути?';
-    q.appendChild(el('div','ask','За якою ознакою?'));
-    const cr=el('div','crit');q.appendChild(cr);let mist=false,solved=false;
-    [['first','За першою ознакою'],['second','За другою ознакою'],['none','Рівність установити не можна']].forEach(([id,t])=>{
-      const b=el('button','btn light',t);
-      b.onclick=()=>{if(solved)return;
-        if(id===want){solved=true;b.classList.remove('light');if(!mist)SCORE++;msg.className='msg ok';msg.innerHTML='Правильно! '+why;fb.innerHTML=actSVG(S,1);ask2();}
-        else{mist=true;b.disabled=true;msg.className='msg bad';msg.innerHTML='Неправильно. <span class="hint">'+hint+'</span>';}};
-      cr.appendChild(b);});
-    /* питання 2: чому дорівнює шукана сторона */
-    function ask2(){
-      const q2=el('div','pop');q.appendChild(q2);
-      const nmA=sideName(S.nm1,S.ask),aj=(S.ask-S.sh+3)%3,nmB=sideName(S.nm2,aj);
-      q2.appendChild(el('div','ask','Чому дорівнює сторона '+nmB+'? <span style="font-weight:700;color:var(--muted)">(на рисунку «?»)</span>'));
-      const opts=[d.right].concat(d.wrong);
-      mc(q2,'',opts,0,'',()=>{fb.innerHTML=actSVG(S,2);
-        msg.className='msg ok';msg.innerHTML='Рівні трикутники мають рівні відповідні сторони: '+nmB+' = '+nmA+' = '+d.right+'.';
-        nx.style.display='';scrollTo_(nx);});
-    }
-  }
-  show();
-});
+function actPage(c,idx){
+  const h=pg(c,'Ознаки рівності трикутників');
+  const S=prepAct(ACT[idx]);const d=S.d;
+  const box=el('div','task pop');qColor(box,idx);h.appendChild(box);
+  box.appendChild(el('div','ask','<span class="badge">'+(idx+1)+'/'+ACT.length+'</span>Чи рівні трикутники <i>ABC</i> і <i>'+S.nm2.join('')+'</i>? Якщо так, то за якою ознакою?'));
+  const cols=el('div','cols wide');box.appendChild(cols);const lc=el('div'),rc=el('div');cols.appendChild(lc);cols.appendChild(rc);
+  const fb=el('div','figbox big',actSVG(S,0));lc.appendChild(fb);
+  lc.appendChild(el('div','unit','Довжини сторін подано в сантиметрах'));
+  const q=el('div');rc.appendChild(q);
+  const msg=el('div','msg');rc.appendChild(msg);
+  const want=d.kind==='sas'?'first':'second';
+  const gs=S.given.filter(p=>p.t==='s').map(p=>S.sides[p.i]+' см'),ga=S.given.filter(p=>p.t==='a').map(p=>S.angs[p.i]);
+  const why=d.kind==='sas'?'Рівні дві сторони ('+gs.join(' і ')+') та кут між ними ('+ga[0]+'): перша ознака.':'Рівні сторона ('+gs[0]+') та два прилеглих до неї кути ('+ga.join(' і ')+'): друга ознака.';
+  const hint=d.kind==='sas'?'Скільки пар рівних сторін? Де лежить рівний кут: між ними чи ні?':'Яка сторона рівна? Чи прилягають до неї обидва рівні кути?';
+  q.appendChild(el('div','ask','За якою ознакою?'));
+  const cr=el('div','crit');q.appendChild(cr);let mist=false,solved=false;
+  [['first','За першою ознакою'],['second','За другою ознакою'],['none','Рівність установити не можна']].forEach(([id,t])=>{
+    const b=el('button','btn light',t);
+    b.onclick=()=>{if(solved)return;
+      if(id===want){solved=true;b.classList.remove('light');if(!mist)SCORE++;msg.className='msg ok';msg.innerHTML='Правильно! '+why;fb.innerHTML=actSVG(S,1);ask2();}
+      else{mist=true;b.disabled=true;msg.className='msg bad';msg.innerHTML='Неправильно. <span class="hint">'+hint+'</span>';}};
+    cr.appendChild(b);});
+  function ask2(){
+    const q2=el('div','pop');q.appendChild(q2);
+    const nmA=sideName(S.nm1,S.ask),aj=(S.ask-S.sh+3)%3,nmB=sideName(S.nm2,aj);
+    q2.appendChild(el('div','ask','Чому дорівнює сторона '+nmB+'? <span style="font-weight:700;color:var(--muted)">(на рисунку «?»)</span>'));
+    mc(q2,'',[d.right].concat(d.wrong),0,'',()=>{fb.innerHTML=actSVG(S,2);
+      msg.className='msg ok';msg.innerHTML='Рівні трикутники мають рівні відповідні сторони: '+nmB+' = '+nmA+' = '+d.right+'.';scrollTo_(msg);});}
+}
+addStage('act','Ознаки рівності трикутників',7,c=>actPage(c,0));
+for(let i=1;i<ACT.length;i++)addPage('act',(k=>c=>actPage(c,k))(i));
 /* ===================== 2. РІВНОБЕДРЕНИЙ ТРИКУТНИК: означення ===================== */
 function triSSS(c,b,a){const bx=(c*c+b*b-a*a)/(2*b);return [[0,0],[bx,-Math.sqrt(Math.max(0,c*c-bx*bx))],[b,0]];}
 const GRAY='#8aa5b8';
@@ -429,62 +425,71 @@ const DEFTXT={
  apexAngle:'Кут <i>B</i> називають <b>кутом при вершині</b>.',
  baseAngles:'Кути <i>A</i> і <i>C</i> називають <b>кутами при основі</b> рівнобедреного трикутника.'};
 
-function kindFig(sides,nm){ /* трикутник за трьома сторонами, числа на сторонах */
-  const Q=triSSS(sides[0],sides[1],sides[2]);const P=xf(Q,{fit:[200,150,30],rot:0});
+function kindFig(sides,marks){ /* трикутник за трьома сторонами, числа на сторонах; marks — позначки рівних сторін */
+  const P=xf(triSSS(sides[0],sides[1],sides[2]),{fit:[360,250,52]});
   /* вершини A,B,C; сторони AB=sides[0], BC=sides[2], CA=sides[1] */
   const sl=[sides[0]+'',sides[2]+'',sides[1]+''];
-  return svgWrap('0 0 200 150',drawTri(P,{sl,slr:18,lab:nm||['','',''],lr:15}));}
+  const sm=[0,0,0];
+  if(marks)sl.forEach((v,i)=>{if(sl.filter(x=>x===v).length>1)sm[i]=[1,PC[0]];});
+  return svgWrap('0 0 360 250',drawTri(P,{sl,slc:['sd','sd','sd'],slr:26,sm}));}
 
-addStage('iso','Рівнобедрений трикутник',5,c=>{
-  c.innerHTML='<div class="inner"><h2 class="st">Рівнобедрений трикутник</h2><div id="isot"></div></div>';
-  tabs($('#isot',c),[
-   {name:'Означення',build:p=>{
-     const cols=el('div','cols');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-     const fb=el('div','figbox',isoDefFig(''));l.appendChild(fb);
-     r.appendChild(el('div','def big','<span class="dl">Означення</span>Трикутник, у якого дві сторони рівні, називають <b>рівнобедреним</b>.'));
-     r.appendChild(el('div','note','Натискайте на назви, щоб побачити їх на рисунку:'));
-     const chips=el('div','chips');r.appendChild(chips);const info=el('div','def pop');info.style.display='none';r.appendChild(info);
-     [['бічні сторони','legs','c0o'],['основа','base','c1o'],['вершина','apex','c2o'],['кут при вершині','apexAngle','c2o'],['кути при основі','baseAngles','c1o']].forEach(([t,k,cl])=>{
-       const b=el('button','chip '+cl,t);b.onclick=()=>{chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on','seen');
-         fb.innerHTML=isoDefFig(k);info.style.display='';info.innerHTML=DEFTXT[k];};chips.appendChild(b);});
-   }},
-   {name:'Види за сторонами',build:p=>{
-     const cols=el('div','cols');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-     const kinds={
-       iso:{t:'рівнобедрений',sides:[5,8,5],txt:'<b>Рівнобедрений</b>: дві сторони рівні.'},
-       eq:{t:'рівносторонній',sides:[6,6,6],txt:'Трикутник, у якого всі сторони рівні, називають <b>рівностороннім</b>. Рівносторонній трикутник — окремий вид рівнобедреного трикутника.'},
-       sc:{t:'різносторонній',sides:[4,6,7],txt:'Якщо в трикутнику довжини всіх сторін різні, то такий трикутник називають <b>різностороннім</b>.'}};
-     const row=el('div','chips');l.appendChild(row);const fbs={};
-     const info=el('div','def big pop');info.style.display='none';
-     const box=el('div','figbox');l.appendChild(box);
-     function showKind(k){row.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.k===k));
-       const K=kinds[k];box.innerHTML=kindFig(K.sides,['A','B','C']);info.style.display='';info.innerHTML=K.txt;}
-     ['iso','eq','sc'].forEach(k=>{const b=el('button','chip',kinds[k].t);b.dataset.k=k;b.onclick=()=>{b.classList.add('seen');showKind(k);};row.appendChild(b);});
-     box.innerHTML=kindFig(kinds.iso.sides,['A','B','C']);
-     r.appendChild(el('div','note','Скільки пар рівних сторін у трикутнику? Натисніть на вид.'));r.appendChild(info);
-     /* вправа */
-     const ex=el('div');ex.style.marginTop='.8rem';r.appendChild(ex);
-     const items=shuffle([['sc',[4,6,7]],['eq',[6,6,6]],['iso',[7,7,4]]]);
-     ex.appendChild(el('div','ask','Який вигляд має кожен трикутник за сторонами?'));
-     const th=el('div');th.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem';ex.appendChild(th);
-     const msg=el('div','msg');ex.appendChild(msg);let left=3;
-     items.forEach(([k,sd])=>{const cell=el('div','figbox');cell.style.cssText='flex-direction:column;padding:.3rem';cell.innerHTML=kindFig(sd,['','','']);
-       const bt=el('div','mbtns');bt.style.justifyContent='center';
-       ['рівнобедрений','рівносторонній','різносторонній'].forEach(lab=>{const b=el('button','mb',lab);b.style.fontSize='.85rem';
-         b.onclick=()=>{if(cell.dataset.ok)return;if(lab===kinds[k].t){cell.dataset.ok=1;cell.style.background='var(--okbg)';cell.style.borderColor='var(--ok)';bt.innerHTML='<b style="color:var(--oktx)">'+lab+'</b>';left--;msg.className='msg ok';msg.textContent='Правильно!';if(!left)SCORE++;}
-           else{b.classList.add('bad');b.disabled=true;msg.className='msg bad';msg.textContent='Спробуйте ще раз: порівняйте довжини сторін.';}};bt.appendChild(b);});
-       cell.appendChild(bt);th.appendChild(cell);});
-   }}]);
+/* ---------- ПОВТОРЕННЯ: види трикутників за сторонами (3 сторінки) ---------- */
+const KINDS=[
+ {t:'різносторонній',sides:[5,7,9],txt:'Якщо в трикутнику довжини всіх сторін різні, то такий трикутник називають <b>різностороннім</b>.'},
+ {t:'рівнобедрений',sides:[7,4,7],txt:'Трикутник, у якого дві сторони рівні, називають <b>рівнобедреним</b>.'},
+ {t:'рівносторонній',sides:[6,6,6],txt:'Трикутник, у якого всі сторони рівні, називають <b>рівностороннім</b>.'}];
+function kindPage(c,idx){
+  const K=KINDS[idx],h=pg(c,'Згадаймо види трикутників');
+  const box=el('div','task pop');qColor(box,idx);h.appendChild(box);
+  box.appendChild(el('div','ask','<span class="badge">'+(idx+1)+'/'+KINDS.length+'</span>Який це трикутник за довжинами сторін?'));
+  const cols=el('div','cols wide');box.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox big',kindFig(K.sides,false));l.appendChild(fb);
+  l.appendChild(el('div','unit','Довжини сторін подано в сантиметрах'));
+  const crit=el('div','crit');r.appendChild(crit);const msg=el('div','msg');r.appendChild(msg);let solved=false,mist=false;
+  shuffle(KINDS.map(k=>k.t)).forEach(t=>{const b=el('button','btn light',t);
+    b.onclick=()=>{if(solved)return;
+      if(t===K.t){solved=true;b.classList.remove('light');if(!mist)SCORE++;fb.innerHTML=kindFig(K.sides,true);msg.className='msg ok';msg.innerHTML='Правильно!';
+        const d=el('div','def pop','<span class="dl">Пригадаємо</span>'+K.txt);r.appendChild(d);}
+      else{mist=true;b.disabled=true;msg.className='msg bad';msg.innerHTML='Неправильно. <span class="hint">Порівняйте довжини сторін: скільки з них однакові?</span>';}};
+    crit.appendChild(b);});
+}
+addStage('rep','Види трикутників за сторонами',3,c=>kindPage(c,0));
+for(let i=1;i<KINDS.length;i++)addPage('rep',(k=>c=>kindPage(c,k))(i));
+
+/* ---------- РІВНОБЕДРЕНИЙ ТРИКУТНИК: означення (3 сторінки) ---------- */
+addStage('iso','Рівнобедрений трикутник',4,c=>{
+  const h=pg(c,'Означення');
+  const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  l.appendChild(el('div','figbox big',isoDefFig('')));
+  r.appendChild(el('div','def big','<span class="dl">Означення</span>Трикутник, у якого дві сторони рівні, називають <b>рівнобедреним</b>.'));
+});
+addPage('iso',c=>{
+  const h=pg(c,'Елементи рівнобедреного трикутника');
+  const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox big',isoDefFig(''));l.appendChild(fb);
+  r.appendChild(el('div','note','Натискайте на назви:'));
+  const chips=el('div','chips');r.appendChild(chips);const info=el('div','def pop');info.style.display='none';r.appendChild(info);
+  [['бічні сторони','legs','c0o'],['основа','base','c1o'],['вершина','apex','c2o'],['кут при вершині','apexAngle','c2o'],['кути при основі','baseAngles','c1o']].forEach(([t,k,cl])=>{
+    const b=el('button','chip '+cl,t);b.onclick=()=>{chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on','seen');
+      fb.innerHTML=isoDefFig(k);info.style.display='';info.innerHTML=DEFTXT[k];};chips.appendChild(b);});
+});
+addPage('iso',c=>{
+  const h=pg(c,'Рівносторонній трикутник');
+  const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  l.appendChild(el('div','figbox big',equiFig('sides')));
+  r.appendChild(el('div','def big','Трикутник, у якого всі сторони рівні, називають <b>рівностороннім</b>.'));
+  r.appendChild(el('div','def big pop','Рівносторонній трикутник — <b>окремий вид</b> рівнобедреного трикутника: у ньому є дві рівні сторони (навіть три).'));
 });
 
 /* ===================== 3. ТЕОРЕМА 9.1 ===================== */
-function foldFig(phi,showA){
-  const P=xf(isoQapex(phi),{k:150,cx:230,cy:135}),A=P[0],B=P[1],C=P[2],L=[B[0],A[1]],c=cen3(P);
+function foldFig(phi,fold){
+  const P=xf(isoQapex(phi),{k:185,cx:230,cy:140}),A=P[0],B=P[1],C=P[2],L=[B[0],A[1]],c=cen3(P);
   let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73');
-  s+=seg(B,L,GRAY,2.4,'6 5');
-  s+=arcs(B,A,C,1,PC[0],26)+arcs(B,C,A,1,PC[0],26)+arcs(A,B,C,1,PC[2],24);
-  s+='<g id="foldg" transform="translate('+f1(L[0])+' 0) scale(1 1) translate('+f1(-L[0])+' 0)">'+poly([A,B,L],'rgba(232,89,12,.22)','#e8590c',2.6)+dot(A,5,'#e8590c')+'</g>';
-  s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20)+txt([L[0],L[1]+18],'L','vt');
+  s+=arcs(B,A,C,1,PC[0],28)+arcs(B,C,A,1,PC[0],28)+arcs(A,B,C,1,PC[2],26);
+  if(fold){s+=seg(B,L,GRAY,2.4,'6 5');
+    s+='<g id="foldg" transform="translate('+f1(L[0])+' 0) scale(1 1) translate('+f1(-L[0])+' 0)">'+poly([A,B,L],'rgba(232,89,12,.22)','#e8590c',2.6)+dot(A,5,'#e8590c')+'</g>';
+    s+=txt([L[0],L[1]+18],'L','vt');}
+  s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);
   return {svg:svgWrap('0 0 460 270',s),L:L};}
 function angFmt(x){const r=Math.round(x*10)/10;return dec(r)+'°';}
 
@@ -513,6 +518,7 @@ function isoMarks(f){
   return svgWrap('0 0 440 270',s);}
 
 function equiFig(withLine){
+  if(withLine==='sides'){const P=xf([[-1,0],[0,-Math.sqrt(3)],[1,0]],{fit:[260,200,40]}),c=cen3(P);return svgWrap('0 0 260 200',poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(P[0],P[1],1,PC[0])+ticks(P[1],P[2],1,PC[0])+ticks(P[0],P[2],1,PC[0])+outLab(P[0],c,'A',19)+outLab(P[1],c,'B',19)+outLab(P[2],c,'C',19));}
   const P=xf([[-1,0],[0,-Math.sqrt(3)],[1,0]],{fit:[260,200,40]}),A=P[0],B=P[1],C=P[2],c=cen3(P),L=[B[0],A[1]];
   let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,PC[0])+ticks(B,C,1,PC[0])+ticks(A,C,1,PC[0]);
   if(!withLine){s+=arcs(B,A,C,1,PC[1],24)+arcs(A,B,C,1,PC[1],24)+arcs(A,C,B,1,PC[1],24);
@@ -530,74 +536,77 @@ function isoAnglesFig(){
   const P=xf(isoQ(6,4.6),{fit:[260,200,40]}),A=P[0],B=P[1],C=P[2],c=cen3(P);
   return svgWrap('0 0 260 200',poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,PC[0])+ticks(B,C,1,PC[0])+arcs(B,A,C,1,PC[1],24)+arcs(B,C,A,1,PC[1],24)+outLab(A,c,'A',19)+outLab(B,c,'B',19)+outLab(C,c,'C',19));}
 
+/* ---------- ТЕОРЕМА 9.1 ---------- */
 addStage('thm','Властивості рівнобедреного трикутника',11,c=>{
-  c.innerHTML='<div class="inner"><h2 class="st">Властивості рівнобедреного трикутника</h2><div id="tht"></div></div>';
-  tabs($('#tht',c),[
-   {name:'Кути при основі',build:p=>{
-     p.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>кути при основі рівні</b>.'));
-     p.appendChild(el('p','note','Змінюйте кут при вершині й дивіться на кути при основі. Потім перегніть трикутник по відрізку <i>BL</i>.'));
-     const fb=el('div','figbox');fb.style.cssText='--mh:34vh';p.appendChild(fb);
-     const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=20;inp.max=160;inp.step=1;inp.value=80;
-     const val=el('span','lbl');sb.appendChild(inp);sb.appendChild(val);
-     const fold=el('button','btn','Перегнути ↷');sb.appendChild(fold);p.appendChild(sb);
-     const info=el('div','slinfo');p.appendChild(info);
-     let folded=false,busy=false,cur=null;
-     function draw(){const phi=+inp.value;val.textContent=phi+'°';cur=foldFig(phi);fb.innerHTML=cur.svg;folded=false;fold.textContent='Перегнути ↷';
-       const b=(180-phi)/2,eq=phi===60;info.className='slinfo'+(eq?' ok':'');
-       info.innerHTML='Вимірюємо: ∠<i>A</i> = '+angFmt(b)+', ∠<i>C</i> = '+angFmt(b)+' &nbsp; ⇒ &nbsp; ∠<i>A</i> = ∠<i>C</i>'+(eq?'<br>Усі сторони рівні: трикутник рівносторонній.':'');}
-     inp.oninput=draw;
-     fold.onclick=()=>{if(busy)return;const g=fb.querySelector('#foldg');if(!g)return;const L=cur.L;const from=folded?-1:1,to=folded?1:-1;busy=true;const t0=performance.now();
-       (function f(n){const t=Math.min(1,(n-t0)/1100),e=t*t*(3-2*t),sc=from+(to-from)*e;g.setAttribute('transform','translate('+f1(L[0])+' 0) scale('+sc.toFixed(3)+' 1) translate('+f1(-L[0])+' 0)');
-         if(t<1)requestAnimationFrame(f);else{busy=false;folded=!folded;fold.textContent=folded?'↶ Розігнути':'Перегнути ↷';
-           info.className='slinfo ok';info.innerHTML=folded?'Точка <i>A</i> збіглася з точкою <i>C</i>: кути при основі збіглися, тобто ∠<i>A</i> = ∠<i>C</i>.':info.innerHTML;if(!folded)draw();}})(t0);};
-     draw();
-   }},
-   {name:'Бісектриса, медіана, висота',build:p=>{
-     p.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>бісектриса</b> трикутника, проведена до його основи, є його <b>медіаною та висотою</b>.'));
-     const cols=el('div','cols');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-     const fb=el('div','figbox',isoMarks(0));l.appendChild(fb);
-     stepper(r,[
-      {h:'<i>BL</i> — <span class="c2">бісектриса</span> кута <i>B</i>: ∠<i>ABL</i> = ∠<i>CBL</i>',lv:1},
-      {h:'<i>BL</i> — також <span class="c0">медіана</span>: <i>AL</i> = <i>LC</i>',lv:2},
-      {h:'<i>BL</i> — також <span class="c1">висота</span>: <i>BL</i> ⊥ <i>AC</i>',lv:3},
-      {h:'Бісектриса, медіана й висота, проведені до основи, — це один і той самий відрізок <i>BL</i>.',cls:'pl fin',lv:3}],
-      lv=>{if(lv!=null)fb.innerHTML=isoMarks(lv);});
-   }},
-   {name:'Доведення',build:p=>{
-     const cols=el('div','cols');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-     const fb=el('div','figbox',isoBL(0));l.appendChild(fb);
-     r.appendChild(el('div','dado','<div class="row"><span class="lb">Дано:</span><span>∆<i>ABC</i>, <i>AB</i> = <i>BC</i>, <i>BL</i> — бісектриса</span></div><div class="row"><span class="lb">Довести:</span><span>∠<i>A</i> = ∠<i>C</i>, <i>AL</i> = <i>LC</i>, <i>BL</i> ⊥ <i>AC</i></span></div>'));
-     const pf=el('div','proof');pf.appendChild(el('div','pt','Доведення'));r.appendChild(pf);
-     const W=t=>' <span class="why">('+t+')</span>';
-     stepper(pf,[
-      {h:'Розглянемо ∆<i>ABL</i> і ∆<i>CBL</i>.',lv:1},
-      {h:'<i>BL</i> — спільна сторона',lv:2},
-      {h:'∠<i>ABL</i> = ∠<i>CBL</i>'+W('<i>BL</i> — бісектриса кута <i>ABC</i>'),lv:3},
-      {h:'<i>AB</i> = <i>BC</i>'+W('бічні сторони рівнобедреного трикутника'),lv:4},
-      {h:'∆<i>ABL</i> = ∆<i>CBL</i> за першою ознакою (за двома сторонами та кутом між ними)',cls:'pl fin',lv:5},
-      {h:'Звідси: ∠<i>A</i> = ∠<i>C</i>',lv:6},
-      {h:'<i>AL</i> = <i>LC</i>, тому <i>BL</i> — медіана',lv:7},
-      {h:'∠<i>ALB</i> = ∠<i>CLB</i>, а ці кути суміжні: ∠<i>ALB</i> + ∠<i>CLB</i> = 180°. Отже, ∠<i>ALB</i> = ∠<i>CLB</i> = 90°, тому <i>BL</i> — висота.',lv:8},
-      {h:'Теорему доведено.',cls:'pl fin',lv:8}],
-      lv=>{if(lv!=null)fb.innerHTML=isoBL(lv);});
-   }},
-   {name:'Наслідки',build:p=>{
-     p.appendChild(el('div','note','Із теореми 9.1 випливає, що:'));
-     const box=el('div','cards');p.appendChild(box);
-     const rows=[
-      {s:isoAnglesFig(),h:'<span class="hd">1</span>у трикутнику проти рівних сторін лежать рівні кути'},
-      {s:isoAllFig(),h:'<span class="hd">2</span>у рівнобедреному трикутнику бісектриса, висота й медіана, проведені до його основи, збігаються'},
-      {s:equiFig(false),h:'<span class="hd">3</span>у рівносторонньому трикутнику всі кути рівні'},
-      {s:equiFig(true),h:'<span class="hd">4</span>у рівносторонньому трикутнику бісектриса, висота й медіана, проведені з однієї вершини, збігаються'}];
-     stepper(box,rows.map(r=>({h:'<div class="card2"><div class="figbox">'+r.s+'</div><div class="txt">'+r.h+'</div></div>',cls:''})));
-   }}
-  ]);
+  const h=pg(c,'Теорема 9.1: кути при основі');
+  h.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>кути при основі рівні</b>.'));
+  h.appendChild(el('p','note','Пересувайте повзунок: змінюється кут <i>B</i> при вершині. Що відбувається з кутами <i>A</i> і <i>C</i>?'));
+  const fb=el('div','figbox');fb.style.cssText='--mh:44vh';h.appendChild(fb);
+  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=30;inp.max=150;inp.step=1;inp.value=80;
+  const val=el('span','lbl');sb.appendChild(inp);sb.appendChild(val);h.appendChild(sb);
+  const info=el('div','slinfo');h.appendChild(info);
+  function draw(){const phi=+inp.value;val.textContent=phi+'°';fb.innerHTML=foldFig(phi,false).svg;
+    const b=(180-phi)/2,eq=phi===60;info.className='slinfo'+(eq?' ok':'');
+    info.innerHTML='<span class="c0">∠<i>A</i> = '+angFmt(b)+'</span> &nbsp; <span class="c0">∠<i>C</i> = '+angFmt(b)+'</span> &nbsp; ⇒ &nbsp; ∠<i>A</i> = ∠<i>C</i>'+(eq?'<br>Усі сторони рівні: трикутник рівносторонній.':'');}
+  inp.oninput=draw;draw();
 });
+addPage('thm',c=>{
+  const h=pg(c,'Перегнемо трикутник');
+  h.appendChild(el('p','note','Трикутник <i>ABC</i> рівнобедрений. Перегніть його по відрізку <i>BL</i>, який ділить кут <i>B</i> навпіл.'));
+  const fb=el('div','figbox');fb.style.cssText='--mh:40vh';h.appendChild(fb);
+  const cur=foldFig(70,true);fb.innerHTML=cur.svg;
+  const bar=el('div','bar');const fold=el('button','btn','Перегнути ↷');bar.appendChild(fold);h.appendChild(bar);
+  const info=el('div','slinfo');info.textContent='Що станеться з точкою A?';h.appendChild(info);
+  let folded=false,busy=false;
+  fold.onclick=()=>{if(busy)return;const g=fb.querySelector('#foldg');if(!g)return;const L=cur.L;const from=folded?-1:1,to=folded?1:-1;busy=true;const t0=performance.now();
+    (function f(n){const t=Math.min(1,(n-t0)/1100),e=t*t*(3-2*t),sc=from+(to-from)*e;g.setAttribute('transform','translate('+f1(L[0])+' 0) scale('+sc.toFixed(3)+' 1) translate('+f1(-L[0])+' 0)');
+      if(t<1)requestAnimationFrame(f);else{busy=false;folded=!folded;fold.textContent=folded?'↶ Розігнути':'Перегнути ↷';
+        info.className='slinfo'+(folded?' ok':'');info.innerHTML=folded?'Точка <i>A</i> збіглася з точкою <i>C</i>: кути при основі збіглися, тобто ∠<i>A</i> = ∠<i>C</i>.':'Що станеться з точкою <i>A</i>?';}})(t0);};
+},'Перегнемо трикутник');
+addPage('thm',c=>{
+  const h=pg(c,'Теорема 9.1: бісектриса, медіана, висота');
+  h.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>бісектриса</b> трикутника, проведена до його основи, є його <b>медіаною та висотою</b>.'));
+  const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox',isoMarks(0));l.appendChild(fb);
+  stepper(r,[
+   {h:'<i>BL</i> — <span class="c2">бісектриса</span> кута <i>B</i>: ∠<i>ABL</i> = ∠<i>CBL</i>',lv:1},
+   {h:'<i>BL</i> — також <span class="c0">медіана</span>: <i>AL</i> = <i>LC</i>',lv:2},
+   {h:'<i>BL</i> — також <span class="c1">висота</span>: <i>BL</i> ⊥ <i>AC</i>',lv:3},
+   {h:'Бісектриса, медіана й висота, проведені до основи, — це один і той самий відрізок <i>BL</i>.',cls:'pl fin',lv:3}],
+   lv=>{if(lv!=null)fb.innerHTML=isoMarks(lv);});
+});
+addPage('thm',c=>{
+  const h=pg(c,'Доведення теореми 9.1');
+  const cols=el('div','cols');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox',isoBL(0));l.appendChild(fb);
+  r.appendChild(el('div','dado','<div class="row"><span class="lb">Дано:</span><span>∆<i>ABC</i>, <i>AB</i> = <i>BC</i>, <i>BL</i> — бісектриса</span></div><div class="row"><span class="lb">Довести:</span><span>∠<i>A</i> = ∠<i>C</i>, <i>AL</i> = <i>LC</i>, <i>BL</i> ⊥ <i>AC</i></span></div>'));
+  const pf=el('div','proof');pf.appendChild(el('div','pt','Доведення'));r.appendChild(pf);
+  const W=t=>' <span class="why">('+t+')</span>';
+  stepper(pf,[
+   {h:'Розглянемо ∆<i>ABL</i> і ∆<i>CBL</i>.',lv:1},
+   {h:'<i>BL</i> — спільна сторона',lv:2},
+   {h:'∠<i>ABL</i> = ∠<i>CBL</i>'+W('<i>BL</i> — бісектриса кута <i>ABC</i>'),lv:3},
+   {h:'<i>AB</i> = <i>BC</i>'+W('бічні сторони рівнобедреного трикутника'),lv:4},
+   {h:'∆<i>ABL</i> = ∆<i>CBL</i> за першою ознакою (за двома сторонами та кутом між ними)',cls:'pl fin',lv:5},
+   {h:'Звідси: ∠<i>A</i> = ∠<i>C</i>',lv:6},
+   {h:'<i>AL</i> = <i>LC</i>, тому <i>BL</i> — медіана',lv:7},
+   {h:'∠<i>ALB</i> = ∠<i>CLB</i>, а ці кути суміжні: ∠<i>ALB</i> + ∠<i>CLB</i> = 180°. Отже, ∠<i>ALB</i> = ∠<i>CLB</i> = 90°, тому <i>BL</i> — висота.',lv:8},
+   {h:'Теорему доведено.',cls:'pl fin',lv:8}],
+   lv=>{if(lv!=null)fb.innerHTML=isoBL(lv);});
+});
+const CONS=[
+ {s:isoAnglesFig,h:'<span class="hd">Наслідок 1</span>У трикутнику проти рівних сторін лежать рівні кути.'},
+ {s:isoAllFig,h:'<span class="hd">Наслідок 2</span>У рівнобедреному трикутнику бісектриса, висота й медіана, проведені до його основи, збігаються.'},
+ {s:()=>equiFig(false),h:'<span class="hd">Наслідок 3</span>У рівносторонньому трикутнику всі кути рівні.'},
+ {s:()=>equiFig(true),h:'<span class="hd">Наслідок 4</span>У рівносторонньому трикутнику бісектриса, висота й медіана, проведені з однієї вершини, збігаються.'}];
+[[0,2,'Наслідки з теореми 9.1 (1–2)'],[2,4,'Наслідки з теореми 9.1 (3–4)']].forEach(([a,b,t])=>addPage('thm',c=>{
+  const h=pg(c,t);
+  stepper(h,CONS.slice(a,b).map(r=>({h:'<div class="card2"><div class="figbox">'+r.s()+'</div><div class="txt">'+r.h+'</div></div>',cls:''})));
+}));
 
 /* ===================== 4. ЗНАЙДІТЬ ПОМИЛКУ ===================== */
 addStage('err','Правильно чи ні?',3,c=>{
-  c.innerHTML='<div class="inner"><h2 class="st">Правильно чи ні?</h2><div id="er"></div></div>';
-  const host=$('#er',c);
+  const host=pg(c,'Правильно чи ні?');
   ynW(host,[
    {t:'У рівнобедреному трикутнику кути при основі рівні.',v:true},
    {t:'Бісектриса, проведена до бічної сторони рівнобедреного трикутника, є його медіаною та висотою.',v:false,fix:'Це правильно для бісектриси, проведеної до основи.'},
@@ -695,36 +704,33 @@ const TASKS=[
    {h:'Висота, проведена до основи, є також медіаною: <i>O</i> — середина <i>ME</i>, тому <i>ME</i> = 2 · <i>OE</i> = 2 · 6 = 12 (см)',lv:2},
    {h:'<i>KO</i> — також бісектриса: ∠<i>MKO</i> = 48° : 2 = 24°',lv:3},{h:'<b>Відповідь:</b> <i>ME</i> = 12 см, ∠<i>MKO</i> = 24°.',cls:'pl fin',lv:3}]}
 ];
-function taskBody(p,done,cfg){
-  const cols=el('div','cols');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-  const fb=el('div','figbox',cfg.fig(0));l.appendChild(fb);
+function taskBody(p,cfg){
+  const cols=el('div','cols wide');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox big',cfg.fig(0));l.appendChild(fb);
   r.appendChild(el('div','note',cfg.cond));
   r.appendChild(el('div','dado',cfg.dado.map(d=>'<div class="row"><span class="lb">'+d[0]+'</span><span>'+d[1]+'</span></div>').join('')));
   const q=el('div');r.appendChild(q);const sol=el('div');r.appendChild(sol);
   mc(q,'Виберіть відповідь:',cfg.opts,0,'',()=>{
     const pf=el('div','proof pop');pf.appendChild(el('div','pt','Розв’язання'));sol.appendChild(pf);
-    stepper(pf,cfg.steps,lv=>{if(lv!=null)fb.innerHTML=cfg.fig(lv);},()=>done&&done());scrollTo_(pf);});}
-addStage('ex','Вправи підручника',14,c=>{
-  c.innerHTML='<div class="inner"><h2 class="st">Вправи підручника</h2><div id="exh"></div></div>';
-  tabs($('#exh',c),TASKS.map(t=>({name:t.name,build:(p,done)=>taskBody(p,done,t)})));
-});
+    stepper(pf,cfg.steps,lv=>{if(lv!=null)fb.innerHTML=cfg.fig(lv);});scrollTo_(pf);});}
+TASKS.forEach((t,i)=>{
+  const build=c=>{const h=pg(c,'Вправа '+t.name);taskBody(h,t);};
+  if(!i)addStage('ex','Вправи підручника',13,build);else addPage('ex',build);});
 
 /* ===================== 6. ПІДСУМОК ===================== */
-addStage('sum','Підсумок уроку',3,c=>{
-  c.innerHTML='<div class="inner"><h2 class="st">Підсумок уроку</h2><div id="sm"></div></div>';
-  const sm=$('#sm',c);
+addStage('sum','Підсумок уроку',2,c=>{
+  const sm=pg(c,'Підсумок уроку');
   const rows=[
    {s:isoDefFig(''),h:'<span class="hd">Рівнобедрений трикутник</span>Трикутник, у якого дві сторони рівні. Рівні сторони — бічні, третя сторона — основа. Кути при основі — <i>A</i> і <i>C</i>.'},
    {s:isoAllFig(),h:'<span class="hd">Властивості</span>Кути при основі рівні. Бісектриса, проведена до основи, є медіаною та висотою.'},
    {s:equiFig(true),h:'<span class="hd">Рівносторонній трикутник</span>Усі сторони рівні. Це окремий вид рівнобедреного трикутника. Усі його кути рівні.'}];
-  const holder=el('div');sm.appendChild(holder);
-  stepper(holder,rows.map(r=>({h:'<div class="card2"><div class="figbox">'+r.s+'</div><div class="txt">'+r.h+'</div></div>',cls:''})),null,()=>{
-    const b=el('button','btn gochk','Перевірити себе ▶');b.style.cssText='display:block;margin:.7rem auto 0';b.onclick=()=>{holder.style.display='none';b.remove();showFin();};sm.appendChild(b);scrollTo_(b);});
-  function showFin(){
-    const w=el('div','pop');sm.appendChild(w);w.appendChild(el('div','ask','Закінчіть речення'));
-    [['У рівнобедреному трикутнику кути при основі …','рівні.'],['У рівнобедреному трикутнику бісектриса, проведена до основи, є також …','медіаною та висотою.'],['Трикутник, у якого всі сторони рівні, називають …','рівностороннім.']].forEach(q=>{
-      const d=el('div','fin-q','<span>'+q[0]+'</span><span class="end" style="display:none">'+q[1]+'</span>');
-      const b=el('button','btn light','Показати');b.onclick=()=>{$('.end',d).style.display='';b.remove();};d.appendChild(b);w.appendChild(d);});}
+  stepper(sm,rows.map(r=>({h:'<div class="card2"><div class="figbox">'+r.s+'</div><div class="txt">'+r.h+'</div></div>',cls:''})));
+});
+addPage('sum',c=>{
+  const w=pg(c,'Закінчіть речення');
+  [['У рівнобедреному трикутнику кути при основі …','рівні.'],['У рівнобедреному трикутнику бісектриса, проведена до основи, є також …','медіаною та висотою.'],['Трикутник, у якого всі сторони рівні, називають …','рівностороннім.']].forEach(q=>{
+    const d=el('div','fin-q','<span>'+q[0]+'</span><span class="end" style="display:none">'+q[1]+'</span>');
+    const b=el('button','btn light','Показати');b.onclick=()=>{$('.end',d).style.display='';b.remove();};d.appendChild(b);w.appendChild(d);});
 });
 
 /* ===================== 7. РЕФЛЕКСІЯ ===================== */
@@ -757,7 +763,7 @@ function openMeta(){
    +'<h4>Компетентності</h4><p>Предметна: розпізнавати рівнобедрений і рівносторонній трикутники, застосовувати їхні властивості. Ключові: уміння вчитися (самоперевірка), математична грамотність (обґрунтування кроків розв’язання), спілкування (пояснення міркувань). Рефлексія — «Світлофор».</p>'
    +'<h4>Перебіг уроку (натисніть, щоб перейти)</h4><div class="plan"></div>';
   const pl=$('.plan',box);
-  STAGES.forEach((s,i)=>{if(!s.dur)return;const b=el('button','','<span>'+s.title+'</span><span class="tm2">'+s.dur+' хв</span>');b.onclick=()=>{$('#ovMeta').classList.remove('on');go(i);};pl.appendChild(b);});
+  STAGES.forEach((s,i)=>{if(!s.dur||!s.first)return;const b=el('button','','<span>'+s.title+'</span><span class="tm2">'+s.dur+' хв</span>');b.onclick=()=>{$('#ovMeta').classList.remove('on');go(i);};pl.appendChild(b);});
   $('.x',box).onclick=()=>$('#ovMeta').classList.remove('on');
   $('#ovMeta').classList.add('on');}
 $('#ovMeta').addEventListener('click',e=>{if(e.target.id==='ovMeta')e.target.classList.remove('on');});
@@ -769,10 +775,14 @@ function tick(){const s=STAGES[cur],w=$('#candle .wax');if(!s||!s.dur){return;}
   const tot=s.dur*60000,rem=Math.max(0,tot-(Date.now()-t0));w.style.height=(rem/tot*100)+'%';
   const m=Math.floor(rem/60000),sec=Math.floor(rem%60000/1000);$('#ctip').textContent=rem?'Залишилось '+m+':'+String(sec).padStart(2,'0')+' з '+s.dur+':00 (натисніть, щоб почати знову)':'Час етапу вичерпано';}
 function go(i){
-  i=Math.max(0,Math.min(STAGES.length-1,i));cur=i;t0=Date.now();
+  i=Math.max(0,Math.min(STAGES.length-1,i));const prev=STAGES[cur];
+  if(!prev||prev.id!==STAGES[i].id||i===cur)t0=Date.now();
+  cur=i;
   STAGES.forEach((s,k)=>{s.node.classList.toggle('on',k===i);});
   const s=STAGES[i];if(!s.built){s.built=true;s.build(s.card);}
-  s.card.scrollTop=0;$('#nav').hidden=i===0;$('#bNext').style.visibility=i===STAGES.length-1?'hidden':'visible';tick();}
+  s.card.scrollTop=0;$('#nav').hidden=i===0;$('#bNext').style.visibility=i===STAGES.length-1?'hidden':'visible';
+  const same=STAGES.filter(x=>x.id===s.id),pos=same.indexOf(s)+1;$('#pgi').textContent=same.length>1?'Сторінка '+pos+' з '+same.length:'';
+  tick();}
 (function init(){
   const wrap=$('#stagewrap');
   STAGES.forEach((s,i)=>{const n=el('div','stage'+(i===0?' start':''));const card=el('div','card');n.appendChild(card);wrap.appendChild(n);s.node=n;s.card=card;});
