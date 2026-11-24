@@ -467,9 +467,6 @@ async function teacherLogout(){ try{ const {auth,authM}=await fb(); await authM.
 async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
 async function clearResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); await Promise.all(snap.docs.map(d=>fs.deleteDoc(d.ref))); }
 fb().catch(()=>{});
-// повторне збереження того самого запису (скриншот): чекаємо, поки закінчиться перше збереження
-async function saveUpdate(rec){ for(let i=0;i<60&&_flushing;i++)await new Promise(r=>setTimeout(r,300)); await saveResult(rec); }
-
 // ---------- допоміжне ----------
 const $=s=>document.querySelector(s);
 const S=$('#screen'),KBD=$('#kbd');
@@ -627,7 +624,7 @@ function testCheck(fin){
     answers:T.tasks.map((t,i)=>T.done[i]?ansText(t,T.ans[i]):''),
     correct:T.tasks.map(t=>corrText(t)),
     durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,leaveTasks:W.log.slice(),leaveSecs:W.durs.slice(),
-    shotKeys:0,finished:fin?1:0,answeredCount:T.done.filter(Boolean).length,endReason:fin?'':'exits',variant:T.seed,test:TEST_NAME};
+    finished:fin?1:0,answeredCount:T.done.filter(Boolean).length,endReason:fin?'':'exits',variant:T.seed,test:TEST_NAME};
   T.rec=rec;
   saveResult(rec);
 }
@@ -664,17 +661,6 @@ document.addEventListener('keydown',e=>{
   const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='SELECT')return;
   if(T.view==='task'&&T.done[T.i]&&e.key==='ArrowRight')act('tnext');
 });
-// скриншот: клавіші (PrintScreen, Win+Shift+S, Cmd+Shift+3/4/5) — підказка, не доказ
-let _shotAt=0;
-function shotKey(e){
-  if(!T.rec)return;
-  const c=e.code||'',k=e.key||'';
-  const hit=k==='PrintScreen'||c==='PrintScreen'||(e.metaKey&&e.shiftKey&&(c==='KeyS'||c==='Digit3'||c==='Digit4'||c==='Digit5'));
-  if(!hit)return;
-  const now=Date.now();if(now-_shotAt<1500)return;_shotAt=now;
-  T.rec.shotKeys=(T.rec.shotKeys||0)+1;saveUpdate(T.rec);
-}
-window.addEventListener('keydown',shotKey);window.addEventListener('keyup',shotKey);
 // перетягування
 function cellsOf(){const a=T.ans[T.i];const t=T.tasks[T.i];const c=[];for(let j=0;j<t.slots.length;j++)c.push(a[j]!=null?a[j]:-1);return c;}
 function putChip(idx,k){const c=cellsOf(),p=c.indexOf(idx);if(p>=0)c[p]=-1;if(k>=0)c[k]=idx;T.ans[T.i]=c;T.sel=null;render();}
@@ -743,27 +729,19 @@ $('#keyBtn').addEventListener('click',()=>{
   const go=async()=>{const ok=await teacherLogin(pw.value);if(!ok){$('#pwErr').textContent='Неправильний пароль';return;}openJournal();};
   $('#pwOk').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go();};$('#pwNo').onclick=()=>{MH.innerHTML='';};
 });
-function shotCell(r){
-  if(r.shotKeys===undefined&&r.shotSelf===undefined)return {t:'—',c:''};
-  const k=r.shotKeys||0,s=r.shotSelf||0;
-  if(k&&s)return {t:'✓ клавіші + підтв.',c:'r'};
-  if(k)return {t:'✓ клавіші ('+k+')',c:'r'};
-  if(s)return {t:'✓ підтверджено',c:'r'};
-  return {t:'не видно',c:'red'};
-}
 async function openJournal(){
   MH.innerHTML='<div class="modal"><div class="box"><div class="row-btn" style="margin:0"><b style="font-size:18px">Журнал результатів</b><span class="sp"></span><button class="btn light sm" id="jRef">Оновити</button><button class="btn light sm" id="jCsv">Завантажити CSV</button><button class="btn light sm" id="jClr">Очистити</button><button class="btn sm" id="jClose">Закрити</button></div><div id="jBody" class="jscroll">Завантаження…</div></div></div>';
   let rows=[];
   const draw=()=>{
     const N=rows.reduce((m,r)=>Math.max(m,(r.tasks||[]).length),0);
-    let h='<table class="jt"><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Скрін</th>';
+    let h='<table class="jt"><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>';
     for(let i=1;i<=N;i++)h+='<th>'+i+'</th>';h+='</tr></thead><tbody>';
     rows.forEach((r,k)=>{
       const d=r.ts?new Date(r.ts).toLocaleString('uk-UA'):'—';
-      const fast=r.durationSec!=null&&r.durationSec<120,sh=shotCell(r);
-      h+='<tr><td>'+(k+1)+'</td><td class="nm" data-d="'+k+'">'+esc(r.name)+'</td><td>'+d+'</td><td'+(fast?' class="red" title="Дуже швидко"':'')+'>'+(r.durationSec!=null?fmtTime(r.durationSec):'—')+'</td><td'+((r.leaves||0)>=3?' class="red"':'')+(r.awaySec!=null?' title="Поза вікном: '+fmtTime(r.awaySec)+'"':'')+'>'+(r.leaves!=null?r.leaves:'—')+'</td><td><b>'+nf(r.score)+'</b>'+(r.finished===0?'<br><span class="red">не завершено ('+(r.answeredCount||0)+' з '+N+')</span>':'')+'</td><td class="'+sh.c+'">'+sh.t+'</td>';
+      const fast=r.durationSec!=null&&r.durationSec<120;
+      h+='<tr><td>'+(k+1)+'</td><td class="nm" data-d="'+k+'">'+esc(r.name)+'</td><td>'+d+'</td><td'+(fast?' class="red" title="Дуже швидко"':'')+'>'+(r.durationSec!=null?fmtTime(r.durationSec):'—')+'</td><td'+((r.leaves||0)>=3?' class="red"':'')+(r.awaySec!=null?' title="Поза вікном: '+fmtTime(r.awaySec)+'"':'')+'>'+(r.leaves!=null?r.leaves:'—')+'</td><td><b>'+nf(r.score)+'</b>'+(r.finished===0?'<br><span class="red">не завершено ('+(r.answeredCount||0)+' з '+N+')</span>':'')+'</td>';
       for(let i=0;i<N;i++){const m=(r.tasks||[])[i];h+='<td class="'+(m===undefined?'':m>=1?'r':m>0?'p':'w')+'">'+(m===undefined?'':m>=1?'✓':m>0?'½':'✗')+'</td>';}
-      h+='</tr><tr id="det'+k+'" hidden><td colspan="'+(7+N)+'" class="det">'+detHtml(r)+'</td></tr>';
+      h+='</tr><tr id="det'+k+'" hidden><td colspan="'+(6+N)+'" class="det">'+detHtml(r)+'</td></tr>';
     });
     h+='</tbody></table>';
     $('#jBody').innerHTML=h;
@@ -774,8 +752,8 @@ async function openJournal(){
   $('#jClose').onclick=async()=>{MH.innerHTML='';await teacherLogout();};
   $('#jCsv').onclick=()=>{
     const N=rows.reduce((m,r)=>Math.max(m,(r.tasks||[]).length),0);
-    const head=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал (з 100)','%','Скриншот','Статус'];for(let i=1;i<=N;i++)head.push('Завд. '+i);
-    const lines=[head].concat(rows.map(r=>{const a=[r.name,r.date||'',r.durationSec!=null?fmtTime(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?fmtTime(r.awaySec):'',nf(r.score),r.percent!=null?r.percent:'',shotCell(r).t.replace('—',''),r.finished===0?'не завершено':'завершено'];for(let i=0;i<N;i++){const m=(r.tasks||[])[i];a.push(m===undefined?'':m>=1?'+':m>0?nf(m):'-');}return a;}));
+    const head=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал (з 100)','%','Статус'];for(let i=1;i<=N;i++)head.push('Завд. '+i);
+    const lines=[head].concat(rows.map(r=>{const a=[r.name,r.date||'',r.durationSec!=null?fmtTime(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?fmtTime(r.awaySec):'',nf(r.score),r.percent!=null?r.percent:'',r.finished===0?'не завершено':'завершено'];for(let i=0;i<N;i++){const m=(r.tasks||[])[i];a.push(m===undefined?'':m>=1?'+':m>0?nf(m):'-');}return a;}));
     const csv='﻿'+lines.map(l=>l.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='Рівнобедрений_трикутник_7клас_результати.csv';document.body.appendChild(a);a.click();a.remove();
   };
@@ -793,7 +771,7 @@ function detHtml(r){
     const parts=Object.keys(by).map(n=>'завд. '+n+' — '+by[n]+' р.');
     lv=parts.length?' (де саме: '+parts.join(', ')+')':'';
   }
-  let h=(r.finished===0?'<div class="badrow"><b class="no">Тест НЕ завершено:</b> тестування закрито після забагатьох виходів з вікна; дано відповідей: '+(r.answeredCount||0)+' з '+(r.tasks||[]).length+'.</div>':'')+'<div><b>Бал: '+nf(r.score)+' з '+(r.max||100)+(r.percent!=null?' ('+r.percent+' %)':'')+'</b> · Виходів: <b>'+(r.leaves!=null?r.leaves:'—')+'</b>, поза вікном: '+fmtTime(r.awaySec||0)+lv+(r.leaveSecs&&r.leaveSecs.length?'; тривалість виходів, с: '+r.leaveSecs.join(', '):'')+' · Скриншот: '+shotCell(r).t+(r.variant?' · варіант '+r.variant:'')+'</div>';
+  let h=(r.finished===0?'<div class="badrow"><b class="no">Тест НЕ завершено:</b> тестування закрито після забагатьох виходів з вікна; дано відповідей: '+(r.answeredCount||0)+' з '+(r.tasks||[]).length+'.</div>':'')+'<div><b>Бал: '+nf(r.score)+' з '+(r.max||100)+(r.percent!=null?' ('+r.percent+' %)':'')+'</b> · Виходів: <b>'+(r.leaves!=null?r.leaves:'—')+'</b>, поза вікном: '+fmtTime(r.awaySec||0)+lv+(r.leaveSecs&&r.leaveSecs.length?'; тривалість виходів, с: '+r.leaveSecs.join(', '):'')+' '+(r.variant?' · варіант '+r.variant:'')+'</div>';
   (r.tasks||[]).forEach((m,i)=>{
     const bad=!(m>=1);
     const ans=(r.answers||[])[i];
