@@ -125,6 +125,13 @@ footer b{color:#374151}
 .integ{background:#FFF8DB;border:2px solid #F2D27A;border-radius:.9rem;padding:.6rem .9rem;margin:.7rem 0 .2rem;text-align:left;font-size:.98rem;line-height:1.45;font-weight:700;color:#5b4308}
 .integ p{margin:.2rem 0}
 
+/* повідомлення про вихід з вікна */
+.nt{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(67,20,7,.45);z-index:2147483645;padding:1rem}
+.ntb{background:#fff;border:3px solid var(--l2);border-radius:1.2rem;padding:1.1rem 1.3rem;width:100%;max-width:26rem;text-align:left}
+.ntb b.h{font-size:1.25rem;color:var(--acc)}
+.ntb p{line-height:1.5;margin:.5rem 0;font-weight:700}
+.ntb p.w{color:#8f2020;font-weight:800}
+.ntb .row{display:flex;justify-content:center;margin-top:.8rem}
 /* вікна */
 .ov{position:fixed;inset:0;background:rgba(67,20,7,.38);display:none;align-items:center;justify-content:center;z-index:2147483100;padding:.8rem}
 .ov.on{display:flex}
@@ -219,11 +226,20 @@ footer b{color:#374151}
     </div>
   </section>
 
+  <!-- тестування завершено через виходи з вікна -->
+  <section class="scr" id="sEnd">
+    <div class="box">
+      <div class="integ" style="text-align:center"><p>⚠️ <b>Тестування завершено</b>, бо ви забагато разів виходили з вікна тесту.</p><p>Тест залишився незавершеним, і доведеться пройти його спочатку.</p></div>
+      <div class="btns"><button class="btn" id="eAgain">Пройти ще раз</button></div>
+    </div>
+  </section>
+
   <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
 </div>
 
 <!-- журнал -->
 <div class="ov" id="jr"><div class="ovb" id="jrBody"></div></div>
+<div id="noticeHost"></div>
 
 <script>
 (function(){ "use strict";
@@ -426,13 +442,33 @@ function whyHtml(t){
 
 /* ================= стан ================= */
 const S={sur:'',nam:'',phase:'start',seed:0,tasks:[],ans:[],marks:[],idx:0,done:false,review:false,t0:0,focusEl:null,rec:null};
-let W={leaves:0,awaySec:0,awayAt:0};
-function resetWatch(){ W={leaves:0,awaySec:0,awayAt:0}; }
-function leave(){ if(S.phase==='start'||S.done||W.awayAt) return; W.awayAt=Date.now(); W.leaves++; }
-function back(){ if(!W.awayAt) return; W.awaySec+=Math.round((Date.now()-W.awayAt)/1000); W.awayAt=0; }
-document.addEventListener('visibilitychange',()=>document.hidden?leave():back());
+let W={leaves:0,awaySec:0,awayAt:0,log:[],durs:[]};
+function resetWatch(){ W={leaves:0,awaySec:0,awayAt:0,log:[],durs:[]}; }
+/* правила доброчесності: понад половину кількості запитань → посилене попередження, наступний вихід завершує тест */
+const inTest=()=>S.phase==='test'&&!S.review&&!S.done;
+const endAt=()=>Math.floor(S.tasks.length/2)+2;
+const warnAt=()=>endAt()-1;
+function leave(){ if(!inTest()||W.awayAt) return; W.awayAt=Date.now(); W.leaves++; W.log.push(S.idx+1); if(W.leaves>=endAt()) terminateTest(); }
+function back(){ if(!W.awayAt) return; const d=Math.round((Date.now()-W.awayAt)/1000); W.awaySec+=d; W.durs.push(d); W.awayAt=0; }
+function returned(){ const had=!!W.awayAt; back(); if(had&&inTest()) showNotice(); }
+const raz=n=>{ const a=n%100,b=n%10; return (b===1&&a!==11)?'раз':((b>=2&&b<=4&&(a<12||a>14))?'рази':'разів'); };
+function showNotice(){
+  const n=W.leaves, warn=n>=warnAt();
+  $('#noticeHost').innerHTML='<div class="nt"><div class="ntb"><b class="h">Увага!</b>'+
+    '<p>Під час тестування не можна виходити з екрана тестування, інакше тест може завершитися, і доведеться проходити все спочатку.</p>'+
+    (warn?`<p class="w">Ви вже виходили з вікна тесту ${n} ${raz(n)}, це понад половину кількості запитань. Наступного разу тестування завершиться, а тест залишиться незавершеним.</p>`:'')+
+    '<div class="row"><button class="btn" id="ntOk">Зрозуміло</button></div></div></div>';
+  $('#ntOk').onclick=()=>{ $('#noticeHost').innerHTML=''; };
+}
+function terminateTest(){
+  finishAll(false);
+  S.phase='ended'; S.review=false;
+  $('#noticeHost').innerHTML=''; $('#kb').classList.remove('on');
+  showScr('sEnd');
+}
+document.addEventListener('visibilitychange',()=>document.hidden?leave():returned());
 window.addEventListener('blur',leave);
-window.addEventListener('focus',back);
+window.addEventListener('focus',returned);
 function showScr(id){ $$('.scr').forEach(s=>s.classList.toggle('on',s.id===id)); }
 
 /* ================= початок ================= */
@@ -624,27 +660,30 @@ $$('#kb .key').forEach(b=>{
 });
 
 /* ================= підсумок і збереження ================= */
-function finishAll(){
+function finishAll(fin){
+  fin=fin!==false;
   if(S.done) return;
   back();
   const now=Date.now(), N=S.tasks.length;
-  const gr=S.tasks.map((t,i)=>gradeTask(t,S.ans[i]));
-  S.marks=gr.map(x=>x.m);
-  const score=S.marks.reduce((a,b)=>a+b,0);
+  const marks=S.tasks.map((t,i)=>answered(i)?S.marks[i]:0);   // без відповіді: 0 балів
+  const ansd=S.tasks.map((t,i)=>answered(i));
+  S.marks=marks;
+  const score=marks.reduce((a,b)=>a+b,0);
   const grade100=Math.round(score/N*100);
-  S.done=true; S.phase='result';
+  S.done=true; S.phase=fin?'result':'ended';
   const rec={
     id:now+'_'+Math.random().toString(36).slice(2,8),
     name:`${S.sur} ${S.nam}`, surname:S.sur, firstName:S.nam,
     ts:now, date:new Date(now).toISOString(),
-    score, max:N, percent:grade100, grade100, rightCount:score, tasks:S.marks.slice(),
-    qtext:S.tasks.map(qText), answers:S.tasks.map((t,i)=>ansText(t,S.ans[i])), correct:S.tasks.map(correctText),
+    score, max:N, percent:grade100, grade100, rightCount:score, tasks:marks.slice(),
+    qtext:S.tasks.map(qText), answers:S.tasks.map((t,i)=>ansd[i]?ansText(t,S.ans[i]):''), correct:S.tasks.map(correctText),
     durationSec:Math.round((now-S.t0)/1000),
-    leaves:W.leaves, awaySec:W.awaySec, variant:S.seed,
-    test:TEST_NAME
+    leaves:W.leaves, awaySec:W.awaySec, leaveTasks:W.log.slice(), leaveSecs:W.durs.slice(),
+    finished:fin?1:0, answeredCount:ansd.filter(Boolean).length, endReason:fin?'':'exits',
+    variant:S.seed, test:TEST_NAME
   };
   S.rec=rec;
-  saveResult(rec);                       // один раз; учневі нічого не показується
+  saveResult(rec);                       // один раз
 }
 function showResult(){
   const r=S.rec; showScr('sRes'); S.review=false;
@@ -659,6 +698,7 @@ $('#rErr').onclick=()=>{
   let first=S.marks.findIndex(m=>m<1); if(first<0) first=0;
   goTo(first);
 };
+$('#eAgain').onclick=()=>{ resetWatch(); S.seed=(Math.random()*4294967296)>>>0; startTasks(); };
 $('#rAgain').onclick=()=>{
   resetWatch(); S.seed=(Math.random()*4294967296)>>>0;
   $('#kb').classList.remove('on');
@@ -689,6 +729,12 @@ async function loadJr(){
 }
 function mark(m){ return m===1?'<span class="okc">✓</span>':(m>0?'<span style="color:#EA580C;font-weight:900" title="Часткова відповідь">½</span>':'<span class="badc">✗</span>'); }
 const grOf=r=>r.grade100!==undefined?r.grade100:Math.round((r.score||0)/(r.max||1)*100);
+function lvInfo(r){
+  let o='';
+  if(r.leaves&&r.leaveTasks&&r.leaveTasks.length){ const by={}; r.leaveTasks.forEach(n=>{by[n]=(by[n]||0)+1;}); o+=' (де саме: '+Object.keys(by).map(n=>'завд. '+n+' — '+by[n]+' р.').join(', ')+')'; }
+  if(r.leaveSecs&&r.leaveSecs.length) o+='; тривалість виходів, с: '+r.leaveSecs.join(', ');
+  return o;
+}
 function drawJr(){
   const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
   let h=`<h3>Журнал учителя (${rows.length})</h3><div class="jb"><button class="btn light sm" id="jRef">Оновити</button><button class="btn light sm" id="jCsv">Завантажити CSV</button><button class="btn light sm" id="jClr">Очистити</button><button class="btn light sm" id="jX">Закрити</button></div><div id="jConf"></div><div class="tw"><table><thead><tr><th>№</th><th>Прізвище та ім'я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th><th>Оцінка (100)</th>`;
@@ -700,11 +746,11 @@ function drawJr(){
     h+=`<tr><td>${k+1}</td><td class="nm" data-k="${k}">${esc(r.name||'')}</td><td>${esc(fmtD(r.date))}</td>`;
     h+=hasT?`<td class="${r.durationSec<120?'red':''}"${r.durationSec<120?' title="Дуже швидко"':''}>${fmtT(r.durationSec)}</td>`:'<td>—</td>';
     h+=hasL?`<td class="${r.leaves>=3?'red':''}" title="Поза вікном: ${fmtT(r.awaySec||0)}">${r.leaves} (${fmtT(r.awaySec||0)})</td>`:'<td>—</td>';
-    h+=`<td>${r.score}/${r.max}</td><td>${g}</td>`;
+    h+=`<td>${r.score}/${r.max}${r.finished===0?`<br><span class="red">не завершено (${r.answeredCount||0} з ${(r.tasks||[]).length})</span>`:''}</td><td>${g}</td>`;
     for(let i=0;i<NT;i++) h+=`<td>${(r.tasks&&r.tasks[i]!==undefined)?mark(r.tasks[i]):''}</td>`;
     h+='</tr>';
     if(JR.open[k]){
-      h+=`<tr class="det"><td colspan="${7+NT}"><div>Оцінка: <b>${g} з 100</b> (${g} %) · Правильних: ${r.score} з ${r.max} · Виходів: ${r.leaves!==undefined?r.leaves:'—'}, поза вікном: ${r.awaySec!==undefined?fmtT(r.awaySec)+' хв:с':'—'} · Варіант: ${r.variant!==undefined?r.variant:'—'}</div><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня (по частинах)</th><th>Правильна відповідь</th><th>Бал</th></tr>`;
+      h+=`<tr class="det"><td colspan="${7+NT}">${r.finished===0?`<div class="red">Тест НЕ завершено: тестування закрито після забагатьох виходів з вікна; дано відповідей: ${r.answeredCount||0} з ${(r.tasks||[]).length}.</div>`:''}<div>Оцінка: <b>${g} з 100</b> (${g} %) · Правильних: ${r.score} з ${r.max} · Виходів: ${r.leaves!==undefined?r.leaves:'—'}, поза вікном: ${r.awaySec!==undefined?fmtT(r.awaySec)+' хв:с':'—'}${lvInfo(r)} · Варіант: ${r.variant!==undefined?r.variant:'—'}</div><table><tr><th>№</th><th>Завдання</th><th>Відповідь учня (по частинах)</th><th>Правильна відповідь</th><th>Бал</th></tr>`;
       (r.qtext||[]).forEach((q,i)=>{
         const m=(r.tasks||[])[i], bad=m!==undefined&&m<1;
         const ua=(r.answers||[])[i]||'';
@@ -728,12 +774,12 @@ function drawJr(){
 }
 function csvJr(){
   const rows=JR.rows, NT=rows.reduce((a,r)=>Math.max(a,(r.tasks||[]).length),0);
-  const hd=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка (100)'];
+  const hd=['Прізвище та ім\'я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал','Оцінка (100)','Статус'];
   for(let i=1;i<=NT;i++) hd.push('Завд. '+i);
   const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
   const lines=[hd.map(q).join(';')];
   rows.forEach(r=>{
-    const c=[r.name||'',fmtD(r.date),r.durationSec!==undefined?fmtT(r.durationSec):'',r.leaves!==undefined?r.leaves:'',r.awaySec!==undefined?fmtT(r.awaySec):'',r.score+'/'+r.max,grOf(r)];
+    const c=[r.name||'',fmtD(r.date),r.durationSec!==undefined?fmtT(r.durationSec):'',r.leaves!==undefined?r.leaves:'',r.awaySec!==undefined?fmtT(r.awaySec):'',r.score+'/'+r.max,grOf(r),r.finished===0?'не завершено':'завершено'];
     for(let i=0;i<NT;i++){ const m=r.tasks&&r.tasks[i]; c.push(m===undefined?'':(m===1?'+':(m>0?'0,5':'-'))); }
     lines.push(c.map(q).join(';'));
   });
