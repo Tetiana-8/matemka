@@ -71,6 +71,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 
 .def{border-left:.35rem solid var(--acc);background:var(--accL);border-radius:.2rem .8rem .8rem .2rem;padding:.7rem 1rem;margin:.5rem 0;font-size:1.2rem}
 .def .dl{display:inline-block;font-weight:900;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;margin-right:.5rem}
+.def .dl2{display:block;font-weight:900;color:var(--acc);font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem}
 .def b{color:var(--accD)}
 .def.big{font-size:1.4rem;line-height:1.42;padding:.8rem 1.1rem}
 .note{font-size:1.15rem;margin:.4rem 0}
@@ -85,6 +86,15 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .figbox{background:var(--soft2);border:1.5px solid var(--line);border-radius:1rem;padding:.4rem;display:flex;align-items:center;justify-content:center}
 .figbox svg{width:100%;height:auto;max-height:var(--mh,46vh);display:block}
 .figbox.big svg{max-height:56vh}
+.cols.ex{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+@media (max-width:820px){.cols.ex{grid-template-columns:1fr}}
+.proof.compact .pl{font-size:1.1rem;padding:.1rem 0;line-height:1.35}
+.proof.compact{padding:.4rem .8rem .5rem}
+.inrow{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.5rem 0}
+.inl{display:flex;align-items:center;gap:.4rem;font-size:1.25rem;font-weight:800;color:var(--accD)}
+.ansin{width:5.2rem;font:inherit;font-size:1.3rem;font-weight:800;padding:.25rem .5rem;border:2px solid var(--line);border-radius:.7rem;text-align:center;color:var(--ink);background:#fff}
+.ansin:focus{outline:none;border-color:var(--acc)}
+.note.big2{font-size:1.35rem;line-height:1.45}
 .cols.wide{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
 @media (max-width:820px){.cols.wide{grid-template-columns:1fr}}
 .unit{font-size:.95rem;font-weight:700;color:var(--muted);text-align:center;margin-top:.3rem}
@@ -116,6 +126,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .task .opt:hover:not(:disabled):not(.ok):not(.bad){background:var(--tl);border-color:var(--tc)}
 .task .btn:not(.light){background:var(--tc);border-color:var(--tc)}
 .badge{display:inline-flex;align-items:center;justify-content:center;min-width:2.4rem;height:2.1rem;padding:0 .6rem;border-radius:.6rem;background:var(--tc);color:#fff;font-weight:900;margin-right:.6rem;font-size:1.05rem}
+.done-line{font-weight:800;color:var(--oktx);background:var(--okbg);border:2px solid var(--okln);border-radius:.7rem;padding:.25rem .7rem;margin:.3rem 0;font-size:1.05rem}
 .crit{display:flex;flex-direction:column;gap:.5rem;margin:.4rem 0}
 .crit .btn{text-align:left;border-radius:.9rem;font-size:1.15rem}
 
@@ -353,54 +364,84 @@ function prepAct(d){
   const R=[0,1,2].map(i=>T2[(i+sh)%3]);
   const nm2=shuffle(pick(NAMESETS));
   return {d,T1,R,sh,sides,angs,given,ask,nm1:['A','B','C'],nm2};}
-/* Кути: кожен свого кольору й з відповідною кількістю дуг (1, 2, 3); градуси того ж кольору.
-   Сторони: чорні числа без «см». lv: 0 — умова; 1 — ознаку знайдено (позначки рівних сторін); 2 — знайдено шукану сторону */
-function actSVG(S,lv){
-  const {T1,R,sh,given,ask}=S;
+/* Рисунок актуалізації.
+   Кути: кожен свого кольору й з відповідною кількістю дуг (1, 2, 3); градуси того ж кольору.
+   Сторони: чорні числа без «см».
+   st = {lv, cur:{t:'s'|'a',i}, kS:[], kA:[]}: lv 0 — умова; lv>=1 — ознаку знайдено; cur — поточне запитання («?»); kS/kA — знайдені елементи */
+function actSVG(S,st){
+  const {T1,R,sh,given}=S;
   const sl1=[],sl2=[],slc1=[],slc2=[],at1=[],at2=[],atc1=[],atc2=[],sm1=[0,0,0],sm2=[0,0,0],am1=[0,0,0],am2=[0,0,0];
-  for(let i=0;i<3;i++){sl1[i]=S.sides[i];slc1[i]='sd';at1[i]=S.angs[i];atc1[i]='c'+i+'f ang';am1[i]=[i+1,PC[i]];}
-  let ns=0;
-  given.forEach(p=>{const j=(p.i-sh+3)%3;
-    if(p.t==='s'){sl2[j]=S.sides[p.i];slc2[j]='sd';if(lv>=1){ns++;sm1[p.i]=[ns,'#173F5F'];sm2[j]=[ns,'#173F5F'];}}
-    else{at2[j]=S.angs[p.i];atc2[j]='c'+p.i+'f ang';am2[j]=[p.i+1,PC[p.i]];}});
-  const aj=(ask-sh+3)%3;
-  if(lv===0){sl2[aj]='?';slc2[aj]='qf';}
-  if(lv===1){sl2[aj]='?';slc2[aj]='qf';sm1[ask]=[ns+1,'#1d4ed8'];sm2[aj]=[ns+1,'#1d4ed8'];}
-  if(lv>=2){sl2[aj]=S.sides[ask];slc2[aj]='okf sd';slc1[ask]='okf sd';sm1[ask]=[ns+1,'#1e9e62'];sm2[aj]=[ns+1,'#1e9e62'];}
+  const gS=given.filter(p=>p.t==='s').map(p=>p.i),gA=given.filter(p=>p.t==='a').map(p=>p.i);
+  const tn=[0,0,0];gS.forEach((i,k)=>{tn[i]=k+1;});let n=gS.length;S.uS.forEach(i=>{n++;tn[i]=n;});
+  for(let i=0;i<3;i++){const j=(i-sh+3)%3;
+    sl1[i]=S.sides[i];slc1[i]=(st.kS[i]&&gS.indexOf(i)<0)?'okf sd':'sd';
+    at1[i]=S.angs[i];atc1[i]='c'+i+'f ang';am1[i]=[i+1,PC[i]];
+    const isCurS=st.cur&&st.cur.t==='s'&&st.cur.i===i,isCurA=st.cur&&st.cur.t==='a'&&st.cur.i===i;
+    if(gS.indexOf(i)>=0){sl2[j]=S.sides[i];slc2[j]='sd';if(st.lv>=1){sm1[i]=[tn[i],'#173F5F'];sm2[j]=[tn[i],'#173F5F'];}}
+    else if(st.kS[i]){sl2[j]=S.sides[i];slc2[j]='okf sd';sm1[i]=[tn[i],'#1e9e62'];sm2[j]=[tn[i],'#1e9e62'];}
+    else if(isCurS){sl2[j]='?';slc2[j]='qf';sm1[i]=[tn[i],'#1d4ed8'];sm2[j]=[tn[i],'#1d4ed8'];}
+    if(gA.indexOf(i)>=0||st.kA[i]){at2[j]=S.angs[i];atc2[j]='c'+i+'f ang';am2[j]=[i+1,PC[i]];}
+    else if(isCurA){at2[j]='?';atc2[j]='qf';am2[j]=[i+1,PC[i]];}
+  }
   const base={atr:'auto',slr:27,lr:23,ar:26};
   return svgWrap('0 0 660 330',
     drawTri(T1,Object.assign({lab:S.nm1,sm:sm1,am:am1,sl:sl1,slc:slc1,at:at1,atc:atc1},base))+
     drawTri(R,Object.assign({lab:S.nm2,sm:sm2,am:am2,sl:sl2,slc:slc2,at:at2,atc:atc2},base)));}
 const sideName=(nm,i)=>'<i>'+nm[i]+nm[(i+1)%3]+'</i>';
+const numOf=s=>parseFloat(String(s).replace(',','.'));
+/* чотири варіанти: перший — правильний */
+function optsNum(r,pool,fmt){const u=[];pool.forEach(v=>{v=Math.round(v*10)/10;if(v>0&&v!==r&&u.indexOf(v)<0)u.push(v);});
+  let k=1;while(u.length<3){const v=Math.round((r+k*1.5)*10)/10;if(v!==r&&u.indexOf(v)<0)u.push(v);k++;}
+  return [fmt(r)].concat(u.slice(0,3).map(fmt));}
 
 function actPage(c,idx){
   const h=pg(c,'Ознаки рівності трикутників');
   const S=prepAct(ACT[idx]);const d=S.d;
+  S.uS=[0,1,2].filter(i=>!S.given.some(p=>p.t==='s'&&p.i===i));
+  const uA=[0,1,2].filter(i=>!S.given.some(p=>p.t==='a'&&p.i===i));
+  /* порядок запитань: спочатку шукана сторона, потім інші сторони, потім кути */
+  const qs=[{t:'s',i:S.ask}].concat(S.uS.filter(i=>i!==S.ask).map(i=>({t:'s',i}))).concat(uA.map(i=>({t:'a',i})));
+  const st={lv:0,cur:null,kS:[false,false,false],kA:[false,false,false]};
   const box=el('div','task pop');qColor(box,idx);h.appendChild(box);
   box.appendChild(el('div','ask','<span class="badge">'+(idx+1)+'/'+ACT.length+'</span>Чи рівні трикутники <i>ABC</i> і <i>'+S.nm2.join('')+'</i>? Якщо так, то за якою ознакою?'));
   const cols=el('div','cols wide');box.appendChild(cols);const lc=el('div'),rc=el('div');cols.appendChild(lc);cols.appendChild(rc);
-  const fb=el('div','figbox big',actSVG(S,0));lc.appendChild(fb);
+  const fb=el('div','figbox big',actSVG(S,st));lc.appendChild(fb);
+  const draw=()=>{fb.innerHTML=actSVG(S,st);};
   lc.appendChild(el('div','unit','Довжини сторін подано в сантиметрах'));
   const q=el('div');rc.appendChild(q);
   const msg=el('div','msg');rc.appendChild(msg);
   const want=d.kind==='sas'?'first':'second';
   const gs=S.given.filter(p=>p.t==='s').map(p=>S.sides[p.i]+' см'),ga=S.given.filter(p=>p.t==='a').map(p=>S.angs[p.i]);
-  const why=d.kind==='sas'?'Рівні дві сторони ('+gs.join(' і ')+') та кут між ними ('+ga[0]+'): перша ознака.':'Рівні сторона ('+gs[0]+') та два прилеглих до неї кути ('+ga.join(' і ')+'): друга ознака.';
+  const why=d.kind==='sas'?'Рівні дві сторони ('+gs.join(' і ')+') та кут між ними ('+ga[0]+').':'Рівні сторона ('+gs[0]+') та два прилеглих до неї кути ('+ga.join(' і ')+').';
   const hint=d.kind==='sas'?'Скільки пар рівних сторін? Де лежить рівний кут: між ними чи ні?':'Яка сторона рівна? Чи прилягають до неї обидва рівні кути?';
   q.appendChild(el('div','ask','За якою ознакою?'));
   const cr=el('div','crit');q.appendChild(cr);let mist=false,solved=false;
   [['first','За першою ознакою'],['second','За другою ознакою'],['none','Рівність установити не можна']].forEach(([id,t])=>{
     const b=el('button','btn light',t);
     b.onclick=()=>{if(solved)return;
-      if(id===want){solved=true;b.classList.remove('light');if(!mist)SCORE++;msg.className='msg ok';msg.innerHTML='Правильно! '+why;fb.innerHTML=actSVG(S,1);ask2();}
+      if(id===want){solved=true;if(!mist)SCORE++;msg.textContent='';st.lv=1;draw();
+        q.innerHTML='<div class="done-line pop">✓ '+(want==='first'?'За першою ознакою':'За другою ознакою')+'. '+why+'</div>';nextQ(0);}
       else{mist=true;b.disabled=true;msg.className='msg bad';msg.innerHTML='Неправильно. <span class="hint">'+hint+'</span>';}};
     cr.appendChild(b);});
-  function ask2(){
+  function nextQ(k){
+    if(k>=qs.length){
+      lc.appendChild(el('div','def pop big','У рівних трикутників <b>відповідні сторони і кути рівні</b>.'));scrollTo_(lc);return;}
+    const Q=qs[k];st.cur=Q;draw();
     const q2=el('div','pop');q.appendChild(q2);
-    const nmA=sideName(S.nm1,S.ask),aj=(S.ask-S.sh+3)%3,nmB=sideName(S.nm2,aj);
-    q2.appendChild(el('div','ask','Чому дорівнює сторона '+nmB+'? <span style="font-weight:700;color:var(--muted)">(на рисунку «?»)</span>'));
-    mc(q2,'',[d.right].concat(d.wrong),0,'',()=>{fb.innerHTML=actSVG(S,2);
-      msg.className='msg ok';msg.innerHTML='Рівні трикутники мають рівні відповідні сторони: '+nmB+' = '+nmA+' = '+d.right+'.';scrollTo_(msg);});}
+    let label,opts,line;
+    if(Q.t==='s'){const aj=(Q.i-S.sh+3)%3,nmB=sideName(S.nm2,aj),nmA=sideName(S.nm1,Q.i),r=numOf(S.sides[Q.i]);
+      label='Чому дорівнює сторона '+nmB+'?';
+      opts=optsNum(r,[0,1,2].filter(x=>x!==Q.i).map(x=>numOf(S.sides[x])).concat([[0,1,2].filter(x=>x!==Q.i).reduce((a,x)=>a+numOf(S.sides[x]),0)]),v=>dec(v)+' см');
+      line='✓ '+nmB+' = '+nmA+' = '+dec(r)+' см';}
+    else{const aj=(Q.i-S.sh+3)%3,r=numOf(S.angs[Q.i]);
+      label='Чому дорівнює кут <i>'+S.nm2[aj]+'</i>?';
+      opts=optsNum(r,[0,1,2].filter(x=>x!==Q.i).map(x=>numOf(S.angs[x])).concat([180-r,r+10,Math.abs(r-10)]),v=>v+'°');
+      line='✓ ∠<i>'+S.nm2[aj]+'</i> = ∠<i>'+S.nm1[Q.i]+'</i> = '+r+'°';}
+    q2.appendChild(el('div','ask',label));
+    mc(q2,'',opts,0,'',()=>{
+      if(Q.t==='s')st.kS[Q.i]=true;else st.kA[Q.i]=true;st.cur=null;draw();
+      setTimeout(()=>{q2.innerHTML='<div class="done-line">'+line+'</div>';nextQ(k+1);},900);});
+  }
 }
 addStage('act','Ознаки рівності трикутників',7,c=>actPage(c,0));
 for(let i=1;i<ACT.length;i++)addPage('act',(k=>c=>actPage(c,k))(i));
@@ -486,12 +527,17 @@ addPage('iso',c=>{
 function foldFig(phi,fold){
   const P=xf(isoQapex(phi),{k:185,cx:230,cy:140}),A=P[0],B=P[1],C=P[2],L=[B[0],A[1]],c=cen3(P);
   let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73');
-  s+=arcs(B,A,C,1,PC[0],28)+arcs(B,C,A,1,PC[0],28)+arcs(A,B,C,1,PC[2],26);
+  s+=arcs(B,A,C,2,PC[1],26)+arcs(B,C,A,2,PC[1],26)+arcs(A,B,C,1,PC[0],28);
   if(fold){s+=seg(B,L,GRAY,2.4,'6 5');
-    s+='<g id="foldg" transform="translate('+f1(L[0])+' 0) scale(1 1) translate('+f1(-L[0])+' 0)">'+poly([A,B,L],'rgba(232,89,12,.22)','#e8590c',2.6)+dot(A,5,'#e8590c')+'</g>';
+    s+='<g id="foldg" transform="translate('+f1(L[0])+' 0) scale(1 1) translate('+f1(-L[0])+' 0)"><polygon id="fp" points="'+[A,B,L].map(P_).join(' ')+'" fill="rgba(232,89,12,.22)" stroke="#e8590c" stroke-width="2.6" stroke-linejoin="round"/><circle id="fd" cx="'+f1(A[0])+'" cy="'+f1(A[1])+'" r="5" fill="#e8590c"/></g>';
     s+=txt([L[0],L[1]+18],'L','vt');}
   s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);
   return {svg:svgWrap('0 0 460 270',s),L:L};}
+/* перегнута частина: сіра, пунктирні сторони (вона наче «зникла»); розігнута — знову кольорова */
+function foldStyle(root,grey){const p=root.querySelector('#fp'),d=root.querySelector('#fd');if(!p)return;
+  p.setAttribute('fill',grey?'rgba(138,153,166,.30)':'rgba(232,89,12,.22)');p.setAttribute('stroke',grey?'#8a99a6':'#e8590c');
+  if(grey)p.setAttribute('stroke-dasharray','7 6');else p.removeAttribute('stroke-dasharray');
+  d.setAttribute('fill',grey?'#8a99a6':'#e8590c');}
 function angFmt(x){const r=Math.round(x*10)/10;return dec(r)+'°';}
 
 function isoBL(lv){ /* доведення теореми 9.1 */
@@ -502,7 +548,7 @@ function isoBL(lv){ /* доведення теореми 9.1 */
   const legCol=lv>=4?PC[0]:'#1F4E73';
   s+=ticks(A,B,1,legCol)+ticks(B,C,1,legCol);
   s+=seg(B,L,lv>=2?PC[2]:GRAY,lv>=2?4:2.4,lv>=2?null:'6 5');
-  if(lv>=3)s+=arcs(A,B,L,1,PC[2],30)+arcs(L,B,C,1,PC[2],30);
+  if(lv>=3)s+=arcs(A,B,L,1,PC[2],30)+arcs(L,B,C,1,PC[2],40);
   if(lv>=6)s+=arcs(B,A,C,2,PC[1],26)+arcs(B,C,A,2,PC[1],26);
   if(lv>=7)s+=ticks(A,L,2,PC[0],6,8)+ticks(L,C,2,PC[0],6,8);
   if(lv>=8)s+=arcs(A,L,B,0,PC[2],0,true)+arcs(B,L,C,0,PC[2],0,true);
@@ -537,18 +583,75 @@ function isoAnglesFig(){
   const P=xf(isoQ(6,4.6),{fit:[260,200,40]}),A=P[0],B=P[1],C=P[2],c=cen3(P);
   return svgWrap('0 0 260 200',poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,PC[0])+ticks(B,C,1,PC[0])+arcs(B,A,C,1,PC[1],24)+arcs(B,C,A,1,PC[1],24)+outLab(A,c,'A',19)+outLab(B,c,'B',19)+outLab(C,c,'C',19));}
 
+/* ---------- ДИНАМІЧНІ РИСУНКИ ---------- */
+const fm1=v=>dec(Math.round(v*10)/10);
+/* рівнобедрений трикутник з кутом при вершині phi (бічна сторона 10 см).
+   o.ang — кути при основі (2 дуги) і при вершині (1 дуга); o.bis (1..3) — відрізок BL: половини кута, довжини AL і LC, прямий кут; o.vals — писати значення */
+function isoDyn(phi,o){
+  o=o||{};const P=xf(isoQapex(phi),{k:200,cx:230,cy:150}),A=P[0],B=P[1],C=P[2],L=[B[0],A[1]],c=cen3(P);
+  const b=(180-phi)/2,half=phi/2,AL=10*Math.sin(half*D2R);
+  let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73');
+  if(o.ang){
+    s+=arcs(B,A,C,2,PC[1],26)+arcs(B,C,A,2,PC[1],26)+arcs(A,B,C,1,PC[0],28);
+    if(o.vals){
+      if(b>=28){s+=angTxtPts(B,A,C,66,b+'°','lt2 c1f ang halo')+angTxtPts(B,C,A,66,b+'°','lt2 c1f ang halo');}
+      else{s+=txt([A[0]+40,A[1]+24],b+'°','lt2 c1f ang halo')+txt([C[0]-40,C[1]+24],b+'°','lt2 c1f ang halo');}
+      s+=txt([B[0]+34,B[1]+24],phi+'°','lt2 c0f ang halo');}}
+  if(o.bis){
+    s+=seg(B,L,PC[2],3.6);
+    s+=arcs(A,B,L,1,PC[2],30)+arcs(L,B,C,1,PC[2],42);
+    if(o.vals){s+=angTxtPts(A,B,L,86,half+'°','lt2 c2f ang halo')+angTxtPts(L,B,C,112,half+'°','lt2 c2f ang halo');}
+    if(o.bis>=2){s+=ticks(A,L,2,PC[0],6,8)+ticks(L,C,2,PC[0],6,8);
+      if(o.vals)s+=txt([(A[0]+L[0])/2,A[1]+24],fm1(AL),'lt2 c0f ang')+txt([(L[0]+C[0])/2,A[1]+24],fm1(AL),'lt2 c0f ang');}
+    if(o.bis>=3){s+=arcs(A,L,B,0,PC[1],0,true)+arcs(B,L,C,0,PC[1],0,true);
+      if(o.vals)s+=txt([L[0]+32,L[1]-22],'90°','lt2 c1f ang halo');}
+    s+=dot(L,3.4)+txt([L[0],L[1]+48],'L','vt');}
+  s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);
+  return svgWrap('0 0 460 300',s);}
+/* рівносторонній трикутник зі стороною a см */
+function eqDyn(a,o){
+  o=o||{};const k=24,P=xf([[-a/2,0],[0,-a*Math.sqrt(3)/2],[a/2,0]],{k,cx:230,cy:150}),A=P[0],B=P[1],C=P[2],L=[B[0],A[1]],c=cen3(P);
+  let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,PC[0])+ticks(B,C,1,PC[0]);
+  if(!o.bis)s+=ticks(A,C,1,PC[0]);
+  if(!o.bis){s+=arcs(B,A,C,2,PC[1],26)+arcs(B,C,A,2,PC[1],26)+arcs(A,B,C,2,PC[1],26);
+    if(o.vals){s+=angTxtPts(B,A,C,62,'60°','lt2 c1f ang halo')+angTxtPts(B,C,A,62,'60°','lt2 c1f ang halo')+angTxtPts(A,B,C,62,'60°','lt2 c1f ang halo');
+      s+=outLab2(A,B,a)+outLab2(B,C,a)+outLab2(C,A,a);}}
+  else{s+=seg(B,L,PC[2],3.6)+arcs(A,B,L,1,PC[2],30)+arcs(L,B,C,1,PC[2],42)+ticks(A,L,2,PC[1],6,8)+ticks(L,C,2,PC[1],6,8)+arcs(A,L,B,0,PC[2],0,true)+arcs(B,L,C,0,PC[2],0,true)+dot(L,3.4)+txt([L[0],L[1]+48],'L','vt');
+    if(o.vals){s+=angTxtPts(A,B,L,88,'30°','lt2 c2f ang halo')+angTxtPts(L,B,C,112,'30°','lt2 c2f ang halo')+txt([L[0]+32,L[1]-22],'90°','lt2 c2f ang halo')
+      +txt([(A[0]+L[0])/2,A[1]+24],fm1(a/2),'lt2 c1f ang')+txt([(L[0]+C[0])/2,A[1]+24],fm1(a/2),'lt2 c1f ang');}}
+  s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);
+  return svgWrap('0 0 460 300',s);}
+/* довжина сторони біля середини сторони (назовні) */
+function outLab2(p,q,a){const m=mid(p,q);const cc=[230,150+ (p[1]<q[1]?0:0)];const u=vun(vsub(q,p));let n=[-u[1],u[0]];
+  const ctr=[(p[0]+q[0])/2,(p[1]+q[1])/2];const cen=[230,185];if((ctr[0]-cen[0])*n[0]+(ctr[1]-cen[1])*n[1]<0)n=[-n[0],-n[1]];
+  return txt(vadd(m,vmul(n,22)),String(a),'lt2 sd');}
+/* сторінка з повзунком: рисунок + твердження; значення з'являються через мить */
+function dynPage(c,o){
+  const h=pg(c,o.title);
+  const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox big');l.appendChild(fb);
+  r.appendChild(el('div','def big',(o.tag?'<span class="dl">'+o.tag+'</span>':'')+o.stmt));
+  const info=el('div','slinfo');info.style.visibility='hidden';r.appendChild(info);
+  const sb=el('div','sliderbar','<span class="lbl">'+o.label+' =</span>');const inp=el('input');inp.type='range';inp.min=o.min;inp.max=o.max;inp.step=o.step;inp.value=o.val;
+  const val=el('span','lbl');sb.appendChild(inp);sb.appendChild(val);sb.style.visibility='hidden';r.appendChild(sb);
+  let show=false;
+  const draw=()=>{const v=+inp.value;val.textContent=v+o.unit;fb.innerHTML=o.fig(v,show);info.innerHTML=o.info(v);};
+  inp.oninput=draw;draw();
+  setTimeout(()=>{show=true;draw();info.style.visibility='';info.classList.add('ok','pop');sb.style.visibility='';sb.classList.add('pop');},1500);
+}
+
 /* ---------- ТЕОРЕМА 9.1 ---------- */
 addStage('thm','Властивості рівнобедреного трикутника',11,c=>{
   const h=pg(c,'Теорема 9.1: кути при основі');
   h.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>кути при основі рівні</b>.'));
   h.appendChild(el('p','note','Пересувайте повзунок: змінюється кут <i>B</i> при вершині. Що відбувається з кутами <i>A</i> і <i>C</i>?'));
-  const fb=el('div','figbox');fb.style.cssText='--mh:44vh';h.appendChild(fb);
-  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=30;inp.max=150;inp.step=2;inp.value=80;
+  const fb=el('div','figbox');fb.style.cssText='--mh:42vh';h.appendChild(fb);
+  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=40;inp.max=140;inp.step=2;inp.value=80;
   const val=el('span','lbl');sb.appendChild(inp);sb.appendChild(val);h.appendChild(sb);
   const info=el('div','slinfo');h.appendChild(info);
-  function draw(){const phi=+inp.value;val.textContent=phi+'°';fb.innerHTML=foldFig(phi,false).svg;
+  function draw(){const phi=+inp.value;val.textContent=phi+'°';fb.innerHTML=isoDyn(phi,{ang:true,vals:true});
     const b=(180-phi)/2,eq=phi===60;info.className='slinfo'+(eq?' ok':'');
-    info.innerHTML='<span class="c0">∠<i>A</i> = '+angFmt(b)+'</span> &nbsp; <span class="c0">∠<i>C</i> = '+angFmt(b)+'</span> &nbsp; ⇒ &nbsp; ∠<i>A</i> = ∠<i>C</i>'+(eq?'<br>Усі сторони рівні: трикутник рівносторонній.':'');}
+    info.innerHTML='<span class="c1">∠<i>A</i> = '+b+'°</span> &nbsp; <span class="c1">∠<i>C</i> = '+b+'°</span> &nbsp; ⇒ &nbsp; ∠<i>A</i> = ∠<i>C</i>';}
   inp.oninput=draw;draw();
 });
 addPage('thm',c=>{
@@ -560,21 +663,34 @@ addPage('thm',c=>{
   const info=el('div','slinfo');info.textContent='Що станеться з точкою A?';h.appendChild(info);
   let folded=false,busy=false;
   fold.onclick=()=>{if(busy)return;const g=fb.querySelector('#foldg');if(!g)return;const L=cur.L;const from=folded?-1:1,to=folded?1:-1;busy=true;const t0=performance.now();
-    (function f(n){const t=Math.min(1,(n-t0)/1100),e=t*t*(3-2*t),sc=from+(to-from)*e;g.setAttribute('transform','translate('+f1(L[0])+' 0) scale('+sc.toFixed(3)+' 1) translate('+f1(-L[0])+' 0)');
-      if(t<1)requestAnimationFrame(f);else{busy=false;folded=!folded;fold.textContent=folded?'↶ Розігнути':'Перегнути ↷';
+    if(!folded)foldStyle(fb,true);
+    (function f(n){const t=Math.min(1,(n-t0)/1300),e=t*t*(3-2*t),sc=from+(to-from)*e;g.setAttribute('transform','translate('+f1(L[0])+' 0) scale('+sc.toFixed(3)+' 1) translate('+f1(-L[0])+' 0)');
+      if(t<1)requestAnimationFrame(f);else{busy=false;folded=!folded;fold.textContent=folded?'↶ Розігнути':'Перегнути ↷';if(!folded)foldStyle(fb,false);
         info.className='slinfo'+(folded?' ok':'');info.innerHTML=folded?'Точка <i>A</i> збіглася з точкою <i>C</i>: кути при основі збіглися, тобто ∠<i>A</i> = ∠<i>C</i>.':'Що станеться з точкою <i>A</i>?';}})(t0);};
 },'Перегнемо трикутник');
+/* бісектриса, медіана, висота: покрокове розкриття, потім повзунок */
 addPage('thm',c=>{
   const h=pg(c,'Теорема 9.1: бісектриса, медіана, висота');
   h.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>бісектриса</b> трикутника, проведена до його основи, є його <b>медіаною та висотою</b>.'));
   const cols=el('div','cols wide');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-  const fb=el('div','figbox',isoMarks(0));l.appendChild(fb);
-  stepper(r,[
+  const fb=el('div','figbox');fb.style.cssText='--mh:47vh';l.appendChild(fb);
+  let phi=80,lv=0,all=false;
+  const draw=()=>{fb.innerHTML=isoDyn(phi,{bis:lv,vals:lv>0});
+    if(all){const half=phi/2,AL=10*Math.sin(half*D2R);info.innerHTML='<span class="c2">∠<i>ABL</i> = ∠<i>CBL</i> = '+half+'°</span><br><span class="c0"><i>AL</i> = <i>LC</i> = '+fm1(AL)+' см</span><br><span class="c1">∠<i>ALB</i> = ∠<i>CLB</i> = 90°</span>';}};
+  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=40;inp.max=140;inp.step=2;inp.value=80;
+  const val=el('span','lbl','80°');sb.appendChild(inp);sb.appendChild(val);sb.style.display='none';l.appendChild(sb);
+  inp.oninput=()=>{phi=+inp.value;val.textContent=phi+'°';draw();};
+  const st=el('div');r.appendChild(st);
+  const info=el('div','slinfo ok');info.style.display='none';r.appendChild(info);
+  stepper(st,[
    {h:'<i>BL</i> — <span class="c2">бісектриса</span> кута <i>B</i>: ∠<i>ABL</i> = ∠<i>CBL</i>',lv:1},
    {h:'<i>BL</i> — також <span class="c0">медіана</span>: <i>AL</i> = <i>LC</i>',lv:2},
    {h:'<i>BL</i> — також <span class="c1">висота</span>: <i>BL</i> ⊥ <i>AC</i>',lv:3},
    {h:'Бісектриса, медіана й висота, проведені до основи, — це один і той самий відрізок <i>BL</i>.',cls:'pl fin',lv:3}],
-   lv=>{if(lv!=null)fb.innerHTML=isoMarks(lv);});
+   n=>{if(n!=null){lv=n;draw();}},
+   ()=>{all=true;sb.style.display='';sb.classList.add('pop');info.style.display='';info.classList.add('pop');
+     const t=el('p','note pop','Змінюйте кут <i>B</i> повзунком: так буде для будь-якого рівнобедреного трикутника.');l.appendChild(t);draw();});
+  draw();
 });
 addPage('thm',c=>{
   const h=pg(c,'Доведення теореми 9.1');
@@ -595,18 +711,22 @@ addPage('thm',c=>{
    {h:'Теорему доведено.',cls:'pl fin',lv:8}],
    lv=>{if(lv!=null)fb.innerHTML=isoBL(lv);});
 });
-const CONS=[
- {s:isoAnglesFig,h:'<span class="hd">Наслідок 1</span>У трикутнику проти рівних сторін лежать рівні кути.'},
- {s:isoAllFig,h:'<span class="hd">Наслідок 2</span>У рівнобедреному трикутнику бісектриса, висота й медіана, проведені до його основи, збігаються.'},
- {s:()=>equiFig(false),h:'<span class="hd">Наслідок 3</span>У рівносторонньому трикутнику всі кути рівні.'},
- {s:()=>equiFig(true),h:'<span class="hd">Наслідок 4</span>У рівносторонньому трикутнику бісектриса, висота й медіана, проведені з однієї вершини, збігаються.'}];
-[[0,2,'Наслідки з теореми 9.1 (1–2)'],[2,4,'Наслідки з теореми 9.1 (3–4)']].forEach(([a,b,t])=>addPage('thm',c=>{
-  const h=pg(c,t);
-  stepper(h,CONS.slice(a,b).map(r=>({h:'<div class="card2"><div class="figbox">'+r.s()+'</div><div class="txt">'+r.h+'</div></div>',cls:''})));
-}));
+/* наслідки: рисунок + повзунок, значення з'являються через мить */
+addPage('thm',c=>dynPage(c,{title:'Наслідки з теореми 9.1 (1)',stmt:'<span class="dl2">Наслідок 1</span>У трикутнику проти рівних сторін лежать рівні кути.',
+  label:'Кут <i>B</i>',min:40,max:140,step:2,val:80,unit:'°',fig:(v,sh)=>isoDyn(v,{ang:true,vals:sh}),
+  info:v=>'<span class="c1">∠<i>A</i> = ∠<i>C</i> = '+((180-v)/2)+'°</span>'}));
+addPage('thm',c=>dynPage(c,{title:'Наслідки з теореми 9.1 (2)',stmt:'<span class="dl2">Наслідок 2</span>У рівнобедреному трикутнику бісектриса, висота й медіана, проведені до його основи, збігаються.',
+  label:'Кут <i>B</i>',min:40,max:140,step:2,val:80,unit:'°',fig:(v,sh)=>isoDyn(v,{bis:3,vals:sh}),
+  info:v=>'<span class="c2">∠<i>ABL</i> = ∠<i>CBL</i> = '+(v/2)+'°</span><br><span class="c0"><i>AL</i> = <i>LC</i> = '+fm1(10*Math.sin(v/2*D2R))+' см</span><br><span class="c1">∠<i>ALB</i> = 90°</span>'}));
+addPage('thm',c=>dynPage(c,{title:'Наслідки з теореми 9.1 (3)',stmt:'<span class="dl2">Наслідок 3</span>У рівносторонньому трикутнику всі кути рівні.',
+  label:'Сторона',min:4,max:12,step:2,val:8,unit:' см',fig:(v,sh)=>eqDyn(v,{vals:sh}),
+  info:v=>'<span class="c1">∠<i>A</i> = ∠<i>B</i> = ∠<i>C</i> = 60°</span>'}));
+addPage('thm',c=>dynPage(c,{title:'Наслідки з теореми 9.1 (4)',stmt:'<span class="dl2">Наслідок 4</span>У рівносторонньому трикутнику бісектриса, висота й медіана, проведені з однієї вершини, збігаються.',
+  label:'Сторона',min:4,max:12,step:2,val:8,unit:' см',fig:(v,sh)=>eqDyn(v,{bis:true,vals:sh}),
+  info:v=>'<span class="c2">∠<i>ABL</i> = ∠<i>CBL</i> = 30°</span><br><span class="c1"><i>AL</i> = <i>LC</i> = '+(v/2)+' см</span><br><span class="c1">∠<i>ALB</i> = 90°</span>'}));
 
 /* ===================== 4. ЗНАЙДІТЬ ПОМИЛКУ ===================== */
-addStage('err','Правильно чи ні?',3,c=>{
+addStage('err','Правильно чи ні?',2,c=>{
   const host=pg(c,'Правильно чи ні?');
   ynW(host,[
    {t:'У рівнобедреному трикутнику кути при основі рівні.',v:true},
@@ -642,25 +762,25 @@ function fig221(lv){const P=tb(isoQ(14,9)),c=cen3(P),A=P[0],B=P[1],C=P[2];
   s+=legSideLab(P,c,0,l1,lv>=4?OKC:'lt2 c0f')+legSideLab(P,c,1,l1,lv>=4?OKC:'lt2 c0f')+legSideLab(P,c,2,b1,lv>=4?OKC:'lt2 c1f');
   s+=txt([c[0],c[1]+6],'P = 32 см','lt2');
   s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);return svgWrap('0 0 420 260',s);}
-/* 223: AC — основа, ∠C = 40°, ∠B = 100°, BD — медіана. Кути: ∠B — 1 дуга (оранжевий), ∠C і ∠A — 2 дуги (фіолетовий), половини ∠B — 3 дуги (рожевий) */
+/* 223: AC — основа, ∠C = 40°, ∠B = 100°, BD — медіана. Кути: ∠B — 1 дуга (оранжевий), ∠C і ∠A — 2 дуги (фіолетовий), половини ∠B — 3 дуги (рожевий), дуги половин зсунуті одна відносно одної */
 function angTxtPts(a,b,c,r,t,cls){const u=vun(vsub(a,b)),v=vun(vsub(c,b));return txt(vadd(b,vmul(vun(vadd(u,v)),r)),t,cls);}
 function fig223(lv){const P=tb(isoQapex(100)),A=P[0],B=P[1],C=P[2],D=mid(A,C),c=cen3(P);
   let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73')+seg(B,D,'#1F4E73',2.8)+ticks(A,D,1,PC[0],6,8)+ticks(D,C,1,PC[0],6,8)+dot(D,3.6);
   s+=arcs(B,C,A,2,PC[1],26)+angTxtPts(B,C,A,66,'40°','lt2 c1f ang halo');
   if(lv<2)s+=arcs(A,B,C,1,PC[0],30)+angTxtPts(A,B,C,70,'100°','lt2 c0f ang halo');
   if(lv>=1)s+=arcs(B,A,C,2,PC[1],26)+angTxtPts(B,A,C,66,'40°','lt2 c1f ang halo');
-  if(lv>=2)s+=arcs(A,B,D,3,PC[2],34)+arcs(D,B,C,3,PC[2],34)+angTxtPts(A,B,D,86,'50°','lt2 c2f ang halo')+angTxtPts(D,B,C,86,'50°','lt2 c2f ang halo');
+  if(lv>=2)s+=arcs(A,B,D,3,PC[2],26)+arcs(D,B,C,3,PC[2],42)+angTxtPts(A,B,D,78,'50°','lt2 c2f ang halo')+angTxtPts(D,B,C,106,'50°','lt2 c2f ang halo');
   if(lv>=3)s+=arcs(A,D,B,0,PC[1],0,true)+arcs(B,D,C,0,PC[1],0,true)+txt(vadd(D,[-28,-26]),'90°','lt2 okf ang halo');
   s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20)+txt([D[0]+4,D[1]+20],'D','vt');return svgWrap('0 0 420 260',s);}
-/* 224: AB = BC, BD — медіана, ∠ABD = 53°; E на продовженні BD */
+/* 224: AB = BC, BD — медіана, ∠ABD = 53°; E на продовженні BD (точок D і E не малюємо) */
 function fig224(lv){const Pn=xf(isoQapex(106).concat([[0,0.32]]),{fit:[420,260,54]}),A=Pn[0],B=Pn[1],C=Pn[2],E=Pn[3],D=[B[0],A[1]],c=cen3([A,B,C]);
   let s=poly([A,B,C],'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73')+seg(B,D,'#1F4E73',2.8)+seg(D,E,'#1F4E73',2.8);
   s+=ticks(A,D,1,PC[0],6,8)+ticks(D,C,1,PC[0],6,8);
-  s+=arcs(A,B,D,1,PC[2],30)+txt(vadd(B,[-22,52]),'53°','lt2 c2f');
-  if(lv>=1)s+=arcs(D,B,C,1,PC[2],30)+txt(vadd(B,[22,52]),'53°','lt2 c2f');
-  if(lv>=2)s+=arcs(A,B,C,1,PC[1],44)+txt(vadd(B,[0,-26]),'106°',OKC);
+  s+=arcs(A,B,D,1,PC[2],30)+angTxtPts(A,B,D,68,'53°','lt2 c2f ang halo');
+  if(lv>=1)s+=arcs(D,B,C,1,PC[2],42)+angTxtPts(D,B,C,94,'53°','lt2 c2f ang halo');
+  if(lv>=2)s+=arcs(A,B,C,1,PC[1],56)+txt(vadd(B,[0,-26]),'106°',OKC);
   if(lv>=3)s+=arcs(A,D,B,0,PC[1],0,true)+arcs(A,D,E,0,PC[1],0,true)+txt(vadd(D,[-30,22]),'90°',OKC);
-  s+=outLab(A,c,'A',20)+outLab(C,c,'C',20)+txt([B[0],B[1]-(lv>=2?52:22)],'B','vt')+txt([D[0]+18,D[1]-12],'D','vt')+txt([E[0]+18,E[1]+4],'E','vt');return svgWrap('0 0 420 260',s);}
+  s+=outLab(A,c,'A',20)+outLab(C,c,'C',20)+txt([B[0],B[1]-(lv>=2?52:22)],'B','vt')+txt([D[0]+18,D[1]-12],'D','vt')+txt([E[0]+18,E[1]+4],'E','vt');return svgWrap('0 -26 420 286',s);}
 /* 225: MK = KE, OE = 6, ∠MKE = 48°, ∠POE = 90° */
 function fig225(lv){const P0=xf(isoQapex(48),{fit:[420,320,56]}),M=P0[0],K=P0[1],E=P0[2],O=[K[0],M[1]],Pp=vadd(K,vmul(vsub(O,K),.68)),c=cen3(P0);
   let s=poly(P0,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(M,K,1,'#1F4E73')+ticks(K,E,1,'#1F4E73')+seg(K,O,'#1F4E73',2.8)+dot(O,3.6)+dot(Pp,3.6);
@@ -668,7 +788,7 @@ function fig225(lv){const P0=xf(isoQapex(48),{fit:[420,320,56]}),M=P0[0],K=P0[1]
   s+=txt([(O[0]+E[0])/2+6,O[1]+24],'6 см','lt2');
   if(lv>=1)s+=arcs(Pp,O,M,0,PC[1],0,true);
   if(lv>=2)s+=ticks(M,O,2,PC[0],6,8)+ticks(O,E,2,PC[0],6,8)+txt([(M[0]+O[0])/2-6,O[1]+24],'6 см','lt2 c0f')+txt([K[0],O[1]+58],'ME = 12 см',OKC);
-  if(lv>=3)s+=arcs(M,K,O,1,PC[2],26)+arcs(O,K,E,1,PC[2],26)+txt(vadd(K,[-30,118]),'24°','lt2 okf');
+  if(lv>=3)s+=arcs(M,K,O,1,PC[2],44)+arcs(O,K,E,1,PC[2],54)+angTxtPts(M,K,O,100,'24°','lt2 c2f ang halo')+angTxtPts(O,K,E,124,'24°','lt2 c2f ang halo');
   s+=outLab(M,c,'M',20)+outLab(E,c,'E',20)+txt([K[0],K[1]-22],'K','vt')+txt([O[0],O[1]+26],'O','vt')+txt([Pp[0]+18,Pp[1]],'P','vt');return svgWrap('0 0 420 345',s);}
 
 const TASKS=[
@@ -707,18 +827,101 @@ const TASKS=[
    {h:'Висота, проведена до основи, є також медіаною: <i>O</i> — середина <i>ME</i>, тому <i>ME</i> = 2 · <i>OE</i> = 2 · 6 = 12 (см)',lv:2},
    {h:'<i>KO</i> — також бісектриса: ∠<i>MKO</i> = 48° : 2 = 24°',lv:3},{h:'<b>Відповідь:</b> <i>ME</i> = 12 см, ∠<i>MKO</i> = 24°.',cls:'pl fin',lv:3}]}
 ];
-function taskBody(p,cfg){
-  const cols=el('div','cols wide');p.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
-  const fb=el('div','figbox big',cfg.fig(0));l.appendChild(fb);
-  r.appendChild(el('div','note',cfg.cond));
-  r.appendChild(el('div','dado',cfg.dado.map(d=>'<div class="row"><span class="lb">'+d[0]+'</span><span>'+d[1]+'</span></div>').join('')));
-  const q=el('div');r.appendChild(q);const sol=el('div');r.appendChild(sol);
-  mc(q,'Виберіть відповідь:',cfg.opts,0,'',()=>{
-    const pf=el('div','proof pop');pf.appendChild(el('div','pt','Розв’язання'));sol.appendChild(pf);
-    stepper(pf,cfg.steps,lv=>{if(lv!=null)fb.innerHTML=cfg.fig(lv);});scrollTo_(pf);});}
+TASKS[0].mode='oral';TASKS[1].mode='oral';TASKS[2].mode='inputs';TASKS[3].mode='solve';TASKS[4].mode='solve';TASKS[5].mode='solve';
+/* Вправи: рисунок ліворуч, під ним відповідь; праворуч умова, «Дано» і кнопка розв'язання.
+   219 — усно (без розв'язання); 221 — поля вводу для сторін і розв'язання; 223–225 — вибір відповіді й кнопка розв'язання */
+function taskPage(c,t){
+  const h=pg(c,'Вправа '+t.name);
+  const cols=el('div','cols ex');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox');fb.style.cssText='--mh:'+(t.mode==='oral'?'44vh':'38vh');fb.innerHTML=t.fig(0);l.appendChild(fb);
+  r.appendChild(el('div','note',t.cond));
+  r.appendChild(el('div','dado',t.dado.map(d=>'<div class="row"><span class="lb">'+d[0]+'</span><span>'+d[1]+'</span></div>').join('')));
+  const sol=el('div');let shown=false,btn=null;
+  function showSol(){if(shown)return;shown=true;if(btn)btn.remove();
+    const pf=el('div','proof compact pop');pf.appendChild(el('div','pt','Розв’язання'));sol.appendChild(pf);
+    stepper(pf,t.steps,lv=>{if(lv!=null)fb.innerHTML=t.fig(lv);});}
+  if(t.mode==='oral'){
+    mc(l,'Виберіть відповідь:',t.opts,0,'',()=>{fb.innerHTML=t.fig(3);});
+    return;}
+  btn=el('button','btn','Показати розв’язання');btn.onclick=showSol;r.appendChild(btn);r.appendChild(sol);
+  if(t.mode==='inputs'){
+    const row=el('div','inrow');l.appendChild(el('div','ask','Введіть довжини сторін (см):'));
+    const names=['AB','BC','AC'],ans=[9,9,14],ins=[];
+    names.forEach(n=>{const w=el('label','inl','<i>'+n+'</i> =');const i=el('input','ansin');i.type='text';i.inputMode='numeric';i.maxLength=5;w.appendChild(i);ins.push(i);row.appendChild(w);});
+    const ok=el('button','btn','Перевірити');row.appendChild(ok);l.appendChild(row);
+    const msg=el('div','msg');l.appendChild(msg);let mist=false,done=false;
+    const check=()=>{if(done)return;const v=ins.map(i=>parseFloat(i.value.replace(',','.')));
+      if(v.every((x,k)=>x===ans[k])){done=true;if(!mist)SCORE++;msg.className='msg ok';msg.textContent='Правильно! Подивіться, як це розв’язується.';fb.innerHTML=t.fig(4);ins.forEach(i=>i.disabled=true);ok.disabled=true;showSol();}
+      else{mist=true;msg.className='msg bad';msg.textContent='Неправильно. Спробуйте ще раз або натисніть «Показати розв’язання».';}};
+    ok.onclick=check;ins.forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')check();}));
+    return;}
+  mc(l,'Виберіть відповідь:',t.opts,0,'',()=>{});
+}
 TASKS.forEach((t,i)=>{
-  const build=c=>{const h=pg(c,'Вправа '+t.name);taskBody(h,t);};
-  if(!i)addStage('ex','Вправи підручника',13,build);else addPage('ex',build);});
+  const build=c=>taskPage(c,t);
+  if(!i)addStage('ex','Вправи підручника',12,build);else addPage('ex',build);});
+
+/* ===================== 5б. ГЕНЕРАТИВНА ЗАДАЧА ===================== */
+function gShape(phi){const P=xf(isoQapex(phi),{fit:[440,270,64]}),A=P[0],B=P[1],C=P[2];return {P,A,B,C,L:[B[0],A[1]],c:cen3(P)};}
+function gBase(g){return poly(g.P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(g.A,g.B,1,'#1F4E73')+ticks(g.B,g.C,1,'#1F4E73');}
+function gLab(g,L){return outLab(g.A,g.c,'A',20)+outLab(g.B,g.c,'B',20)+outLab(g.C,g.c,'C',20)+(L?txt([g.L[0]-16,g.L[1]-14],'L','vt'):'');}
+const GENS=[
+ /* кути при основі рівні */
+ ()=>{const b=rnd(36,78),g=gShape(180-2*b);
+  return {svg:svgWrap('0 0 460 300',gBase(g)+arcs(g.B,g.A,g.C,2,PC[1],26)+angTxtPts(g.B,g.A,g.C,64,b+'°','lt2 c1f ang halo')+arcs(g.B,g.C,g.A,2,PC[1],26)+angTxtPts(g.B,g.C,g.A,64,'?','lt2 qf')+gLab(g)),
+   text:'У рівнобедреному трикутнику <i>ABC</i> з основою <i>AC</i> кут <i>A</i> дорівнює '+b+'°. Знайдіть кут <i>C</i>.',ans:b,unit:'°',
+   expl:'Кути при основі рівні: ∠<i>C</i> = ∠<i>A</i> = '+b+'°.'};},
+ /* бісектриса: половина кута */
+ ()=>{const phi=2*rnd(20,70),g=gShape(phi);
+  return {svg:svgWrap('0 0 460 300',gBase(g)+seg(g.B,g.L,PC[2],3.4)+arcs(g.A,g.B,g.L,1,PC[2],34)+angTxtPts(g.A,g.B,g.L,84,'?','lt2 qf')+txt([g.B[0]+72,g.B[1]+10],'∠B = '+phi+'°','lt2 c0f ang')+gLab(g,true)),
+   text:'<i>BL</i> — бісектриса рівнобедреного трикутника <i>ABC</i> (<i>AB</i> = <i>BC</i>), проведена до основи. ∠<i>ABC</i> = '+phi+'°. Знайдіть ∠<i>ABL</i>.',ans:phi/2,unit:'°',
+   expl:'Бісектриса ділить кут навпіл: ∠<i>ABL</i> = '+phi+'° : 2 = '+(phi/2)+'°.'};},
+ /* медіана: знайти основу */
+ ()=>{const a=rnd(3,12),g=gShape(80),m1=mid(g.A,g.L);
+  return {svg:svgWrap('0 0 460 300',gBase(g)+seg(g.B,g.L,'#1F4E73',2.8)+ticks(g.A,g.L,2,PC[0],6,8)+ticks(g.L,g.C,2,PC[0],6,8)+txt([m1[0],g.A[1]+26],a+' см','lt2 c0f ang')+txt([g.L[0],g.A[1]+56],'AC = ?','lt2 qf')+gLab(g,true)),
+   text:'<i>BL</i> — медіана рівнобедреного трикутника <i>ABC</i>, проведена до основи <i>AC</i>. <i>AL</i> = '+a+' см. Знайдіть <i>AC</i>.',ans:2*a,unit:'см',
+   expl:'Медіана ділить сторону навпіл: <i>AC</i> = 2 · '+a+' = '+(2*a)+' (см).'};},
+ /* медіана: знайти частину */
+ ()=>{const a=rnd(3,12),g=gShape(80),m2=mid(g.L,g.C);
+  return {svg:svgWrap('0 0 460 300',gBase(g)+seg(g.B,g.L,'#1F4E73',2.8)+ticks(g.A,g.L,2,PC[0],6,8)+ticks(g.L,g.C,2,PC[0],6,8)+txt([g.L[0],g.A[1]+56],'AC = '+(2*a)+' см','lt2 c0f ang')+txt([m2[0],g.A[1]+26],'?','lt2 qf')+gLab(g,true)),
+   text:'<i>BL</i> — медіана рівнобедреного трикутника <i>ABC</i>, проведена до основи <i>AC</i>. <i>AC</i> = '+(2*a)+' см. Знайдіть <i>LC</i>.',ans:a,unit:'см',
+   expl:'Медіана ділить сторону навпіл: <i>LC</i> = '+(2*a)+' : 2 = '+a+' (см).'};},
+ /* висота до основи: основа */
+ ()=>{const a=rnd(3,12),g=gShape(76);
+  return {svg:svgWrap('0 0 460 300',gBase(g)+seg(g.B,g.L,'#1F4E73',2.8)+arcs(g.A,g.L,g.B,0,PC[1],0,true)+arcs(g.B,g.L,g.C,0,PC[1],0,true)+txt([(g.L[0]+g.C[0])/2,g.A[1]+26],a+' см','lt2 c1f ang')+txt([g.L[0],g.A[1]+56],'AC = ?','lt2 qf')+gLab(g,true)),
+   text:'<i>BL</i> — висота рівнобедреного трикутника <i>ABC</i>, проведена до основи <i>AC</i>. <i>LC</i> = '+a+' см. Знайдіть <i>AC</i>.',ans:2*a,unit:'см',
+   expl:'Висота, проведена до основи, є й медіаною: <i>AL</i> = <i>LC</i> = '+a+' см, тому <i>AC</i> = '+(2*a)+' см.'};},
+ /* периметр */
+ ()=>{const a=rnd(5,12),b=pick([3,4,5,6,7,8,9,10,11,12].filter(x=>x>=a*.8&&x<=a*1.6&&x<2*a-1&&x!==a)),P=xf(isoQ(b,a),{fit:[440,270,64]}),g={P,A:P[0],B:P[1],C:P[2],c:cen3(P)};
+  const sl=txt(vadd(mid(g.A,g.B),[-26,-6]),a,'lt2 sd')+txt(vadd(mid(g.B,g.C),[26,-6]),a,'lt2 sd')+txt([mid(g.A,g.C)[0],g.A[1]+26],b,'lt2 sd')+txt([g.c[0],g.A[1]+54],'P = ?','lt2 qf');
+  return {svg:svgWrap('0 0 460 300',gBase(g)+sl+outLab(g.A,g.c,'A',20)+outLab(g.B,g.c,'B',20)+outLab(g.C,g.c,'C',20)),
+   text:'Бічна сторона рівнобедреного трикутника дорівнює '+a+' см, а основа — '+b+' см. Знайдіть периметр трикутника.',ans:2*a+b,unit:'см',
+   expl:'<i>P</i> = '+a+' + '+a+' + '+b+' = '+(2*a+b)+' (см).'};},
+ /* бічна сторона за периметром */
+ ()=>{const a=rnd(5,12),b=pick([3,4,5,6,7,8,9,10,11,12].filter(x=>x>=a*.8&&x<=a*1.6&&x<2*a-1&&x!==a)),P=xf(isoQ(b,a),{fit:[440,270,64]}),g={P,A:P[0],B:P[1],C:P[2],c:cen3(P)};
+  const sl=txt(vadd(mid(g.A,g.B),[-26,-6]),'?','lt2 qf')+txt(vadd(mid(g.B,g.C),[26,-6]),'?','lt2 qf')+txt([mid(g.A,g.C)[0],g.A[1]+26],b,'lt2 sd')+txt([g.c[0],g.A[1]+54],'P = '+(2*a+b),'lt2 sd');
+  return {svg:svgWrap('0 0 460 300',gBase(g)+sl+outLab(g.A,g.c,'A',20)+outLab(g.B,g.c,'B',20)+outLab(g.C,g.c,'C',20)),
+   text:'Периметр рівнобедреного трикутника дорівнює '+(2*a+b)+' см, а основа — '+b+' см. Знайдіть бічну сторону.',ans:a,unit:'см',
+   expl:'Дві бічні сторони разом: '+(2*a+b)+' − '+b+' = '+(2*a)+' (см). Кожна: '+(2*a)+' : 2 = '+a+' (см).'};}
+];
+addStage('gen','Тренажер: нова задача',2,c=>{
+  const h=pg(c,'Потренуймося');
+  const cols=el('div','cols ex');h.appendChild(cols);const l=el('div'),r=el('div');cols.appendChild(l);cols.appendChild(r);
+  const fb=el('div','figbox');fb.style.cssText='--mh:44vh';l.appendChild(fb);
+  const txtb=el('div','note big2');r.appendChild(txtb);
+  const row=el('div','inrow');const inp=el('input','ansin');inp.type='text';inp.inputMode='numeric';inp.maxLength=5;const unit=el('span','lbl');
+  const ok=el('button','btn','Перевірити');row.appendChild(inp);row.appendChild(unit);row.appendChild(ok);r.appendChild(row);
+  const msg=el('div','msg');r.appendChild(msg);
+  const bar=el('div','bar');const nw=el('button','btn light','Нова задача ▶');bar.appendChild(nw);const cnt=el('span','lbl','Розв’язано: 0');bar.appendChild(cnt);r.appendChild(bar);
+  let last=-1,cur=null,solved=0,done=false;
+  function next(){let k;do{k=rnd(0,GENS.length-1);}while(k===last);last=k;cur=GENS[k]();done=false;
+    fb.innerHTML=cur.svg;txtb.innerHTML=cur.text;unit.textContent=cur.unit;inp.value='';inp.disabled=false;ok.disabled=false;msg.textContent='';msg.className='msg';inp.focus();}
+  function check(){if(done)return;const v=parseFloat(inp.value.replace(',','.'));if(isNaN(v))return;
+    if(v===cur.ans){done=true;solved++;cnt.textContent='Розв’язано: '+solved;msg.className='msg ok';msg.innerHTML='Правильно! '+cur.expl;inp.disabled=true;ok.disabled=true;}
+    else{msg.className='msg bad';msg.textContent='Неправильно. Подумайте ще раз.';}}
+  ok.onclick=check;nw.onclick=next;inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+  next();
+});
 
 /* ===================== 6. ПІДСУМОК ===================== */
 addStage('sum','Підсумок уроку',2,c=>{
