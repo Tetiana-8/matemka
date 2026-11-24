@@ -93,6 +93,7 @@ footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe 
 .lt2.c0f{fill:var(--c0)}.lt2.c1f{fill:var(--c1)}.lt2.c2f{fill:var(--c2)}.lt2.okf{fill:var(--ok)}.lt2.blf{fill:#1d4ed8}.lt2.qf{fill:var(--bad);font-size:22px}
 .lt2.sd{font-size:19px}.lt2.sd:not(.okf){fill:#111}
 .lt2.ang{font-size:19px}
+.lt2.halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
 .lt3{font-family:Nunito,Arial,sans-serif;font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:central}
 
 .ask{font-weight:800;color:var(--accD);font-size:1.25rem;margin:.2rem 0 .5rem}
@@ -542,7 +543,7 @@ addStage('thm','Властивості рівнобедреного трикут
   h.appendChild(el('div','def big','<span class="dl">Теорема 9.1</span>У рівнобедреному трикутнику <b>кути при основі рівні</b>.'));
   h.appendChild(el('p','note','Пересувайте повзунок: змінюється кут <i>B</i> при вершині. Що відбувається з кутами <i>A</i> і <i>C</i>?'));
   const fb=el('div','figbox');fb.style.cssText='--mh:44vh';h.appendChild(fb);
-  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=30;inp.max=150;inp.step=1;inp.value=80;
+  const sb=el('div','sliderbar','<span class="lbl">Кут <i>B</i> =</span>');const inp=el('input');inp.type='range';inp.min=30;inp.max=150;inp.step=2;inp.value=80;
   const val=el('span','lbl');sb.appendChild(inp);sb.appendChild(val);h.appendChild(sb);
   const info=el('div','slinfo');h.appendChild(info);
   function draw(){const phi=+inp.value;val.textContent=phi+'°';fb.innerHTML=foldFig(phi,false).svg;
@@ -641,17 +642,19 @@ function fig221(lv){const P=tb(isoQ(14,9)),c=cen3(P),A=P[0],B=P[1],C=P[2];
   s+=legSideLab(P,c,0,l1,lv>=4?OKC:'lt2 c0f')+legSideLab(P,c,1,l1,lv>=4?OKC:'lt2 c0f')+legSideLab(P,c,2,b1,lv>=4?OKC:'lt2 c1f');
   s+=txt([c[0],c[1]+6],'P = 32 см','lt2');
   s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20);return svgWrap('0 0 420 260',s);}
-/* 223: AC — основа, ∠C = 40°, ∠B = 100°, BD — медіана */
+/* 223: AC — основа, ∠C = 40°, ∠B = 100°, BD — медіана. Кути: ∠B — 1 дуга (оранжевий), ∠C і ∠A — 2 дуги (фіолетовий), половини ∠B — 3 дуги (рожевий) */
+function angTxtPts(a,b,c,r,t,cls){const u=vun(vsub(a,b)),v=vun(vsub(c,b));return txt(vadd(b,vmul(vun(vadd(u,v)),r)),t,cls);}
 function fig223(lv){const P=tb(isoQapex(100)),A=P[0],B=P[1],C=P[2],D=mid(A,C),c=cen3(P);
   let s=poly(P,'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73')+seg(B,D,'#1F4E73',2.8)+ticks(A,D,1,PC[0],6,8)+ticks(D,C,1,PC[0],6,8)+dot(D,3.6);
-  s+=angTxt(P,2,50,'40°','lt2')+txt(vadd(B,[34,38]),'100°','lt2');
-  if(lv>=1)s+=arcs(B,A,C,1,PC[1],26)+angTxt(P,0,50,'40°','lt2 c1f');
-  if(lv>=2)s+=arcs(A,B,D,1,PC[2],30)+arcs(D,B,C,1,PC[2],30)+txt(vadd(B,[-36,40]),'50°','lt2 c2f');
-  if(lv>=3)s+=arcs(A,D,B,0,PC[1],0,true)+arcs(B,D,C,0,PC[1],0,true)+txt(vadd(D,[-26,-24]),'90°','lt2 c1f');
+  s+=arcs(B,C,A,2,PC[1],26)+angTxtPts(B,C,A,66,'40°','lt2 c1f ang halo');
+  if(lv<2)s+=arcs(A,B,C,1,PC[0],30)+angTxtPts(A,B,C,70,'100°','lt2 c0f ang halo');
+  if(lv>=1)s+=arcs(B,A,C,2,PC[1],26)+angTxtPts(B,A,C,66,'40°','lt2 c1f ang halo');
+  if(lv>=2)s+=arcs(A,B,D,3,PC[2],34)+arcs(D,B,C,3,PC[2],34)+angTxtPts(A,B,D,86,'50°','lt2 c2f ang halo')+angTxtPts(D,B,C,86,'50°','lt2 c2f ang halo');
+  if(lv>=3)s+=arcs(A,D,B,0,PC[1],0,true)+arcs(B,D,C,0,PC[1],0,true)+txt(vadd(D,[-28,-26]),'90°','lt2 okf ang halo');
   s+=outLab(A,c,'A',20)+outLab(B,c,'B',20)+outLab(C,c,'C',20)+txt([D[0]+4,D[1]+20],'D','vt');return svgWrap('0 0 420 260',s);}
 /* 224: AB = BC, BD — медіана, ∠ABD = 53°; E на продовженні BD */
 function fig224(lv){const Pn=xf(isoQapex(106).concat([[0,0.32]]),{fit:[420,260,54]}),A=Pn[0],B=Pn[1],C=Pn[2],E=Pn[3],D=[B[0],A[1]],c=cen3([A,B,C]);
-  let s=poly([A,B,C],'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73')+seg(B,D,'#1F4E73',2.8)+seg(D,E,'#1F4E73',2.8)+dot(D,3.6)+dot(E,3.6);
+  let s=poly([A,B,C],'rgba(42,101,146,.07)','#1F4E73',2.8)+ticks(A,B,1,'#1F4E73')+ticks(B,C,1,'#1F4E73')+seg(B,D,'#1F4E73',2.8)+seg(D,E,'#1F4E73',2.8);
   s+=ticks(A,D,1,PC[0],6,8)+ticks(D,C,1,PC[0],6,8);
   s+=arcs(A,B,D,1,PC[2],30)+txt(vadd(B,[-22,52]),'53°','lt2 c2f');
   if(lv>=1)s+=arcs(D,B,C,1,PC[2],30)+txt(vadd(B,[22,52]),'53°','lt2 c2f');
