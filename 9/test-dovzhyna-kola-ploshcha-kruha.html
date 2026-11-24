@@ -100,6 +100,11 @@ button.cell{cursor:pointer}
 .det div.dr.good .dm{color:var(--ok);font-weight:800}
 .det div.dr.bad .dm{color:#c0262e;font-weight:800}
 .det .dh{font-weight:800;margin-bottom:4px}
+.nbox{background:#fff;border-radius:16px;padding:16px 18px;width:min(420px,100%);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.nbox p{line-height:1.5;margin:8px 0}
+.nbox .nw{color:#a3232b;font-weight:800}
+.endc{text-align:center;padding:10px 4px}
+.endc h1{color:var(--acc)}
 @media (max-width:560px){
   .cell{width:26px;height:26px;font-size:.72rem;border-radius:7px}
   .cells{gap:4px}
@@ -122,6 +127,7 @@ button.cell{cursor:pointer}
   <div id="sign">Автор розробки <b>Ковтун Тетяна</b></div>
 </div>
 <button id="keyb" title="">🔑</button>
+<div id="noticeHost"></div>
 <div class="modal" id="jm"><div class="mbox" id="jbox">
   <div id="jlock"><h3>Пароль</h3>
     <input id="jpw" type="password" autocomplete="off" style="font:inherit;padding:8px 10px;border:2px solid var(--soft);border-radius:10px;width:100%">
@@ -325,19 +331,34 @@ function buildTasks(seed){
 
 /* ================= Стан ================= */
 let S={screen:'start',cur:0,tasks:[],ans:[],done:[],marks:[],score:0,seed:0,sur:'',nam:'',fi:0,fb:'',finished:false,used:false};
-let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0};
-function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0}}
-function leave(){if(S.screen==='start'||S.finished||W.awayAt)return;W.awayAt=Date.now();W.leaves++}
-function back(){if(!W.awayAt)return;W.awaySec+=Math.round((Date.now()-W.awayAt)/1000);W.awayAt=0}
-document.addEventListener('visibilitychange',function(){document.hidden?leave():back()});
-window.addEventListener('blur',leave);window.addEventListener('focus',back);
+let W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0,log:[],durs:[]};
+function resetWatch(){W={t0:Date.now(),leaves:0,awaySec:0,awayAt:0,log:[],durs:[]}}
+function inTest(){return S.screen==='task'&&!S.finished}
+/* понад половину кількості запитань: попередження; наступний вихід завершує тест (незавершений) */
+function endAt(){return Math.floor(S.tasks.length/2)+2}
+function warnAt(){return endAt()-1}
+function leave(){if(!inTest()||W.awayAt)return;W.awayAt=Date.now();W.leaves++;W.log.push(S.cur+1);if(W.leaves>=endAt())terminateTest()}
+function back(){if(!W.awayAt)return;const d=Math.round((Date.now()-W.awayAt)/1000);W.awaySec+=d;W.durs.push(d);W.awayAt=0}
+function returned(){const had=!!W.awayAt;back();if(had&&inTest())showNotice()}
+const NH=document.getElementById('noticeHost');
+function showNotice(){
+  const n=W.leaves,warn=n>=warnAt();
+  NH.innerHTML='<div class="modal on" style="z-index:2147483645"><div class="nbox"><b style="font-size:19px">Увага!</b>'+
+    '<p>Під час тестування не можна виходити з екрана тестування, інакше тест може завершитися, і доведеться проходити все спочатку.</p>'+
+    (warn?'<p class="nw">Ви вже виходили з вікна тесту '+n+' '+pl(n,'раз','рази','разів')+', це понад половину кількості запитань. Наступного разу тестування завершиться, а тест залишиться незавершеним.</p>':'')+
+    '<div class="row2"><button class="btn" id="ntOk">Зрозуміло</button></div></div></div>';
+  document.getElementById('ntOk').onclick=function(){NH.innerHTML=''};
+}
+function terminateTest(){saveRecord(false);S.ended=true;NH.innerHTML='';show('ended')}
+document.addEventListener('visibilitychange',function(){document.hidden?leave():returned()});
+window.addEventListener('blur',leave);window.addEventListener('focus',returned);
 
 function newSeed(){const q=/[?&]v=(\d+)/.exec(location.search);if(q&&!S.used){S.used=true;return +q[1]}S.used=true;return Math.floor(Math.random()*2147483647)+1}
 function build(){
   S.seed=newSeed();S.tasks=buildTasks(S.seed);
   S.ans=S.tasks.map(t=>t.steps.map(st=>st.kind==='n'?'':null));
   S.done=S.tasks.map(()=>false);S.marks=S.tasks.map(()=>0);
-  S.cur=0;S.finished=false;S.score=0;S.fb='';S.fi=0;resetWatch();
+  S.cur=0;S.finished=false;S.ended=false;S.score=0;S.fb='';S.fi=0;NH.innerHTML='';resetWatch();
 }
 function stepRight(t,k,a){
   const st=t.steps[k];
@@ -436,6 +457,10 @@ function render(){
       if(coarse()&&S.tasks[i].steps.some(s=>s.kind==='n'))kp.innerHTML=keypadHTML();
       setActive();
     }
+  }else if(S.screen==='ended'){
+    head.innerHTML='';
+    card.innerHTML='<div class="endc"><h1>Тестування завершено</h1><p style="font-weight:700;line-height:1.5">Тестування завершено, бо ви забагато разів виходили з вікна тесту. Тест залишився незавершеним, і доведеться пройти його спочатку.</p><div class="btns" style="display:flex;justify-content:center;margin-top:14px"><button class="btn" id="again">Пройти ще раз</button></div></div>';
+    nav.innerHTML='';
   }else if(S.screen==='review'){
     head.innerHTML='<div class="topbar"><span>Завдання '+(S.cur+1)+' з '+S.tasks.length+'</span></div>'+cellsRow(true)+'<div style="height:6px"></div>';
     card.innerHTML=taskHTML(S.cur,'review');
@@ -532,20 +557,24 @@ function doAnswer(){
   if(i===S.tasks.length-1)finish();
   render();
 }
-function finish(){
+function finish(){saveRecord(true)}
+function saveRecord(fin){
   back();S.finished=true;
-  S.score=Math.round(S.tasks.reduce((s,t,i)=>s+t.w*S.marks[i],0)*10)/10;
+  const marks=S.tasks.map((t,i)=>S.done[i]?S.marks[i]:0);
+  S.score=Math.round(S.tasks.reduce((sum,t,i)=>sum+t.w*marks[i],0)*10)/10;
   const now=Date.now();
   saveResult({
     id:now+'_'+Math.random().toString(36).slice(2,8),
     name:S.sur+' '+S.nam,surname:S.sur,firstName:S.nam,
     ts:now,date:new Date(now).toISOString(),
     score:S.score,max:100,percent:Math.round(S.score),
-    tasks:S.marks.slice(),weights:S.tasks.map(t=>t.w),rightCount:S.marks.filter(m=>m===1).length,
+    tasks:marks.slice(),weights:S.tasks.map(t=>t.w),rightCount:marks.filter(m=>m===1).length,
     qtext:S.tasks.map(t=>t.qtext),
-    answers:S.tasks.map((t,i)=>ansText(i)),
+    answers:S.tasks.map((t,i)=>S.done[i]?ansText(i):''),
     correct:S.tasks.map(t=>t.ctext.join(' | ')),
     durationSec:Math.round((now-W.t0)/1000),leaves:W.leaves,awaySec:W.awaySec,
+    leaveTasks:W.log.slice(),leaveSecs:W.durs.slice(),
+    finished:fin?1:0,answeredCount:S.done.filter(Boolean).length,endReason:fin?'':'exits',
     variant:S.seed,test:TEST_NAME
   });
 }
@@ -576,13 +605,14 @@ function drawJ(){
   JROWS.forEach(function(r,k){
     const d=r.date?new Date(r.date):null,ds=d?d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}):'—';
     const hasT=typeof r.durationSec==='number',fast=hasT&&r.durationSec<120,hasL=typeof r.leaves==='number';
-    h+='<tr><td>'+(k+1)+'</td><td class="l nm" data-det="'+k+'">'+esc(r.name||'—')+'</td><td>'+ds+'</td><td'+(fast?' class="r" title="Дуже швидко"':'')+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+(hasL&&r.leaves>=3?' class="r"':'')+'>'+(hasL?r.leaves+' ('+mmss(r.awaySec||0)+')':'—')+'</td><td><b>'+String(r.score).replace('.',',')+'</b> з '+(r.max||100)+'</td>';
+    h+='<tr><td>'+(k+1)+'</td><td class="l nm" data-det="'+k+'">'+esc(r.name||'—')+'</td><td>'+ds+'</td><td'+(fast?' class="r" title="Дуже швидко"':'')+'>'+(hasT?mmss(r.durationSec):'—')+'</td><td'+(hasL&&r.leaves>=3?' class="r"':'')+'>'+(hasL?r.leaves+' ('+mmss(r.awaySec||0)+')':'—')+'</td><td><b>'+String(r.score).replace('.',',')+'</b> з '+(r.max||100)+(r.finished===0?'<br><span class="r">не завершено ('+(r.answeredCount||0)+' з '+((r.tasks||[]).length)+')</span>':'')+'</td>';
     for(let i=0;i<mx;i++){const v=(r.tasks||[])[i];h+='<td class="'+(v===undefined?'':v>=1?'y':(v>0?'h':'n'))+'">'+(v===undefined?'':v>=1?'✓':(v>0?'½':'✗'))+'</td>'}
     const W_=r.weights||[];
-    h+='</tr><tr id="det'+k+'" style="display:none"><td colspan="'+(6+mx)+'" class="det"><div class="dh">Оцінка: '+String(r.score).replace('.',',')+' з '+(r.max||100)+' ('+(typeof r.percent==='number'?r.percent:Math.round(r.score))+' %)'+(hasL?' · Виходів: '+r.leaves+', поза вікном: '+mmss(r.awaySec||0):'')+'</div>'+
+    let lvd='';if(r.leaves&&(r.leaveTasks||[]).length){const by={};(r.leaveTasks||[]).forEach(function(n){by[n]=(by[n]||0)+1});lvd=' (де саме: '+Object.keys(by).map(function(n){return 'завд. '+n+' — '+by[n]+' р.'}).join(', ')+')'+((r.leaveSecs||[]).length?'; тривалість виходів, с: '+r.leaveSecs.join(', '):'')}
+    h+='</tr><tr id="det'+k+'" style="display:none"><td colspan="'+(6+mx)+'" class="det">'+(r.finished===0?'<div class="dr bad"><b class="da">Тест НЕ завершено:</b> тестування закрито після забагатьох виходів з вікна; дано відповідей: '+(r.answeredCount||0)+' з '+((r.tasks||[]).length)+'.</div>':'')+'<div class="dh">Оцінка: '+String(r.score).replace('.',',')+' з '+(r.max||100)+' ('+(typeof r.percent==='number'?r.percent:Math.round(r.score))+' %)'+(hasL?' · Виходів: '+r.leaves+', поза вікном: '+mmss(r.awaySec||0)+lvd:'')+'</div>'+
       (r.qtext||[]).map(function(q,i){
         const m=(r.tasks||[])[i],w=W_[i],bad=!(m>=1);
-        return '<div class="dr '+(bad?'bad':'good')+'"><b class="dn">'+(i+1)+'.</b> '+esc(q)+'<br><span class="da">Відповідь: '+esc((r.answers||[])[i]||'—')+(bad&&(r.answers||[])[i]==='—'?' (без відповіді)':'')+'</span> · Правильно: '+esc((r.correct||[])[i]||'—')+
+        return '<div class="dr '+(bad?'bad':'good')+'"><b class="dn">'+(i+1)+'.</b> '+esc(q)+'<br><span class="da">Відповідь: '+((r.answers||[])[i]?esc((r.answers||[])[i]):'без відповіді')+'</span> · Правильно: '+esc((r.correct||[])[i]||'—')+
           ' · <span class="dm">'+(bad?(m>0?'½ ':'✗ '):'✓ ')+(w!==undefined&&m!==undefined?'балів: '+String(w*m).replace('.',',')+' з '+w:'')+'</span></div>';
       }).join('')+'</td></tr>';
   });
@@ -592,9 +622,9 @@ $('#jtab').addEventListener('click',function(e){const n=e.target.closest('[data-
 $('#jref').onclick=refreshJ;
 $('#jcsv').onclick=function(){
   const mx=Math.max.apply(null,[0].concat(JROWS.map(r=>(r.tasks||[]).length)));
-  const hd=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал (з 100)','Відсоток'];for(let i=1;i<=mx;i++)hd.push('завд. '+i);
+  const hd=['Прізвище та ім’я','Дата','Час (хв:с)','Виходів з вікна','Поза вікном (хв:с)','Бал (з 100)','Відсоток','Статус'];for(let i=1;i<=mx;i++)hd.push('завд. '+i);
   const lines=[hd.join(';')].concat(JROWS.map(function(r){
-    const row=[r.name||'',r.date?new Date(r.date).toLocaleString('uk-UA'):'',typeof r.durationSec==='number'?mmss(r.durationSec):'',typeof r.leaves==='number'?r.leaves:'',typeof r.awaySec==='number'?mmss(r.awaySec):'',String(r.score).replace('.',','),typeof r.percent==='number'?r.percent:''];
+    const row=[r.name||'',r.date?new Date(r.date).toLocaleString('uk-UA'):'',typeof r.durationSec==='number'?mmss(r.durationSec):'',typeof r.leaves==='number'?r.leaves:'',typeof r.awaySec==='number'?mmss(r.awaySec):'',String(r.score).replace('.',','),typeof r.percent==='number'?r.percent:'',r.finished===0?'не завершено':'завершено'];
     for(let i=0;i<mx;i++){const v=(r.tasks||[])[i];row.push(v===undefined?'':v>=1?'+':(v>0?'0,5':'-'))}
     return row.join(';');
   }));
@@ -609,7 +639,7 @@ $('#jclr').onclick=function(){
 };
 
 /* ================= Старт (і самоперевірка для розробника) ================= */
-if(/[?&]selftest/.test(location.search))window.__ST={buildTasks:buildTasks,ORDER:ORDER,stepRight:stepRight,plain:plain,get S(){return S}};
+if(/[?&]selftest/.test(location.search))window.__ST={endAt:endAt,warnAt:warnAt,buildTasks:buildTasks,ORDER:ORDER,stepRight:stepRight,plain:plain,get S(){return S}};
 render();
 })();
 </script>
