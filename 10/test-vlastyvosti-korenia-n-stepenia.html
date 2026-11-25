@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Тест. Властивості кореня n-го степеня (10 клас)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<style>
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --brandMid:#C4A1E8; --ink:#2b1a3d; --ok:#16a34a; --okBg:#dcfce7; --bad:#dc2626; --badBg:#fee2e2; --half:#f59e0b; --halfBg:#fef3c7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#F2E6FF 0%,#FAF5FF 45%,#E9D5FF 100%);overflow:hidden;font-size:17px}
+#app{height:100dvh;display:flex;flex-direction:column;max-width:900px;margin:0 auto;padding:8px 12px 0}
+h1{font-size:clamp(18px,3.4vw,26px);margin:4px 0 6px;padding:0 34px;color:var(--brand);text-align:center;font-weight:800;line-height:1.2}
+.foot{font-size:10px;color:#7c6a8f;text-align:center;padding:4px 0 6px;flex:none}
+.foot b{color:#4a3560}
+.card{background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(107,33,168,.12);padding:14px 18px;border:1px solid #e9d5ff}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding-bottom:6px}
+.cells{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:2px 0 8px}
+.cell{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--brandMid);background:#fff;font:700 12px/1 'Nunito',sans-serif;
+  color:var(--brand);display:flex;align-items:center;justify-content:center;padding:0}
+.cell.cur{background:var(--brand);color:#fff;border-color:var(--brand)}
+.cell.ok{background:var(--okBg);border-color:var(--ok);color:#166534}
+.cell.half{background:var(--halfBg);border-color:var(--half);color:#92400e}
+.cell.no{background:var(--badBg);border-color:var(--bad);color:#991b1b}
+.cell.sel{outline:3px solid var(--brand)}
+button.cell{cursor:pointer}
+.qhead{font-weight:800;color:var(--brand);font-size:15px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.badge{font-size:12px;background:var(--brandLight);color:var(--brand);border-radius:99px;padding:2px 10px;font-weight:700}
+.q{font-size:clamp(17px,2.6vw,21px);line-height:1.5;font-weight:600;margin:4px 0 4px}
+.expr{text-align:center;font-size:clamp(19px,5.2vw,27px);margin:6px 0 10px;overflow-x:auto;overflow-y:hidden;padding:4px 0}
+.numwrap{margin-top:2px}
+.numlab{font-size:14px;color:#6b5a80;margin-bottom:4px}
+.numin{width:100%;height:50px;border-radius:12px;border:2px solid var(--brandMid);font:800 26px 'Nunito',sans-serif;text-align:center;color:var(--ink);background:#fff;outline:none}
+.numin:focus{border-color:var(--brand)}
+.numin:disabled{background:#f6f0fc;color:#555}
+.frac{display:flex;align-items:center;justify-content:center;gap:10px}
+.frac .col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.frac .line{width:100%;height:3px;background:var(--ink);border-radius:2px}
+.frac .fl{font-size:12px;color:#6b5a80;text-align:center}
+.frac input{width:84px;height:46px;border-radius:12px;border:2px solid var(--brandMid);font:800 24px 'Nunito',sans-serif;text-align:center;color:var(--ink);background:#fff;outline:none}
+.frac input.foc{border-color:var(--brand);box-shadow:0 0 0 3px #e9d5ff}
+.frac input:disabled{background:#f6f0fc}
+.frac input.whole{width:68px}
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.kb button{height:44px;border-radius:10px;border:2px solid #d8c3f0;background:#faf5ff;font:800 21px 'Nunito',sans-serif;color:var(--brand);cursor:pointer;touch-action:manipulation}
+.kb button:active{background:var(--brandLight)}
+.kb .w2{grid-column:span 2}
+.nav{flex:none;display:flex;gap:10px;justify-content:flex-end;padding:8px 0}
+.btn{min-height:46px;padding:8px 24px;border-radius:99px;border:2px solid var(--brand);background:var(--brand);color:#fff;font:800 17px 'Nunito',sans-serif;cursor:pointer;touch-action:manipulation}
+.btn.light{background:#fff;color:var(--brand)}
+.btn[disabled]{opacity:.4;cursor:default}
+.field{display:block;margin-bottom:12px}
+.field span{display:block;font-weight:700;margin-bottom:4px}
+.field input{width:100%;height:50px;border-radius:12px;border:2px solid var(--brandMid);padding:0 14px;font:600 19px 'Nunito',sans-serif;outline:none}
+.field input.err{border-color:var(--bad);background:#fff5f5}
+.hint{color:var(--bad);font-weight:700;font-size:14px;min-height:20px;margin:-4px 0 6px}
+.hint2{font-size:13px;color:#6b5a80;text-align:center;margin-top:6px}
+.center{text-align:center}
+.big{font-size:clamp(34px,9vw,56px);font-weight:800;color:var(--brand);line-height:1.1}
+.shot{border:2px dashed var(--brand);border-radius:14px;padding:10px 12px;margin:14px 0;background:var(--brandLight);font-weight:700}
+.exp{margin-top:12px;padding:10px 12px;background:#f8f3ff;border-left:4px solid var(--brand);border-radius:8px;font-size:16px;line-height:1.5}
+.ans{margin:6px 0;font-size:16px}
+.ans b.ok{color:var(--ok)} .ans b.no{color:var(--bad)}
+.fbk{margin-top:10px;padding:10px 12px;border-radius:12px;font-weight:800;font-size:18px}
+.fbk.ok{background:var(--okBg);color:#166534}
+.fbk.no{background:var(--badBg);color:#991b1b}
+.fbk.half{background:var(--halfBg);color:#92400e}
+.warn{background:#fff7ed;border:1.5px solid var(--half);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700;text-align:left}
+#keyBtn{position:fixed;top:6px;right:8px;z-index:50;border:none;background:rgba(255,255,255,.55);opacity:.45;border-radius:10px;font-size:15px;width:30px;height:30px;cursor:pointer;padding:0}
+#keyBtn:hover{opacity:1}
+#jr,#nt{position:fixed;inset:0;background:rgba(43,26,61,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:10px}
+#jr.on,#nt.on{display:flex}
+#nt{z-index:120}
+#nt .nb{background:#fff;border-radius:16px;max-width:460px;width:100%;padding:18px;text-align:left;font-weight:700;line-height:1.5}
+#nt .red{color:var(--bad);margin-top:8px}
+#jr .box{background:#fff;border-radius:16px;max-width:1100px;width:100%;max-height:94dvh;display:flex;flex-direction:column;padding:14px 16px}
+#jr .tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+#jr .tools .btn{min-height:38px;font-size:14px;padding:4px 14px}
+#jr .tw{overflow:auto;flex:1;min-height:0}
+#jr table{border-collapse:collapse;font-size:13px;width:100%}
+#jr th,#jr td{border:1px solid #e2d3f5;padding:4px 6px;text-align:center;white-space:nowrap}
+#jr th{background:var(--brandLight);position:sticky;top:0}
+#jr td.nm{text-align:left;cursor:pointer;color:var(--brand);font-weight:700}
+#jr td.o{color:var(--ok);font-weight:800} #jr td.x{color:var(--bad);font-weight:800} #jr td.h{color:var(--half);font-weight:800}
+#jr td.red{color:var(--bad);font-weight:800}
+#jr .det td{white-space:normal;text-align:left;background:#faf5ff;font-size:12px}
+#jr .det .bad{background:#fee2e2;border-left:4px solid var(--bad);padding:3px 6px;margin:2px 0;color:#991b1b}
+#jr .det .good{padding:3px 6px;margin:2px 0}
+.katex{font-size:1.08em}
+@media (max-width:520px){ body{font-size:16px} .card{padding:10px 12px} #app{padding:6px 8px 0} .frac input{width:72px} }
+@media (max-height:700px){ .kb button{height:38px;font-size:19px} .numin{height:44px} .frac input{height:40px} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<button id="keyBtn" type="button" title="">🔑</button>
+<div id="jr"><div class="box" id="jrBox"></div></div>
+<div id="nt"><div class="nb" id="ntBox"></div></div>
+
+<script>
+(function(){ "use strict";
+
+/*GEN-START*/
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function mkR(seed){
+  const f=mulberry32(seed>>>0);
+  const R={f,
+    int:(a,b)=>a+Math.floor(f()*(b-a+1)),
+    pick:arr=>arr[Math.floor(f()*arr.length)],
+    shuffle:arr=>{const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(f()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;},
+    sample:(arr,k)=>R.shuffle(arr).slice(0,k)};
+  return R;
+}
+const rt=(n,a)=>'\\sqrt['+n+']{'+a+'}';
+const pw=(b,e)=>e===1?String(b):b+'^{'+e+'}';
+const dfr=(a,b)=>'\\dfrac{'+a+'}{'+b+'}';
+const dec=s=>String(s).replace('.','{,}');
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const ipow=(b,e)=>Math.pow(b,e);
+const root=(x,n)=>Math.pow(x,1/n);
+function isPow(x,n){const r=Math.round(Math.pow(x,1/n));for(let c=Math.max(1,r-1);c<=r+1;c++)if(Math.pow(c,n)===x)return true;return false;}
+function divisors(x){const d=[];for(let i=1;i<=x;i++)if(x%i===0)d.push(i);return d;}
+const EXQ='Знайдіть значення виразу.';
+function T(kind,ex,ans,ansTxt,chk,exp,extra){return Object.assign({type:'num',kind,q:EXQ,ex,ans,ansTxt:String(ansTxt),chk,lab:'Введіть відповідь числом',exp},extra||{});}
+const cm=x=>String(x).replace('.',',');
+
+function g1(R){ // 5.1 (1): добуток коренів
+  const n=R.pick([3,3,4,5]); const rg=n===3?[2,9]:n===4?[2,5]:[2,3];
+  const p=R.int(rg[0],rg[1]); let q=R.int(rg[0],rg[1]); while(q===p)q=R.int(rg[0],rg[1]);
+  const A=ipow(p,n),B=ipow(q,n);
+  const ex=R.f()<0.5?rt(n,A)+'\\cdot'+rt(n,B):rt(n,A+'\\cdot '+B);
+  return T('Корінь із добутку',ex,p*q,p*q,root(A,n)*root(B,n),
+    '$'+rt(n,A)+'='+p+'$, $'+rt(n,B)+'='+q+'$, тому добуток дорівнює $'+p+'\\cdot '+q+'='+(p*q)+'$.');
+}
+function g2(R){ // 5.1 (2): корінь зі степенів
+  const n=R.pick([3,4,5]); const pq=R.sample([2,3,5],2),p=pq[0],q=pq[1],k1=R.int(1,2),k2=R.int(1,2);
+  const ans=ipow(p,k1)*ipow(q,k2);
+  return T('Корінь із степеня',rt(n,pw(p,n*k1)+'\\cdot '+pw(q,n*k2)),ans,ans,root(ipow(p,n*k1),n)*root(ipow(q,n*k2),n),
+    '$'+rt(n,pw(p,n*k1))+'='+pw(p,k1)+'$ і $'+rt(n,pw(q,n*k2))+'='+pw(q,k2)+'$, тому значення дорівнює $'+ipow(p,k1)+'\\cdot '+ipow(q,k2)+'='+ans+'$.');
+}
+function g3(R){ // 5.1 (2): однакова основа
+  let n,p,k,a,b,t=0;
+  do{n=R.pick([3,4,5]);p=R.pick([2,3]);k=R.int(2,3);a=R.int(1,n*k-1);b=n*k-a;t++;}while((a%n===0||b%n===0)&&t<200);
+  const ans=ipow(p,k);
+  return T('Корінь із степеня',rt(n,pw(p,a))+'\\cdot'+rt(n,pw(p,b)),ans,ans,root(ipow(p,a),n)*root(ipow(p,b),n),
+    'Корінь із добутку: $'+rt(n,pw(p,a))+'\\cdot'+rt(n,pw(p,b))+'='+rt(n,pw(p,a+b))+'='+rt(n,pw(p,n*k))+'='+ans+'$.');
+}
+function g4(R){ // 5.1 (3): дріб зі степенів
+  const n=R.pick([3,4,5]); const pq=R.sample([2,3,5],2),p=pq[0],q=pq[1];
+  const k1=R.int(1,2),k2=R.int(1,2),c=R.int(1,4),d=R.int(1,4),a=c+n*k1,b=d+n*k2;
+  const ans=ipow(p,k1)*ipow(q,k2);
+  const ex=dfr(rt(n,pw(p,a))+'\\cdot'+rt(n,pw(q,b)),rt(n,pw(p,c))+'\\cdot'+rt(n,pw(q,d)));
+  const chk=root(ipow(p,a),n)*root(ipow(q,b),n)/(root(ipow(p,c),n)*root(ipow(q,d),n));
+  return T('Корінь із частки',ex,ans,ans,chk,
+    'Усе під одним коренем: $'+rt(n,dfr(pw(p,a)+'\\cdot '+pw(q,b),pw(p,c)+'\\cdot '+pw(q,d)))+'='+rt(n,pw(p,n*k1)+'\\cdot '+pw(q,n*k2))+'='+ipow(p,k1)+'\\cdot '+ipow(q,k2)+'='+ans+'$.');
+}
+function g5(R){ // 5.3 (1)
+  const n=R.pick([3,4,4,5]); const c=R.int(2,n===3?6:n===4?4:3); const N=ipow(c,n);
+  const ds=divisors(N).filter(d=>d>1&&d<N&&!isPow(d,n)&&!isPow(N/d,n)&&d!==N/d);
+  let a=R.pick(ds),b=N/a; if(R.f()<0.5){const x=a;a=b;b=x;}
+  return T('Добуток коренів',rt(n,a)+'\\cdot'+rt(n,b),c,c,root(a,n)*root(b,n),
+    '$'+rt(n,a)+'\\cdot'+rt(n,b)+'='+rt(n,a+'\\cdot '+b)+'='+rt(n,N)+'='+c+'$, бо $'+pw(c,n)+'='+N+'$.');
+}
+function g6(R){ // 5.3 (2): десяткові
+  const n=R.pick([3,3,4]); const d=R.int(2,9); const D=ipow(d,n);
+  let ds=divisors(D).filter(f=>f>1&&f<D&&f%10!==0&&!isPow(f,n)&&D/f<=60);
+  if(!ds.length)ds=divisors(D).filter(f=>f>1&&f<D&&f%10!==0&&!isPow(f,n));
+  const f=R.pick(ds),b=D/f; const aStr='0,'+String(f).padStart(n,'0'); const a=f/ipow(10,n);
+  const ans=d/10;
+  return T('Десяткові дроби',rt(n,dec(aStr))+'\\cdot'+rt(n,b),ans,'0,'+d,root(a,n)*root(b,n),
+    '$'+rt(n,dec(aStr))+'\\cdot'+rt(n,b)+'='+rt(n,dec(aStr)+'\\cdot '+b)+'='+rt(n,dec(cm(ipow(d,n)/ipow(10,n))))+'='+dec('0,'+d)+'$, бо $('+dec('0,'+d)+')^{'+n+'}='+dec(cm(ipow(d,n)/ipow(10,n)))+'$.');
+}
+function g7(R){ // 5.3 (3): частка -> дріб
+  const n=R.pick([3,4,5]); const qm=n===3?5:3; let p,q,t=0;
+  do{q=R.int(2,qm);p=R.int(1,Math.min(3,q-1));t++;}while(gcd(p,q)!==1&&t<200);
+  const m=R.pick([2,3,4,5,6,7]),a=ipow(p,n)*m,b=ipow(q,n)*m;
+  return {type:'frac',kind:'Частка коренів',q:EXQ,ex:dfr(rt(n,a),rt(n,b)),ans:p/q,fp:p,fq:q,ansTxt:p+'/'+q,chk:root(a,n)/root(b,n),
+    lab:'Відповідь — скорочений дріб',exp:'$'+dfr(rt(n,a),rt(n,b))+'='+rt(n,dfr(a,b))+'='+rt(n,dfr(pw(p,n),pw(q,n)))+'='+dfr(p,q)+'$.'};
+}
+function g8(R){ // 5.3 (4): дріб із добутком
+  const n=R.pick([3,3,4]); const r=R.int(2,n===3?5:3); let c,ds,P,t=0;
+  do{c=R.pick([2,3,4,5,6]);P=ipow(r,n)*c;ds=divisors(P).filter(d=>d>=2&&P/d>=2&&!isPow(d,n)&&!isPow(P/d,n));t++;}while((isPow(c,n)||!ds.length)&&t<200);
+  const a=R.pick(ds),b=P/a;
+  return T('Добуток і частка',dfr(rt(n,a)+'\\cdot'+rt(n,b),rt(n,c)),r,r,root(a,n)*root(b,n)/root(c,n),
+    'Усе під одним коренем: $'+rt(n,dfr(a+'\\cdot '+b,c))+'='+rt(n,ipow(r,n))+'='+r+'$.');
+}
+function g9(R){ // 5.3 (5): сума й різниця під кубічним коренем
+  let c,m,k,t=0;
+  do{c=R.int(2,5);m=R.int(3,20);k=m*m-ipow(c,3);t++;}while((k<=0||k>300||Number.isInteger(Math.sqrt(k)))&&t<500);
+  const s='\\sqrt{'+k+'}';
+  return T('Спряжені вирази',rt(3,m+'+'+s)+'\\cdot'+rt(3,m+'-'+s),c,c,root(m+Math.sqrt(k),3)*root(m-Math.sqrt(k),3),
+    '$'+rt(3,'('+m+'+'+s+')('+m+'-'+s+')')+'='+rt(3,pw(m,2)+'-('+s+')^{2}')+'='+rt(3,m*m-k)+'='+c+'$.');
+}
+function g10(R){ // 5.3 (5): корінь 4-го степеня
+  let c,b,a,t=0;
+  do{c=R.int(2,3);b=R.int(1,8);a=ipow(c,4)+b*b;t++;}while(Number.isInteger(Math.sqrt(a))&&t<500);
+  const s='\\sqrt{'+a+'}';
+  return T('Спряжені вирази',rt(4,s+'+'+b)+'\\cdot'+rt(4,s+'-'+b),c,c,root(Math.sqrt(a)+b,4)*root(Math.sqrt(a)-b,4),
+    '$'+rt(4,'('+s+'+'+b+')('+s+'-'+b+')')+'='+rt(4,'('+s+')^{2}-'+pw(b,2))+'='+rt(4,a-b*b)+'='+c+'$.');
+}
+function g11(R){ // 5.3 (6): три корені
+  const n=R.pick([3,4]); const c=n===3?R.pick([4,6]):R.int(2,3); const N=ipow(c,n); const tr=[];
+  for(let a=2;a<=N;a++){if(N%a||isPow(a,n))continue;for(let b=a;b<=N/a;b++){if((N/a)%b||isPow(b,n))continue;const d=N/a/b;if(d>=b&&d>=2&&!isPow(d,n)&&!(a===b&&b===d))tr.push([a,b,d]);}}
+  const f=R.shuffle(R.pick(tr));
+  return T('Добуток коренів',rt(n,f[0])+'\\cdot'+rt(n,f[1])+'\\cdot'+rt(n,f[2]),c,c,root(f[0],n)*root(f[1],n)*root(f[2],n),
+    '$'+rt(n,f[0]+'\\cdot '+f[1]+'\\cdot '+f[2])+'='+rt(n,N)+'='+c+'$, бо $'+pw(c,n)+'='+N+'$.');
+}
+function g12(R){ // частка -> десятковий дріб
+  const n=R.pick([3,3,4]); let u,v,t=0;
+  do{v=n===3?R.pick([2,5]):2;u=R.int(v+1,v===2?9:11);t++;}while((gcd(u,v)!==1||(v===5&&u%5===0))&&t<200);
+  const m=R.pick([2,3,4,5,6]),a=ipow(u,n)*m,b=ipow(v,n)*m,r=u/v;
+  return T('Частка коренів',dfr(rt(n,a),rt(n,b)),r,cm(r),root(a,n)/root(b,n),
+    '$'+dfr(rt(n,a),rt(n,b))+'='+rt(n,dfr(a,b))+'='+rt(n,dfr(pw(u,n),pw(v,n)))+'='+dfr(u,v)+'='+dec(cm(r))+'$.',{lab:'Введіть відповідь десятковим дробом'});
+}
+const GENS=[g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12];
+const WEIGHTS=[8,8,8,8,8,8,8,8,9,9,9,9];
+function genTest(seed){
+  const R=mkR(seed);
+  return GENS.map((g,i)=>{const t=g(R);t.w=WEIGHTS[i];t.id=i;return t;});
+}
+function parseNum(s){
+  if(s==null)return null; s=String(s).replace(/\s/g,'').replace(/[−–—]/g,'-').replace(',','.');
+  let m=/^(-?\d+(?:\.\d+)?)\/(\d+)$/.exec(s); if(m){const d=parseFloat(m[2]);return d?parseFloat(m[1])/d:null;}
+  if(!/^-?\d+(\.\d+)?$/.test(s))return null; return parseFloat(s);
+}
+function mark(t,a){ // 1 / 0.5 / 0
+  if(t.type==='num'){const v=parseNum(a);return v!==null&&Math.abs(v-t.ans)<1e-9?1:0;}
+  if(t.type==='frac'){
+    if(!a)return 0; const w=a.w===''||a.w==null?0:parseInt(a.w,10),n=parseInt(a.n,10),d=parseInt(a.d,10);
+    if(!isFinite(w)||!isFinite(n)||!isFinite(d)||d===0)return 0;
+    if(Math.abs(w+n/d-t.ans)>1e-9)return 0;
+    return (w===0&&n===t.fp&&d===t.fq)?1:0.5;
+  }
+  return 0;
+}
+function isAnswered(t,a){
+  if(t.type==='num')return a!=null&&String(a).trim()!=='';
+  return !!a&&String(a.n||'').trim()!==''&&String(a.d||'').trim()!=='';
+}
+/*GEN-END*/
+
+
+/* ========================= ДОПОМІЖНЕ ========================= */
+const TEST_NAME='Властивості кореня n-го степеня (10 клас)';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function M(s){
+  return String(s).replace(/\$([^$]+)\$/g,function(m,t){
+    try{ if(window.katex) return window.katex.renderToString(t,{throwOnError:false}); }catch(e){}
+    return esc(t);
+  });
+}
+function EX(t){ try{ if(window.katex) return window.katex.renderToString(t,{throwOnError:false,displayMode:false}); }catch(e){} return esc(t); }
+function plain(s){
+  s=String(s).replace(/\$([^$]+)\$/g,'$1').replace(/\{,\}/g,',');
+  let p;
+  do{ p=s;
+    s=s.replace(/\\sqrt\[(\d+)\]\{([^{}]*)\}/g,'$1√($2)').replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
+       .replace(/\\dfrac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)').replace(/\^\{([^{}]*)\}/g,'^$1').replace(/\)\^\{/g,')^{');
+  }while(s!==p);
+  return s.replace(/\\cdot/g,'·').replace(/\\left|\\right/g,'').replace(/[{}\\]/g,'');
+}
+function fmtDur(s){s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+const PRAISE=['Молодець! Правильно!','Чудово, так і далі!','Відмінно, правильно!','Супер, ви на правильному шляху!'];
+function plural(n,a,b,c){const m=n%100,d=n%10;if(m>=11&&m<=14)return c;if(d===1)return a;if(d>=2&&d<=4)return b;return c;}
+
+/* ========================= FIREBASE ========================= */
+const FIREBASE_CONFIG = { apiKey: "AIzaSyCEykTXlA8Um3MdHbA3dZEZGxuWzFreohU", authDomain: "math-5-892a5.firebaseapp.com", projectId: "math-5-892a5", storageBucket: "math-5-892a5.firebasestorage.app", messagingSenderId: "163114803328", appId: "1:163114803328:web:caf86c4e8b8c4b3b630665", measurementId: "G-E06VKZ2GP5" };
+const APP_ID='default-app-id', COLLECTION='results_root_properties_10', TEACHER_EMAIL='vchytel@matemka.invalid', FBV='10.12.2';
+let fbPromise=null;
+function fb(){ if(!fbPromise){ fbPromise=(async()=>{ const [appM,authM,fs]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-firestore.js`)]); const app=appM.initializeApp(FIREBASE_CONFIG); const auth=authM.getAuth(app); await authM.signInAnonymously(auth); return {db:fs.getFirestore(app),fs,auth,authM}; })(); fbPromise.catch(()=>{fbPromise=null}); } return fbPromise; }
+const coll=(db,fs)=>fs.collection(db,'artifacts',APP_ID,'public','data',COLLECTION);
+async function saveResult(rec){ try{rec=JSON.parse(JSON.stringify(rec));}catch(e){} try{ let q=JSON.parse(localStorage.getItem('pending_'+COLLECTION)||'[]'); q=q.filter(x=>x&&x.id!==rec.id); q.push(rec); localStorage.setItem('pending_'+COLLECTION,JSON.stringify(q)); }catch(e){} await flushPending(); }
+let _flushing=false;
+async function flushPending(){ if(_flushing)return; _flushing=true; try{ const key='pending_'+COLLECTION, tried={}; for(;;){ let q; try{q=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){q=[]} const item=q.find(x=>x&&!tried[x.id]); if(!item)break; tried[item.id]=1; let ok=false; for(let a=0;a<4&&!ok;a++){ try{ const {db,fs}=await fb(); await fs.setDoc(fs.doc(coll(db,fs),item.id),item); ok=true; }catch(e){ console.warn('Save failed',e); await new Promise(r=>setTimeout(r,1500*(a+1))); } } if(ok){ try{ const cur=JSON.parse(localStorage.getItem(key)||'[]').filter(x=>x&&x.id!==item.id); localStorage.setItem(key,JSON.stringify(cur)); }catch(e){} } } } finally { _flushing=false; } }
+window.addEventListener('online',()=>{flushPending()}); setTimeout(()=>{flushPending()},2000);
+async function teacherLogin(pw){ try{ const {auth,authM}=await fb(); await authM.signInWithEmailAndPassword(auth,TEACHER_EMAIL,pw); return true; }catch(e){ return false; } }
+async function teacherLogout(){ try{ const {auth,authM}=await fb(); await authM.signOut(auth); await authM.signInAnonymously(auth); }catch(e){} }
+async function loadResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); const out=[]; snap.forEach(d=>out.push(d.data())); return out.sort((a,b)=>(b.ts||0)-(a.ts||0)); }
+async function clearResults(){ const {db,fs}=await fb(); const snap=await fs.getDocs(coll(db,fs)); await Promise.all(snap.docs.map(d=>fs.deleteDoc(d.ref))); }
+fb().catch(()=>{});
+
+/* ========================= СТАН ========================= */
+const app=document.getElementById('app');
+const NQ=GENS.length, WARN_AT=Math.floor(NQ/2)+1, END_AT=Math.floor(NQ/2)+2;
+const S={screen:'start',seed:0,tasks:[],i:0,ans:[],locked:[],marks:[],surname:'',first:'',t0:0,leaves:0,leaveTasks:[],leaveSecs:[],awaySec:0,awayAt:0,saved:false,res:null,ri:0,badName:false,focus:'n',ended:false};
+const touch=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+
+function newSeed(){
+  const q=new URLSearchParams(location.search).get('v');
+  if(q&&!S._usedQ&&/^\d+$/.test(q)){S._usedQ=true;return parseInt(q,10);}
+  return (Date.now()^Math.floor(Math.random()*4294967296))>>>0;
+}
+function blank(t){return t.type==='frac'?{w:'',n:'',d:''}:'';}
+function begin(){
+  S.seed=newSeed(); S.tasks=genTest(S.seed); S.ans=S.tasks.map(blank); S.locked=S.tasks.map(()=>false); S.marks=S.tasks.map(()=>0);
+  S.i=0; S.t0=Date.now(); S.leaves=0; S.leaveTasks=[]; S.leaveSecs=[]; S.awaySec=0; S.awayAt=0; S.saved=false; S.res=null; S.ended=false; S.focus='n'; S.screen='task'; render();
+}
+/* виходи з вікна */
+function leave(){ if(S.screen!=='task'||S.saved||S.awayAt)return; S.awayAt=Date.now(); S.leaves++; S.leaveTasks.push(S.i+1); }
+function back(){
+  if(!S.awayAt)return; const sec=Math.round((Date.now()-S.awayAt)/1000); S.awaySec+=sec; S.leaveSecs.push(sec); S.awayAt=0;
+  if(S.saved||S.screen!=='task')return;
+  if(S.leaves>=END_AT){ terminate(); return; }
+  showNotice();
+}
+document.addEventListener('visibilitychange',()=>{document.hidden?leave():back();});
+window.addEventListener('blur',leave);
+window.addEventListener('focus',back);
+const nt=document.getElementById('nt'),ntBox=document.getElementById('ntBox');
+function showNotice(){
+  let h='<div>Під час тестування не можна виходити з екрана тестування, інакше тест може завершитися, і доведеться проходити все спочатку.</div>';
+  if(S.leaves>=WARN_AT)h+='<div class="red">Ви вже виходили з вікна тесту '+S.leaves+' '+plural(S.leaves,'раз','рази','разів')+', це понад половину кількості запитань. Наступного разу тестування завершиться, а тест залишиться незавершеним.</div>';
+  h+='<div class="center" style="margin-top:14px"><button class="btn" id="ntok" type="button">Зрозуміло</button></div>';
+  ntBox.innerHTML=h; nt.classList.add('on'); document.getElementById('ntok').onclick=()=>nt.classList.remove('on');
+}
+function terminate(){
+  nt.classList.remove('on'); S.ended=true; S.saved=true; saveRecord(0,'exits'); S.screen='ended'; render();
+}
+
+/* ========================= ЕКРАНИ ========================= */
+function header(){ return '<h1>Тест. Властивості кореня <i>n</i>-го степеня (10 клас)</h1>'; }
+const FOOT='<div class="foot">Автор розробки <b>Ковтун Тетяна</b></div>';
+
+function cellsHtml(mode){
+  return '<div class="cells">'+S.tasks.map((t,k)=>{
+    let c='cell'; const m=mode==='res'?S.marks[k]:(S.locked[k]?S.marks[k]:null);
+    const done=mode==='res'?(S.locked[k]):S.locked[k];
+    if(done){c+=m===1?' ok':m===0.5?' half':' no';}
+    if(mode==='task'&&k===S.i)c+=' sel'; if(mode==='res'&&k===S.ri)c+=' sel';
+    if(mode==='task'&&k===S.i&&!S.locked[k])c+=' cur';
+    return mode==='res'?'<button type="button" class="'+c+'" data-go="'+k+'">'+(k+1)+'</button>':'<div class="'+c+'">'+(k+1)+'</div>';
+  }).join('')+'</div>';
+}
+function render(){
+  if(S.screen==='start')return renderStart();
+  if(S.screen==='task')return renderTask();
+  if(S.screen==='result')return renderResult();
+  if(S.screen==='errors')return renderErrors();
+  if(S.screen==='ended')return renderEnded();
+}
+function renderStart(){
+  app.innerHTML=header()+'<div class="card"><label class="field"><span>Прізвище</span><input id="sur" autocomplete="off" autofocus value="'+esc(S.surname)+'" class="'+(S.badName&&!S.surname.trim()?'err':'')+'"></label>'+
+    '<label class="field"><span>Ім’я</span><input id="fn" autocomplete="off" value="'+esc(S.first)+'" class="'+(S.badName&&!S.first.trim()?'err':'')+'"></label>'+
+    '<div class="hint" id="nh">'+(S.badName?'Введіть прізвище та ім’я':'')+'</div>'+
+    '<div class="center"><button class="btn" id="go" type="button">Почати</button></div></div><div style="flex:1"></div>'+FOOT;
+  const sur=document.getElementById('sur'),fn=document.getElementById('fn');
+  sur.oninput=()=>{S.surname=sur.value;}; fn.oninput=()=>{S.first=fn.value;};
+  document.getElementById('go').onclick=()=>{
+    S.surname=sur.value; S.first=fn.value;
+    if(!S.surname.trim()||!S.first.trim()){S.badName=true;renderStart();return;}
+    S.badName=false; begin();
+  };
+  sur.addEventListener('keydown',e=>{if(e.key==='Enter')fn.focus();});
+  fn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('go').click();});
+}
+
+function kbHtml(t){
+  const frac=t.type==='frac';
+  const keys=frac?['7','8','9','⌫','4','5','6','→','1','2','3',null]:['7','8','9','⌫','4','5','6','−','1','2','3',','];
+  let h='<div class="kb">'+keys.map(x=>x===null?'<button type="button" disabled style="visibility:hidden"></button>':'<button type="button" data-key="'+x+'">'+x+'</button>').join('');
+  h+='<button type="button" class="w2" data-key="0">0</button><button type="button" class="w2" data-key="C">Стерти все</button></div>';
+  return h;
+}
+function taskBody(t,k){
+  const lock=S.locked[k]?' disabled':'';
+  if(t.type==='frac'){
+    const a=S.ans[k];
+    return '<div class="frac"><div class="col"><input class="whole'+(S.focus==='w'?' foc':'')+'" id="fw" data-f="w" autocomplete="off" '+(touch?'inputmode="none" ':'inputmode="numeric" ')+'value="'+esc(a.w)+'"'+lock+'><div class="fl">ціла частина</div></div>'+
+      '<div class="col"><input class="'+(S.focus==='n'?'foc':'')+'" id="fnn" data-f="n" autocomplete="off" '+(touch?'inputmode="none" ':'inputmode="numeric" ')+'value="'+esc(a.n)+'"'+lock+'><div class="line"></div><input class="'+(S.focus==='d'?'foc':'')+'" id="fd" data-f="d" autocomplete="off" '+(touch?'inputmode="none" ':'inputmode="numeric" ')+'value="'+esc(a.d)+'"'+lock+'><div class="fl">чисельник / знаменник</div></div></div>'+
+      '<div class="hint2">Дріб скоротіть і виділіть цілу частину, якщо вона є (інакше залиште її порожньою).</div>'+(S.locked[k]?'':kbHtml(t));
+  }
+  return '<div class="numwrap"><div class="numlab">'+esc(t.lab)+'</div><input class="numin" id="numin" autocomplete="off" '+(touch?'inputmode="none" ':'inputmode="decimal" ')+'value="'+esc(S.ans[k])+'"'+lock+'>'+(S.locked[k]?'':kbHtml(t))+'</div>';
+}
+function fbkHtml(k){
+  if(!S.locked[k])return '';
+  const m=S.marks[k];
+  if(m===1)return '<div class="fbk ok">'+PRAISE[k%PRAISE.length]+'</div>';
+  if(m===0.5)return '<div class="fbk half">Значення правильне, але дріб не скорочено або не виділено цілу частину: 0,5 бала.</div>';
+  return '<div class="fbk no">Помилка.</div>';
+}
+function renderTask(){
+  const k=S.i,t=S.tasks[k],last=k===NQ-1;
+  app.innerHTML=header()+cellsHtml('task')+
+    '<div class="card scroll" id="sc"><div class="qhead"><span>Завдання '+(k+1)+' з '+NQ+'</span><span class="badge">'+esc(t.kind)+'</span></div><div class="q">'+esc(t.q)+'</div><div class="expr">'+EX(t.ex)+'</div>'+taskBody(t,k)+fbkHtml(k)+'</div>'+
+    '<div class="nav">'+(S.locked[k]?'<button class="btn" id="next" type="button">'+(last?'Результат →':'Далі →')+'</button>':'<button class="btn" id="ok" type="button" '+(isAnswered(t,S.ans[k])?'':'disabled')+'>Відповісти</button>')+'</div>'+FOOT;
+  bindTask();
+}
+function refreshBtn(){ const b=document.getElementById('ok'); if(b)b.disabled=!isAnswered(S.tasks[S.i],S.ans[S.i]); }
+function bindTask(){
+  const k=S.i,t=S.tasks[k];
+  const nx=document.getElementById('next'); if(nx)nx.onclick=()=>{ if(k===NQ-1){S.screen='result';render();}else{S.i++;S.focus='n';render();} };
+  const ok=document.getElementById('ok'); if(ok)ok.onclick=()=>answer();
+  if(S.locked[k])return;
+  if(t.type==='num'){
+    const inp=document.getElementById('numin');
+    inp.addEventListener('input',()=>{S.ans[k]=inp.value;refreshBtn();});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&isAnswered(t,S.ans[k]))answer();});
+    app.querySelectorAll('[data-key]').forEach(b=>{
+      b.addEventListener('pointerdown',e=>e.preventDefault());
+      b.addEventListener('click',()=>{
+        let v=String(S.ans[k]||''); const key=b.dataset.key;
+        if(key==='⌫')v=v.slice(0,-1);
+        else if(key==='C')v='';
+        else if(key==='−'){ if(v.length===0)v='-'; }
+        else if(key===','){ if(!/[,.]/.test(v)&&v!==''&&v!=='-')v+=','; }
+        else if(v.length<10)v+=key;
+        S.ans[k]=v; inp.value=v; inp.dispatchEvent(new Event('input',{bubbles:true})); refreshBtn();
+      });
+    });
+  }else{
+    const ins={w:document.getElementById('fw'),n:document.getElementById('fnn'),d:document.getElementById('fd')};
+    const mark=()=>{Object.keys(ins).forEach(x=>ins[x].classList.toggle('foc',S.focus===x));};
+    Object.keys(ins).forEach(x=>{
+      ins[x].addEventListener('focus',()=>{S.focus=x;mark();});
+      ins[x].addEventListener('click',()=>{S.focus=x;mark();});
+      ins[x].addEventListener('input',()=>{ins[x].value=ins[x].value.replace(/\D/g,'').slice(0,6);S.ans[k][x]=ins[x].value;refreshBtn();});
+    });
+    app.querySelectorAll('[data-key]').forEach(b=>{
+      b.addEventListener('pointerdown',e=>e.preventDefault());
+      b.addEventListener('click',()=>{
+        const key=b.dataset.key;
+        if(key==='→'){S.focus=S.focus==='w'?'n':S.focus==='n'?'d':'w';mark();return;}
+        if(key==='C'){['w','n','d'].forEach(x=>{S.ans[k][x]='';ins[x].value='';});S.focus='n';mark();refreshBtn();return;}
+        const f=S.focus; let v=String(S.ans[k][f]||'');
+        if(key==='⌫')v=v.slice(0,-1); else if(v.length<6)v+=key;
+        S.ans[k][f]=v; ins[f].value=v; ins[f].dispatchEvent(new Event('input',{bubbles:true})); refreshBtn();
+      });
+    });
+  }
+}
+function answer(){
+  const k=S.i,t=S.tasks[k]; if(S.locked[k]||!isAnswered(t,S.ans[k]))return;
+  S.marks[k]=mark(t,S.ans[k]); S.locked[k]=true;
+  if(k===NQ-1){ awayOff(); S.saved=true; saveRecord(1,''); }
+  renderTask();
+}
+function awayOff(){ if(S.awayAt){const sec=Math.round((Date.now()-S.awayAt)/1000);S.awaySec+=sec;S.leaveSecs.push(sec);S.awayAt=0;} }
+
+function ansText(t,a){
+  if(t.type==='frac'){ if(!a||(!a.n&&!a.d))return ''; return (a.w?a.w+' ':'')+(a.n||'?')+'/'+(a.d||'?'); }
+  return a==null?'':String(a);
+}
+function correctText(t){ return t.type==='frac'?t.ansTxt:t.ansTxt; }
+function score(){ return S.marks.reduce((s,m,k)=>s+m*S.tasks[k].w,0); }
+function saveRecord(finished,reason){
+  const now=Date.now(); const sc=score();
+  const done=S.locked.filter(Boolean).length;
+  S.res={score:sc,percent:Math.round(sc)};
+  saveResult({
+    id:now+'_'+Math.random().toString(36).slice(2,8),
+    name:S.surname.trim()+' '+S.first.trim(),surname:S.surname.trim(),firstName:S.first.trim(),
+    ts:now,date:new Date(now).toISOString(),
+    score:sc,max:100,percent:Math.round(sc),tasks:S.marks.map(m=>m),weights:S.tasks.map(t=>t.w),rightCount:S.marks.filter(m=>m===1).length,
+    qtext:S.tasks.map(t=>plain(t.q+' '+t.ex)),
+    answers:S.tasks.map((t,k)=>S.locked[k]?ansText(t,S.ans[k]):''),
+    correct:S.tasks.map(t=>correctText(t)),
+    durationSec:Math.round((now-S.t0)/1000),leaves:S.leaves,awaySec:Math.round(S.awaySec),
+    leaveTasks:S.leaveTasks.slice(),leaveSecs:S.leaveSecs.slice(),
+    finished:finished,answeredCount:done,endReason:reason||'',variant:S.seed,test:TEST_NAME
+  });
+}
+
+function renderEnded(){
+  app.innerHTML=header()+'<div class="card scroll center"><div style="font-weight:800;font-size:20px;margin:10px 0">Тестування завершено, бо ви забагато разів виходили з вікна тесту.</div><div style="margin-bottom:16px">Тест залишився незавершеним, і доведеться пройти його спочатку.</div><button class="btn" id="again" type="button">Пройти ще раз</button></div>'+FOOT;
+  document.getElementById('again').onclick=()=>{begin();};
+}
+function fmtScore(x){return String(x).replace('.',',');}
+function renderResult(){
+  const r=S.res||{score:score(),percent:Math.round(score())};
+  app.innerHTML=header()+'<div class="card scroll center"><div style="font-weight:800;font-size:20px;margin-bottom:6px">'+esc(S.surname.trim()+' '+S.first.trim())+'</div>'+
+    '<div class="big">'+fmtScore(r.score)+' з 100 балів</div><div class="big" style="font-size:clamp(26px,6vw,38px);margin-top:4px">'+r.percent+' %</div>'+
+    (S.leaves>=3?'<div class="warn">💡 Ви забагато виходили з вікна тесту (разів: '+S.leaves+'), тому є підозра, що завдання виконано недоброчесно. Недоброчесне виконання не дає знань, а лише створює ілюзію гарної оцінки.</div>':'')+
+    '<div class="shot">Зробіть скриншот цього екрана та прикріпіть його до Д/з</div>'+
+    '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn light" id="err" type="button">Дивитись помилки</button><button class="btn" id="again" type="button">Пройти ще раз</button></div></div>'+FOOT;
+  document.getElementById('again').onclick=()=>{begin();};
+  document.getElementById('err').onclick=()=>{const f=S.marks.findIndex(m=>m!==1);S.ri=f<0?0:f;S.screen='errors';render();};
+}
+function renderErrors(){
+  const k=S.ri,t=S.tasks[k],m=S.marks[k];
+  const mine=ansText(t,S.ans[k]);
+  const body='<div class="ans">Ваша відповідь: <b class="'+(m===1?'ok':'no')+'">'+(esc(mine)||'—')+'</b></div>'+(m===1?'':'<div class="ans">Правильно: <b class="ok">'+esc(correctText(t))+'</b></div>');
+  app.innerHTML=header()+cellsHtml('res')+'<div class="card scroll"><div class="qhead"><span>Завдання '+(k+1)+' з '+NQ+'</span><span class="badge">'+esc(t.kind)+' · '+t.w+' б.</span></div><div class="q">'+esc(t.q)+'</div><div class="expr">'+EX(t.ex)+'</div>'+body+'<div class="exp">'+M(t.exp)+'</div></div>'+
+    '<div class="nav" style="justify-content:space-between"><button class="btn light" id="toRes" type="button">← До результату</button><div style="display:flex;gap:8px"><button class="btn light" id="p" type="button"'+(k===0?' disabled':'')+'>←</button><button class="btn" id="n" type="button"'+(k===NQ-1?' disabled':'')+'>→</button></div></div>'+FOOT;
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{S.ri=+b.dataset.go;renderErrors();});
+  document.getElementById('toRes').onclick=()=>{S.screen='result';render();};
+  document.getElementById('p').onclick=()=>{if(S.ri>0){S.ri--;renderErrors();}};
+  document.getElementById('n').onclick=()=>{if(S.ri<NQ-1){S.ri++;renderErrors();}};
+}
+
+/* ========================= ЖУРНАЛ ВЧИТЕЛЯ ========================= */
+const jr=document.getElementById('jr'),jrBox=document.getElementById('jrBox');
+let jrRows=[],teacherOk=false,clearArm=false;
+function closeJr(){ jr.classList.remove('on'); if(teacherOk){teacherOk=false;teacherLogout();} }
+document.getElementById('keyBtn').onclick=()=>{jr.classList.add('on');teacherOk?showTable():showLogin('');};
+jr.addEventListener('click',e=>{if(e.target===jr)closeJr();});
+function showLogin(msg){
+  jrBox.innerHTML='<div style="font-weight:800;color:var(--brand);font-size:18px;margin-bottom:8px">Журнал вчителя</div>'+
+    '<label class="field"><span>Пароль</span><input id="jpw" type="password" autocomplete="off"></label>'+
+    '<div class="hint">'+esc(msg)+'</div><div style="display:flex;gap:8px"><button class="btn" id="jin" type="button">Увійти</button><button class="btn light" id="jcl" type="button">Скасувати</button></div>';
+  const pw=document.getElementById('jpw');
+  const go=async()=>{ const ok=await teacherLogin(pw.value); if(ok){teacherOk=true;showTable();}else showLogin('Неправильний пароль'); };
+  document.getElementById('jin').onclick=go; pw.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  document.getElementById('jcl').onclick=closeJr;
+  pw.focus();
+}
+async function showTable(){
+  clearArm=false;
+  jrBox.innerHTML='<div style="font-weight:800;color:var(--brand);font-size:18px">Результати: '+esc(TEST_NAME)+'</div><div class="tw" id="jtw">Завантаження…</div>';
+  try{ jrRows=await loadResults(); }catch(e){ jrBox.innerHTML='<div class="hint">Не вдалося підключитися до бази результатів</div><button class="btn light" id="jcl" type="button">Закрити</button>'; document.getElementById('jcl').onclick=closeJr; return; }
+  drawTable();
+}
+function dtxt(r){const d=new Date(r.ts||r.date||0);return isNaN(d)?'—':d.toLocaleDateString('uk-UA')+' '+d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});}
+function drawTable(){
+  const N=jrRows.reduce((m,r)=>Math.max(m,(r.tasks||[]).length),0)||NQ;
+  let h='<div style="font-weight:800;color:var(--brand);font-size:18px">Результати: '+esc(TEST_NAME)+' ('+jrRows.length+')</div>'+
+    '<div class="tools"><button class="btn light" id="jup" type="button">Оновити</button><button class="btn light" id="jcsv" type="button">Завантажити CSV</button><button class="btn light" id="jclr" type="button">'+(clearArm?'Так, очистити все ('+jrRows.length+')':'Очистити')+'</button><button class="btn light" id="jcl" type="button">Закрити</button></div>';
+  h+='<div class="tw"><table><thead><tr><th>№</th><th>Прізвище та ім’я</th><th>Дата</th><th>Час</th><th>Виходів</th><th>Бал</th>';
+  for(let i=1;i<=N;i++)h+='<th>'+i+'</th>'; h+='</tr></thead><tbody>';
+  jrRows.forEach((r,ri)=>{
+    const fast=r.durationSec!=null&&r.durationSec<120, many=(r.leaves||0)>=3, unf=r.finished===0;
+    const away=r.awaySec!=null?' ('+fmtDur(r.awaySec)+')':'';
+    h+='<tr><td>'+(ri+1)+'</td><td class="nm" data-d="'+ri+'">'+esc(r.name||'—')+'</td><td>'+dtxt(r)+'</td><td class="'+(fast?'red':'')+'" title="'+(fast?'Дуже швидко':'')+'">'+(r.durationSec!=null?fmtDur(r.durationSec):'—')+'</td><td class="'+(many?'red':'')+'" title="Поза вікном: '+(r.awaySec!=null?fmtDur(r.awaySec):'—')+'">'+(r.leaves!=null?r.leaves+away:'—')+'</td>'+
+      '<td>'+(unf?'<span style="color:#dc2626;font-weight:800">не завершено ('+(r.answeredCount||0)+' з '+((r.tasks||[]).length||NQ)+')</span>':'<b>'+(r.score!=null?String(r.score).replace('.',','):'—')+'</b>')+'</td>';
+    for(let i=0;i<N;i++){const m=(r.tasks||[])[i];h+=m===1?'<td class="o">✓</td>':m===0.5?'<td class="h">½</td>':m===0?'<td class="x">✗</td>':'<td>—</td>';}
+    h+='</tr><tr class="det" id="det'+ri+'" style="display:none"><td colspan="'+(6+N)+'">'+detHtml(r)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  jrBox.innerHTML=h;
+  jrBox.querySelectorAll('[data-d]').forEach(c=>c.onclick=()=>{const e=document.getElementById('det'+c.dataset.d);e.style.display=e.style.display==='none'?'table-row':'none';});
+  document.getElementById('jup').onclick=showTable;
+  document.getElementById('jcl').onclick=closeJr;
+  document.getElementById('jcsv').onclick=csv;
+  document.getElementById('jclr').onclick=async()=>{ if(!clearArm){clearArm=true;drawTable();return;} try{await clearResults();}catch(e){ jrBox.insertAdjacentHTML('afterbegin','<div class="hint">Не вдалося очистити записи. Перевірте правила бази Firebase</div>'); return; } showTable(); };
+}
+function detHtml(r){
+  const q=r.qtext||[],a=r.answers||[],c=r.correct||[],t=r.tasks||[],w=r.weights||[];
+  let h='<div><b>Оцінка: '+(r.score!=null?String(r.score).replace('.',','):'—')+' з '+(r.max||100)+' балів ('+(r.percent!=null?r.percent:'—')+' %)</b></div>';
+  if(r.finished===0)h+='<div style="color:#dc2626;font-weight:800">Тест НЕ завершено'+(r.endReason==='exits'?' (забагато виходів з вікна)':'')+': відповіли на '+(r.answeredCount||0)+' з '+t.length+'.</div>';
+  h+='<div>Виходів: '+(r.leaves!=null?r.leaves:'—')+', поза вікном: '+(r.awaySec!=null?fmtDur(r.awaySec)+' ('+r.awaySec+' с)':'—')+', тривалість: '+(r.durationSec!=null?r.durationSec+' с':'—')+'</div>';
+  if((r.leaveTasks||[]).length)h+='<div>Виходи по завданнях: '+r.leaveTasks.map((x,i)=>'№'+x+((r.leaveSecs||[])[i]!=null?' ('+r.leaveSecs[i]+' с)':'')).join(', ')+'</div>';
+  h+=t.map((m,i)=>{
+    const got=(m*(w[i]||0)), wt=w[i]!=null?' [<b>'+String(got).replace('.',',')+' з '+w[i]+' б.</b>]':'';
+    const empty=a[i]===''||a[i]==null;
+    const cls=m===1?'good':'bad';
+    return '<div class="'+cls+'"><b>'+(i+1)+'.</b> '+esc(q[i]||'')+' — відповідь: <b>'+(empty?'без відповіді':esc(a[i]))+'</b>'+(m===1?'':' · правильно: <b>'+esc(c[i]||'')+'</b>')+wt+(m===1?' ✓':m===0.5?' ½':' ✗')+'</div>';
+  }).join('');
+  return h;
+}
+function csv(){
+  const N=jrRows.reduce((m,r)=>Math.max(m,(r.tasks||[]).length),0)||NQ;
+  const head=['№','Прізвище та ім’я','Дата','Час','Виходів','Поза вікном','Бал','Статус'].concat(Array.from({length:N},(_,i)=>'завд. '+(i+1)));
+  const rows=jrRows.map((r,ri)=>{
+    const d=new Date(r.ts||0);
+    return [ri+1,r.name||'',isNaN(d)?'':d.toLocaleString('uk-UA'),r.durationSec!=null?fmtDur(r.durationSec):'',r.leaves!=null?r.leaves:'',r.awaySec!=null?fmtDur(r.awaySec):'',r.score!=null?String(r.score).replace('.',','):'',r.finished===0?'не завершено':'завершено']
+      .concat(Array.from({length:N},(_,i)=>{const m=(r.tasks||[])[i];return m===1?'+':m===0.5?'0,5':m===0?'-':'';}));
+  });
+  const txt='﻿'+[head].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv;charset=utf-8'})); a.download='results_root_properties_10.csv'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+render();
+})();
+</script>
+</body>
+</html>
