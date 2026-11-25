@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Квадратична функція: графік і властивості</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=STIX+Two+Text:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#EBF0FF;--bg2:#F6F8FF;--main:#1D4ED8;--acc:#DBE5FF;--ink:#1e293b;--mut:#64748b;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+  --o1:#0f766e;--o2:#7c3aed;
+  --grid:#c9d4ea;--axis:#334155;
+  --ka:#d6336c;--kb:#1971c2;--kc:#8a5a1c;
+}
+*{box-sizing:border-box}
+html{font-size:clamp(13px,min(2.2vh,1.3vw),26px)}
+body{margin:0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  font-family:'Nunito',system-ui,sans-serif;color:var(--ink);font-size:1.1rem;
+  background:linear-gradient(135deg,var(--bg1),#dfe7ff);background-attachment:fixed}
+button{touch-action:manipulation;font-family:inherit}
+i.v{font-family:'STIX Two Text','Times New Roman',serif;font-style:italic;font-weight:500;font-size:1.06em}
+sub{font-size:.68em}
+#top{display:flex;align-items:center;gap:.8rem;padding:.3rem 1rem;color:var(--main);font-weight:800;font-size:.8rem;flex:none}
+#top .cnt{color:var(--mut);font-weight:700;margin-left:auto}
+#bar{height:.22rem;background:var(--acc);flex:none}#bar b{display:block;height:100%;background:var(--main);width:0;transition:width .3s}
+#stage{flex:1;min-height:0;padding:.5rem 1rem}
+.scr{display:none;height:100%}.scr.on{display:block}
+.card{position:relative;background:#fff;border:1px solid #cdd9f7;border-radius:1rem;box-shadow:0 .2rem 1rem rgba(29,78,216,.12);padding:.8rem 1.3rem;height:100%;overflow:auto}
+.card.ex{border-left:.4rem solid var(--qc,var(--main))}
+.tag{display:inline-block;background:var(--acc);color:var(--main);font-weight:800;border-radius:.5rem;padding:.1rem .6rem;font-size:.8rem;margin-bottom:.4rem}
+.card.ex .tag{background:var(--qc);color:#fff}
+.cond{font-size:1.25rem;margin-bottom:.4rem;font-weight:700;line-height:1.45;color:var(--qc,var(--ink))}
+.cond .fx,.cond i{color:var(--ink)}
+.fx{white-space:nowrap}
+h2{margin:.1rem 0 .5rem;font-size:1.6rem;color:var(--main);font-weight:900}
+.two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1rem;align-items:start}
+.two .figc{position:sticky;top:0}
+@media (max-width:820px){.two{grid-template-columns:1fr}.two .figc{position:static}}
+.def{background:var(--acc);border-left:.35rem solid var(--main);border-radius:.6rem;padding:.55rem .9rem;margin:.4rem 0;font-weight:700;font-size:1.3rem;line-height:1.45}
+.def b{color:var(--main)}
+.def.big{font-size:1.5rem}
+.note{background:var(--warnbg);border:2px solid var(--warnln);color:var(--warntx);border-radius:.7rem;padding:.4rem .8rem;margin:.5rem 0;font-weight:700;font-size:1.1rem}
+.fin{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx);border-radius:.7rem;padding:.35rem .8rem;margin:.2rem 0;font-weight:800;font-size:1.3rem;display:inline-block}
+.ar{font-size:1.15rem;font-weight:900;line-height:1;margin:.1rem 0 .1rem .8rem}
+.ln{font-size:1.35rem;padding:.1rem .3rem;font-weight:600;line-height:1.5}
+.st{animation:fadein .35s ease-out}
+[data-s]:not(.on){display:none!important}
+@keyframes fadein{from{opacity:0;transform:translateY(.4rem)}to{opacity:1;transform:none}}
+.ctl{display:flex;gap:.5rem;align-items:center;margin:.1rem 0 .3rem;padding:.25rem 0;position:sticky;top:0;background:#fff;z-index:3;flex-wrap:wrap}
+.nx{border:0;border-radius:.6rem;background:var(--qc,var(--main));color:#fff;font:inherit;font-weight:800;padding:.3rem 1.1rem;cursor:pointer;min-height:2.2rem}
+.nx:hover{filter:brightness(1.1)}
+.nx.dn{animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(.2rem)}}
+.rs,.nw{border:2px solid var(--qc,var(--main));background:#fff;color:var(--qc,var(--main));border-radius:.6rem;font:inherit;font-weight:800;padding:.15rem .7rem;cursor:pointer;min-height:2.2rem}
+.rs:hover,.nw:hover{background:var(--bg2)}
+.ynl{margin:.4rem 0}.yn{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:.35rem 0;padding:.3rem .8rem;border:2px solid var(--acc);border-radius:.7rem;background:var(--bg2);font-size:1.4rem;font-weight:700}
+.yn .yf{min-width:14rem}.ynb{border:2px solid var(--qc,var(--main));background:#fff;color:var(--qc,var(--main));border-radius:.6rem;font:inherit;font-weight:800;font-size:1.05rem;padding:.2rem .8rem;cursor:pointer;min-height:2.2rem}
+.ynb:hover:not(:disabled){background:var(--bg2)}.ynb:disabled{opacity:.45;cursor:default}
+.yn.ok{border-color:var(--ok);background:var(--okbg)}.yn.ok .ynb{display:none}.yn.bad{border-color:var(--bad);background:var(--badbg)}
+.yw{font-size:1.1rem;font-weight:800;color:var(--oktx)}
+.xl{font-size:1.4rem;font-weight:700;min-width:5.5rem;text-align:right}.xr .msg{min-height:0;margin:0}
+.cond ol{margin:.2rem 0 0;padding-left:1.4rem;font-weight:600;font-size:1.1rem}
+.plus{position:absolute;top:.5rem;right:.7rem;z-index:4;width:2.3rem;height:2.3rem;border-radius:50%;border:2px solid var(--warnln);background:var(--warnbg);color:var(--warntx);font:inherit;font-weight:900;font-size:1.4rem;line-height:1;cursor:pointer}
+.extra{background:var(--warnbg);border:2px solid var(--warnln);border-radius:.8rem;padding:.5rem .9rem;margin:.6rem 0}
+.extra[hidden]{display:none}
+.xq{font-size:1.25rem;font-weight:700;color:var(--warntx);line-height:1.5}
+.xr{display:flex;gap:.6rem;align-items:center;margin:.4rem 0;flex-wrap:wrap}
+.inp{width:6rem;font:inherit;font-weight:800;font-size:1.3rem;padding:.2rem .5rem;border:2px solid var(--main);border-radius:.6rem;text-align:center}
+.inp.ok{border-color:var(--ok);background:var(--okbg)}.inp.bad{border-color:var(--bad);background:var(--badbg)}
+.chk{border:0;border-radius:.6rem;background:var(--main);color:#fff;font:inherit;font-weight:800;padding:.3rem 1rem;cursor:pointer;min-height:2.2rem}
+.plane{width:100%;height:auto;max-height:60vh;display:block}
+.plane.tall{max-height:72vh}
+.plane .gl{stroke:var(--grid);stroke-width:1}
+.plane .ax{stroke:var(--axis);stroke-width:1.8}
+.plane text{font-family:'STIX Two Text','Times New Roman',serif;fill:#334155}
+.plane .pl{font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.al{font-style:italic;font-size:15px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .12em}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em}
+.fr>span:last-child{padding:0 .2em}
+.tbl{display:grid;grid-template-columns:2.4rem repeat(var(--n),minmax(0,1fr));border-top:2px solid #94a3b8;border-left:2px solid #94a3b8;background:#fff;max-width:calc(2.4rem + var(--n)*3.6rem);margin:.2rem 0 .2rem .3rem}
+.tbl .c{border-right:2px solid #94a3b8;border-bottom:2px solid #94a3b8;text-align:center;font-weight:800;font-size:1.15rem;line-height:2rem;height:2rem;white-space:nowrap}
+.tbl .c.h{background:var(--bg2)}
+.kv{font-weight:900}
+.exr{display:grid;grid-template-columns:auto auto 1fr;gap:.2rem 1.2rem;align-items:center;font-size:1.4rem;font-weight:700;margin:.15rem 0;padding:.25rem .8rem;border-radius:.6rem;background:var(--bg2);border:2px solid var(--acc)}
+.exr .ex2{color:var(--mut);font-size:1rem;font-weight:700}
+.sch{font-size:1.3rem;font-weight:700;line-height:1.45;margin:.35rem 0;padding:.35rem .8rem;border-left:.35rem solid var(--main);background:var(--bg2);border-radius:.5rem;display:flex;gap:.7rem;align-items:flex-start}
+.sch>b{color:var(--main);font-size:1.4rem;flex:none}
+.sld{display:grid;grid-template-columns:2rem 1fr 3.4rem;gap:.6rem;align-items:center;font-size:1.3rem;font-weight:800;margin:.25rem 0}
+.sld input{width:100%;height:1.6rem;accent-color:var(--main);cursor:pointer}
+.sld .val{text-align:right}
+.live{font-size:1.7rem;font-weight:800;margin:.4rem 0;padding:.3rem .8rem;border-radius:.6rem;background:var(--bg2);border:2px solid var(--acc);display:inline-block}
+.inf{font-size:1.25rem;font-weight:800;margin:.25rem 0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0;max-width:40rem}
+.opt{display:flex;align-items:center;gap:.6rem;border:2px solid var(--qc,var(--main));background:#fff;color:var(--ink);border-radius:.7rem;font:inherit;font-weight:800;font-size:1.3rem;padding:.3rem .8rem;cursor:pointer;min-height:2.9rem;text-align:left}
+.opt b{color:var(--qc,var(--main));font-size:1rem}
+.opt:hover:not(:disabled){background:var(--bg2)}
+.opt.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.opt.bad{background:var(--badbg);border-color:var(--bad);color:var(--badtx);opacity:.8}
+.opt:disabled{cursor:default}
+.msg{min-height:1.8rem;font-weight:800;font-size:1.15rem;margin:.2rem 0}
+.msg.ok{color:var(--oktx)}.msg.bad{color:var(--badtx)}
+.gb{display:flex;gap:.5rem;flex-wrap:wrap;margin:.3rem 0}
+.gb button{border:2px solid var(--main);background:#fff;color:var(--main);border-radius:.6rem;font:inherit;font-weight:800;font-size:1rem;padding:.25rem 1rem;cursor:pointer;min-height:2.2rem}
+.gb button.pri{background:var(--main);color:#fff}
+.bigq{font-size:1.7rem;font-weight:800;margin:.6rem 0;color:var(--qc,var(--ink))}
+.sk2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:.4rem 0}
+.sk2 .cap{font-weight:800;font-size:1.2rem;text-align:center;color:var(--main)}
+/* знайдіть помилку */
+.er{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .8rem;align-items:center;border:2px solid var(--acc);background:var(--bg2);border-radius:.7rem;padding:.3rem .8rem;margin:.35rem 0}
+.er .eq{font-size:1.3rem;font-weight:700;line-height:1.45}
+.er .yn{display:flex;gap:.4rem}
+.er .yn button{border:2px solid var(--qc,var(--main));background:#fff;color:var(--qc,var(--main));font:inherit;font-weight:800;font-size:1.15rem;border-radius:.6rem;padding:.15rem 1rem;min-width:4rem;min-height:2.4rem;cursor:pointer}
+.er .yn button.sel{background:var(--qc,var(--main));color:#fff}
+.er.ok{border-color:var(--ok);background:var(--okbg)}.er.bad{border-color:var(--bad);background:var(--badbg)}
+.er .fixr{grid-column:1/3}
+.er .fixr .fin{font-size:1.15rem}
+.er[data-done] .yn button{pointer-events:none}
+/* відновіть функцію */
+.abc{font-size:1.6rem;font-weight:800;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin:.5rem 0}
+.abc .inp{width:4.6rem}
+/* навігація */
+#nav{display:flex;align-items:center;gap:.7rem;padding:.35rem 1rem .2rem;flex:none}
+#nav button{border:0;border-radius:.7rem;font:inherit;font-weight:800;padding:.35rem 1.1rem;cursor:pointer;background:var(--main);color:#fff;min-height:2.2rem}
+#nav button:disabled{opacity:.35;cursor:default}
+#nav .ghost{background:#fff;color:var(--main);border:2px solid var(--main)}
+#nav .sp{flex:1}
+#gem{background:none!important;padding:0 .3rem!important;border:0!important}
+#gem svg{width:1.7rem;height:1.7rem;display:block}
+#tmr{position:relative;width:.7rem;height:2.1rem;border-radius:.35rem;background:var(--acc);cursor:pointer;overflow:hidden}
+#tmr b{position:absolute;left:0;right:0;bottom:0;background:var(--ok);transition:height 1s linear,background .5s}
+#tmw{position:relative}#tmw .tip{display:none;position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;border-radius:.4rem;padding:.15rem .5rem;font-size:.75rem;white-space:nowrap;font-weight:700}
+#tmw:hover .tip{display:block}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:2147483000;padding:1rem}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:1rem;padding:1rem 1.4rem;max-width:min(50rem,100%);max-height:90%;overflow:auto;box-shadow:0 1rem 3rem rgba(0,0,0,.3)}
+.mbox h3{margin:.1rem 0 .4rem;color:var(--main)}
+.mbox li{margin:.25rem 0}
+.mbox a{color:var(--main);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:.15rem}
+.xb{float:right;border:0;background:var(--acc);color:var(--main);border-radius:.5rem;font:inherit;font-weight:800;padding:.1rem .6rem;cursor:pointer}
+.start{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.6rem;position:relative}
+.start .n{font-size:1.2rem;font-weight:800;color:var(--mut)}
+.start h1{font-size:2.5rem;margin:0;color:var(--main);font-weight:900;max-width:22em}
+.start .go{border:0;border-radius:.9rem;background:var(--main);color:#fff;font:inherit;font-weight:900;font-size:1.3rem;padding:.5rem 2rem;cursor:pointer;margin-top:.8rem}
+.start .gem2{position:absolute;right:.6rem;top:.4rem;background:none;border:0;cursor:pointer;padding:.2rem}
+.start .gem2 svg{width:2rem;height:2rem;display:block}
+.blk{background:var(--bg2);border:2px solid var(--acc);border-left:.35rem solid var(--main);border-radius:.7rem;padding:.45rem .9rem;margin:.45rem 0;font-size:1.5rem;font-weight:700;line-height:1.45}
+.blk b{color:var(--main)}
+.sent{margin:.55rem 0;font-size:1.35rem;font-weight:700}
+.rv{border:2px solid var(--main);background:#fff;color:var(--main);border-radius:.5rem;font:inherit;font-weight:800;font-size:.9rem;padding:.1rem .7rem;cursor:pointer}
+.rv:hover{background:var(--acc)}
+.sv{display:flex;gap:1.5rem;justify-content:center;margin:.8rem 0}
+.sv button{width:6.5rem;height:6.5rem;border-radius:50%;border:0;color:#fff;font:inherit;font-weight:900;font-size:2rem;cursor:pointer;box-shadow:inset 0 -.3rem 0 rgba(0,0,0,.18)}
+.sv .g{background:#22c55e}.sv .y{background:#f5b800}.sv .r{background:#ef4444}
+.lamp{width:3.5rem;height:3.5rem;border-radius:50%;background:#e2e8f0;margin:.4rem auto}
+.row{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin:.5rem 0}
+.row button{border:0;border-radius:.6rem;background:var(--main);color:#fff;font:inherit;font-weight:800;padding:.3rem 1rem;cursor:pointer;min-height:2.2rem}
+.row button.gh{background:#fff;color:var(--main);border:2px solid var(--main)}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:2147483100}
+</style>
+</head>
+<body>
+<div id="top"><span id="ttl"></span><span class="cnt" id="cnt"></span></div>
+<div id="bar"><b></b></div>
+<div id="stage"></div>
+<div id="nav">
+  <button class="ghost" id="back">← Назад</button>
+  <button id="gem" title="Методична картка"><svg viewBox="0 0 32 32"><polygon points="8,4 24,4 30,12 16,29 2,12" fill="#60a5fa" stroke="#1D4ED8" stroke-width="2" stroke-linejoin="round"/><polygon points="8,4 16,12 24,4" fill="#bfdbfe" stroke="#1D4ED8" stroke-width="1.5" stroke-linejoin="round"/><polyline points="2,12 30,12" stroke="#1D4ED8" stroke-width="1.5"/><polyline points="16,12 16,29" stroke="#1D4ED8" stroke-width="1.2"/></svg></button>
+  <div id="tmw"><div id="tmr"><b></b></div><span class="tip" id="tip"></span></div>
+  <span class="sp"></span>
+  <button id="fwd">Далі →</button>
+</div>
+<footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+<canvas id="cf"></canvas>
+
+<div class="modal" id="gm"><div class="mbox"><button class="xb" data-close>✕</button>
+<h3>Методична картка</h3>
+<p><b>Мета уроку.</b> Закріпити означення квадратичної функції та вигляд її графіка (парабола); навчити знаходити координати вершини параболи, будувати графік за схемою й читати за графіком властивості функції: область значень, проміжки зростання і спадання, проміжки знакосталості, найбільше та найменше значення.</p>
+<p><b>Ключові компетентності.</b> Математична (побудова й читання графіків, обчислення за формулами); уміння вчитися (робота за схемою, самоперевірка за кроками); цифрова (динамічна модель з повзунками); комунікативна (пояснення міркувань).</p>
+<p><b>Перебіг уроку</b> (натисніть, щоб перейти).</p>
+<ul id="gml"></ul>
+<p style="color:#64748b;font-size:.8rem">Таймер кожного етапу перезапускається натисканням на нього.<br>Підручник: Мерзляк А. Г., Якір М. С. Алгебра, 9 клас, п. 11.</p></div></div>
+
+<script>
+/* ============ Допоміжне ============ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function V(s){return String(s).split(/(<[^>]+>|&[a-z]+;)/).map(p=>(p[0]==='<'||p[0]==='&')?p:p.replace(/O([xy])(?![A-Za-z])|[A-Za-z]/g,(c,ax)=>ax?'O<i class="v">'+ax+'</i>':'<i class="v">'+c+'</i>')).join('')}
+const m=V;
+const F=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const MN='−',LT=' &lt; ',GT=' &gt; ';
+const fmt=v=>String(Math.round(v*10000)/10000).replace('.',',').replace('-',MN);
+const par=v=>v<0?'('+fmt(v)+')':fmt(v);
+const X0='x<sub>0</sub>',Y0='y<sub>0</sub>',X1='x<sub>1</sub>',X2='x<sub>2</sub>';
+const col=(c,t)=>`<span class="kv" style="color:${c}">${t}</span>`;
+const ARC=['#e8590c','#7048e8','#d6336c','#1971c2','#2f9e44','#8a5a1c'];
+const L=(...ls)=>ls.map(l=>`<div class="ln">${m(l)}</div>`).join('');
+const LC=(c,...ls)=>ls.map(l=>`<div class="ln" style="color:${c};font-weight:800">${m(l)}</div>`).join('');
+const FIN=t=>`<div class="fin">${m(t)}</div>`;
+const mkSteps=arr=>arr.map((h,i)=>`<div class="st" data-s="${i+1}">${i?`<div class="ar" style="color:${ARC[i%ARC.length]}">↓</div>`:''}${h}</div>`).join('');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const parseNum=s=>{s=String(s).replace(/\s/g,'').replace(/[−–—]/g,'-').replace(',','.');return /^-?\d+(\.\d+)?$/.test(s)?+s:null};
+
+function poly(a,b,c,aS){
+  let s=a===1?'x²':a===-1?MN+'x²':(aS||fmt(a))+'x²';
+  if(b)s+=(b<0?' − ':' + ')+(Math.abs(b)===1?'':fmt(Math.abs(b)))+'x';
+  if(c)s+=(c<0?' − ':' + ')+fmt(Math.abs(c));
+  return s;
+}
+function subst(a,b,c,x,aS){
+  const px=par(x);
+  let s=a===1?px+'²':a===-1?MN+px+'²':(aS||fmt(a))+' · '+px+'²';
+  if(b)s+=(b<0?' − ':' + ')+(Math.abs(b)===1?px:fmt(Math.abs(b))+' · '+px);
+  if(c)s+=(c<0?' − ':' + ')+fmt(Math.abs(c));
+  return s;
+}
+function termsLine(a,b,c,x){
+  const t=[a*x*x,b*x,c];let s=fmt(t[0]),n=1;
+  for(let i=1;i<3;i++)if(t[i]){s+=(t[i]<0?' − ':' + ')+fmt(Math.abs(t[i]));n++}
+  return n>1?s:'';
+}
+function x0Line(a,b,aS){
+  const aP=a<0?'('+(aS||fmt(a))+')':(aS||fmt(a));
+  return `${X0} = ${MN}${F('b','2a')} = ${MN}${F(par(b),'2 · '+aP)} = ${fmt(-b/(2*a))}`;
+}
+function y0Line(a,b,c,x0,aS){
+  const y0=a*x0*x0+b*x0+c,t=termsLine(a,b,c,x0);
+  return `${Y0} = ${subst(a,b,c,x0,aS)}${t?' = '+t:''} = ${fmt(y0)}`;
+}
+function zeroLines(a,b,c,aS){
+  const D=b*b-4*a*c,out=[poly(a,b,c,aS)+' = 0'],ac4=4*a*c;
+  if(a===-1)out.push(poly(1,-b,-c)+' = 0');
+  const dl=`D = ${fmt(b*b)} ${ac4>=0?'−':'+'} ${fmt(Math.abs(ac4))} = ${fmt(D)}`;
+  if(D<0){out.push(dl+LT+'0');out.push('Нулів немає');return out}
+  if(Math.abs(a)!==1)out.push(dl);
+  if(D===0)out.push('x = '+fmt(-b/(2*a)));
+  else{const r=[(-b-Math.sqrt(D))/(2*a),(-b+Math.sqrt(D))/(2*a)].sort((p,q)=>p-q);out.push(`${X1} = ${fmt(r[0])}, ${X2} = ${fmt(r[1])}`)}
+  return out;
+}
+function roots(a,b,c){const D=b*b-4*a*c;if(D<0)return [];if(D===0)return [-b/(2*a)];return [(-b-Math.sqrt(D))/(2*a),(-b+Math.sqrt(D))/(2*a)].sort((p,q)=>p-q)}
+const tbl=(xs,f)=>`<div class="tbl" style="--n:${xs.length}"><div class="c h">${m('x')}</div>${xs.map(x=>`<div class="c h">${fmt(x)}</div>`).join('')}<div class="c h">${m('y')}</div>${xs.map(x=>`<div class="c">${fmt(f(x))}</div>`).join('')}</div>`;
+
+/* ============ Площина ============ */
+let CPID=0;const PLN={};
+function geom(v,w,h,pad){
+  const u=Math.min((w-2*pad)/(v.x1-v.x0),(h-2*pad)/(v.y1-v.y0)),cx=(v.x0+v.x1)/2,cy=(v.y0+v.y1)/2;
+  return {u,w,h,v,P:x=>w/2+(x-cx)*u,Q:y=>h/2-(y-cy)*u,X0:cx-w/(2*u),X1:cx+w/(2*u),Y0:cy-h/(2*u),Y1:cy+h/(2*u)};
+}
+function bg(g,o){
+  o=o||{};const {P,Q,w,h}=g;let s='';
+  if(!o.nogrid){
+    for(let x=Math.ceil(g.X0);x<=g.X1;x++)s+=`<line class="gl" x1="${P(x)}" y1="0" x2="${P(x)}" y2="${h}"/>`;
+    for(let y=Math.ceil(g.Y0);y<=g.Y1;y++)s+=`<line class="gl" x1="0" y1="${Q(y)}" x2="${w}" y2="${Q(y)}"/>`;
+  }
+  const hx=g.Y0<=0&&g.Y1>=0,hy=g.X0<=0&&g.X1>=0;
+  const ah=(x,y,dx,dy)=>`<polygon points="${x},${y} ${x-dx*10-dy*4.5},${y-dy*10+dx*4.5} ${x-dx*10+dy*4.5},${y-dy*10-dx*4.5}" fill="#334155"/>`;
+  let ax='';
+  if(hx)ax+=`<line class="ax" x1="0" y1="${Q(0)}" x2="${w-6}" y2="${Q(0)}"/>`+ah(w-1,Q(0),1,0)+`<text class="al" x="${w-14}" y="${Q(0)-9}">x</text>`;
+  if(hy)ax+=`<line class="ax" x1="${P(0)}" y1="7" x2="${P(0)}" y2="${h}"/>`+ah(P(0),1,0,-1)+`<text class="al" x="${P(0)+9}" y="16">y</text>`;
+  const fs=Math.max(13,Math.min(18,g.u*.5));
+  if(o.lab!=='none'){
+    const st=o.step||(g.u>=22?1:2);
+    for(let x=Math.ceil(g.X0);x<g.X1-.4;x++){if(x===0||x%st)continue;ax+=`<text style="font-size:${fs}px" text-anchor="middle" x="${P(x)}" y="${(hx?Q(0):h)+fs*1.15}">${String(x).replace('-',MN)}</text>`}
+    for(let y=Math.ceil(g.Y0);y<g.Y1-.4;y++){if(y===0||y%st)continue;ax+=`<text style="font-size:${fs}px" text-anchor="end" x="${(hy?P(0):0)-5}" y="${Q(y)+fs*.35}">${String(y).replace('-',MN)}</text>`}
+  }
+  if(hx&&hy&&!o.nozero)ax+=`<text style="font-size:${fs}px" text-anchor="end" x="${P(0)-5}" y="${Q(0)+fs*1.1}">0</text>`;
+  return `<g>${s}</g><g>${ax}</g>`;
+}
+function pathEl(g,f,o){
+  o=o||{};const a=o.from!==undefined?o.from:g.X0,b=o.to!==undefined?o.to:g.X1;
+  const n=Math.max(8,Math.ceil((b-a)/.04));let d='',pen=false;
+  for(let k=0;k<=n;k++){const t=a+(b-a)*k/n,y=f(t);
+    if(!isFinite(y)||y<g.Y0-6||y>g.Y1+6){pen=false;continue}
+    d+=(pen?'L':'M')+g.P(t).toFixed(1)+' '+g.Q(y).toFixed(1);pen=true}
+  return `<path d="${d}" fill="none" stroke="${o.stroke}" stroke-width="${o.w||3}" stroke-linecap="round" stroke-linejoin="round"${o.dash?` stroke-dasharray="${o.dash}"`:''}${o.op!==undefined?` opacity="${o.op}"`:''}${o.attr||''}/>`;
+}
+const ds=s=>s?` data-s="${s}"`:'';
+const dotEl=(g,x,y,c,s,k)=>`<circle cx="${g.P(x)}" cy="${g.Q(y)}" r="${Math.max(5,g.u*.2)*(k||1)}" fill="${c}" stroke="#fff" stroke-width="2"${ds(s)}/>`;
+const txtEl=(g,x,y,t,c,s,o)=>{o=o||{};const fs=o.fs||Math.max(15,Math.min(20,g.u*.62));return `<text class="pl" x="${g.P(x)+(o.dx||0)}" y="${g.Q(y)+(o.dy||0)}" text-anchor="${o.anc||'start'}" style="font-size:${fs}px;fill:${c}"${ds(s)}>${t}</text>`};
+const segEl=(g,x1,y1,x2,y2,c,s,o)=>{o=o||{};return `<line x1="${g.P(x1)}" y1="${g.Q(y1)}" x2="${g.P(x2)}" y2="${g.Q(y2)}" stroke="${c}" stroke-width="${o.w||2.4}"${o.dash===false?'':` stroke-dasharray="${o.dash||'6 4'}"`}${o.op?` opacity="${o.op}"`:''} stroke-linecap="round"${ds(s)}/>`};
+function planeSVG(v,u,extra,opts,cls,key){
+  const pad=u*.9,w=(v.x1-v.x0)*u+2*pad,h=(v.y1-v.y0)*u+2*pad,g=geom(v,w,h,pad),id='cp'+(++CPID);
+  if(key)PLN[key]=g;
+  return `<svg class="plane ${cls||''}" viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><rect x="0" y="0" width="${w}" height="${h}"/></clipPath></defs>${bg(g,opts)}<g clip-path="url(#${id})">${key?`<g id="dyn-${key}"></g>`:extra(g)}</g></svg>`;
+}
+const CV='#e8590c',CZ='#7048e8',CO='#2f9e44',CT='#1971c2',CC='#1D4ED8',KP='#d6336c';
+const O1='var(--o1)',O2='var(--o2)';
+function vLabel(g,x0,y0,a,s){
+  const right=g.P(x0)<g.w*.62;
+  return txtEl(g,x0,y0,`(${fmt(x0)}; ${fmt(y0)})`,CV,s,{dx:right?10:-10,dy:a>0?22:-12,anc:right?'start':'end'});
+}
+/* побудова параболи за схемою (кроки + рисунок) */
+function gbuild(o){
+  const {a,b,c}=o,x0=-b/(2*a),f=x=>a*x*x+b*x+c,y0=f(x0),rt=roots(a,b,c),st=[],S={};
+  const aS=o.aS||fmt(a);
+  S.dir=st.push(L(`a = ${aS}${a>0?GT:LT}0 — вітки напрямлені ${a>0?'вгору':'вниз'}`));
+  S.x0=st.push(L(x0Line(a,b,o.aS)));
+  S.v=st.push(L(y0Line(a,b,c,x0,o.aS))+LC(CV,`Вершина: (${fmt(x0)}; ${fmt(y0)})`));
+  const zl=zeroLines(a,b,c,o.aS);S.z=st.push(L(...zl.slice(0,-1))+LC(CZ,zl[zl.length-1]));
+  if(c!==0&&x0!==0)S.o=st.push(L(`x = 0: y = ${fmt(c)}`)+LC(CO,`(0; ${fmt(c)}) і симетрична їй точка (${fmt(2*x0)}; ${fmt(c)})`));
+  const xs=o.xs;
+  S.t=st.push(LC(CT,'Ще кілька точок:')+tbl(xs,f));
+  S.c=st.push(FIN('Проводимо через позначені точки плавну неперервну лінію'));
+  const fig=()=>planeSVG(o.view,o.u||24,g=>{
+    let s=segEl(g,x0,g.Y0,x0,g.Y1,CV,S.x0,{op:.6});
+    s+=pathEl(g,f,{stroke:CC,w:3.6,attr:ds(S.c)});
+    xs.forEach(x=>{s+=dotEl(g,x,f(x),CT,S.t)});
+    if(S.o)s+=dotEl(g,0,c,CO,S.o)+dotEl(g,2*x0,c,CO,S.o);
+    rt.forEach(r=>{s+=dotEl(g,r,0,CZ,S.z)});
+    s+=dotEl(g,x0,y0,CV,S.v,1.15)+vLabel(g,x0,y0,a,S.v);
+    return s;
+  },o.popts,o.tall?'tall':'');
+  return {st,S,fig};
+}
+function gfull(o,extra){
+  const {a,b,c}=o,x0=-b/(2*a),f=x=>a*x*x+b*x+c,y0=f(x0),rt=roots(a,b,c);
+  return planeSVG(o.view,o.u||24,g=>{
+    let s=pathEl(g,f,{stroke:CC,w:3.6});
+    if(extra)s+=extra(g,f);
+    rt.forEach(r=>{s+=dotEl(g,r,0,CZ)});
+    s+=dotEl(g,x0,y0,CV,0,1.15)+vLabel(g,x0,y0,a,0);
+    return s;
+  },o.popts,o.tall?'tall':'');
+}
+const arcEl=(g,f,from,to,c,s)=>pathEl(g,f,{from:Math.max(from,g.X0),to:Math.min(to,g.X1),stroke:c,w:8,op:.45,attr:ds(s)});
+const axEl=(g,x1,x2,c,s)=>`<line x1="${g.P(Math.max(x1,g.X0))}" y1="${g.Q(0)}" x2="${g.P(Math.min(x2,g.X1))}" y2="${g.Q(0)}" stroke="${c}" stroke-width="7" opacity=".55" stroke-linecap="round"${ds(s)}/>`;
+const hlEl=(g,y,c,s)=>`<line x1="0" y1="${g.Q(y)}" x2="${g.w}" y2="${g.Q(y)}" stroke="${c}" stroke-width="2.6" stroke-dasharray="8 5"${ds(s)}/>`;
+/* схематична парабола */
+function sketch(up,o){
+  const W=340,H=250,vx=170,vy=up?195:55,k=150/(125*125),sg=up?-1:1;
+  const Y=x=>vy+sg*k*(x-vx)*(x-vx);
+  let d='';for(let x=45;x<=295;x+=5)d+=(d?'L':'M')+x+' '+Y(x).toFixed(1);
+  return `<svg class="plane" viewBox="0 0 ${W} ${H}" style="max-height:${o.mh||'44vh'}">
+  <g${ds(o.sd)}><path d="${d}" fill="none" stroke="${CC}" stroke-width="3.6" stroke-linecap="round"/></g>
+  <g${ds(o.sv)}><line x1="${vx}" y1="12" x2="${vx}" y2="${H-12}" stroke="${CV}" stroke-width="2.2" stroke-dasharray="6 4" opacity=".7"/>
+  <circle cx="${vx}" cy="${vy}" r="7" fill="${CV}" stroke="#fff" stroke-width="2"/>
+  <text class="pl" x="${vx+14}" y="${up?vy+26:vy-14}" text-anchor="start" style="font-size:20px;fill:${CV}">${o.v}</text></g></svg>`;
+}
+
+/* ============ Генератори завдань ============ */
+/* параболи з цілими нулями однакової парності: вершина й усі значення цілі */
+function genZ(as,noZero,prev){
+  for(let t=0;t<5000;t++){
+    const a=pick(as),r1=rnd(-5,5),r2=rnd(-5,5);
+    if(r1>=r2||(r1+r2)%2)continue;
+    if(noZero&&(r1===0||r2===0||r1+r2===0))continue;
+    const k=(r2-r1)/2,b=-a*(r1+r2),c=a*r1*r2,x0=(r1+r2)/2,y0=-a*k*k;
+    if(Math.abs(c)>10||Math.abs(y0)>10)continue;
+    if(prev&&prev.a===a&&prev.b===b&&prev.c===c)continue;
+    return {a,b,c,r1,r2,x0,y0,k};
+  }
+}
+/* довільна парабола з цілою вершиною */
+function genV(prev){
+  for(let t=0;t<5000;t++){
+    const a=pick([1,-1,2,-2,3,-3]),x0=pick([-6,-5,-4,-3,-2,-1,1,2,3,4,5,6]),c=rnd(-9,9);
+    if(!c)continue;
+    const b=-2*a*x0,y0=c-a*x0*x0;
+    if(Math.abs(b)>24||Math.abs(y0)>40)continue;
+    if(prev&&prev.a===a&&prev.b===b&&prev.c===c)continue;
+    return {a,b,c,x0,y0};
+  }
+}
+const calcU=v=>Math.max(14,Math.min(30,Math.floor(500/(v.x1-v.x0)),Math.floor(430/(v.y1-v.y0))));
+function viewFor(p){
+  const xs=[p.r1,p.r2,0,2*p.x0,p.x0];
+  const x0v=Math.floor(Math.min(...xs)-2),x1v=Math.ceil(Math.max(...xs)+2);
+  let y0v,y1v;
+  if(p.a>0){y0v=p.y0-1;y1v=Math.max(p.c,0,p.y0+4*p.a)+2;if(y1v-y0v<8)y1v=y0v+8}
+  else{y1v=p.y0+1;y0v=Math.min(p.c,0,p.y0+4*p.a)-2;if(y1v-y0v<8)y0v=y1v-8}
+  return {x0:x0v,x1:x1v,y0:y0v,y1:y1v};
+}
+function tablePts(p,view){
+  const f=x=>p.a*x*x+p.b*x+p.c,used=new Set([p.r1,p.r2,0,2*p.x0,p.x0]),cand=[];
+  for(let x=view.x0;x<=view.x1;x++){if(used.has(x))continue;const y=f(x);if(y>view.y0+.5&&y<view.y1-.5)cand.push(x)}
+  cand.sort((u,v)=>Math.abs(u-p.x0)-Math.abs(v-p.x0)||u-v);
+  return cand.slice(0,3).sort((u,v)=>u-v);
+}
+const fx=s=>`<span class="fx">${m(s)}</span>`;
+
+/* ============ Екрани ============ */
+const SCR=[];
+const QC=['#1D4ED8','#2f9e44','#6d28d9','#7a8a12','#3730a3'];let qn=0;
+const CTL=(first,nw)=>`<div class="ctl"><button class="nx" data-more data-first="${first||'Показати кроки ▶'}"></button><button class="rs" title="Спочатку">↺</button>${nw?'<button class="nw" data-new>Нова задача ↻</button>':''}</div>`;
+function applySteps(sc,scroll){
+  $$('[data-s]',sc).forEach(e=>e.classList.toggle('on',+e.dataset.s<=sc._s));
+  $$('.nx[data-more]',sc).forEach(b=>{b.style.display=sc._s>=sc._max?'none':'';b.textContent=sc._s?'↓ Далі':b.dataset.first;b.classList.toggle('dn',sc._s>0)});
+  $$('.rs:not([data-rst])',sc).forEach(b=>{b.style.visibility=sc._s?'visible':'hidden'});
+  if(scroll){const on=$$('.st.on,.sch.on,.exr.on,.blk.on,.note.on,.sk2.on',sc),last=on[on.length-1];if(last&&last.scrollIntoView)last.scrollIntoView({block:'nearest',behavior:'smooth'})}
+}
+function recalc(sc){const nums=$$('[data-s]',sc).map(e=>+e.dataset.s);sc._s=0;sc._max=nums.length?Math.max(...nums):0;applySteps(sc)}
+const GEM=`<svg viewBox="0 0 32 32"><polygon points="8,4 24,4 30,12 16,29 2,12" fill="#60a5fa" stroke="#1D4ED8" stroke-width="2" stroke-linejoin="round"/><polygon points="8,4 16,12 24,4" fill="#bfdbfe" stroke="#1D4ED8" stroke-width="1.5" stroke-linejoin="round"/><polyline points="2,12 30,12" stroke="#1D4ED8" stroke-width="1.5"/><polyline points="16,12 16,29" stroke="#1D4ED8" stroke-width="1.2"/></svg>`;
+
+/* ---- старт ---- */
+SCR.push({g:'start',html:`<div class="start"><button class="gem2" id="gem2" title="Методична картка">${GEM}</button><div class="n">Урок 11</div><h1>Тема: Квадратична функція, її графік і властивості</h1><button class="go" id="go">Почати ▶</button></div>`});
+
+/* ---- усна вправа ---- */
+function warmTask(prev){
+  let t,tries=0;
+  do{
+    if(Math.random()<.6){
+      let r1,r2;do{r1=rnd(-6,6);r2=rnd(-6,6)}while(r1>=r2||r1===0||r2===0||r1===-r2);
+      const p=-(r1+r2),q=r1*r2,key=a=>a.slice().sort((x,y)=>x-y).join(';');
+      const good=[r1,r2],cand=[[-r2,-r1],[r1,-r2],[-r1,r2],[r1+1,r2+1],[r1-1,r2],[r1,r2+2]];
+      const seen=new Set([key(good)]),dis=[];
+      cand.forEach(cn=>{if(cn[0]!==cn[1]&&!seen.has(key(cn))&&dis.length<3){seen.add(key(cn));dis.push(cn)}});
+      const show=a=>a.slice().sort((x,y)=>x-y).map(fmt).join('; ');
+      t={id:'r'+p+'_'+q,q:`Розв’яжіть рівняння ${m(poly(1,p,q)+' = 0')}`,opts:shuffle([{t:show(good),ok:1},...dis.map(d=>({t:show(d),ok:0}))]),
+         hint:`${m(X1+' + '+X2+' = '+fmt(-p)+', '+X1+' · '+X2+' = '+fmt(q))}`};
+    }else{
+      let p,q,k;do{p=rnd(-6,6);q=rnd(-9,9);k=rnd(-3,3)}while(p===0||k===0||q===0);
+      const v=k*k+p*k+q,cand=[-k*k+p*k+q,k*k-p*k+q,k*k+p*k-q,2*k+p*k+q,v+1,v-1,v+2],seen=new Set([v]),dis=[];
+      cand.forEach(cn=>{if(!seen.has(cn)&&dis.length<3){seen.add(cn);dis.push(cn)}});
+      t={id:'v'+p+'_'+q+'_'+k,q:`${m('f(x) = '+poly(1,p,q))}. Знайдіть ${m('f('+fmt(k)+')')}`,opts:shuffle([{t:fmt(v),ok:1},...dis.map(d=>({t:fmt(d),ok:0}))]),
+         hint:m(`f(${fmt(k)}) = ${subst(1,p,q,k)}`)};
+    }
+    tries++;
+  }while(prev&&t.id===prev.id&&tries<20);
+  return t;
+}
+SCR.push({g:'warm',init:sc=>{
+  const root=$('.card',sc),ABC=['А','Б','В','Г'];let t=null;
+  const load=()=>{t=warmTask(t);root.style.setProperty('--qc',QC[(qn++)%QC.length]);$('.bigq',root).innerHTML=t.q;
+    $('.opts',root).innerHTML=t.opts.map((o,i)=>`<button class="opt" data-ok="${o.ok}"><b>${ABC[i]}</b><span>${o.t}</span></button>`).join('');
+    const ms=$('.msg',root);ms.innerHTML='';ms.className='msg'};
+  root.addEventListener('click',e=>{
+    const o=e.target.closest('.opt'),ms=$('.msg',root);
+    if(o&&!o.disabled){
+      if(o.dataset.ok==='1'){o.classList.add('ok');$$('.opt',root).forEach(x=>x.disabled=true);ms.textContent='Правильно!';ms.className='msg ok'}
+      else{o.classList.add('bad');o.disabled=true;ms.innerHTML='Неправильно. Підказка: '+t.hint;ms.className='msg bad'}
+    }
+    if(e.target.closest('[data-new]'))load();
+  });
+  load();
+},html:`<div class="card ex"><div class="bigq"></div><div class="opts"></div><div class="msg"></div><div class="gb"><button class="pri" data-new>Нове запитання ↻</button></div></div>`});
+
+/* ---- Означення ---- */
+const KA='var(--ka)',KB='var(--kb)',KC='var(--kc)';
+const abc=(a,b,c)=>m(`${col(KA,'a = '+a)}, ${col(KB,'b = '+b)}, ${col(KC,'c = '+c)}`);
+SCR.push({g:'th',html:`<div class="card"><h2>Квадратична функція</h2>
+<div class="def big">Функцію, яку можна задати формулою виду ${m('y = '+col(KA,'a')+'x² + '+col(KB,'b')+'x + '+col(KC,'c'))}, де ${m('x')} — незалежна змінна, ${m(col(KA,'a')+', '+col(KB,'b'))} і ${m(col(KC,'c'))} — деякі числа, причому ${m(col(KA,'a ≠ 0'))}, називають <b>квадратичною</b>.</div>
+${CTL('Приклади ↓')}
+<div class="exr" data-s="1"><span>${m('y = '+col(KA,'5')+'x² '+col(KB,'− 7')+'x '+col(KC,'+ 2'))}</span><span>${abc('5','−7','2')}</span><span></span></div>
+<div class="exr" data-s="2"><span>${m('y = '+col(KB,'6')+'x '+col(KA,'−')+'x²')}</span><span>${abc('−1','6','0')}</span><span></span></div>
+<div class="exr" data-s="3"><span>${m('S(r) = '+col(KA,'π')+'r²')}</span><span>${abc('π','0','0')}</span><span class="ex2">площа круга радіуса ${m('r')}</span></div>
+<div class="exr" data-s="4" style="border-color:var(--badln);background:var(--badbg)"><span>${m('y = 4x + 3')}</span><span>${m(col(KA,'a = 0'))}</span><span class="ex2" style="color:var(--badtx)">не є квадратичною</span></div>
+</div>`});
+
+/* ---- Графік (повзунки) ---- */
+const AV=[-2,-1.5,-1,-.5,.5,1,1.5,2];
+SCR.push({g:'th',init:sc=>{
+  const g=PLN.th,dyn=$('#dyn-th'),inp=$$('input',sc),val=$$('.val',sc);
+  const draw=()=>{
+    const a=AV[+inp[0].value],b=+inp[1].value,c=+inp[2].value,f=x=>a*x*x+b*x+c,x0=-b/(2*a),y0=f(x0);
+    val[0].textContent=fmt(a);val[1].textContent=fmt(b);val[2].textContent=fmt(c);
+    $('.live',sc).innerHTML=m('y = '+poly(a,b,c));
+    $('.inf.d',sc).innerHTML=m(`a = ${fmt(a)}${a>0?GT:LT}0`)+' — вітки напрямлені <b>'+(a>0?'вгору':'вниз')+'</b>';
+    $('.inf.v',sc).innerHTML=`<span style="color:${CV}">Вершина: (${fmt(x0)}; ${fmt(y0)})</span>`;
+    let s=pathEl(g,x=>a*x*x,{stroke:'#64748b',w:2.6,dash:'8 6'});
+    const xl=Math.sqrt(5.5/Math.abs(a));s+=txtEl(g,xl,a*xl*xl,'y = '+(a===1?'':a===-1?MN:fmt(a))+'x²','#64748b',0,{dx:8,fs:16});
+    if(b||c){const X=g.P(x0),Y=g.Q(y0),O1p=g.P(0),O2p=g.Q(0),d=Math.hypot(X-O1p,Y-O2p);
+      if(d>24){const ux=(X-O1p)/d,uy=(Y-O2p)/d,ex=X-ux*9,ey=Y-uy*9;
+        s+=`<line x1="${O1p}" y1="${O2p}" x2="${ex-ux*10}" y2="${ey-uy*10}" stroke="${CV}" stroke-width="2.6" stroke-dasharray="5 4"/><polygon points="${ex},${ey} ${ex-ux*13-uy*6},${ey-uy*13+ux*6} ${ex-ux*13+uy*6},${ey-uy*13-ux*6}" fill="${CV}"/>`}}
+    s+=pathEl(g,f,{stroke:CC,w:4});
+    s+=dotEl(g,0,0,'#64748b')+dotEl(g,x0,y0,CV,0,1.15);
+    dyn.innerHTML=s;
+  };
+  inp.forEach(i=>i.addEventListener('input',draw));
+  $('[data-rst]',sc).onclick=()=>{inp[0].value=5;inp[1].value=0;inp[2].value=0;draw()};
+  draw();
+},html:`<div class="card"><h2>Графік квадратичної функції</h2><div class="two"><div class="lc">
+<div class="def">Графіком функції ${m('y = ax² + bx + c, a ≠ 0')}, є <b>парабола</b>, яка <b>дорівнює параболі</b> ${m('y = ax²')}.</div>
+<div class="sld"><span style="color:var(--ka)">${m('a')}</span><input type="range" min="0" max="7" step="1" value="5"><span class="val" style="color:var(--ka)"></span></div>
+<div class="sld"><span style="color:var(--kb)">${m('b')}</span><input type="range" min="-6" max="6" step="1" value="-4"><span class="val" style="color:var(--kb)"></span></div>
+<div class="sld"><span style="color:var(--kc)">${m('c')}</span><input type="range" min="-6" max="6" step="1" value="1"><span class="val" style="color:var(--kc)"></span></div>
+<div><span class="live"></span> <button class="rs" data-rst style="vertical-align:middle">${m('b = 0, c = 0')}</button></div>
+<div class="inf d"></div><div class="inf v"></div>
+<div class="def" style="font-size:1.15rem">Вітки параболи ${m('y = ax² + bx + c')} напрямлені так само, як і вітки параболи ${m('y = ax²')}: якщо ${m('a'+GT+'0')}, то вітки напрямлені <b>вгору</b>, якщо ${m('a'+LT+'0')}, то <b>вниз</b>.</div>
+</div><div class="figc">${planeSVG({x0:-7,x1:7,y0:-8,y1:8},22,null,{},'tall','th')}</div></div></div>`});
+
+/* ---- Вершина: правило ---- */
+SCR.push({g:'th',html:`<div class="card"><h2>Вершина параболи</h2>
+${CTL('Крок ↓')}
+<div class="sch" data-s="1"><b>1)</b><span>абсциса вершини: ${m(col(CV,X0+' = −'+F('b','2a')))}</span></div>
+<div class="sch" data-s="2"><b>2)</b><span>ордината вершини: ${m(col(CV,Y0))} — значення функції ${m('y = ax² + bx + c')} у точці ${m(X0)}</span></div>
+<div class="sk2" data-s="3"><div><div class="cap">${m('a'+GT+'0')}: вершина — найнижча точка</div>${sketch(true,{sd:0,sv:0,v:'вершина',mh:'30vh'})}</div><div><div class="cap">${m('a'+LT+'0')}: вершина — найвища точка</div>${sketch(false,{sd:0,sv:0,v:'вершина',mh:'30vh'})}</div></div>
+</div>`});
+
+/* ---- універсальний блок із генератором ---- */
+function fillExtra(bx,x){
+  bx.innerHTML=`<div class="xq">${x.q}</div><div class="xr"><input class="inp" inputmode="decimal" autocomplete="off"><button class="chk">Перевірити</button></div><div class="msg"></div>`;
+  const inp=$('.inp',bx),ms=$('.msg',bx);
+  $('.chk',bx).onclick=()=>{
+    const n=parseNum(inp.value);
+    if(n===null){ms.textContent='Введіть число';ms.className='msg bad';return}
+    if(x.ans.some(v=>Math.abs(v-n)<1e-9)){inp.className='inp ok';ms.textContent='Правильно!';ms.className='msg ok'}
+    else{inp.className='inp bad';ms.innerHTML='Неправильно. Підказка: '+x.hint;ms.className='msg bad'}
+  };
+  inp.addEventListener('input',()=>{inp.className='inp'});
+}
+function block(cfg){
+  SCR.push({g:cfg.g,html:`<div class="card ex"><button class="plus" title="Додаткове завдання">+</button><span class="tag"></span><div class="two"><div class="lc"><div class="cond"></div>${cfg.opts?'<div class="opts"></div><div class="msg"></div>':''}${CTL('Показати кроки ▶',cfg.nonew?0:1)}<div class="steps"></div><div class="extra" hidden></div></div><div class="figc"></div></div></div>`,
+  init:sc=>{
+    const card=$('.card',sc),bx=$('.extra',sc);let prev=null,first=true,cur=null,xs=null;
+    const load=()=>{
+      const t=(first&&cfg.first)?cfg.first:cfg.gen(prev);prev=t;cur=t;
+      const r=cfg.render(t);
+      card.style.setProperty('--qc',QC[(qn++)%QC.length]);
+      $('.tag',sc).textContent=first?cfg.tag:'Нова задача';
+      $('.cond',sc).innerHTML=r.cond;
+      $('.steps',sc).innerHTML=mkSteps(r.steps);
+      $('.figc',sc).innerHTML=r.fig;
+      if(cfg.opts){const ms=$('.msg',sc);ms.innerHTML='';ms.className='msg';
+        $('.opts',sc).innerHTML=r.opts.map((o,i)=>`<button class="opt" data-ok="${o.ok}"><b>${'АБВГ'[i]}</b><span>${o.t}</span></button>`).join('')}
+      xs=cfg.extra?cfg.extra(t):null;bx.hidden=true;bx.innerHTML='';
+      $('.plus',sc).style.display=xs?'':'none';
+      sc._t=t;sc._x=xs;first=false;recalc(sc);card.scrollTop=0;
+    };
+    sc.addEventListener('click',e=>{
+      if(e.target.closest('[data-new]'))load();
+      else if(e.target.closest('.plus')){if(bx.hidden){bx.hidden=false;if(!bx.innerHTML)fillExtra(bx,xs)}else bx.hidden=true}
+      else{const o=e.target.closest('.opt');if(o&&!o.disabled){const ms=$('.msg',sc);
+        if(o.dataset.ok==='1'){o.classList.add('ok');$$('.opt',sc).forEach(x=>x.disabled=true);ms.textContent='Правильно!';ms.className='msg ok'}
+        else{o.classList.add('bad');o.disabled=true;ms.innerHTML='Неправильно. Підказка: '+cfg.hint;ms.className='msg bad'}}}
+    });
+    load();
+  }});
+}
+
+/* ---- Схема побудови ---- */
+SCR.push({g:'th',html:`<div class="card"><h2>Схема побудови графіка квадратичної функції</h2>
+${CTL('Крок ↓')}
+<div class="sch" data-s="1"><b>1)</b><span>знайти абсцису вершини параболи за формулою ${m(col(CV,X0+' = −'+F('b','2a')))};</span></div>
+<div class="sch" data-s="2"><b>2)</b><span>знайти ординату вершини параболи (значення функції в точці ${m(X0)}) і позначити на координатній площині вершину параболи;</span></div>
+<div class="sch" data-s="3"><b>3)</b><span>визначити напрямок віток параболи;</span></div>
+<div class="sch" data-s="4"><b>4)</b><span>знайти координати ще кількох точок, які належать шуканому графіку, зокрема координати ${col(CZ,'точок перетину параболи з віссю абсцис')} (якщо дана функція має нулі), координати ${col(CO,'точки перетину параболи з віссю ординат')}; позначити ці точки на координатній площині;</span></div>
+<div class="sch" data-s="5"><b>5)</b><span>провести через усі позначені точки плавну неперервну лінію.</span></div>
+</div>`});
+
+/* ---- Приклад з підручника (теорія) ---- */
+block({g:'th',nonew:1,tag:'Приклад з підручника',
+  first:{o:{a:1,b:4,c:-5,view:{x0:-7,x1:3,y0:-10,y1:6},u:26,xs:[-3,-1],tall:1}},
+  render:t=>{const G=gbuild(t.o);return {cond:`Побудуйте графік функції ${fx('f(x) = x² + 4x − 5')}.`,steps:G.st,fig:G.fig()}}});
+
+/* ---- Властивості: правило (приклад) ---- */
+{
+  const o={a:1,b:4,c:-5,view:{x0:-7,x1:3,y0:-10,y1:6},u:26,tall:1};
+  const st=[
+    LC(CV,'E(f) = [−9; +∞)'),
+    LC(O1,'зростає на проміжку [−2; +∞)')+LC(O2,'спадає на проміжку (−∞; −2]'),
+    LC(CT,'f(x)'+GT+'0 на кожному з проміжків (−∞; −5) і (1; +∞)')+LC(KP,'f(x)'+LT+'0 на проміжку (−5; 1)'),
+    FIN('Найменше значення функції дорівнює −9, найбільшого значення не існує')];
+  const fig=gfull(o,(g,f)=>hlEl(g,-9,CV,1)+txtEl(g,g.X1,-9,'y = −9',CV,1,{dx:-8,dy:-8,anc:'end',fs:16})
+    +arcEl(g,f,-2,9,O1,2)+arcEl(g,f,-9,-2,O2,2)+axEl(g,-9,-5,CT,3)+axEl(g,1,9,CT,3)+axEl(g,-5,1,KP,3));
+  SCR.push({g:'th',html:`<div class="card ex" style="--qc:${QC[2]}"><span class="tag">Властивості функції за графіком</span><div class="two"><div class="lc"><div class="cond">Користуючись графіком функції ${fx('f(x) = x² + 4x − 5')}, знайдіть область її значень, проміжки зростання і спадання, проміжки знакосталості, найменше і найбільше значення функції.</div>${CTL()}<div class="steps">${mkSteps(st)}</div></div><div class="figc">${fig}</div></div></div>`});
+}
+
+/* ============ Вправи підручника (після теорії) ============ */
+const vtxOpt=(up,x,y)=>`вітки ${up?'вгору':'вниз'}; (${fmt(x)}; ${fmt(y)})`;
+const vtxHint=`${m(X0+' = −'+F('b','2a'))}; ${m(Y0)} — значення функції в точці ${m(X0)}`;
+const vtxRender=t=>{const {a,b,c,x0,y0}=t,f=x=>a*x*x+b*x+c,up=a>0;
+  const cand=[[!up,x0,y0],[up,-x0,y0],[up,2*x0,f(2*x0)],[up,x0,c]],good=vtxOpt(up,x0,y0),seen=new Set([good]),dis=[];
+  cand.forEach(cn=>{const s=vtxOpt(cn[0],cn[1],cn[2]);if(!seen.has(s)&&dis.length<3){seen.add(s);dis.push(s)}});
+  const v=`(${fmt(x0)}; ${fmt(y0)})`;
+  return {cond:`Визначте напрямок віток і координати вершини параболи ${fx('y = '+poly(a,b,c))}.`,
+    opts:shuffle([{t:good,ok:1},...dis.map(s=>({t:s,ok:0}))]),
+    steps:[L(`a = ${fmt(a)}${up?GT:LT}0 — вітки напрямлені ${up?'вгору':'вниз'}`),L(x0Line(a,b)),L(y0Line(a,b,c,x0))+LC(CV,`Вершина: ${v}`),FIN(`Вітки напрямлені ${up?'вгору':'вниз'}; вершина ${v}`)],
+    fig:sketch(up,{sd:1,sv:3,v})}};
+
+/* універсальний екран фіксованої вправи підручника */
+function exr(cfg){
+  const qc=QC[(qn++)%QC.length],ABC='АБВГ';
+  let h=`<div class="cond">${cfg.cond}</div>`;
+  if(cfg.opts)h+=`<div class="opts">${shuffle(cfg.opts).map((o,i)=>`<button class="opt" data-ok="${o.ok?1:0}"><b>${ABC[i]}</b><span>${o.t}</span></button>`).join('')}</div><div class="msg"></div>`;
+  if(cfg.yn)h+=`<div class="ynl">${cfg.yn.map((it,i)=>`<div class="yn" data-ok="${it.ok?1:0}" data-w="${encodeURIComponent(it.why)}"><span class="yf">${i+1})&nbsp; ${it.f}</span><button class="ynb" data-v="1">Квадратична</button><button class="ynb" data-v="0">Не квадратична</button><span class="yw"></span></div>`).join('')}</div><div class="msg"></div><div class="yfin" data-s="1">${FIN(cfg.ynFin)}</div>`;
+  if(cfg.inputs)h+=cfg.inputs.map((x,i)=>`<div class="xr" data-i="${i}"><span class="xl">${x.lab}</span><input class="inp" inputmode="decimal" autocomplete="off"><button class="chk">Перевірити</button><span class="msg"></span></div>`).join('');
+  if(cfg.steps)h+=CTL(cfg.first)+`<div class="steps">${mkSteps(cfg.steps)}</div>`;
+  SCR.push({g:'ex',num:cfg.num,html:`<div class="card ex" style="--qc:${qc}"><span class="tag">${cfg.tag}</span>${cfg.fig?`<div class="two"><div class="lc">${h}</div><div class="figc">${cfg.fig}</div></div>`:h}</div>`,
+  init:sc=>{
+    if(cfg.yn){const yfin=$('.yfin',sc);yfin.removeAttribute('data-s');yfin.hidden=true}
+    sc.addEventListener('click',e=>{
+      const ms=$('.msg',sc);
+      const o=e.target.closest('.opt');
+      if(o&&!o.disabled){
+        if(o.dataset.ok==='1'){o.classList.add('ok');$$('.opt',sc).forEach(x=>x.disabled=true);ms.textContent='Правильно!';ms.className='msg ok'}
+        else{o.classList.add('bad');o.disabled=true;ms.innerHTML='Неправильно. Підказка: '+cfg.hint;ms.className='msg bad'}
+        return;
+      }
+      const b=e.target.closest('.ynb');
+      if(b&&!b.disabled){
+        const row=b.closest('.yn');
+        if(b.dataset.v===row.dataset.ok){row.classList.add('ok');row.classList.remove('bad');$$('.ynb',row).forEach(x=>x.disabled=true);$('.yw',row).innerHTML=decodeURIComponent(row.dataset.w);ms.textContent='Правильно!';ms.className='msg ok';
+          if($$('.yn',sc).every(r=>r.classList.contains('ok')))$('.yfin',sc).hidden=false}
+        else{row.classList.add('bad');b.disabled=true;ms.innerHTML='Неправильно. Підказка: '+cfg.hint;ms.className='msg bad'}
+        return;
+      }
+      const k=e.target.closest('.chk');
+      if(k){
+        const row=k.closest('.xr'),x=cfg.inputs[+row.dataset.i],inp=$('.inp',row),mm=$('.msg',row),n=parseNum(inp.value);
+        if(n===null){mm.textContent='Введіть число';mm.className='msg bad';return}
+        if(Math.abs(n-x.ans)<1e-9){inp.className='inp ok';mm.textContent='Правильно!';mm.className='msg ok'}
+        else{inp.className='inp bad';mm.innerHTML='Неправильно. Підказка: '+(x.hint||cfg.hint);mm.className='msg bad'}
+      }
+    });
+    $$('.inp',sc).forEach(i=>{i.addEventListener('input',()=>{i.className='inp'});i.addEventListener('keydown',e=>{if(e.key==='Enter')$('.chk',i.parentNode).click()})});
+    recalc(sc);
+  }});
+}
+const TAG=(n,s)=>`Вправа ${n}${s?' ('+s+')':''} підручника`;
+
+/* 11.1 */
+exr({tag:TAG('11.1'),cond:'Які з даних функцій є квадратичними:',
+  yn:[{f:fx('y = 4x² + 3x + 6'),ok:1,why:fx('a = 4 ≠ 0')},
+      {f:fx('y = 4x + 3'),ok:0,why:fx('a = 0')},
+      {f:fx('y = '+F('1','2x² − 3x + 2')),ok:0,why:'змінна стоїть у знаменнику'},
+      {f:fx('y = 6x² − 5x'),ok:1,why:fx('a = 6 ≠ 0, b = −5, c = 0')}],
+  ynFin:'Квадратичні функції: 1) і 4)',
+  hint:`квадратична функція має вигляд ${m('y = ax² + bx + c')}, де ${m('a ≠ 0')}`});
+
+/* 11.2 */
+{
+  const f=k=>{const t=termsLine(5,-7,2,k);return `f(${fmt(k)}) = ${subst(5,-7,2,k)} = ${t} = ${fmt(5*k*k-7*k+2)}`};
+  exr({tag:TAG('11.2'),cond:`Обчисліть значення функції ${fx('f(x) = 5x² − 7x + 2')}, якщо аргумент ${m('x')} дорівнює 1; −2; 4.`,
+    hint:`підставте значення ${m('x')} у формулу: ${m('f(1) = 5 · 1² − 7 · 1 + 2')}`,
+    inputs:[{lab:m('f(1) ='),ans:0},{lab:m('f(−2) ='),ans:36},{lab:m('f(4) ='),ans:54}],
+    steps:[L(f(1)),L(f(-2)),L(f(4)),FIN('0; 36; 54')]});
+}
+
+/* 11.4 */
+{
+  const p=(x,y)=>`(${x}; ${y})`,H=F(1,2);
+  exr({tag:TAG('11.4','1'),cond:`Не виконуючи побудови, знайдіть точки перетину з осями координат параболи ${fx('y = x² + 3x − 4')}.`,
+    opts:[{t:`${p(0,'−4')}, ${p('−4',0)}, ${p(1,0)}`,ok:1},{t:`${p(0,4)}, ${p(4,0)}, ${p('−1',0)}`},{t:`${p(0,'−4')}, ${p(4,0)}, ${p('−1',0)}`},{t:`${p(0,1)}, ${p('−4',0)}, ${p(1,0)}`}],
+    hint:`з віссю ${m('Oy')} абсциса точки дорівнює 0, а з віссю ${m('Ox')} ордината дорівнює 0`,
+    steps:[L('З віссю Oy: x = 0','y = 0² + 3 · 0 − 4 = −4')+LC(CO,'(0; −4)'),
+      L('З віссю Ox: y = 0','x² + 3x − 4 = 0',`${X1} = −4, ${X2} = 1`)+LC(CZ,'(−4; 0) і (1; 0)'),
+      FIN('З віссю Oy: (0; −4); з віссю Ox: (−4; 0) і (1; 0)')]});
+  exr({tag:TAG('11.4','2'),cond:`Не виконуючи побудови, знайдіть точки перетину з осями координат параболи ${fx('y = −2x² + 3x − 1')}.`,
+    opts:[{t:m(`${p(0,'−1')}, (${H}; 0), ${p(1,0)}`),ok:1},{t:m(`${p(0,1)}, (${H}; 0), ${p(1,0)}`)},{t:m(`${p(0,'−1')}, (−${H}; 0), ${p('−1',0)}`)},{t:m(`${p(0,'−1')}, ${p(2,0)}, ${p(1,0)}`)}],
+    hint:`з віссю ${m('Oy')} абсциса точки дорівнює 0, а з віссю ${m('Ox')} ордината дорівнює 0`,
+    steps:[L('З віссю Oy: x = 0','y = −2 · 0² + 3 · 0 − 1 = −1')+LC(CO,'(0; −1)'),
+      L('З віссю Ox: y = 0','−2x² + 3x − 1 = 0','2x² − 3x + 1 = 0','D = 9 − 8 = 1'),
+      L(`${X1} = ${F('3 − 1','4')} = ${F(1,2)}, ${X2} = ${F('3 + 1','4')} = 1`)+LC(CZ,`(${F(1,2)}; 0) і (1; 0)`),
+      FIN(`З віссю Oy: (0; −1); з віссю Ox: (${F(1,2)}; 0) і (1; 0)`)]});
+}
+
+/* 11.5 */
+exr({tag:TAG('11.5'),cond:`Графік функції ${fx('y = −6x² + x + c')} перетинає вісь ординат у точці ${fx('M (0; −8)')}. Знайдіть значення ${m('c')}.`,
+  hint:`точка ${m('M')} лежить на графіку: підставте ${m('x = 0')} і ${m('y = −8')} у формулу функції`,
+  inputs:[{lab:m('c ='),ans:-8}],
+  steps:[L('M (0; −8): x = 0, y = −8'),L('−8 = −6 · 0² + 0 + c'),FIN('c = −8')]});
+
+/* 11.7 */
+[['1',1,-12,3],['2',-1,4,-6],['3',.3,2.4,-5],['4',-5,10,2]].forEach(e=>{
+  const [n,a,b,c]=e,R=v=>Math.round(v*1e6)/1e6,x0=R(-b/(2*a)),y0=R(a*x0*x0+b*x0+c);
+  block({g:'ex',opts:1,nonew:1,tag:TAG('11.7',n),first:{a,b,c,x0,y0},hint:vtxHint,render:vtxRender});
+});
+
+/* 11.9 (рисунок 11.3 у тексті підручника відсутній: наближені параболи з тими самими властивостями) */
+[['а',1,-2,-3,{x0:-4,x1:6,y0:-5,y1:7}],['б',-1,-4,-3,{x0:-7,x1:3,y0:-7,y1:3}]].forEach(e=>{
+  const [lt,a,b,c,view]=e,x0=-b/(2*a),f=x=>a*x*x+b*x+c,y0=f(x0),r=roots(a,b,c),up=a>0;
+  const pos=up?`y${GT}0 на кожному з проміжків (−∞; ${fmt(r[0])}) і (${fmt(r[1])}; +∞)`:`y${GT}0 на проміжку (${fmt(r[0])}; ${fmt(r[1])})`;
+  const neg=up?`y${LT}0 на проміжку (${fmt(r[0])}; ${fmt(r[1])})`:`y${LT}0 на кожному з проміжків (−∞; ${fmt(r[0])}) і (${fmt(r[1])}; +∞)`;
+  const inc=up?`зростає на проміжку [${fmt(x0)}; +∞)`:`зростає на проміжку (−∞; ${fmt(x0)}]`;
+  const dec=up?`спадає на проміжку (−∞; ${fmt(x0)}]`:`спадає на проміжку [${fmt(x0)}; +∞)`;
+  exr({tag:TAG('11.9',lt)+' · рисунок наближений',
+    cond:`Користуючись графіком квадратичної функції ${fx('y = ax² + bx + c')}, зображеним на рисунку, визначте:<ol><li>знаки старшого коефіцієнта і дискримінанта квадратного тричлена ${m('ax² + bx + c')};</li><li>координати вершини параболи;</li><li>нулі функції;</li><li>проміжки знакосталості функції;</li><li>проміжок зростання та проміжок спадання функції.</li></ol>`,
+    steps:[L(`1) вітки напрямлені ${up?'вгору':'вниз'}: a${up?GT:LT}0`,`парабола перетинає вісь Ox у двох точках: D${GT}0`),
+      LC(CV,`2) вершина: (${fmt(x0)}; ${fmt(y0)})`),LC(CZ,`3) нулі функції: ${fmt(r[0])} і ${fmt(r[1])}`),
+      LC(CT,'4) '+pos)+LC(KP,neg),LC(O1,'5) '+inc)+LC(O2,dec)],
+    fig:planeSVG(view,26,g=>{
+      let s=pathEl(g,f,{stroke:CC,w:3.6});
+      s+=up?axEl(g,-99,r[0],CT,4)+axEl(g,r[1],99,CT,4)+axEl(g,r[0],r[1],KP,4):axEl(g,r[0],r[1],CT,4)+axEl(g,-99,r[0],KP,4)+axEl(g,r[1],99,KP,4);
+      s+=up?arcEl(g,f,x0,99,O1,5)+arcEl(g,f,-99,x0,O2,5):arcEl(g,f,-99,x0,O1,5)+arcEl(g,f,x0,99,O2,5);
+      s+=dotEl(g,r[0],0,CZ,3)+dotEl(g,r[1],0,CZ,3)+dotEl(g,x0,y0,CV,2,1.15)+vLabel(g,x0,y0,a,2);
+      return s;},{},'tall')});
+});
+
+/* 11.13 */
+{
+  const o={a:1,b:-6,c:8,view:{x0:-2,x1:8,y0:-3,y1:10},u:26,xs:[1,5],tall:1};
+  block({g:'ex',nonew:1,tag:TAG('11.13','графік'),first:{o},
+    render:t=>{const G=gbuild(t.o);return {cond:`Побудуйте графік функції ${fx('f(x) = x² − 6x + 8')}.`,steps:G.st,fig:G.fig()}}});
+  const BR='#8a5a1c',fgx=(extra)=>gfull(o,extra),T=n=>TAG('11.13',n);
+  const COND=`Користуючись графіком функції ${fx('f(x) = x² − 6x + 8')}, знайдіть`;
+  exr({tag:T('1'),cond:`${COND}: ${m('f(6); f(1)')}.`,hint:`знайдіть на осі ${m('Ox')} число і піднімайтеся до графіка`,
+    inputs:[{lab:m('f(6) ='),ans:8},{lab:m('f(1) ='),ans:3}],
+    steps:[LC(CO,'f(6) = 8'),LC(CO,'f(1) = 3')],
+    fig:fgx((g,f)=>segEl(g,6,0,6,8,CO,1)+segEl(g,0,8,6,8,CO,1)+dotEl(g,6,8,CO,1)+segEl(g,1,0,1,3,CO,2)+segEl(g,0,3,1,3,CO,2)+dotEl(g,1,3,CO,2))});
+  exr({tag:T('2'),cond:`${COND} значення ${m('x')}, при яких ${m('f(x) = 8; f(x) = −1; f(x) = −2')}.`,
+    steps:[L('f(x) = 8')+LC(BR,'x = 0 або x = 6'),L('f(x) = −1')+LC(BR,'x = 3'),L('f(x) = −2')+LC(BR,'таких значень x не існує'),FIN('0 і 6; 3; таких значень немає')],
+    fig:fgx((g,f)=>hlEl(g,8,BR,1)+dotEl(g,0,8,BR,1)+dotEl(g,6,8,BR,1)+txtEl(g,g.X1,8,'y = 8',BR,1,{dx:-6,dy:-7,anc:'end',fs:15})
+      +hlEl(g,-1,BR,2)+txtEl(g,g.X1,-1,'y = −1',BR,2,{dx:-6,dy:17,anc:'end',fs:15})
+      +hlEl(g,-2,BR,3)+txtEl(g,g.X1,-2,'y = −2',BR,3,{dx:-6,dy:18,anc:'end',fs:15}))});
+  const base=(a,b,c,d)=>[{t:a,ok:1},{t:b},{t:c},{t:d}];
+  exr({tag:T('3'),cond:`${COND} найбільше і найменше значення функції.`,hint:`найнижча точка графіка — вершина параболи, вітки напрямлені вгору`,
+    opts:base('найменше −1; найбільшого немає','найбільше −1; найменшого немає','найменше 3; найбільшого немає','найменше −1; найбільше 8'),
+    steps:[LC(CV,'найменше значення функції дорівнює −1'),FIN('Найбільшого значення функція не має')],
+    fig:fgx((g,f)=>hlEl(g,-1,CV,1)+txtEl(g,g.X1,-1,'y = −1',CV,1,{dx:-6,dy:-8,anc:'end',fs:16}))});
+  exr({tag:T('4'),cond:`${COND} область значень функції.`,hint:`подивіться, які значення ${m('y')} має графік: від найнижчої точки й угору`,
+    opts:base(m('[−1; +∞)'),m('(−∞; −1]'),m('[3; +∞)'),m('(−1; +∞)')),
+    steps:[FIN('E(f) = [−1; +∞)')],
+    fig:fgx((g,f)=>hlEl(g,-1,CV,1)+segEl(g,0,-1,0,g.Y1,CV,1,{w:7,dash:false,op:.35}))});
+  exr({tag:T('5'),cond:`${COND} проміжок зростання та проміжок спадання функції.`,hint:`абсциса вершини ${m(X0+' = 3')}: ліворуч від неї графік іде вниз, праворуч — угору`,
+    opts:base(m('зростає на [3; +∞), спадає на (−∞; 3]'),m('зростає на (−∞; 3], спадає на [3; +∞)'),m('зростає на [−1; +∞), спадає на (−∞; −1]'),m('зростає на (3; +∞), спадає на (−∞; −1)')),
+    steps:[LC(O1,'зростає на проміжку [3; +∞)')+LC(O2,'спадає на проміжку (−∞; 3]')],
+    fig:fgx((g,f)=>arcEl(g,f,3,99,O1,1)+arcEl(g,f,-99,3,O2,1))});
+  exr({tag:T('6'),cond:`${COND}, при яких значеннях аргументу функція набуває додатних значень, а при яких — від’ємних.`,hint:`додатні значення — де графік лежить вище від осі ${m('Ox')}; нулі функції 2 і 4`,
+    opts:base(m('f(x)'+GT+'0 при x'+LT+'2 або x'+GT+'4; f(x)'+LT+'0 при 2'+LT+'x'+LT+'4'),m('f(x)'+GT+'0 при 2'+LT+'x'+LT+'4; f(x)'+LT+'0 при x'+LT+'2 або x'+GT+'4'),m('f(x)'+GT+'0 при x ≤ 2 або x ≥ 4; f(x)'+LT+'0 при 2 ≤ x ≤ 4'),m('f(x)'+GT+'0 при x'+GT+'3; f(x)'+LT+'0 при x'+LT+'3')),
+    steps:[LC(CT,'f(x)'+GT+'0 при x'+LT+'2 або x'+GT+'4')+LC(KP,'f(x)'+LT+'0 при 2'+LT+'x'+LT+'4')],
+    fig:fgx((g,f)=>axEl(g,-99,2,CT,1)+axEl(g,4,99,CT,1)+axEl(g,2,4,KP,1))});
+}
+
+/* ============ Тренажери (випадкові завдання) ============ */
+/* ---- Тренажер: вершина ---- */
+block({g:'gen',opts:1,tag:'Тренажер: вершина параболи',gen:genV,hint:vtxHint,render:vtxRender,
+  extra:()=>{const a=pick([1,2,3,-1,-2,-3]),x0=pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
+    return {q:`Абсциса вершини параболи ${m('y = ax² + bx + c')} дорівнює ${fmt(x0)}, а ${m('a = '+fmt(a))}. Знайдіть ${m('b')}.`,ans:[-2*a*x0],hint:`${m(X0+' = −'+F('b','2a'))}`}}});
+
+/* ---- Побудова графіка: завдання ---- */
+block({g:'gen',tag:'Тренажер: побудова графіка',
+  gen:prev=>{for(;;){const p=genZ([1,-1,2,-2],true,prev),view=viewFor(p),xs=tablePts(p,view);if(!xs.length)continue;p.o={a:p.a,b:p.b,c:p.c,view,u:calcU(view),xs,tall:1};return p}},
+  render:t=>{const G=gbuild(t.o);return {cond:`Побудуйте графік функції ${fx('f(x) = '+poly(t.a,t.b,t.c))}.`,steps:G.st,fig:G.fig()}},
+  extra:()=>{const b=2*pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
+    return {q:`Графік функції ${m('y = x² '+(b<0?'−':'+')+' '+Math.abs(b)+'x + c')} має з віссю абсцис одну спільну точку. Знайдіть ${m('c')}.`,ans:[b*b/4],hint:`вершина параболи лежить на осі ${m('Ox')}, тобто ${m(Y0+' = 0')}`}}});
+
+
+/* ---- Властивості за графіком: завдання ---- */
+const ivl=(a,b,l,r)=>`${l?'[':'('}${a}; ${b}${r?']':')'}`;
+block({g:'gen',tag:'Тренажер: властивості функції за графіком',
+  gen:prev=>genZ([1,-1,2,-2],false,prev),
+  render:t=>{const {a,b,c,r1,r2,x0,y0}=t,up=a>0,view=viewFor(t),u=calcU(view);
+    const R1=fmt(r1),R2=fmt(r2),X=fmt(x0),Y=fmt(y0);
+    const pos=up?`f(x)${GT}0 на кожному з проміжків (−∞; ${R1}) і (${R2}; +∞)`:`f(x)${GT}0 на проміжку (${R1}; ${R2})`;
+    const neg=up?`f(x)${LT}0 на проміжку (${R1}; ${R2})`:`f(x)${LT}0 на кожному з проміжків (−∞; ${R1}) і (${R2}; +∞)`;
+    const steps=[LC(CV,`E(f) = ${up?`[${Y}; +∞)`:`(−∞; ${Y}]`}`),
+      LC(O1,up?`зростає на проміжку [${X}; +∞)`:`зростає на проміжку (−∞; ${X}]`)+LC(O2,up?`спадає на проміжку (−∞; ${X}]`:`спадає на проміжку [${X}; +∞)`),
+      LC(CT,pos)+LC(KP,neg),
+      FIN(up?`Найменше значення функції дорівнює ${Y}, найбільшого значення не існує`:`Найбільше значення функції дорівнює ${Y}, найменшого значення не існує`)];
+    const fig=gfull({a,b,c,view,u,tall:1},(g,f)=>hlEl(g,y0,CV,1)+txtEl(g,g.X0,y0,'y = '+Y,CV,1,{dx:8,dy:up?20:-8,fs:16})
+      +(up?arcEl(g,f,x0,99,O1,2)+arcEl(g,f,-99,x0,O2,2):arcEl(g,f,-99,x0,O1,2)+arcEl(g,f,x0,99,O2,2))
+      +(up?axEl(g,-99,r1,CT,3)+axEl(g,r2,99,CT,3)+axEl(g,r1,r2,KP,3):axEl(g,r1,r2,CT,3)+axEl(g,-99,r1,KP,3)+axEl(g,r2,99,KP,3)));
+    return {cond:`Користуючись графіком функції ${fx('f(x) = '+poly(a,b,c))}, знайдіть область її значень, проміжки зростання і спадання, проміжки знакосталості, найбільше або найменше значення функції.`,steps,fig}},
+  extra:t=>{const {a,b,c,x0}=t,view=viewFor(t),f=x=>a*x*x+b*x+c;let p,q;
+    do{p=rnd(view.x0+1,view.x1-1);q=rnd(view.x0+1,view.x1-1)}while(q-p<2||q-p>7);
+    const v=[f(p),f(q)];if(p<=x0&&x0<=q)v.push(f(x0));
+    const up=a>0;
+    return {q:`Знайдіть ${up?'найменше':'найбільше'} значення функції ${m('f(x) = '+poly(a,b,c))} на проміжку ${m('['+fmt(p)+'; '+fmt(q)+']')}.`,ans:[up?Math.min(...v):Math.max(...v)],hint:`з’ясуйте, чи належить абсциса вершини ${m(X0+' = '+fmt(x0))} цьому проміжку`}}});
+
+
+/* ---- Знайдіть помилку ---- */
+function mkStmt(tp,truth){
+  const p=genV(null),{a,b,c,x0,y0}=p,D=b*b-4*a*c;
+  let claim,fix;
+  if(tp==='dir'){const r=a>0?'вгору':'вниз',w=a>0?'вниз':'вгору';claim=`вітки параболи напрямлені ${truth?r:w}`;fix=`вітки параболи напрямлені ${r}`}
+  else if(tp==='x0'){const v=truth?x0:pick([-x0,2*x0]);claim=`${X0} = ${fmt(v)}`;fix=`${X0} = ${fmt(x0)}`}
+  else if(tp==='y0'){const v=truth?y0:pick([c,-y0,y0+a].filter(z=>z!==y0));claim=`${Y0} = ${fmt(v)}`;fix=`${Y0} = ${fmt(y0)}`}
+  else if(tp==='oy'){claim=truth?`з віссю Oy парабола перетинається в точці (0; ${fmt(c)})`:`з віссю Oy парабола перетинається в точці (${fmt(c)}; 0)`;fix=`з віссю Oy парабола перетинається в точці (0; ${fmt(c)})`}
+  else if(tp==='E'){const r=a>0?`[${fmt(y0)}; +∞)`:`(−∞; ${fmt(y0)}]`,w=a>0?`(−∞; ${fmt(y0)}]`:`[${fmt(y0)}; +∞)`;claim=`E(f) = ${truth?r:w}`;fix=`E(f) = ${r}`}
+  else{const nz=D>0?2:D===0?1:0,v=truth?nz:pick([0,1,2].filter(z=>z!==nz));claim=`кількість нулів функції дорівнює ${v}`;fix=`кількість нулів функції дорівнює ${nz}`}
+  return {line:`y = ${poly(a,b,c)}`,claim,fix,truth};
+}
+function genErr(){
+  const types=shuffle(['dir','x0','y0','oy','E','z']).slice(0,5),nF=rnd(2,3),fs=new Set(shuffle([0,1,2,3,4]).slice(0,nF));
+  return types.map((tp,i)=>mkStmt(tp,!fs.has(i)));
+}
+SCR.push({g:'err',init:sc=>{
+  const card=$('.card',sc),list=$('.list',sc),ms=$('.msg',sc);
+  const load=()=>{
+    card.style.setProperty('--qc',QC[(qn++)%QC.length]);
+    list.innerHTML=genErr().map(s=>`<div class="er" data-t="${s.truth?1:0}"><div class="eq">${m(s.line)}<br>${m(s.claim)}</div><div class="yn"><button data-v="1">Так</button><button data-v="0">Ні</button></div><div class="fixr" hidden><div class="fin">${m(s.fix)}</div></div></div>`).join('');
+    ms.textContent='';ms.className='msg';
+  };
+  sc.addEventListener('click',e=>{
+    const b=e.target.closest('.yn button');
+    if(b){const row=b.closest('.er');if(row.dataset.done)return;$$('button',row).forEach(x=>x.classList.toggle('sel',x===b));row.dataset.v=b.dataset.v}
+    else if(e.target.closest('[data-chk]')){
+      const rows=$$('.er',sc);
+      if(rows.some(r=>r.dataset.v===undefined)){ms.textContent='Дайте відповідь у кожному рядку';ms.className='msg bad';return}
+      let bad=0;
+      rows.forEach(r=>{r.dataset.done=1;const ok=r.dataset.v===r.dataset.t;r.classList.add(ok?'ok':'bad');if(!ok)bad++;if(r.dataset.t==='0')$('.fixr',r).hidden=false});
+      ms.textContent=bad?'Є помилки: перегляньте виправлені записи':'Усе правильно!';ms.className='msg '+(bad?'bad':'ok');
+    }
+    else if(e.target.closest('[data-new]'))load();
+  });
+  load();
+},html:`<div class="card ex"><span class="tag">Знайдіть помилку</span><div class="cond">Чи правильне твердження для функції?</div><div class="list"></div><div class="msg"></div><div class="gb"><button class="pri" data-chk>Перевірити відповіді</button><button data-new>Нові твердження ↻</button></div></div>`});
+
+/* ---- Відновіть функцію ---- */
+function genH(prev){
+  for(let t=0;t<5000;t++){
+    const a=pick([1,-1,2,-2]),r1=rnd(-4,4),r2=rnd(-4,4);
+    if(r1>=r2||(r1+r2)%2||!r1||!r2)continue;
+    const k=(r2-r1)/2,y0=-a*k*k,c=a*r1*r2;
+    if(Math.abs(c)>12||Math.abs(y0)>12)continue;
+    if(prev&&prev.a===a&&prev.r1===r1&&prev.r2===r2)continue;
+    return {a,b:-a*(r1+r2),c,r1,r2,x0:(r1+r2)/2,y0,k};
+  }
+}
+SCR.push({g:'hard',init:sc=>{
+  const card=$('.card',sc);let prev=null,t=null;
+  const load=()=>{
+    t=genH(prev);prev=t;const {a,b,c,r1,r2,x0,y0}=t,f=x=>a*x*x+b*x+c,view=viewFor(t),u=calcU(view);
+    card.style.setProperty('--qc',QC[(qn++)%QC.length]);
+    $('.figc',sc).innerHTML=planeSVG(view,u,g=>{
+      let s=pathEl(g,f,{stroke:CC,w:3.8})+dotEl(g,r1,0,CZ,0,1.2)+dotEl(g,r2,0,CZ,0,1.2)+dotEl(g,0,c,CO,0,1.2);
+      const dy=a>0?24:-12;
+      s+=txtEl(g,r1,0,`(${fmt(r1)}; 0)`,CZ,0,{dx:-8,dy,anc:'end'})+txtEl(g,r2,0,`(${fmt(r2)}; 0)`,CZ,0,{dx:8,dy,anc:'start'})+txtEl(g,0,c,`(0; ${fmt(c)})`,CO,0,{dx:12,dy:6});
+      return s},{},'tall');
+    $('.cond',sc).innerHTML=`Графік квадратичної функції ${fx('y = ax² + bx + c')} зображено на рисунку. Знайдіть ${m('a')}, ${m('b')} і ${m('c')}.`;
+    const nm=a>0?'':'';
+    $('.steps',sc).innerHTML=mkSteps([
+      L('x = 0: y = c',`c = ${fmt(c)}`),
+      L(`${X1} · ${X2} = ${F('c','a')}`,`${fmt(r1*r2)} = ${F(fmt(c),'a')}`,`a = ${fmt(a)}`),
+      L(`b = −a · (${X1} + ${X2}) = ${MN}${par(a)} · ${par(r1+r2)} = ${fmt(b)}`),
+      FIN(`y = ${poly(a,b,c)}`),
+      L(x0Line(a,b),y0Line(a,b,c,x0))+LC(CV,`Вершина: (${fmt(x0)}; ${fmt(y0)})`)]);
+    $$('.inp',sc).forEach(i=>{i.value='';i.className='inp'});
+    const ms=$('.msg',sc);ms.textContent='';ms.className='msg';
+    recalc(sc);card.scrollTop=0;
+  };
+  sc.addEventListener('click',e=>{
+    if(e.target.closest('[data-new]'))load();
+    else if(e.target.closest('.chk')){
+      const ii=$$('.inp',sc),ms=$('.msg',sc),want=[t.a,t.b,t.c],got=ii.map(i=>parseNum(i.value));
+      if(got.some(v=>v===null)){ms.textContent='Введіть три числа';ms.className='msg bad';return}
+      ii.forEach((i,k)=>i.className='inp '+(Math.abs(got[k]-want[k])<1e-9?'ok':'bad'));
+      if(got.every((v,k)=>Math.abs(v-want[k])<1e-9)){ms.textContent='Правильно!';ms.className='msg ok'}
+      else{ms.innerHTML='Неправильно. Підказка: за теоремою Вієта '+m(X1+' · '+X2+' = '+F('c','a')+', '+X1+' + '+X2+' = −'+F('b','a'));ms.className='msg bad'}
+    }
+  });
+  $$('.inp',sc).forEach(i=>i.addEventListener('input',()=>{i.className='inp'}));
+  load();
+},html:`<div class="card ex"><span class="tag">Відновіть функцію за графіком</span><div class="two"><div class="lc"><div class="cond"></div>
+<div class="abc"><span>${m('y = ')}</span><input class="inp" inputmode="decimal" autocomplete="off"><span>${m('x² + ')}</span><input class="inp" inputmode="decimal" autocomplete="off"><span>${m('x + ')}</span><input class="inp" inputmode="decimal" autocomplete="off"></div>
+<div class="gb"><button class="pri chk">Перевірити</button></div><div class="msg"></div>
+${CTL('Показати кроки ▶',1)}<div class="steps"></div></div><div class="figc"></div></div></div>`});
+
+/* ---- Підсумок ---- */
+const SENT=[
+ [`Функцію, яку можна задати формулою виду ${m('y = ax² + bx + c')}, де ${m('a ≠ 0')}, називають …`,'квадратичною'],
+ ['Графіком квадратичної функції є …',`парабола, яка дорівнює параболі ${m('y = ax²')}`],
+ [`Якщо ${m('a'+GT+'0')}, то вітки параболи напрямлені …, а якщо ${m('a'+LT+'0')}, то …`,'вгору; вниз'],
+ ['Абсцису вершини параболи можна знайти за формулою …',m(X0+' = −'+F('b','2a'))],
+ [`Якщо ${m('a'+GT+'0')}, то областю значень функції є …`,m(`[${Y0}; +∞)`)+', а якщо '+m('a'+LT+'0')+' — '+m(`(−∞; ${Y0}]`)],
+ [`Якщо ${m('a'+GT+'0')}, то функція спадає на … і зростає на …`,m(`(−∞; ${X0}]`)+' і '+m(`[${X0}; +∞)`)]];
+SCR.push({g:'fin',html:`<div class="card"><div id="sumA"><h2>Підсумок</h2>
+${CTL('Далі ↓')}
+<div class="blk" data-s="1">Функцію виду ${m('y = '+col(KA,'a')+'x² + '+col(KB,'b')+'x + '+col(KC,'c'))}, де ${m(col(KA,'a ≠ 0'))}, називають <b>квадратичною</b></div>
+<div class="blk" data-s="2">Її графік — <b>парабола</b>, яка дорівнює параболі ${m('y = ax²')}. Якщо ${m('a'+GT+'0')}, то вітки напрямлені <b>вгору</b>, якщо ${m('a'+LT+'0')} — <b>вниз</b></div>
+<div class="blk" data-s="3">${col(CV,'Вершина')}: ${m(col(CV,X0+' = −'+F('b','2a')))}, а ${m(col(CV,Y0))} — значення функції в точці ${m(X0)}</div>
+<div class="blk" data-s="4">Схема побудови: ${col(CV,'вершина')} → напрямок віток → ${col(CZ,'нулі')}, ${col(CO,'точка перетину з віссю ординат')}, ${col(CT,'ще кілька точок')} → плавна неперервна лінія</div>
+<div class="blk" data-s="5">За графіком: ${col(CV,'область значень')}, ${col(O1,'зростання')} і ${col(O2,'спадання')}, ${col(CT,'проміжки знакосталості')}, найбільше або найменше значення</div>
+<div class="row" data-s="5" style="justify-content:flex-start"><button id="selfgo">Перевірити себе ▶</button></div></div>
+<div id="sumB" style="display:none"><h2>Закінчіть речення</h2>
+${SENT.map((s,i)=>`<div class="sent">${s[0]}<br><button class="rv" data-i="${i}">Показати</button> <span class="fin" hidden></span></div>`).join('')}
+<div class="row" style="justify-content:flex-start"><button class="gh" id="selfback">← Показати підсумок</button></div></div></div>`});
+
+/* ---- Світлофор ---- */
+SCR.push({g:'fin',html:`<div class="card" style="text-align:center"><h2>Світлофор</h2>
+<div style="font-weight:700;font-size:1.3rem">Як ви засвоїли тему?</div>
+<div class="sv"><div><button class="g" data-c="g">0</button><div>Усе зрозуміло</div></div><div><button class="y" data-c="y">0</button><div>Є питання</div></div><div><button class="r" data-c="r">0</button><div>Потрібна допомога</div></div></div>
+<div class="lamp" id="lamp"></div>
+<div class="row"><button id="svok">ОК</button><button class="gh" id="svreset">Скинути</button><button id="svend">Завершити урок</button></div>
+<div id="svfin" style="display:none"><div class="fin" style="font-size:1.3rem">Дякую за урок!</div><div class="row"><button id="restart" class="gh">↻ Почати спочатку</button></div></div></div>`});
+
+/* ============ Рендер ============ */
+const stage=$('#stage');
+$('#ttl').innerHTML='Урок 11 · Квадратична функція, її графік і властивості';
+SCR.forEach((s,i)=>{const sec=document.createElement('section');sec.className='scr';sec.id='s'+i;sec.innerHTML=s.html;stage.appendChild(sec)});
+SCR.forEach((s,i)=>{if(s.init)s.init($('#s'+i))});
+$$('.scr').forEach(sc=>recalc(sc));
+stage.addEventListener('click',e=>{
+  const t=e.target,sc=t.closest('.scr');if(!sc)return;
+  if(t.matches('.nx[data-more]')){sc._s=Math.min(sc._max,sc._s+1);applySteps(sc,true)}
+  else if(t.matches('.rs:not([data-rst])')){sc._s=0;applySteps(sc);const c=$('.card',sc);if(c)c.scrollTop=0}
+  else if(t.matches('.rv')){const fin=t.parentNode.querySelector('.fin');fin.innerHTML=SENT[+t.dataset.i][1];fin.hidden=false;t.style.display='none'}
+});
+$('#selfgo').onclick=()=>{$('#sumA').style.display='none';$('#sumB').style.display='block'};
+$('#selfback').onclick=()=>{$('#sumB').style.display='none';$('#sumA').style.display='block'};
+/* світлофор */
+const cnt={g:0,y:0,r:0};
+$$('.sv button').forEach(b=>b.onclick=()=>{cnt[b.dataset.c]++;b.textContent=cnt[b.dataset.c]});
+$('#svreset').onclick=()=>{cnt.g=cnt.y=cnt.r=0;$$('.sv button').forEach(b=>b.textContent=0);$('#lamp').style.background='#e2e8f0';$('#lamp').style.boxShadow='none'};
+$('#svok').onclick=()=>{const mx=Math.max(cnt.g,cnt.y,cnt.r);if(!mx)return;const c=cnt.g===mx?'#22c55e':(cnt.y===mx?'#f5b800':'#ef4444');$('#lamp').style.background=c;$('#lamp').style.boxShadow='0 0 1.5rem '+c};
+/* салют без зовнішніх бібліотек */
+function confetti(){
+  const cv=$('#cf'),cx=cv.getContext('2d');cv.width=innerWidth;cv.height=innerHeight;
+  const P=[];for(let i=0;i<140;i++)P.push({x:innerWidth/2,y:innerHeight*.55,vx:(Math.random()-.5)*16,vy:-Math.random()*16-4,c:pick(['#e8590c','#7048e8','#d6336c','#1971c2','#2f9e44','#f5b800']),s:5+Math.random()*6,l:90+Math.random()*50});
+  let n=0;(function fr(){cx.clearRect(0,0,cv.width,cv.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.l--;cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.s,p.s)});n++;if(n<150)requestAnimationFrame(fr);else cx.clearRect(0,0,cv.width,cv.height)})();
+}
+$('#svend').onclick=()=>{$('#svfin').style.display='block';confetti()};
+$('#restart').onclick=()=>{$$('.scr').forEach(sc=>{sc._s=0;applySteps(sc)});$('#svfin').style.display='none';$('#svreset').onclick();$('#selfback').onclick();$$('[data-new]').forEach(b=>b.click());show(0)};
+$('#go').onclick=()=>show(1);
+
+/* ============ Навігація, таймер, картка ============ */
+const GRP={start:0,warm:3,th:9,ex:18,gen:5,err:3,hard:4,fin:3};
+const firstOf=g=>SCR.findIndex(s=>s.g===g);
+let cur=0,tmGrp=null,tmEnd=0,tmTot=0;
+function show(i){
+  cur=Math.max(0,Math.min(SCR.length-1,i));
+  $$('.scr').forEach((e,k)=>e.classList.toggle('on',k===cur));
+  $('#back').disabled=cur===0;$('#fwd').disabled=cur===SCR.length-1;
+  $('#cnt').textContent=cur?cur+' / '+(SCR.length-1):'';
+  $('#bar b').style.width=(cur/(SCR.length-1)*100)+'%';
+  $('#nav').style.display=cur===0?'none':'flex';
+  $('#top').style.visibility=cur===0?'hidden':'visible';
+  const g=SCR[cur].g;
+  if(g!==tmGrp){tmGrp=g;tmTot=GRP[g]*60;tmEnd=Date.now()+tmTot*1000}
+  $('#tmw').style.visibility=GRP[g]?'visible':'hidden';
+  tick();
+  const c=$('#s'+cur+' .card');if(c)c.scrollTop=0;
+}
+function tick(){
+  const left=Math.max(0,Math.round((tmEnd-Date.now())/1000)),tot=tmTot||1,fr=left/tot,b=$('#tmr b');
+  b.style.height=(fr*100)+'%';b.style.background=fr>.4?'var(--ok)':(fr>.15?'#f5b800':'var(--bad)');
+  $('#tip').textContent='Залишилось '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0')+' з '+Math.round(tot/60)+' хв';
+}
+setInterval(tick,1000);
+$('#tmr').onclick=()=>{tmEnd=Date.now()+tmTot*1000;tick()};
+$('#back').onclick=()=>show(cur-1);$('#fwd').onclick=()=>show(cur+1);
+const openM=id=>$(id).classList.add('on');
+$('#gem').onclick=$('#gem2').onclick=()=>openM('#gm');
+$$('[data-close]').forEach(b=>b.onclick=()=>b.closest('.modal').classList.remove('on'));
+$$('.modal').forEach(md=>md.addEventListener('click',e=>{if(e.target===md)md.classList.remove('on');const a=e.target.closest('[data-go]');if(a){md.classList.remove('on');show(+a.dataset.go)}}));
+{
+  const li=(i,t,d)=>`<li><a data-go="${i}">${t}</a> — ${d} хв</li>`;
+  $('#gml').innerHTML=li(firstOf('warm'),'Усна вправа: корені рівняння, значення функції',GRP.warm)
+    +li(firstOf('th'),'Означення, графік, вершина, схема побудови, властивості за графіком',GRP.th)
+    +li(firstOf('ex'),'Розв’язування вправ підручника 11.1, 11.2, 11.4, 11.5, 11.7, 11.9, 11.13',GRP.ex)
+    +li(firstOf('gen'),'Тренажери: вершина, побудова, властивості',GRP.gen)
+    +li(firstOf('err'),'Знайдіть помилку',GRP.err)
+    +li(firstOf('hard'),'Відновіть функцію за графіком',GRP.hard)
+    +li(firstOf('fin'),'Підсумок і світлофор',GRP.fin);
+}
+document.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName||''))return;
+  if(e.key==='ArrowRight')show(cur+1);
+  else if(e.key==='ArrowLeft')show(cur-1);
+  else if(e.key==='ArrowDown'){const b=$$('#s'+cur+' .nx[data-more]').find(x=>x.style.display!=='none');if(b){b.click();e.preventDefault()}}
+});
+show(0);
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+
+</body></html>
