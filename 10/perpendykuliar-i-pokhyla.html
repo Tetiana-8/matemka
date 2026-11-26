@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Перпендикуляр і похила</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<style>
+:root{
+  --panelLeft:#F2E6FF; --panelRight:#FAF5FF; --brand:#6B21A8; --brandLight:#F3E8FF;
+  --ink:#1e293b; --muted:#64748b; --line:#e9d5ff;
+  --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#2563eb; --orange:#ea580c; --violet:#7e22ce;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffffff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{height:100dvh;width:100%}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;font-size:14px;background:#fff}
+@media(min-width:768px){.app{font-size:15px}}
+@media(min-width:1024px){.app{font-size:17px}}
+@media(min-width:1280px){.app{font-size:20px}}
+@media(min-width:1536px){.app{font-size:22px}}
+.main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.left{order:2;height:55%;min-height:0;background:var(--panelLeft);position:relative;border-top:1px solid var(--line)}
+.right{order:1;height:45%;min-height:0;background:var(--panelRight);position:relative;overflow:hidden}
+@media(min-width:768px){
+  .main{flex-direction:row}
+  .left{order:1;height:auto;width:40%;border-top:0;border-right:1px solid var(--line)}
+  .right{order:2;height:auto;width:60%}
+}
+.left.full{order:1;height:auto;flex:1;width:100%;border:0}
+.fullin{max-width:46em;margin:0 auto;padding-top:.4em}
+.left::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4.6em;background:linear-gradient(to top,var(--panelLeft) 60%,rgba(242,230,255,0));pointer-events:none;z-index:20}
+.lscroll{position:absolute;inset:0;overflow-y:auto;padding:.8em max(16px,env(safe-area-inset-left,0px)) 5em;scrollbar-width:thin}
+.nav{position:absolute;right:.7em;bottom:.6em;display:flex;gap:.5em;z-index:30;flex-wrap:wrap;justify-content:flex-end}
+.btn{min-height:44px;padding:0 1.05em;border-radius:999px;border:1px solid #d8b4fe;background:var(--brandLight);
+  color:var(--brand);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  box-shadow:0 2px 6px rgba(107,33,168,.12);transition:transform .15s,background .15s}
+.btn:hover{background:#ebdcff}.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+.btn.sm{min-height:40px;font-size:.92em;padding:0 .9em;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:.4em;margin:.55em 0}
+.tab{min-height:42px;padding:.2em .85em;border-radius:999px;border:1px solid #d8b4fe;background:#fff;color:var(--brand);
+  font:inherit;font-weight:700;cursor:pointer;line-height:1.15;text-align:center}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.tab.sq{min-width:44px}
+.tab.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+.tab.done.on{background:#16a34a;color:#fff;border-color:#16a34a}
+.box{background:#fff;border:2px solid var(--line);border-radius:.8em;padding:.75em .9em;margin:.5em 0}
+.box h4{margin:0 0 .25em;font-size:1em;color:var(--brand)}
+.box p{margin:0;font-weight:700;line-height:1.35}
+.note{background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em .8em;margin:.5em 0;line-height:1.45}
+.note b{font-weight:700}
+.lead{margin:.2em 0 .1em;line-height:1.4;font-weight:600}
+.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:600;white-space:nowrap}
+.cg{color:var(--green);font-weight:700}.cr{color:var(--red);font-weight:700}.cv{color:var(--violet);font-weight:700}
+.cb{color:var(--blue);font-weight:700}.co{color:var(--orange);font-weight:700}.ca{color:var(--amber);font-weight:700}
+.sliderRow{display:flex;align-items:center;gap:.7em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.35em .8em;margin:.45em 0}
+.sliderRow label{font-weight:700;min-width:5.2em;font-size:.95em;line-height:1.15}
+.sliderRow input[type=range]{flex:1;accent-color:var(--brand);height:30px;min-width:0}
+.sliderRow output{min-width:3.6em;text-align:right;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:.5em 0}
+.step{display:flex;gap:.5em;background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.55em .75em;line-height:1.45;animation:fadeUp .4s ease both}
+.step .sn{font-weight:800;color:var(--brand)}
+.step.last{border-color:#86efac;background:#f0fdf4}
+.down{align-self:center;width:46px;height:46px;border-radius:50%;border:1px solid #d8b4fe;background:var(--brandLight);color:var(--brand);
+  font-size:1.3em;cursor:pointer;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
+.fade{animation:fadeUp .45s ease both}
+.tools{position:absolute;left:.6em;top:.6em;display:flex;gap:.4em;z-index:5}
+.tool{width:44px;height:44px;border-radius:50%;border:1px solid #d8b4fe;background:#fff;color:var(--brand);cursor:pointer;display:grid;place-items:center;padding:0}
+.tool.on{background:var(--brand);color:#fff}
+.hint{position:absolute;right:.6em;top:.7em;display:flex;align-items:center;gap:.4em;background:rgba(255,255,255,.9);border:1px solid var(--line);
+  border-radius:999px;padding:.3em .75em;font-size:.82em;font-weight:700;color:var(--brand);pointer-events:none;z-index:5}
+.legend{position:absolute;left:.6em;bottom:.6em;display:flex;flex-wrap:wrap;gap:.2em .85em;background:rgba(255,255,255,.9);
+  padding:.35em .65em;border-radius:.6em;font-size:.82em;font-weight:700;max-width:calc(100% - 1.2em);z-index:5;border:1px solid var(--line)}
+.legend span{white-space:nowrap}
+.dot{display:inline-block;width:1em;height:.32em;border-radius:3px;margin-right:.35em;vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0}
+.chip{min-height:42px;padding:.15em .8em;border-radius:.7em;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;cursor:pointer;color:var(--ink);line-height:1.15}
+.chip.on{border-color:var(--brand);background:var(--brandLight);color:var(--brand)}
+.cnt{display:flex;gap:.5em;margin:.5em 0}
+.cnt div{flex:1;background:#fff;border:1px solid var(--line);border-radius:.7em;text-align:center;padding:.35em .2em;font-size:.88em;font-weight:600;line-height:1.2}
+.cnt b{display:block;font-size:1.5em;color:var(--brand);font-variant-numeric:tabular-nums}
+.opt{display:flex;gap:.6em;align-items:flex-start;width:100%;text-align:left;min-height:46px;padding:.45em .75em;margin:.3em 0;border-radius:.7em;border:2px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.3}
+.opt b{color:var(--brand);min-width:1.1em}
+.opt.ok{border-color:#16a34a;background:#dcfce7}.opt.bad{border-color:#dc2626;background:#fee2e2;opacity:.85}
+.fb{border-radius:.7em;padding:.5em .8em;margin:.5em 0;font-weight:700;line-height:1.35}
+.fb.ok{background:#dcfce7;border:1px solid #86efac;color:#166534}.fb.bad{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.inpRow{display:flex;gap:.5em;align-items:center;flex-wrap:wrap;margin:.5em 0}
+.inp{min-height:46px;width:7.5em;border-radius:.7em;border:2px solid var(--line);padding:0 .7em;font:inherit;font-weight:700;background:#fff;color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--brand)}
+.unit{font-weight:700;color:var(--muted)}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1em;text-align:center}
+.start{background:var(--panelLeft)}
+.start h1{margin:.2em 0 .6em;font-size:2em;line-height:1.1;color:#1e1b4b;font-weight:800;animation:fadeUp .6s ease both}
+.start h1 span{color:var(--brand)}
+@media(min-width:768px){.start h1{font-size:2.6em}}
+.go{display:flex;align-items:center;gap:.9em;background:#fff;border:1px solid #e9d5ff;border-radius:999px;padding:.55em .6em .55em 1.4em;color:#581c87;font:inherit;font-weight:800;
+  letter-spacing:.14em;cursor:pointer;box-shadow:0 2px 10px rgba(88,28,135,.1);animation:pop .5s ease both}
+.go i{width:2.2em;height:2.2em;border-radius:50%;background:#f3e8ff;display:grid;place-items:center;font-style:normal;font-size:.8em}
+.menu{position:absolute;inset:0;overflow-y:auto;padding:1em max(16px,env(safe-area-inset-left,0px)) 5em;background:var(--panelLeft)}
+.menu h2{margin:.1em 0 .7em;font-size:1.25em;color:var(--brand)}
+.mgrid{display:grid;grid-template-columns:1fr;gap:.7em;max-width:70em;margin:0 auto}
+@media(min-width:768px){.mgrid{grid-template-columns:1fr 1fr}}
+.mcard{display:flex;align-items:center;gap:.9em;background:var(--panelRight);border:1px solid #e2e8f0;border-radius:.9em;padding:.8em 1em;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s;min-height:56px}
+.mcard:hover{border-color:#c084fc;background:#faf5ff;box-shadow:0 3px 12px rgba(107,33,168,.1)}
+.mcard .n{width:2.5em;height:2.5em;border-radius:50%;background:#ede9fe;color:#5b21b6;font-weight:800;display:grid;place-items:center;flex:none}
+.mcard b{display:block;line-height:1.2}.mcard small{color:var(--muted);font-weight:600}
+.sign{flex:none;text-align:center;padding:.35em .5em;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:.78em;color:#64748b;letter-spacing:.02em}
+.sign b{color:#1e293b}
+svg text{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useContext, createContext } = React;
+
+/* ---------- векторна алгебра ---------- */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.sqrt(dot(a,a));
+const nrm=a=>{const l=len(a)||1;return mul(a,1/l);};
+const lerp=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const mid=(a,b)=>lerp(a,b,.5);
+const cen=arr=>mul(arr.reduce(add,[0,0,0]),1/arr.length);
+const rad=d=>d*Math.PI/180;
+const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',');
+const fmt1=n=>(Math.round(n*10)/10).toString().replace('.',',');
+const L=id=>String(id).replace(/1$/,'₁');
+const rectPlane=(Cn,e1,e2,hw,hh)=>[
+  add(Cn,add(mul(e1,hw),mul(e2,hh))),add(Cn,add(mul(e1,-hw),mul(e2,hh))),
+  add(Cn,add(mul(e1,-hw),mul(e2,-hh))),add(Cn,add(mul(e1,hw),mul(e2,-hh)))];
+const foot=(p,q0,q1,q2)=>{const n=nrm(cross(sub(q1,q0),sub(q2,q0)));return sub(p,mul(n,dot(sub(p,q0),n)));};
+const ring=(c,r,n=56)=>Array.from({length:n},(_,i)=>{const a=i/n*2*Math.PI;return add(c,[r*Math.cos(a),r*Math.sin(a),0]);});
+const rmark=(O,u,v,s=.38,c='#334155')=>{const a=add(O,mul(u,s)),b=add(a,mul(v,s)),d=add(O,mul(v,s));
+  return[{t:'seg',a,b,c,w:1.8},{t:'seg',a:b,b:d,c,w:1.8}];};
+
+/* ---------- кольори ---------- */
+const C={edge:'#334155',ink:'#0f172a',par:'#16a34a',skew:'#dc2626',al:'#2563eb',be:'#ea580c',ga:'#7e22ce',
+  gold:'#d97706',proj:'#ea580c',halo:'#FAF5FF'};
+const gray='#475569';
+/* перпендикуляр — зелений, похила — фіолетова, проекція — помаранчева, площина α — синя */
+
+const boxP=(hx,hy,hz,sx=0,sy=0)=>({
+  A:[-hx,-hy,-hz],B:[hx,-hy,-hz],C:[hx,hy,-hz],D:[-hx,hy,-hz],
+  A1:[-hx+sx,-hy+sy,hz],B1:[hx+sx,-hy+sy,hz],C1:[hx+sx,hy+sy,hz],D1:[-hx+sx,hy+sy,hz]});
+const BOXF=[['A','B','C','D'],['A1','B1','C1','D1'],['A','B','B1','A1'],['B','C','C1','B1'],['C','D','D1','C1'],['D','A','A1','D1']];
+const plane=(p,color,op=.14,sw=1.6)=>({t:'poly',p,fill:color,op,stroke:color,sw});
+const vp=(ids,c)=>ids.map(id=>({t:'pt',id,c:c||C.ink}));
+
+/* ---------- 3D-сцена (SVG, обертання мишею/пальцем) ---------- */
+function Scene3D({scene,yaw0=0.7,pitch0=0.42,auto0=false,bare=false,legend=null}){
+  const wrap=useRef(null);
+  const [sz,setSz]=useState({w:600,h:500});
+  const [cam,setCam]=useState({yaw:yaw0,pitch:pitch0});
+  const [auto,setAuto]=useState(auto0);
+  const drag=useRef(null),moved=useRef(false);
+  useEffect(()=>{
+    const el=wrap.current;
+    const upd=()=>setSz({w:el.clientWidth||600,h:el.clientHeight||500});
+    const ro=new ResizeObserver(upd);ro.observe(el);upd();
+    return()=>ro.disconnect();
+  },[]);
+  useEffect(()=>{
+    if(!auto)return;let raf,last=performance.now();
+    const tick=t=>{const dt=t-last;last=t;
+      if(!drag.current)setCam(c=>({...c,yaw:c.yaw+dt*0.0005}));
+      raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  },[auto]);
+  const onDown=e=>{drag.current={x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,id:e.pointerId};moved.current=false;};
+  const onMove=e=>{
+    const d=drag.current;if(!d)return;
+    if(!moved.current){
+      if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;
+      moved.current=true;
+      try{e.currentTarget.setPointerCapture(d.id);}catch(_){}
+    }
+    const dx=e.clientX-d.px,dy=e.clientY-d.py;d.px=e.clientX;d.py=e.clientY;
+    setCam(c=>({yaw:c.yaw+dx*0.0085,pitch:Math.max(-1.25,Math.min(1.45,c.pitch+dy*0.0085))}));
+  };
+  const onUp=()=>{drag.current=null;setTimeout(()=>{moved.current=false;},0);};
+  const {w,h}=sz;
+  const R=scene.R||2.8,ctr=scene.ctr||[0,0,0],P=scene.P||{};
+  const D=R*5.5,S=Math.min(w,h)/(2*R)*0.97;
+  const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const tfv=v=>{const x1=v[0]*cy-v[1]*sy,y1=v[0]*sy+v[1]*cy;return[x1,y1*sp+v[2]*cp,y1*cp-v[2]*sp];};
+  const tf=p=>tfv(sub(p,ctr));
+  const pj=p=>{const q=tf(p),k=D/(D+q[2]);return{x:w/2+q[0]*k*S,y:h/2-q[1]*k*S,d:q[2]};};
+  const get=p=>typeof p==='string'?P[p]:p;
+  const fs=Math.max(15,Math.min(26,w/32)),big=w>900?1.25:1;
+  const polys=[],hid=[],vis=[],dots=[],lbls=[],hits=[];let kk=0;
+  const pushSeg=(a,b,o,hidden)=>{
+    const A=pj(get(a)),B=pj(get(b));const col=o.c||C.edge,sw=(o.w||2.2)*big;
+    const el=<line key={'s'+(kk++)} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={col} strokeWidth={sw}
+      strokeLinecap="round" strokeDasharray={(hidden||o.dash)?`${sw*2.6} ${sw*2.2}`:undefined} opacity={hidden?.7:(o.op||1)}/>;
+    (hidden||o.dash?hid:vis).push(el);
+    if(o.arrow){
+      const ang=Math.atan2(B.y-A.y,B.x-A.x),s=fs*0.6;
+      vis.push(<polygon key={'a'+(kk++)} fill={col} points={`${B.x},${B.y} ${B.x-s*Math.cos(ang-.4)},${B.y-s*Math.sin(ang-.4)} ${B.x-s*Math.cos(ang+.4)},${B.y-s*Math.sin(ang+.4)}`}/>);
+    }
+  };
+  const pushPoly=(pts3,o)=>{
+    const q=pts3.map(p=>pj(get(p)));const dm=q.reduce((s,a)=>s+a.d,0)/q.length;
+    polys.push({dm,el:<polygon key={'p'+(kk++)} points={q.map(a=>a.x+','+a.y).join(' ')} fill={o.fill||'none'} fillOpacity={o.op==null?.15:o.op}
+      stroke={o.stroke||'none'} strokeWidth={(o.sw||1.5)*big} strokeDasharray={o.dash?'6 5':undefined} strokeLinejoin="round"/>});
+  };
+  scene.prims.forEach(pr=>{
+    if(!pr)return;
+    if(pr.t==='poly')pushPoly(pr.p,pr);
+    else if(pr.t==='seg')pushSeg(pr.a,pr.b,pr,false);
+    else if(pr.t==='solid'){
+      const verts=[...new Set(pr.faces.flat())];const c0=cen(verts.map(get));
+      const em=new Map();
+      pr.faces.forEach((f,i)=>{
+        const p3=f.map(get);const n0=cross(sub(p3[1],p3[0]),sub(p3[2],p3[0]));
+        const n=dot(n0,sub(cen(p3),c0))<0?mul(n0,-1):n0;const front=tfv(n)[2]<0;
+        const fl=pr.fills&&pr.fills[i];
+        if(fl)pushPoly(f,{fill:fl[0],op:fl[1]});
+        else if(pr.tint)pushPoly(f,{fill:'#7c3aed',op:front?.06:.025});
+        f.forEach((v,j)=>{const u=f[(j+1)%f.length];const key=[v,u].sort().join('|');
+          const e=em.get(key)||{a:v,b:u,vis:false};e.vis=e.vis||front;em.set(key,e);});
+      });
+      em.forEach(e=>{
+        const st=(pr.estyle&&pr.estyle(e.a,e.b))||{};
+        pushSeg(e.a,e.b,{c:st.c||pr.c||C.edge,w:st.w||pr.w||2.4},!e.vis);
+      });
+    }
+    else if(pr.t==='pt'){
+      const p=pr.p||P[pr.id];const q=pj(p);const col=pr.c||C.ink;
+      dots.push(<circle key={'d'+(kk++)} cx={q.x} cy={q.y} r={(pr.r||fs*.27)*(big>1?1.1:1)} fill={col} stroke="#fff" strokeWidth="1.5"/>);
+      const label=pr.label===false?null:(pr.label||L(pr.id||''));
+      if(label){
+        let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+        if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+        const off=fs*(pr.off||1.0);
+        lbls.push(<text key={'l'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+          fontFamily='"Times New Roman",Georgia,serif' fontStyle="italic" fontWeight="700" fontSize={fs*(pr.size||1)} fill={pr.lc||col}
+          stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{label}</text>);
+      }
+    }
+    else if(pr.t==='txt'){
+      const q=pj(get(pr.p));let dx=q.x-w/2,dy=q.y-h/2;let l=Math.hypot(dx,dy);
+      if(pr.lo){dx=pr.lo[0];dy=pr.lo[1];l=Math.hypot(dx,dy)||1;}else if(l<1){dx=0;dy=-1;l=1;}
+      const off=fs*(pr.off==null?.8:pr.off);
+      lbls.push(<text key={'t'+(kk++)} x={q.x+dx/l*off} y={q.y+dy/l*off} textAnchor="middle" dominantBaseline="central"
+        fontFamily={pr.upright?'-apple-system,Segoe UI,Roboto,sans-serif':'"Times New Roman",Georgia,serif'} fontStyle={pr.upright?'normal':'italic'}
+        fontWeight="700" fontSize={fs*(pr.size||1.1)} fill={pr.c||C.ink} stroke={C.halo} strokeWidth="4" paintOrder="stroke" strokeLinejoin="round">{pr.s}</text>);
+    }
+  });
+  polys.sort((a,b)=>b.dm-a.dm);
+  return(
+    <div ref={wrap} style={{position:'absolute',inset:0}}>
+      <svg width={w} height={h} style={{position:'absolute',inset:0,touchAction:'none',cursor:drag.current?'grabbing':'grab',display:'block'}}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={()=>{if(!moved.current)drag.current=null;}}>
+        <g>{polys.map(p=>p.el)}</g><g>{hid}</g><g>{vis}</g><g>{dots}</g><g>{lbls}</g><g>{hits}</g>
+      </svg>
+      {!bare&&<div className="tools">
+        <button className="tool" aria-label="Скинути вигляд" title="Скинути вигляд" onClick={()=>setCam({yaw:yaw0,pitch:pitch0})}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button className={'tool'+(auto?' on':'')} aria-label="Автообертання" title="Автообертання" onClick={()=>setAuto(a=>!a)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M17 16l3.5.5.5-3.5"/></svg>
+        </button>
+      </div>}
+      {!bare&&<div className="hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10a2 2 0 0 1 4 0v3"/><path d="M9 11a2 2 0 0 0-4 0v3a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-2"/></svg>
+        Тягни — обертай
+      </div>}
+      {legend&&<div className="legend">{legend.map((l,i)=><span key={i}><i className="dot" style={{background:l[0]}}/>{l[1]}</span>)}</div>}
+    </div>
+  );
+}
+
+/* ---------- елементи інтерфейсу ---------- */
+const NavCtx=createContext(null);
+const M=({children})=><i className="m">{children}</i>;
+const Box=({title,children})=><div className="box"><h4>{title}</h4><p>{children}</p></div>;
+const Note=({children})=><div className="note">{children}</div>;
+const Tabs=({items,val,set})=><div className="tabs">{items.map(([k,t])=><button key={k} className={'tab'+(val===k?' on':'')} onClick={()=>set(k)}>{t}</button>)}</div>;
+const Slider=({label,min,max,step=1,val,set,unit='°',f})=>(
+  <div className="sliderRow"><label>{label}</label>
+    <input type="range" min={min} max={max} step={step} value={val} onChange={e=>set(parseFloat(e.target.value))}/>
+    <output>{f?f(val):val}{unit}</output></div>);
+function Steps({items,k,setK,label='Показати розв’язання'}){
+  return(<div className="steps">
+    {items.slice(0,k).map((t,i)=><div key={i} className={'step'+(i===items.length-1?' last':'')}><span className="sn">{i+1})</span><div>{t}</div></div>)}
+    {k===0&&<button className="btn" style={{alignSelf:'flex-start'}} onClick={()=>setK(1)}>{label}</button>}
+    {k>0&&k<items.length&&<button className="down" aria-label="Далі" onClick={()=>setK(k+1)}>↓</button>}
+    {k>0&&<button className="btn ghost sm" style={{alignSelf:'flex-start'}} onClick={()=>setK(0)}>↻ Спочатку</button>}
+  </div>);
+}
+function Frame({left,scene,legend,yaw0,pitch0,camKey,full}){
+  const nav=useContext(NavCtx);
+  if(full||!scene)return(<div className="left full"><div className="lscroll"><div className="fullin">{left}</div></div>{nav}</div>);
+  return(<>
+    <div className="left"><div className="lscroll">{left}</div>{nav}</div>
+    <div className="right"><Scene3D key={camKey} scene={scene} legend={legend} yaw0={yaw0} pitch0={pitch0}/></div>
+  </>);
+}
+const txtPl=(poly,i,s,c,lo)=>({t:'txt',p:poly[i],s,c,size:1.35,lo});
+const lbl=(p,s,c,lo,size,off)=>({t:'txt',p,s,c:c||C.ink,upright:true,size:size||1,lo:lo||[0,-1],off});
+const alPlane=(c,hw,hh)=>rectPlane(c,[1,0,0],[0,1,0],hw,hh);
+
+/* =====================================================================
+   Пункт 1. Перпендикуляр і похила
+   ===================================================================== */
+function Item1(){
+  const [tab,setTab]=useState('def');const [sel,setSel]=useState(null);const [r,setR]=useState(2);
+  const h=3;const B=[-1.5,0,0],A=[-1.5,0,h],dir=nrm([1,0.22,0]);
+  const Cc=tab==='def'?add(B,mul(dir,3.2)):add(B,mul(dir,r));
+  const pl=alPlane([1,0.3,0],5.4,2.7);
+  const P={A,B,C:Cc};
+  const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al)];
+  let legend=null;
+  if(tab==='def'){
+    const on=k=>sel===k;
+    pr.push({t:'seg',a:'A',b:'B',c:on('perp')?C.par:gray,w:on('perp')?5.4:2.6},
+      {t:'seg',a:'A',b:'C',c:on('obl')?C.ga:gray,w:on('obl')?5.4:2.6},
+      {t:'seg',a:'B',b:'C',c:on('proj')?C.proj:gray,w:on('proj')?5.4:2.6});
+    pr.push({t:'pt',id:'A',c:C.ink},{t:'pt',id:'B',c:(on('perp')||on('foot'))?C.par:C.ink,r:(on('foot')?9:undefined)},{t:'pt',id:'C',c:on('obl')?C.ga:C.ink,r:(on('obl')?8:undefined)});
+    if(on('perp')||on('foot'))pr.push(...rmark(B,[0,0,1],dir,.4,C.par));
+  }else{
+    pr.push({t:'seg',a:'A',b:'B',c:C.par,w:5},{t:'seg',a:'A',b:'C',c:C.ga,w:5},{t:'seg',a:'B',b:'C',c:C.proj,w:5},
+      ...vp(['A','B','C']),...rmark(B,[0,0,1],dir,.4,C.par));
+    legend=[[C.par,'перпендикуляр AB'],[C.ga,'похила AC'],[C.proj,'проекція BC']];
+  }
+  const defs={
+    perp:{n:'Перпендикуляр',t:<>Відрізок <span className="cg"><M>AB</M></span> — перпендикуляр, опущений із точки <M>A</M> на площину <M>α</M>, якщо <M>AB ⊥ α</M>, <M>B ∈ α</M>.</>},
+    foot:{n:'Основа і проекція точки',t:<>Точку <M>B</M> називають основою перпендикуляра. Основа <M>B</M> перпендикуляра <M>AB</M> — це <b>проекція точки</b> <M>A</M> на площину <M>α</M>.</>},
+    obl:{n:'Похила',t:<>Нехай <M>C ∈ α</M>, <M>C ≠ B</M>. Відрізок <span className="cv"><M>AC</M></span> — похила, проведена з точки <M>A</M> до площини <M>α</M>. Точку <M>C</M> називають основою похилої.</>},
+    proj:{n:'Проекція похилої',t:<>Відрізок <span className="co"><M>BC</M></span> — проекція похилої <M>AC</M> на площину <M>α</M>.</>}};
+  const left=(<>
+    <Tabs val={tab} set={t=>{setTab(t);setSel(null);}} items={[['def','Означення'],['thm','Теорема 35.1']]}/>
+    {tab==='def'&&<div className="fade">
+      <p className="lead">Дано площину <M>α</M> і точку <M>A</M>, яка їй не належить.</p>
+      <div className="chips">{Object.keys(defs).map(k=><button key={k} className={'chip'+(sel===k?' on':'')} onClick={()=>setSel(k)}>{defs[k].n}</button>)}</div>
+      {sel&&<Note>{defs[sel].t}</Note>}
+    </div>}
+    {tab==='thm'&&<div className="fade">
+      <Box title="Теорема 35.1">Якщо з однієї точки проведено до площини перпендикуляр і похилу, то похила більша за перпендикуляр.</Box>
+      <Slider label="Проекція BC" min={0.5} max={5} step={0.5} val={r} set={setR} unit=" см" f={fmt1}/>
+      <div className="cnt">
+        <div><b className="cg">3</b><span className="cg">AB</span>, см</div>
+        <div><b className="co">{fmt1(r)}</b><span className="co">BC</span>, см</div>
+        <div><b className="cv">{fmt(Math.sqrt(9+r*r))}</b><span className="cv">AC</span>, см</div>
+      </div>
+      <Note><M>△ABC</M> прямокутний (<M>AB ⊥ BC</M>), тому <M>AC² = AB² + BC²</M>. Завжди <span className="cv"><M>AC</M></span> &gt; <span className="cg"><M>AB</M></span>.</Note>
+    </div>}
+  </>);
+  return <Frame left={left} scene={{P,prims:pr,R:6.0,ctr:[0.8,0,1.3]}} legend={legend} camKey={tab} yaw0={0.35} pitch0={0.5}/>;
+}
+
+/* =====================================================================
+   Пункт 2. Відстані
+   ===================================================================== */
+function Item2(){
+  const [tab,setTab]=useState('pt');const [t,setT]=useState(1.5);
+  const d=3,pr=[],P={};let legend=null,note=null;
+  const pl=alPlane([0.4,0.3,0],5.4,2.7);
+  pr.push(plane(pl,C.al,.14),txtPl(pl,3,'α',C.al));
+  if(tab==='pt'){
+    Object.assign(P,{A:[0.3,0,d],B:[0.3,0,0]});
+    pr.push({t:'seg',a:'A',b:'B',c:C.par,w:5.4},...rmark(P.B,[0,0,1],[1,0,0],.4,C.par),...vp(['A','B']),lbl(mid(P.A,P.B),'d',C.par,[-1.3,0],1.4));
+    note=<>Відстань від точки <M>A</M> до площини <M>α</M> дорівнює довжині перпендикуляра <span className="cg"><M>AB</M></span>.</>;
+  }
+  if(tab==='line'){
+    const y=0.6;Object.assign(P,{K:[-2.6,y,d],K1:[-2.6,y,0],M:[t,y,d],M1:[t,y,0],L1:[-5,y,d],L2:[5,y,d]});
+    pr.push({t:'seg',a:'L1',b:'L2',c:C.ink,w:3.4},lbl(P.L2,'a',C.ink,[1,0],1.5),
+      {t:'seg',a:'K',b:'K1',c:C.par,w:4.6},{t:'seg',a:'M',b:'M1',c:C.par,w:4.6},
+      ...rmark(P.K1,[0,0,1],[1,0,0],.35,C.par),...rmark(P.M1,[0,0,1],[1,0,0],.35,C.par),
+      {t:'pt',id:'K',c:C.ink},{t:'pt',id:'M',c:C.ink},{t:'pt',id:'K1',c:C.ink},{t:'pt',id:'M1',c:C.ink});
+    legend=[[C.par,'відстані до площини α']];
+  }
+  if(tab==='pl'){
+    const be=alPlane([0.4,0.3,d],5.4,2.7);
+    Object.assign(P,{K:[-2.6,0.2,d],K1:[-2.6,0.2,0],M:[t,0.2,d],M1:[t,0.2,0]});
+    pr.push(plane(be,C.be,.15),txtPl(be,3,'β',C.be),
+      {t:'seg',a:'K',b:'K1',c:C.par,w:4.6},{t:'seg',a:'M',b:'M1',c:C.par,w:4.6},
+      ...rmark(P.K1,[0,0,1],[1,0,0],.35,C.par),...rmark(P.M1,[0,0,1],[1,0,0],.35,C.par),
+      {t:'pt',id:'K',c:C.ink},{t:'pt',id:'M',c:C.ink},{t:'pt',id:'K1',c:C.ink},{t:'pt',id:'M1',c:C.ink});
+    legend=[[C.par,'відстані від точок площини β до α']];
+  }
+  const left=(<>
+    <Tabs val={tab} set={k=>{setTab(k);setT(1.5);}} items={[['pt','Точка і площина'],['line','Пряма і площина'],['pl','Дві площини']]}/>
+    {tab==='pt'&&<div className="fade">
+      <Box title="Відстань від точки до площини">Якщо точка не належить площині, то відстанню від точки до площини називають довжину перпендикуляра, опущеного з точки на площину.</Box>
+      <Note>Якщо точка належить площині, то відстань від точки до площини дорівнює нулю.</Note>
+      <Note>{note}</Note>
+    </div>}
+    {tab==='line'&&<div className="fade">
+      <Box title="Відстань від прямої до паралельної їй площини">Відстанню від прямої до паралельної їй площини називають відстань від будь-якої точки цієї прямої до площини.</Box>
+      <Slider label="Точка M" min={-1.5} max={4} step={0.5} val={t} set={setT} unit="" f={v=>fmt1(v)}/>
+      <div className="cnt"><div><b className="cg">{fmt1(len(sub(P.K,P.K1)))}</b>KK₁, см</div><div><b className="cg">{fmt1(len(sub(P.M,P.M1)))}</b>MM₁, см</div></div>
+      <Note>Рухай точку <M>M</M> по прямій <M>a ∥ α</M>: відстань до площини не змінюється.</Note>
+    </div>}
+    {tab==='pl'&&<div className="fade">
+      <Box title="Відстань між паралельними площинами">Відстанню між двома паралельними площинами називають відстань від будь-якої точки однієї площини до другої площини.</Box>
+      <Slider label="Точка M" min={-1.5} max={4} step={0.5} val={t} set={setT} unit="" f={v=>fmt1(v)}/>
+      <div className="cnt"><div><b className="cg">{fmt1(len(sub(P.K,P.K1)))}</b>KK₁, см</div><div><b className="cg">{fmt1(len(sub(P.M,P.M1)))}</b>MM₁, см</div></div>
+      <Note>Точки <M>K</M> і <M>M</M> належать <M>β</M>. Відстань до площини <M>α</M> від них однакова.</Note>
+    </div>}
+  </>);
+  return <Frame left={left} scene={{P,prims:pr,R:6.0,ctr:[0.4,0,1.3]}} legend={legend} camKey={tab} yaw0={0.35} pitch0={0.5}/>;
+}
+
+/* =====================================================================
+   Пункт 3. Теорема про три перпендикуляри
+   ===================================================================== */
+function Item3(){
+  const [psi,setPsi]=useState(35);
+  const B=[-1.5,0,0],Cc=[1.5,0,0],A=[-1.5,0,3];
+  const u=[Math.cos(rad(psi)),Math.sin(rad(psi)),0];
+  const a1=Math.acos(Math.min(1,Math.abs(Math.cos(rad(psi)))))*180/Math.PI;
+  const a2=Math.acos(Math.min(1,Math.abs(Math.cos(rad(psi)))/Math.SQRT2))*180/Math.PI;
+  const is90=Math.abs(psi-90)<0.01;
+  const pl=alPlane([0,0.2,0],4.6,3.4);
+  const P={A,B,C:Cc};
+  const pr=[plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),
+    {t:'seg',a:'A',b:'B',c:C.par,w:4.6},{t:'seg',a:'A',b:'C',c:C.ga,w:4.6},{t:'seg',a:'B',b:'C',c:C.proj,w:4.6},
+    {t:'seg',a:sub(Cc,mul(u,3)),b:add(Cc,mul(u,3)),c:is90?C.par:C.gold,w:5.2},
+    lbl(add(Cc,mul(u,3)),'a',is90?C.par:C.gold,[1,0],1.5),
+    ...rmark(B,[0,0,1],[1,0,0],.4,C.par),...vp(['A','B','C'])];
+  if(is90)pr.push(...rmark(Cc,[-1,0,0],[0,1,0],.4,C.par));
+  const left=(<>
+    <Box title="Теорема про три перпендикуляри">Якщо пряма, яка належить площині, перпендикулярна до проекції похилої до цієї площини, то вона перпендикулярна й до самої похилої. І навпаки, якщо пряма, яка належить площині, перпендикулярна до похилої до цієї площини, то вона перпендикулярна й до проекції похилої на цю площину.</Box>
+    <Note><M>AB ⊥ α</M>, <span className="cv"><M>AC</M></span> — похила, <span className="co"><M>BC</M></span> — її проекція, пряма <span className="ca"><M>a</M></span> ⊂ <M>α</M> проходить через <M>C</M>.</Note>
+    <Slider label="Поворот прямої a" min={0} max={180} step={5} val={psi} set={setPsi}/>
+    <div className="cnt">
+      <div><b className={is90?'cg':''}>{Math.round(a1)}°</b>кут між <M>a</M> і <M>BC</M></div>
+      <div><b className={is90?'cg':''}>{Math.round(a2)}°</b>кут між <M>a</M> і <M>AC</M></div>
+    </div>
+    <Note>{is90?<><span className="cg"><M>a ⊥ BC</M> і <M>a ⊥ AC</M></span> одночасно.</>:<>Поверни пряму <M>a</M> так, щоб вона стала перпендикулярною до <M>BC</M>, і подивись на другий кут.</>}</Note>
+  </>);
+  return <Frame left={left} scene={{P,prims:pr,R:5.4,ctr:[0,0,1.3]}} legend={[[C.par,'перпендикуляр AB'],[C.ga,'похила AC'],[C.proj,'проекція BC'],[C.gold,'пряма a']]} yaw0={0.35} pitch0={0.5}/>;
+}
+
+/* =====================================================================
+   Пункт 4. Ключова задача: точка, рівновіддалена від вершин
+   ===================================================================== */
+function circum(A,B,C){
+  const ax=A[0],ay=A[1],bx=B[0],by=B[1],cx=C[0],cy=C[1];
+  const d=2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+  const ux=((ax*ax+ay*ay)*(by-cy)+(bx*bx+by*by)*(cy-ay)+(cx*cx+cy*cy)*(ay-by))/d;
+  const uy=((ax*ax+ay*ay)*(cx-bx)+(bx*bx+by*by)*(ax-cx)+(cx*cx+cy*cy)*(bx-ax))/d;
+  return[ux,uy,0];
+}
+function Item4(){
+  const [h,setH]=useState(3);const [show,setShow]=useState(false);
+  const A=[-2.8,-1.6,0],B=[2.4,-2.0,0],Cc=[0.3,2.6,0];const O=circum(A,B,Cc);const Rr=len(sub(A,O));
+  const Mm=[O[0],O[1],h];const P={A,B,C:Cc,M:Mm,O};
+  const pl=alPlane([0,0,0],4.8,3.6);
+  const pr=[plane(pl,C.al,.1),txtPl(pl,3,'α',C.al),{t:'poly',p:['A','B','C'],fill:C.al,op:.2,stroke:C.edge,sw:2.4},
+    {t:'seg',a:'M',b:'A',c:C.ga,w:4},{t:'seg',a:'M',b:'B',c:C.ga,w:4},{t:'seg',a:'M',b:'C',c:C.ga,w:4},...vp(['A','B','C','M'])];
+  if(show){
+    pr.push({t:'poly',p:ring(O,Rr),fill:'none',op:0,stroke:C.proj,sw:2.2},
+      {t:'seg',a:'M',b:'O',c:C.par,w:5},{t:'seg',a:'O',b:'A',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'B',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'C',c:C.proj,w:3,dash:true},
+      ...rmark(O,[0,0,1],nrm(sub(A,O)),.35,C.par),{t:'pt',id:'O',c:C.proj,r:8});
+  }
+  const mA=Math.sqrt(Rr*Rr+h*h);
+  const left=(<>
+    <Box title="Ключова задача">Якщо точка, яка не належить площині многокутника, рівновіддалена від його вершин, то проекцією цієї точки на площину многокутника є центр його описаного кола.</Box>
+    <Note>Точка <M>M</M> не належить площині <M>α</M>, причому <span className="cv"><M>MA = MB = MC</M></span>.</Note>
+    <Slider label="Висота M" min={1.5} max={4.5} step={0.5} val={h} set={setH} unit="" f={fmt1}/>
+    <div className="cnt"><div><b className="cv">{fmt(mA)}</b>MA = MB = MC</div></div>
+    {!show&&<button className="btn" onClick={()=>setShow(true)}>Опустити перпендикуляр MO</button>}
+    {show&&<div className="fade"><Note><span className="cg"><M>MO ⊥ α</M></span>. Проекція <M>O</M> лежить на однаковій відстані від <M>A</M>, <M>B</M>, <M>C</M>, тобто <M>O</M> — <span className="co">центр описаного кола</span> трикутника <M>ABC</M>. Змінюй висоту: точка <M>O</M> залишається на місці.</Note>
+      <button className="btn ghost sm" onClick={()=>setShow(false)}>↻ Сховати</button></div>}
+  </>);
+  return <Frame left={left} scene={{P,prims:pr,R:5.4,ctr:[0,0,1.4]}} legend={show?[[C.ga,'MA = MB = MC'],[C.par,'перпендикуляр MO'],[C.proj,'описане коло']]:null} camKey={show?1:0} yaw0={0.9} pitch0={0.5}/>;
+}
+
+/* =====================================================================
+   Пункт 5. Задачі
+   ===================================================================== */
+function taskScene(id,st){
+  const ok=!!st.ok,k=st.k||0;
+  const pr=[],P={};let R=4.4,ctr=[0,0,1.4],legend=null,yaw0=.35,pitch0=.5;
+  if(id.startsWith('35.1-')){
+    const n=+id.slice(5);Object.assign(P,boxP(1.4,1.4,1.4));
+    const fi=[0,3,2][n-1];
+    pr.push({t:'solid',faces:BOXF,tint:true,w:2.2},{t:'seg',a:'C',b:'D1',c:C.ga,w:4.6});
+    if(ok){
+      const f=BOXF[fi].map(v=>P[v]);pr.push(plane(f,C.al,.28,2.4));
+      const c1=foot(P.C,f[0],f[1],f[2]),d1=foot(P.D1,f[0],f[1],f[2]);
+      pr.push({t:'seg',a:c1,b:d1,c:C.proj,w:6.5});
+      if(len(sub(P.C,c1))>1e-6)pr.push({t:'seg',a:'C',b:c1,c:C.proj,w:2,dash:true});
+      if(len(sub(P.D1,d1))>1e-6)pr.push({t:'seg',a:'D1',b:d1,c:C.proj,w:2,dash:true});
+      legend=[[C.ga,'відрізок CD₁'],[C.proj,'проекція'],[C.al,'площина']];
+    }
+    pr.push(...vp(Object.keys(boxP(1,1,1))));
+    R=3.3;ctr=[0,0,0];yaw0=.65;pitch0=.42;
+  }
+  if(id==='35.3'){
+    const s=.3;Object.assign(P,{B:[-.7,0,0],A:[-.7,0,12*s],C:[.8,0,0]});
+    const pl=alPlane([0,.2,0],3.2,2.1);
+    pr.push(plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),
+      {t:'seg',a:'A',b:'B',c:ok?C.par:C.ink,w:4},{t:'seg',a:'A',b:'C',c:ok?C.ga:C.ink,w:4},
+      {t:'seg',a:'B',b:'C',c:ok?C.proj:gray,w:ok?6:2,dash:!ok},...vp(['A','B','C']),
+      lbl(mid(P.A,P.B),'12 см',C.ink,[-1.4,0]),lbl(mid(P.A,P.C),'13 см',C.ink,[1.2,0]),
+      lbl(mid(P.B,P.C),ok?'5 см':'?',ok?C.proj:C.skew,[0,1],ok?1:1.3,1.4));
+    if(ok)pr.push(...rmark(P.B,[0,0,1],[1,0,0],.3,C.par));
+    R=4.4;ctr=[0,0,1.5];
+  }
+  if(id==='35.5'){
+    const s=.5,ac=8*Math.SQRT1_2*s,cd=3.5;
+    Object.assign(P,{C:[0,0,0],A:[0,0,ac],B:[-ac,0,0],D:[cd*Math.cos(.35),cd*Math.sin(.35),0]});
+    const pl=alPlane([0.2,0.3,0],4.4,2.6);
+    pr.push(plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),
+      {t:'seg',a:'A',b:'C',c:ok?C.par:C.ink,w:4},{t:'seg',a:'A',b:'B',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'A',b:'D',c:ok?C.ga:C.ink,w:4},
+      {t:'seg',a:'B',b:'C',c:ok?C.proj:gray,w:ok?5.4:2,dash:!ok},{t:'seg',a:'C',b:'D',c:ok?C.proj:gray,w:ok?5.4:2,dash:!ok},...vp(['A','B','C','D']),
+      lbl(mid(P.A,P.B),'8 см',C.ink,[-1.3,-.3]),lbl(mid(P.A,P.D),'9 см',C.ink,[1.3,0]),
+      {t:'txt',p:add(P.A,[-.45,0,-.95]),s:'45°',upright:true,size:.9,c:C.ink,lo:[0,0]},
+      lbl(mid(P.C,P.D),ok?'7 см':'?',ok?C.proj:C.skew,[0,1],ok?1:1.3,1.4));
+    if(ok)pr.push(...rmark(P.C,[0,0,1],[-1,0,0],.3,C.par),...rmark(P.C,[0,0,1],nrm(P.D),.3,C.par));
+    R=5.2;ctr=[0.2,0,1.2];
+  }
+  if(id==='35.7'||id==='35.8'){
+    const r=2.7;Object.assign(P,{A:[0,0,3.2],O:[0,0,0],B:[r*Math.cos(rad(200)),r*Math.sin(rad(200)),0],C:[r*Math.cos(rad(25)),r*Math.sin(rad(25)),0]});
+    const pl=alPlane([0,0,0],4.2,3.0);const is7=id==='35.7';
+    pr.push(plane(pl,C.al,.14),txtPl(pl,3,'α',C.al));
+    const oc=(is7?k>=1:k>=3)?C.ga:C.ink;
+    pr.push({t:'seg',a:'A',b:'B',c:oc,w:4.2},{t:'seg',a:'A',b:'C',c:oc,w:4.2});
+    if(k>=1){pr.push({t:'seg',a:'A',b:'O',c:C.par,w:4.6},{t:'pt',id:'O',c:C.ink},
+      ...rmark(P.O,[0,0,1],nrm(P.B),.35,C.par),...rmark(P.O,[0,0,1],nrm(P.C),.35,C.par));}
+    if(!is7&&k>=1)pr.push({t:'seg',a:'O',b:'B',c:C.proj,w:5},{t:'seg',a:'O',b:'C',c:C.proj,w:5});
+    if(k>=2){pr.push({t:'poly',p:['A','O','B'],fill:C.al,op:.2},{t:'poly',p:['A','O','C'],fill:C.be,op:.2});}
+    if(is7&&k>=3)pr.push({t:'seg',a:'O',b:'B',c:C.proj,w:5.6},{t:'seg',a:'O',b:'C',c:C.proj,w:5.6});
+    pr.push(...vp(['A','B','C']));
+    legend=k>=1?[[C.ga,'похили AB і AC'],[C.par,'перпендикуляр AO'],[C.proj,'проекції OB і OC']]:null;
+    R=4.8;ctr=[0,0,1.3];
+  }
+  if(id==='35.11'){
+    Object.assign(P,{A:[-2,-2,0],B:[2,-2,0],C:[2,2,0],D:[-2,2,0],O:[0,0,0],N:[2,2,3.4]});
+    pr.push({t:'poly',p:['A','B','C','D'],fill:C.al,op:.13,stroke:gray,sw:2.2},
+      {t:'seg',a:'A',b:'C',c:gray,w:1.8},{t:'seg',a:'B',b:'D',c:k>=2?C.gold:C.ink,w:k>=2?5.6:3.2},
+      {t:'seg',a:'N',b:'C',c:k>=1?C.par:C.ink,w:k>=1?5:3.2},{t:'seg',a:'N',b:'O',c:k>=1?C.ga:C.ink,w:k>=1?5:3.2});
+    if(k>=1)pr.push({t:'seg',a:'C',b:'O',c:C.proj,w:6});
+    if(k>=2)pr.push(...rmark(P.O,nrm(sub(P.B,P.D)),nrm(sub(P.C,P.O)),.4,C.gold));
+    pr.push(...vp(['A','B','C','D','N','O']));
+    legend=k>=1?[[C.par,'NC ⊥ ABC'],[C.ga,'похила NO'],[C.proj,'проекція CO'],...(k>=2?[[C.gold,'BD']]:[])]:null;
+    R=4.6;ctr=[0,0,1.4];
+  }
+  if(id==='35.12'){
+    Object.assign(P,{A:[-3,0,0],B:[0,-1.8,0],C:[3,0,0],D:[0,1.8,0],O:[0,0,0],F:[3,0,3.2]});
+    pr.push({t:'poly',p:['A','B','C','D'],fill:C.al,op:.13,stroke:gray,sw:2.2},
+      {t:'seg',a:'A',b:'C',c:k>=1?C.proj:gray,w:k>=1?5.4:1.8},{t:'seg',a:'B',b:'D',c:k>=2?C.gold:C.ink,w:k>=2?5.6:3.2},
+      {t:'seg',a:'F',b:'C',c:k>=1?C.par:C.ink,w:k>=1?5:3.2},{t:'seg',a:'F',b:'A',c:k>=1?C.ga:C.ink,w:k>=1?5:3.2});
+    if(k>=2)pr.push(...rmark(P.O,[-1,0,0],[0,1,0],.4,C.gold),{t:'pt',id:'O',c:C.ink});
+    pr.push(...vp(['A','B','C','D','F']));
+    legend=k>=1?[[C.par,'FC ⊥ ABC'],[C.ga,'похила FA'],[C.proj,'проекція AC'],...(k>=2?[[C.gold,'BD']]:[])]:null;
+    R=4.8;ctr=[0,0,1.4];
+  }
+  if(id==='35.14'){
+    const r=2.4,th=-0.9;
+    const Bp=[r*Math.cos(th),r*Math.sin(th),0],tg=[-Math.sin(th),Math.cos(th),0];
+    Object.assign(P,{O:[0,0,0],A:[0,0,3],B:Bp});
+    pr.push({t:'poly',p:ring([0,0,0],r),fill:C.al,op:.13,stroke:C.al,sw:2.4},
+      {t:'seg',a:'A',b:'O',c:k>=2?C.par:C.ink,w:k>=2?5:3.2},{t:'seg',a:'A',b:'B',c:k>=1?C.ga:C.ink,w:k>=1?5:3.2},
+      {t:'seg',a:sub(Bp,mul(tg,2.8)),b:add(Bp,mul(tg,2.8)),c:k>=1?C.gold:C.ink,w:k>=1?5.4:3.2},
+      lbl(add(Bp,mul(tg,2.8)),'a',k>=1?C.gold:C.ink,[1,0],1.5));
+    if(k>=1)pr.push({t:'seg',a:'O',b:'B',c:C.proj,w:5.4},...rmark(Bp,nrm(sub(P.O,Bp)),tg,.35,C.gold));
+    if(k>=2)pr.push(...rmark(P.O,[0,0,1],nrm(Bp),.35,C.par));
+    pr.push(...vp(['A','B','O']));
+    legend=k>=1?[[C.gold,'дотична a'],[C.proj,'радіус OB'],[C.ga,'похила AB'],...(k>=2?[[C.par,'AO ⊥ площини кола']]:[])]:null;
+    R=4.4;ctr=[0,0,1.3];
+  }
+  if(id==='35.16'){
+    const s=.2;const B=mul([Math.cos(rad(170)),Math.sin(rad(170)),0],4),Cp=mul([Math.cos(rad(-20)),Math.sin(rad(-20)),0],1.6);
+    Object.assign(P,{H:[0,0,0],A:[0,0,15*s],B,C:Cp});
+    const pl=alPlane([0,0,0],5.2,3.2);
+    pr.push(plane(pl,C.al,.14),txtPl(pl,3,'α',C.al),
+      {t:'seg',a:'A',b:'B',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'A',b:'C',c:ok?C.ga:C.ink,w:4},...vp(['A','B','C']),
+      lbl(mid(P.A,P.B),'25 см',C.ink,[-1.4,0]),lbl(mid(P.A,P.C),'17 см',C.ink,[1.4,0]));
+    if(ok)pr.push({t:'seg',a:'A',b:'H',c:C.par,w:5},{t:'seg',a:'H',b:'B',c:C.proj,w:5},{t:'seg',a:'H',b:'C',c:C.proj,w:5},{t:'pt',id:'H',c:C.ink},
+      ...rmark(P.H,[0,0,1],nrm(B),.35,C.par),...rmark(P.H,[0,0,1],nrm(Cp),.35,C.par),
+      lbl(mid(P.A,P.H),'15 см',C.par,[-1,0],1,1.1),lbl(mid(P.H,P.B),'5x',C.proj,[0,1],1,1.1),lbl(mid(P.H,P.C),'2x',C.proj,[0,1],1,1.1));
+    R=6.0;ctr=[0,0,1.3];
+  }
+  if(id==='35.18'){
+    const Ro=2.598;
+    Object.assign(P,{A:[0,-Ro,0],B:[2.25,1.299,0],C:[-2.25,1.299,0],M:[0,0,1.5],O:[0,0,0]});
+    const pl=alPlane([0,0,0],4.2,3.4);
+    pr.push(plane(pl,C.al,.1),txtPl(pl,3,'α',C.al),{t:'poly',p:['A','B','C'],fill:C.al,op:.2,stroke:C.edge,sw:2.4},
+      {t:'seg',a:'M',b:'A',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'M',b:'B',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'M',b:'C',c:ok?C.ga:C.ink,w:4},...vp(['A','B','C','M']),
+      lbl(lerp(P.M,P.A,.7),'6 см',C.ink,[1,.3],1,1.0),lbl(mid(P.M,P.B),'6 см',C.ink,[1,-.2]),lbl(mid(P.M,P.C),'6 см',C.ink,[-1,-.2]),
+      lbl(mid(P.A,P.B),'9 см',C.ink,[1,1],1,1.1));
+    if(ok)pr.push({t:'seg',a:'M',b:'O',c:C.par,w:5},{t:'seg',a:'O',b:'A',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'B',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'C',c:C.proj,w:3,dash:true},
+      {t:'pt',id:'O',c:C.proj,r:8},...rmark(P.O,[0,0,1],nrm(sub(P.A,P.O)),.3,C.par),lbl(lerp(P.M,P.O,.4),'3 см',C.par,[-1,0],1,1.0));
+    R=4.2;ctr=[0,0,.8];
+  }
+  return{scene:{P,prims:pr,R,ctr},legend,yaw0,pitch0};
+}
+
+const MC=(q,opts,okIdx,ex)=>({kind:'mc',hasFig:true,q,opts,okIdx,ex});
+const TASKS=[
+  {id:'35.1-1',tab:'35.1 (1)',...MC(<>Укажіть проекцію відрізка <M>CD₁</M> куба <M>ABCDA₁B₁C₁D₁</M> на площину <M>ABC</M>.</>,
+    ['C₁D₁','CD','DD₁','CC₁','BC'],1,<>Точка <M>C</M> лежить у площині <M>ABC</M>, а перпендикуляр з <M>D₁</M> на цю площину — <M>D₁D</M>. Проекція <M>CD₁</M> — відрізок <M>CD</M>.</>)},
+  {id:'35.1-2',tab:'35.1 (2)',...MC(<>Укажіть проекцію відрізка <M>CD₁</M> куба <M>ABCDA₁B₁C₁D₁</M> на площину <M>BB₁C</M>.</>,
+    ['BC₁','B₁C','CD','CC₁','B₁C₁'],3,<>Точка <M>C</M> лежить у площині <M>BB₁C</M>, а <M>D₁C₁ ⊥ BB₁C</M>, тому проекцією <M>D₁</M> є точка <M>C₁</M>. Проекція <M>CD₁</M> — відрізок <M>CC₁</M>.</>)},
+  {id:'35.1-3',tab:'35.1 (3)',...MC(<>Укажіть проекцію відрізка <M>CD₁</M> куба <M>ABCDA₁B₁C₁D₁</M> на площину <M>AA₁B₁</M>.</>,
+    ['BA₁','AB₁','CA₁','D₁A₁','BB₁'],0,<>Точка <M>C</M> проектується в <M>B</M> (<M>CB ⊥ AA₁B₁</M>), точка <M>D₁</M> — в <M>A₁</M> (<M>D₁A₁ ⊥ AA₁B₁</M>). Проекція <M>CD₁</M> — відрізок <M>BA₁</M>.</>)},
+  {id:'35.3',tab:'35.3',kind:'num',hasFig:false,ans:5,
+    q:<>Із точки до площини проведено перпендикуляр завдовжки 12 см і похилу завдовжки 13 см. Знайдіть проекцію цієї похилої на дану площину.</>,
+    sol:[<>Нехай <span className="cg"><M>AB</M></span> — перпендикуляр (12 см), <span className="cv"><M>AC</M></span> — похила (13 см), <span className="co"><M>BC</M></span> — її проекція. Оскільки <M>AB ⊥ α</M>, то <M>AB ⊥ BC</M>, і <M>△ABC</M> прямокутний.</>,
+      <><M>BC² = AC² − AB² = 13² − 12² = 169 − 144 = 25</M>. <span className="co"><M>BC = 5 см</M></span>.</>]},
+  {id:'35.5',tab:'35.5',kind:'num',hasFig:true,ans:7,
+    q:<>Із точки <M>A</M> проведено до площини <M>α</M> перпендикуляр <M>AC</M> та похилі <M>AB</M> і <M>AD</M>. Знайдіть проекцію похилої <M>AD</M> на площину <M>α</M>, якщо <M>∠BAC = 45°</M>, <M>AB = 8 см</M>, <M>AD = 9 см</M>.</>,
+    sol:[<><span className="cg"><M>AC ⊥ α</M></span>, тому <M>△ACB</M> і <M>△ACD</M> прямокутні (<M>∠C = 90°</M>).</>,
+      <>У <M>△ACB</M>: <M>AC = AB · cos 45° = 8 · √2⁄2 = 4√2</M> см.</>,
+      <>У <M>△ACD</M>: <M>CD² = AD² − AC² = 81 − 32 = 49</M>. Проекція <span className="co"><M>CD = 7 см</M></span>.</>]},
+  {id:'35.7',tab:'35.7',kind:'proof',hasFig:false,
+    q:<>Доведіть, що рівні похилі, проведені до площини з однієї точки, мають рівні проекції.</>,
+    steps:[<>Нехай <span className="cv"><M>AB</M></span> і <span className="cv"><M>AC</M></span> — похилі, <M>AB = AC</M>. Проведемо перпендикуляр <span className="cg"><M>AO ⊥ α</M></span>. Тоді <M>AO ⊥ OB</M> і <M>AO ⊥ OC</M>, тобто <M>△AOB</M> і <M>△AOC</M> прямокутні.</>,
+      <>У цих трикутниках катет <M>AO</M> — спільний, а гіпотенузи <M>AB</M> і <M>AC</M> рівні за умовою.</>,
+      <><M>△AOB = △AOC</M> за гіпотенузою і катетом. Тому <span className="co"><M>OB = OC</M></span>, тобто проекції рівні. <i>Доведено.</i></>]},
+  {id:'35.8',tab:'35.8',kind:'proof',hasFig:false,
+    q:<>Доведіть, що коли проекції двох похилих, проведених до площини з однієї точки, рівні, то є рівними й похилі.</>,
+    steps:[<>Нехай <M>AB</M> і <M>AC</M> — похилі, <span className="co"><M>OB</M></span> і <span className="co"><M>OC</M></span> — їхні проекції, <M>OB = OC</M>. Тут <span className="cg"><M>AO ⊥ α</M></span>, тому <M>△AOB</M> і <M>△AOC</M> прямокутні.</>,
+      <>У цих трикутниках катет <M>AO</M> — спільний, катети <M>OB</M> і <M>OC</M> рівні за умовою.</>,
+      <><M>△AOB = △AOC</M> за двома катетами. Тому <span className="cv"><M>AB = AC</M></span>. <i>Доведено.</i></>]},
+  {id:'35.11',tab:'35.11',kind:'proof',hasFig:true,
+    q:<>На малюнку зображено квадрат <M>ABCD</M>, пряма <M>NC</M> перпендикулярна до його площини, <M>O</M> — точка перетину діагоналей. Доведіть, що прямі <M>BD</M> і <M>NO</M> перпендикулярні.</>,
+    steps:[<><span className="cg"><M>NC ⊥ ABC</M></span>, тому проекція похилої <span className="cv"><M>NO</M></span> на площину <M>ABC</M> — відрізок <span className="co"><M>CO</M></span>.</>,
+      <>Діагоналі квадрата перпендикулярні, а <M>CO</M> лежить на діагоналі <M>AC</M>. Тому <span className="ca"><M>BD</M></span> <M>⊥</M> <span className="co"><M>CO</M></span>.</>,
+      <><span className="ca"><M>BD</M></span> лежить у площині <M>ABC</M> і перпендикулярна до проекції <M>CO</M> похилої <M>NO</M>. За теоремою про три перпендикуляри <span className="ca"><M>BD</M></span> <M>⊥</M> <span className="cv"><M>NO</M></span>. <i>Доведено.</i></>]},
+  {id:'35.12',tab:'35.12',kind:'proof',hasFig:true,
+    q:<>На малюнку зображено ромб <M>ABCD</M>. Пряма <M>FC</M> перпендикулярна до його площини. Доведіть, що прямі <M>AF</M> і <M>BD</M> перпендикулярні.</>,
+    steps:[<><span className="cg"><M>FC ⊥ ABC</M></span>, тому проекція похилої <span className="cv"><M>FA</M></span> на площину <M>ABC</M> — відрізок <span className="co"><M>AC</M></span>.</>,
+      <>Діагоналі ромба перпендикулярні: <span className="ca"><M>BD</M></span> <M>⊥</M> <span className="co"><M>AC</M></span>.</>,
+      <><span className="ca"><M>BD</M></span> лежить у площині <M>ABC</M> і перпендикулярна до проекції <M>AC</M> похилої <M>FA</M>. За теоремою про три перпендикуляри <span className="ca"><M>BD</M></span> <M>⊥</M> <span className="cv"><M>FA</M></span>. <i>Доведено.</i></>]},
+  {id:'35.14',tab:'35.14',kind:'proof',hasFig:true,
+    q:<>Пряма <M>AO</M> перпендикулярна до площини кола із центром <M>O</M>. Пряма <M>a</M> належить площині кола й дотикається до даного кола в точці <M>B</M>. Доведіть, що <M>AB ⊥ a</M>.</>,
+    steps:[<><span className="co"><M>OB</M></span> — радіус, проведений у точку дотику, тому <span className="co"><M>OB</M></span> <M>⊥</M> <span className="ca"><M>a</M></span>.</>,
+      <><span className="cg"><M>AO ⊥</M> площини кола</span>, тому <span className="co"><M>OB</M></span> — проекція похилої <span className="cv"><M>AB</M></span> на площину кола.</>,
+      <>Пряма <span className="ca"><M>a</M></span> лежить у площині кола й перпендикулярна до проекції <M>OB</M>. За теоремою про три перпендикуляри <span className="ca"><M>a</M></span> <M>⊥</M> <span className="cv"><M>AB</M></span>. <i>Доведено.</i></>]},
+  {id:'35.16',tab:'35.16',kind:'num',hasFig:false,ans:15,
+    q:<>Із точки <M>A</M> до площини <M>α</M> проведено похилі <M>AB</M> і <M>AC</M> завдовжки 25 см і 17 см відповідно. Знайдіть відстань від точки <M>A</M> до площини <M>α</M>, якщо проекції даних похилих на цю площину відносяться як 5 : 2.</>,
+    sol:[<>Нехай <span className="cg"><M>AH ⊥ α</M></span>. Проекції: <span className="co"><M>HB = 5x</M></span>, <span className="co"><M>HC = 2x</M></span>. Трикутники <M>AHB</M> і <M>AHC</M> прямокутні.</>,
+      <><M>AH² = 25² − 25x²</M> і <M>AH² = 17² − 4x²</M>. Тому <M>625 − 25x² = 289 − 4x²</M>, <M>21x² = 336</M>, <M>x² = 16</M>, <M>x = 4</M>.</>,
+      <><M>AH² = 289 − 4 · 16 = 225</M>. Відстань <span className="cg"><M>AH = 15 см</M></span>.</>]},
+  {id:'35.18',tab:'35.18',kind:'num',hasFig:false,ans:3,
+    q:<>Точка <M>M</M> розташована на відстані 6 см від кожної вершини правильного трикутника <M>ABC</M>, сторона якого дорівнює 9 см. Знайдіть відстань від точки <M>M</M> до площини <M>ABC</M>.</>,
+    sol:[<><M>MA = MB = MC</M>, тому проекція <M>O</M> точки <M>M</M> на площину <M>ABC</M> — центр описаного кола трикутника <M>ABC</M>.</>,
+      <>Радіус описаного кола правильного трикутника: <M>OA = 9 ⁄ √3 = 3√3</M> см.</>,
+      <><M>△MOA</M> прямокутний: <M>MO² = MA² − OA² = 36 − 27 = 9</M>. Відстань <span className="cg"><M>MO = 3 см</M></span>.</>]}
+];
+
+function Item5(){
+  const [ti,setTi]=useState(0);const [S,setS]=useState({});
+  const t=TASKS[ti],st=S[t.id]||{};
+  const up=(id,patch)=>setS(s=>({...s,[id]:{...(s[id]||{}),...patch}}));
+  const isDone=x=>{const s=S[x.id]||{};return x.kind==='proof'?(s.k||0)===x.steps.length:!!s.ok;};
+  const allDone=TASKS.every(isDone);
+  const showFig=t.hasFig||st.fig||(t.kind==='num'&&st.ok)||(t.kind==='proof'&&(st.k||0)>0);
+  const sc=showFig?taskScene(t.id,t.kind==='proof'?{k:st.k||0}:{ok:st.ok}):null;
+  const labelOf=t.id.startsWith('35.1-')?'35.1':t.id;
+
+  const tabs=<div className="tabs">{TASKS.map((x,i)=><button key={x.id} className={'tab'+(ti===i?' on':'')+(isDone(x)?' done':'')} onClick={()=>setTi(i)}>{isDone(x)?'✓ ':''}{x.tab}</button>)}</div>;
+  let body=null;
+  if(t.kind==='mc'){
+    const wrong=st.wrong||[];
+    body=<>
+      {t.opts.map((o,i)=>{const isOk=st.ok&&i===t.okIdx,isBad=wrong.includes(i);
+        return <button key={i} className={'opt'+(isOk?' ok':isBad?' bad':'')} disabled={isBad||st.ok}
+          onClick={()=>{if(i===t.okIdx)up(t.id,{ok:true});else up(t.id,{wrong:[...wrong,i]});}}><b>{'АБВГД'[i]}</b><span><M>{o}</M></span></button>;})}
+      {st.ok&&<div className="fb ok">Правильно! <span style={{fontWeight:600}}>{t.ex}</span></div>}
+      {!st.ok&&wrong.length>0&&<div className="fb bad">Неправильно. Спробуй інший варіант.</div>}
+    </>;
+  }
+  if(t.kind==='num'){
+    body=<>
+      {!t.hasFig&&!showFig&&<button className="btn ghost sm" onClick={()=>up(t.id,{fig:true})}>Показати рисунок</button>}
+      <NumAns key={t.id} ans={t.ans} val={st.val||''} setVal={v=>up(t.id,{val:v})} ok={!!st.ok} setOk={()=>up(t.id,{ok:true,fig:true})}/>
+      {st.ok&&<div className="steps">{t.sol.map((s,i)=><div key={i} className={'step'+(i===t.sol.length-1?' last':'')}><span className="sn">{i+1})</span><div>{s}</div></div>)}</div>}
+    </>;
+  }
+  if(t.kind==='proof'){
+    body=<>
+      {!t.hasFig&&!showFig&&<button className="btn ghost sm" onClick={()=>up(t.id,{fig:true})}>Показати рисунок</button>}
+      <Steps items={t.steps} k={st.k||0} setK={v=>up(t.id,{k:v,fig:true})}/>
+    </>;
+  }
+  const left=(<>
+    {tabs}
+    <div className="fade" key={t.id}>
+      <Note><b>{labelOf}.</b> {t.q}</Note>
+      {body}
+      {isDone(t)&&ti<TASKS.length-1&&<button className="btn" onClick={()=>setTi(ti+1)}>Наступне завдання →</button>}
+      {allDone&&<div className="fb ok">Усі завдання виконано!</div>}
+    </div>
+  </>);
+  return <Frame left={left} full={!sc} scene={sc&&sc.scene} legend={sc&&sc.legend} camKey={t.id} yaw0={sc&&sc.yaw0} pitch0={sc&&sc.pitch0}/>;
+}
+function NumAns({ans,val,setVal,ok,setOk}){
+  const [bad,setBad]=useState(false);
+  const check=()=>{
+    const v=parseFloat(String(val).replace(',','.').replace(/[^0-9.\-]/g,''));
+    if(Math.abs(v-ans)<1e-6){setOk();setBad(false);}else setBad(true);
+  };
+  return(<div>
+    <div className="inpRow">
+      <input className="inp" inputMode="decimal" value={val} disabled={ok} placeholder="Відповідь"
+        onChange={e=>{setVal(e.target.value);setBad(false);}} onKeyDown={e=>{if(e.key==='Enter')check();}}/>
+      <span className="unit">см</span>
+      <button className="btn" disabled={ok||!val} onClick={check}>Перевірити</button>
+    </div>
+    {ok&&<div className="fb ok">Правильно!</div>}
+    {bad&&!ok&&<div className="fb bad">Неправильно. Спробуй ще раз.</div>}
+  </div>);
+}
+
+/* =====================================================================
+   Оболонка уроку
+   ===================================================================== */
+const ITEMS=[
+  {t:'Перпендикуляр і похила',p:'Означення. Теорема 35.1',Cmp:Item1},
+  {t:'Відстані',p:'Від точки, від прямої, між площинами',Cmp:Item2},
+  {t:'Теорема про три перпендикуляри',p:'Теорема 35.2',Cmp:Item3},
+  {t:'Ключова задача',p:'Точка, рівновіддалена від вершин',Cmp:Item4},
+  {t:'Задачі',p:'35.1 – 35.18',Cmp:Item5}];
+
+function startScene(){
+  const A=[-0.8,0,2.2],B=[-0.8,0,0],Cc=[1.6,0.4,0];
+  const pl=rectPlane([0.3,0.2,0],[1,0,0],[0,1,0],3.2,2.2);
+  return{P:{A,B,C:Cc},R:3.4,ctr:[0.3,0,1],prims:[plane(pl,C.al,.16),
+    {t:'seg',a:'A',b:'B',c:C.par,w:4.4},{t:'seg',a:'A',b:'C',c:C.ga,w:4.4},{t:'seg',a:'B',b:'C',c:C.proj,w:4.4},...rmark(B,[0,0,1],nrm([1,.17,0]),.35,C.par)]};
+}
+function App(){
+  const [scr,setScr]=useState('start');
+  const isItem=typeof scr==='number';
+  const nav=isItem&&(<div className="nav">
+    <button className="btn" onClick={()=>setScr('menu')}>☰ Зміст</button>
+    {scr>0&&<button className="btn ghost" onClick={()=>setScr(scr-1)}>← Назад</button>}
+    {scr<ITEMS.length-1?<button className="btn" onClick={()=>setScr(scr+1)}>Далі →</button>:<button className="btn" onClick={()=>setScr('start')}>На початок</button>}
+  </div>);
+  const Cur=isItem?ITEMS[scr].Cmp:null;
+  return(
+    <div className="app">
+      <div className="main">
+        {scr==='start'&&<div className="center start">
+          <div style={{width:'min(78vw,330px)',height:'min(34vh,260px)',position:'relative',marginBottom:'.4em'}}><Scene3D scene={startScene()} bare auto0 yaw0={0.5} pitch0={0.45}/></div>
+          <h1><span>Перпендикуляр</span><br/>і похила</h1>
+          <button className="go" onClick={()=>setScr('menu')}>ПОЧАТИ<i>▶</i></button>
+        </div>}
+        {scr==='menu'&&<div className="menu"><div style={{maxWidth:'70em',margin:'0 auto'}}><h2>35. Перпендикуляр і похила</h2>
+          <div className="mgrid">{ITEMS.map((it,i)=><button key={i} className="mcard" onClick={()=>setScr(i)}><span className="n">{i+1}</span><span><b>{it.t}</b><small>{it.p}</small></span></button>)}</div></div></div>}
+        {isItem&&<NavCtx.Provider value={nav}><Cur key={scr}/></NavCtx.Provider>}
+      </div>
+      <div className="sign">Автор розробки <b>Ковтун Тетяна</b></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
