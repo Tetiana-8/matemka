@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>§ 10. Описане та вписане кола чотирикутника. Урок 2 (8 клас)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=STIX+Two+Text:ital,wght@1,500;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14301f; --muted:#5b7a66; --acc:#0d5c3a; --acc2:#2e8b57; --accL:#dcf7e4;
+  --soft:#eef7e8; --soft2:#f8f7e5; --line:#bcd9bd;
+  --ok:#1e9e62; --okbg:#e6f7ee; --oktx:#14663f; --okln:#8fd3b0;
+  --bad:#e0464e; --badbg:#fdecee; --badtx:#a3232b; --badln:#efa3a8;
+  --warnbg:#fff6e5; --warntx:#8a5a00; --warnln:#f3d9a4;
+  --o1:#0f766e; --o2:#7c3aed;
+  --g-arc:#e8590c; --g-ang:#7048e8; --g-cen:#1c7ed6; --g-3:#2f9e44; --g-4:#d6336c; --g-5:#8a5a1c;
+  --q:#2f9e44;
+  --fs:20px;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);-webkit-text-size-adjust:100%}
+body{margin:0;height:100dvh;overflow:hidden;font-family:Nunito,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-weight:600;color:var(--ink);
+  background:linear-gradient(135deg,#eef7e8 0%,#e4f3d9 50%,#d6ecc6 100%) fixed;touch-action:manipulation}
+#app{height:100dvh;width:100%;display:flex;flex-direction:column;padding:.5rem .7rem 0}
+#stages{flex:1;min-height:0;position:relative}
+.stage{display:none;height:100%}
+.stage.on{display:block}
+.card{height:100%;overflow:auto;overflow-x:hidden;background:#fffffa;border:2px solid var(--line);border-radius:1.1rem;box-shadow:0 .25rem 1rem rgba(13,92,58,.10);padding:.9rem 1.2rem}
+.inner{margin:auto;max-width:80rem}
+h1,h2,h3{margin:0}
+h2.ttl{font-size:1.5rem;font-weight:900;color:var(--acc);margin-bottom:.5rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+i.v{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:600;font-size:1.12em;letter-spacing:.02em}
+.arcn{white-space:nowrap}
+/* навігація */
+#nav{flex:none;display:flex;align-items:center;justify-content:center;gap:.9rem;padding:.45rem 0 .25rem}
+#nav.hide{display:none}
+.nb{font:inherit;font-weight:800;font-size:.95rem;color:#fff;background:var(--acc);border:0;border-radius:.8rem;padding:.55rem 1.3rem;min-height:2.6rem;cursor:pointer;box-shadow:0 .15rem 0 #09402a}
+.nb:active{transform:translateY(1px)}
+.nb.sec{background:var(--accL);color:var(--acc);box-shadow:0 .15rem 0 #b6dcc0}
+.gem{width:2.6rem;height:2.6rem;border:0;background:transparent;padding:0;cursor:pointer}
+.gem svg{width:100%;height:100%}
+#timer{position:relative;width:.7rem;height:2.6rem;border-radius:.4rem;background:#dfeee0;border:1px solid var(--line);overflow:hidden;cursor:pointer}
+#tfill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#7cc78f,#2e8b57);height:100%}
+#ttip{position:absolute;bottom:3.1rem;left:50%;transform:translateX(-50%);background:var(--acc);color:#fff;font-size:.75rem;font-weight:700;border-radius:.4rem;padding:.2rem .5rem;white-space:nowrap;display:none;pointer-events:none}
+#twrap{position:relative;display:flex}
+#twrap:hover #ttip{display:block}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#6b7280;padding:2px 0 5px}
+/* старт */
+.start{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;min-height:100%;text-align:center}
+.start .big{font-size:1.2rem;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.start h1{font-size:2.6rem;font-weight:900;color:var(--acc);line-height:1.15}
+.start .go{font-size:1.4rem;padding:.8rem 2.4rem}
+.gemcorner{position:absolute;right:.9rem;top:.8rem;width:3rem;height:3rem}
+/* загальні блоки */
+.cols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:1.1rem;align-items:start}
+.cols.fig-r{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+@media (max-width:760px){.cols,.cols.fig-r{grid-template-columns:minmax(0,1fr)}}
+.figbox{background:var(--soft2);border:2px solid var(--line);border-radius:1rem;padding:.4rem;display:flex;justify-content:center;align-items:center}
+svg.fig{width:100%;height:auto;max-height:62dvh;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+svg text{font-family:"STIX Two Text","Times New Roman",serif;font-style:italic;font-weight:700;user-select:none}
+svg text.n{font-family:Nunito,system-ui,sans-serif;font-style:normal;font-weight:800}
+.rule{background:var(--accL);border-left:.4rem solid var(--acc2);border-radius:.7rem;padding:.6rem .9rem;font-size:1.05rem;line-height:1.4;margin-bottom:.6rem}
+.rule b{color:var(--acc)}
+.note{background:var(--warnbg);border:1.5px solid var(--warnln);color:var(--warntx);border-radius:.7rem;padding:.4rem .7rem;font-size:.9rem;margin:.4rem 0}
+.kc{color:var(--g-cen);font-weight:900}
+.ka{color:var(--g-arc);font-weight:900}
+.ki{color:var(--g-ang);font-weight:900}
+.kg{color:var(--g-3);font-weight:900}
+.kp{color:var(--g-4);font-weight:900}
+.kb{color:var(--g-5);font-weight:900}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin:.2rem 0 .6rem}
+.chip{font:inherit;font-weight:800;font-size:.95rem;border:2px solid var(--line);background:#fff;color:var(--acc);border-radius:.8rem;padding:.4rem .75rem;min-height:2.4rem;cursor:pointer}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.chip.pulse:not(.on){animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(46,139,87,.5)}50%{box-shadow:0 0 0 .4rem rgba(46,139,87,0)}}
+.say{min-height:2.6rem;font-size:1.1rem;line-height:1.42}
+.btn{font:inherit;font-weight:800;font-size:.95rem;border:0;border-radius:.75rem;padding:.45rem 1rem;min-height:2.4rem;color:#fff;background:var(--acc2);cursor:pointer;box-shadow:0 .12rem 0 #1f6b40}
+.btn.sec{background:#fff;color:var(--acc);border:2px solid var(--line);box-shadow:none}
+.btn.on{background:var(--acc);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.read{font-size:1.2rem;line-height:1.65;background:#fff;border:2px solid var(--line);border-radius:.9rem;padding:.5rem .9rem;margin:.4rem 0}
+.read .num{font-weight:900}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 .12em;font-weight:800}
+.frac>span:first-child{border-bottom:.12em solid currentColor;padding:0 .18em .05em}
+.frac>span:last-child{padding:.05em .18em 0}
+/* актуалізація */
+.qcard{border-left:.5rem solid var(--q);background:#fff;border-radius:1rem;padding:.7rem 1rem;border-top:2px solid var(--line);border-right:2px solid var(--line);border-bottom:2px solid var(--line)}
+.qnum{display:inline-block;background:var(--q);color:#fff;font-weight:900;border-radius:.6rem;padding:.1rem .7rem;margin-right:.5rem}
+.qtxt{font-size:1.25rem;line-height:1.45;font-weight:700}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem;margin:.7rem 0}
+@media (max-width:760px){.opts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.opt{font:inherit;font-weight:800;font-size:1.2rem;background:#fff;border:2.5px solid var(--q);color:var(--ink);border-radius:.9rem;padding:.55rem .3rem;min-height:3rem;cursor:pointer}
+.opt b{color:var(--q);margin-right:.35rem}
+.opt.ok{background:var(--okbg);border-color:var(--ok);color:var(--oktx)}
+.opt.bad{background:var(--badbg);border-color:var(--bad);color:var(--badtx);opacity:.8;cursor:default}
+.fb{font-weight:800;font-size:1rem;min-height:1.4rem;margin-top:.2rem}
+.fb.ok{color:var(--oktx)} .fb.bad{color:var(--badtx)}
+.why{font-size:1.02rem;line-height:1.45;background:var(--okbg);border:2px solid var(--okln);color:var(--oktx);border-radius:.8rem;padding:.4rem .8rem;margin-top:.5rem;display:none}
+.why.show{display:block}
+.trow{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem .6rem;background:#fff;border:2px solid var(--line);border-radius:.85rem;padding:.4rem .7rem;margin:.35rem 0;font-size:1.08rem}
+.trow[data-ok="1"]{background:var(--okbg);border-color:var(--okln)}
+.trow .lab{font-weight:800}
+select.sel{font:inherit;font-weight:800;font-size:1rem;border:2.5px solid var(--line);border-radius:.6rem;padding:.3rem .4rem;background:#fff;color:var(--ink);min-height:2.3rem;max-width:100%}
+select.sel.ok{border-color:var(--ok);background:var(--okbg)}
+select.sel.bad{border-color:var(--bad);background:var(--badbg)}
+.hint{flex-basis:100%;font-size:.98rem;color:var(--badtx);font-weight:700}
+.sol{flex-basis:100%;font-size:.98rem;color:var(--oktx);font-weight:700}
+.tf{width:100%;border-collapse:separate;border-spacing:0 .35rem}
+.tf td{background:#fff;border-top:2px solid var(--line);border-bottom:2px solid var(--line);padding:.35rem .6rem;font-size:1.08rem;vertical-align:middle}
+.tf td:first-child{border-left:2px solid var(--line);border-radius:.7rem 0 0 .7rem}
+.tf td:last-child{border-right:2px solid var(--line);border-radius:0 .7rem .7rem 0;white-space:nowrap;width:1%}
+.tf tr.ok td{background:var(--okbg);border-color:var(--okln)}
+.tf tr.bad td{background:var(--badbg);border-color:var(--badln)}
+.yn{font:inherit;font-weight:900;font-size:1rem;border:2px solid var(--line);background:#fff;color:var(--acc);border-radius:.6rem;padding:.25rem .8rem;min-height:2.3rem;cursor:pointer;margin-left:.3rem}
+.yn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+/* вкладки */
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.55rem}
+.tab{font:inherit;font-weight:900;font-size:1rem;border:2px solid var(--line);background:#fff;color:var(--acc);border-radius:.8rem;padding:.35rem .9rem;min-height:2.4rem;cursor:pointer}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tab.seen:not(.on){background:var(--accL)}
+.cond{font-size:1.15rem;line-height:1.5;margin-bottom:.5rem}
+.cond .no{font-weight:900;color:var(--acc);margin-right:.3rem}
+.act{display:flex;gap:.5rem;flex-wrap:wrap;margin:.4rem 0}
+/* покрокове розв'язання */
+.steps{margin-top:.3rem}
+.step{display:none;background:#fff;border:2px solid var(--line);border-left:.45rem solid var(--acc2);border-radius:.85rem;padding:.4rem .8rem;margin:.35rem 0;font-size:1.1rem;line-height:1.5}
+.step.show{display:block;animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(-.3rem)}to{opacity:1;transform:none}}
+.step .sn{display:inline-block;background:var(--acc2);color:#fff;font-weight:900;border-radius:.5rem;padding:0 .5rem;margin-right:.45rem;font-size:.95rem}
+.step.fin{background:var(--okbg);border-color:var(--okln);border-left-color:var(--ok);color:var(--oktx);font-weight:800}
+.darr{display:block;margin:.3rem auto;width:2.6rem;height:2.6rem;border-radius:50%;border:0;background:var(--acc2);color:#fff;font:inherit;font-weight:900;font-size:1.3rem;cursor:pointer;box-shadow:0 .15rem 0 #1f6b40;animation:bounce 1.3s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(.28rem)}}
+.darr[hidden]{display:none}
+.alldone{background:var(--okbg);border:2px solid var(--okln);color:var(--oktx);border-radius:.8rem;padding:.45rem .9rem;font-weight:900;margin-top:.5rem;display:none}
+.figs3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;width:100%}
+.figs2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;width:100%}
+@media (max-width:760px){.figs3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mini{background:#fff;border:2px solid var(--line);border-radius:.85rem;padding:.3rem;display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.mini.okf{background:var(--okbg);border-color:var(--okln)}
+.mini.badf{background:var(--badbg);border-color:var(--badln)}
+.mini svg{width:100%;height:auto;max-height:26dvh}
+.mini .cap{font-weight:800;font-size:.95rem;text-align:center}
+/* підсумок */
+.sumblock{display:none;background:#fff;border:2px solid var(--line);border-left:.45rem solid var(--acc2);border-radius:.9rem;padding:.45rem .9rem;margin:.45rem 0;font-size:1.15rem;line-height:1.4;align-items:center;gap:1rem}
+.sumblock.show{display:flex}
+.sumblock .mf{flex:none;width:5.2rem}
+.sumblock .mf svg{width:100%;height:auto}
+.selfq{background:var(--soft2);border:2px dashed var(--line);border-radius:.8rem;padding:.4rem .8rem;margin:.35rem 0;font-size:1.1rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.selfq .ans{display:none;color:var(--acc);font-weight:900}
+.selfq.show .ans{display:inline}
+/* світлофор */
+.tl{display:flex;flex-direction:column;align-items:center;gap:.7rem}
+.lamps{display:flex;gap:1rem;background:#cfd9d0;padding:.7rem 1rem;border-radius:1.2rem}
+.lamp{width:3.6rem;height:3.6rem;border-radius:50%;opacity:.28;border:3px solid rgba(0,0,0,.12);transition:.3s}
+.lamp.on{opacity:1;box-shadow:0 0 1.2rem currentColor}
+.votes{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+.vote{font:inherit;font-weight:900;font-size:1.05rem;border:3px solid;border-radius:1rem;padding:.6rem 1rem;background:#fff;cursor:pointer;min-width:11rem}
+.vote small{display:block;font-weight:700;font-size:.8rem;color:var(--muted)}
+.vote .cnt{font-size:1.6rem}
+/* модальне вікно (нижче за олівець 2147483600) */
+#modal{position:fixed;inset:0;z-index:2147483000;background:rgba(20,48,31,.45);display:none;align-items:center;justify-content:center;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fffffa;border:3px solid var(--line);border-radius:1.1rem;max-width:44rem;width:100%;max-height:92dvh;overflow:auto;padding:1rem 1.3rem;font-size:.95rem}
+#mbox h3{color:var(--acc);font-size:1.15rem;font-weight:900;margin:.3rem 0 .15rem}
+#mbox ul{margin:.2rem 0 .4rem 1.1rem;padding:0}
+.mstage{display:flex;justify-content:space-between;gap:1rem;width:100%;text-align:left;font:inherit;font-weight:700;border:0;background:transparent;padding:.2rem .4rem;border-radius:.5rem;cursor:pointer;color:var(--ink)}
+.mstage:hover{background:var(--accL)}
+.confetti{position:fixed;top:-2rem;z-index:2147483100;font-size:1.4rem;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stages"></div>
+  <div id="nav" class="hide">
+    <button class="nb sec" id="back">← Назад</button>
+    <button class="gem" id="gem2" title="Методична картка"></button>
+    <div id="twrap"><div id="timer"><div id="tfill"></div></div><div id="ttip"></div></div>
+    <button class="nb" id="next">Далі →</button>
+  </div>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+<div id="modal"><div id="mbox"></div></div>
+<script>
+'use strict';
+/* ====================== утиліти ====================== */
+const NS='http://www.w3.org/2000/svg';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function h(tag,attrs,html){const e=document.createElement(tag);if(attrs)for(const k in attrs){if(k==='class')e.className=attrs[k];else e.setAttribute(k,attrs[k]);}if(html!=null)e.innerHTML=html;return e;}
+function sv(tag,attrs,parent){const e=document.createElementNS(NS,tag);if(attrs)for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const mod=x=>((x%360)+360)%360;
+const v=s=>'<i class="v">'+s+'</i>';
+const arcN=s=>'<span class="arcn">∪'+v(s)+'</span>';
+const fmt=n=>String(Math.round(n*10)/10).replace('.',',');
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+const frac=(a,b)=>'<span class="frac"><span>'+a+'</span><span>'+b+'</span></span>';
+const f2=n=>n.toFixed(2);
+const INK='#14301f';
+const COL={arc:'#e8590c',ang:'#7048e8',cen:'#1c7ed6',g:'#2f9e44',p:'#d6336c',br:'#8a5a1c'};
+
+/* ====================== геометрія ====================== */
+function P(c,R,a){return [c.x+R*Math.cos(rad(a)), c.y-R*Math.sin(rad(a))];}
+function arcPath(c,R,a1,span){span=Math.max(0.01,Math.min(359.99,span));const s=P(c,R,a1),e=P(c,R,a1+span);
+  return 'M'+f2(s[0])+' '+f2(s[1])+'A'+R+' '+R+' 0 '+(span>180?1:0)+' 0 '+f2(e[0])+' '+f2(e[1]);}
+function wedgePath(c,r,a1,span){span=Math.max(0.01,Math.min(359.99,span));const s=P(c,r,a1),e=P(c,r,a1+span);
+  return 'M'+f2(c.x)+' '+f2(c.y)+'L'+f2(s[0])+' '+f2(s[1])+'A'+r+' '+r+' 0 '+(span>180?1:0)+' 0 '+f2(e[0])+' '+f2(e[1])+'Z';}
+function dirAngle(a,b){return mod(deg(Math.atan2(-(b[1]-a[1]),b[0]-a[0])));}
+function angleWedge(V,p,q,r){let a1=dirAngle(V,p),a2=dirAngle(V,q);let span=mod(a2-a1);if(span>180){a1=a2;span=360-span;}
+  return {d:wedgePath({x:V[0],y:V[1]},r,a1,span),a1:a1,span:span,mid:a1+span/2};}
+function rightMark(V,p,q,s){const a=dirAngle(V,p),b=dirAngle(V,q);const u=[Math.cos(rad(a)),-Math.sin(rad(a))],w=[Math.cos(rad(b)),-Math.sin(rad(b))];
+  const p1=[V[0]+u[0]*s,V[1]+u[1]*s],p2=[V[0]+(u[0]+w[0])*s,V[1]+(u[1]+w[1])*s],p3=[V[0]+w[0]*s,V[1]+w[1]*s];
+  return 'M'+f2(p1[0])+' '+f2(p1[1])+'L'+f2(p2[0])+' '+f2(p2[1])+'L'+f2(p3[0])+' '+f2(p3[1]);}
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+const unit=a=>{const l=Math.hypot(a[0],a[1])||1;return [a[0]/l,a[1]/l];};
+function angAt(V,p,q){const a=sub(p,V),b=sub(q,V);const c=(a[0]*b[0]+a[1]*b[1])/((Math.hypot(a[0],a[1])*Math.hypot(b[0],b[1]))||1);return deg(Math.acos(Math.max(-1,Math.min(1,c))));}
+function circum(A,B,C){const d=2*(A[0]*(B[1]-C[1])+B[0]*(C[1]-A[1])+C[0]*(A[1]-B[1]));if(Math.abs(d)<1e-9)return null;
+  const a2=A[0]*A[0]+A[1]*A[1],b2=B[0]*B[0]+B[1]*B[1],c2=C[0]*C[0]+C[1]*C[1];
+  const ux=(a2*(B[1]-C[1])+b2*(C[1]-A[1])+c2*(A[1]-B[1]))/d,uy=(a2*(C[0]-B[0])+b2*(A[0]-C[0])+c2*(B[0]-A[0]))/d;return {c:[ux,uy],R:dist([ux,uy],A)};}
+function lineInt(p1,d1,p2,d2){const det=d1[0]*d2[1]-d1[1]*d2[0];if(Math.abs(det)<1e-9)return null;const t=((p2[0]-p1[0])*d2[1]-(p2[1]-p1[1])*d2[0])/det;return [p1[0]+t*d1[0],p1[1]+t*d1[1]];}
+function distLine(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return Math.abs(dx*(a[1]-p[1])-dy*(a[0]-p[0]))/l;}
+function foot(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy);return [a[0]+t*dx,a[1]+t*dy];}
+function bisDir(V,p,q){const u1=unit(sub(p,V)),u2=unit(sub(q,V));return unit([u1[0]+u2[0],u1[1]+u2[1]]);}
+/* центр вписаного кола опуклого чотирикутника: перетин бісектрис кутів 0 і 1 */
+function incircle(Q){const d0=bisDir(Q[0],Q[3],Q[1]),d1=bisDir(Q[1],Q[0],Q[2]);const O=lineInt(Q[0],d0,Q[1],d1);if(!O)return null;return {c:O,r:distLine(O,Q[0],Q[1])};}
+function svgPt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=svg.getScreenCTM();if(!m)return [0,0];const q=p.matrixTransform(m.inverse());return [q.x,q.y];}
+function drag(svg,node,move,start,end){node.style.cursor='grab';node.style.touchAction='none';let on=false;
+  node.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();on=true;try{node.setPointerCapture(e.pointerId);}catch(_){}node.style.cursor='grabbing';if(start)start();});
+  node.addEventListener('pointermove',e=>{if(!on)return;const p=svgPt(svg,e);move(p[0],p[1]);});
+  const up=()=>{if(!on)return;on=false;node.style.cursor='grab';if(end)end();};
+  node.addEventListener('pointerup',up);node.addEventListener('pointercancel',up);}
+function newSvg(w,hh,cls){return sv('svg',{viewBox:'0 0 '+w+' '+hh,class:cls||'fig'});}
+function dot(parent,x,y,color,r){return sv('circle',{cx:f2(x),cy:f2(y),r:r||6,fill:color||INK},parent);}
+function label(parent,txt,x,y,color,size,anchor){const t=sv('text',{x:f2(x),y:f2(y),fill:color||INK,'font-size':size||26,'text-anchor':anchor||'middle','dominant-baseline':'central'},parent);t.textContent=txt;return t;}
+function nlabel(parent,txt,x,y,color,size){const t=label(parent,txt,x,y,color,size);t.setAttribute('class','n');return t;}
+function sline(parent,a,b,color,w,dash){const l=sv('line',{x1:f2(a[0]),y1:f2(a[1]),x2:f2(b[0]),y2:f2(b[1]),stroke:color||INK,'stroke-width':w||3,'stroke-linecap':'round'},parent);if(dash)l.setAttribute('stroke-dasharray',dash);return l;}
+function setLine(l,a,b){l.setAttribute('x1',f2(a[0]));l.setAttribute('y1',f2(a[1]));l.setAttribute('x2',f2(b[0]));l.setAttribute('y2',f2(b[1]));}
+function setPos(el,p){el.setAttribute('x',f2(p[0]));el.setAttribute('y',f2(p[1]));}
+function setCirc(el,c,r){el.setAttribute('cx',f2(c[0]));el.setAttribute('cy',f2(c[1]));if(r!=null)el.setAttribute('r',f2(r));}
+function polyStr(pts){return pts.map(p=>f2(p[0])+','+f2(p[1])).join(' ');}
+/* підпис точки назовні від заданого центру */
+function outLabel(parent,cen,pt,txt,color,off,size){const d=unit(sub(pt,cen));return label(parent,txt,pt[0]+d[0]*(off||24),pt[1]+d[1]*(off||24),color||INK,size||26);}
+/* кут із вершиною V між p і q: заливка, дуга-клин і підпис */
+function markAngle(parent,V,p,q,r,col,txt,sz){const w=angleWedge(V,p,q,r);sv('path',{d:w.d,fill:col,'fill-opacity':.38,stroke:col,'stroke-width':2.5},parent);
+  let t=null;if(txt!=null&&txt!==''){const lp=P({x:V[0],y:V[1]},r+(sz||20)*0.95,w.mid);t=nlabel(parent,txt,lp[0],lp[1],col,sz||20);}return {w:w,t:t};}
+function markRight(parent,V,p,q,s,col){return sv('path',{d:rightMark(V,p,q,s),fill:'none',stroke:col||INK,'stroke-width':3},parent);}
+/* позначки рівності відрізків (риски) */
+function tickMark(parent,a,b,n,col){const m=mid(a,b),u=unit(sub(b,a)),nn=[-u[1],u[0]];const g=sv('g',{},parent);
+  for(let i=0;i<n;i++){const o=(i-(n-1)/2)*7;const c=[m[0]+u[0]*o,m[1]+u[1]*o];sline(g,[c[0]-nn[0]*8,c[1]-nn[1]*8],[c[0]+nn[0]*8,c[1]+nn[1]*8],col||INK,3);}return g;}
+/* підпис сторони (зовні від центру фігури) */
+function sideLabel(parent,a,b,cen,txt,col,off,size){const m=mid(a,b);const u=unit(sub(b,a));let nn=[-u[1],u[0]];const toC=sub(cen,m);if(nn[0]*toC[0]+nn[1]*toC[1]>0)nn=[-nn[0],-nn[1]];
+  return nlabel(parent,txt,m[0]+nn[0]*(off||22),m[1]+nn[1]*(off||22),col||INK,size||22);}
+/* масштабування наборів точок у рамку W×H */
+function fitPts(sets,W,H,pad,extra){let xs=[],ys=[];sets.forEach(s=>s.forEach(p=>{xs.push(p[0]);ys.push(p[1]);}));(extra||[]).forEach(e=>{xs.push(e[0]-e[2],e[0]+e[2]);ys.push(e[1]-e[2],e[1]+e[2]);});
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);const k=Math.min((W-2*pad)/((x1-x0)||1),(H-2*pad)/((y1-y0)||1));
+  const ox=(W-(x1-x0)*k)/2-x0*k,oy=(H-(y1-y0)*k)/2-y0*k;return {k:k,tr:p=>[p[0]*k+ox,p[1]*k+oy]};}
+/* чотирикутник за кутами (у градусах, по порядку вершин A,B,C,D): знаходимо додатні довжини сторін */
+function quadByAngles(an){const hd=[0];for(let i=0;i<3;i++)hd.push(hd[i]+(180-an[(i+1)%4]));
+  const u=hd.map(a=>[Math.cos(rad(a)),-Math.sin(rad(a))]);let best=null,bs=1e9;
+  for(let s=0.3;s<=4;s+=0.02){ // l1=1, l2=s, розв'язуємо l3, l4
+    const rx=-(u[0][0]+s*u[1][0]),ry=-(u[0][1]+s*u[1][1]);const det=u[2][0]*u[3][1]-u[2][1]*u[3][0];if(Math.abs(det)<1e-6)continue;
+    const l3=(rx*u[3][1]-ry*u[3][0])/det,l4=(u[2][0]*ry-u[2][1]*rx)/det;if(l3<0.25||l4<0.25)continue;
+    const L=[1,s,l3,l4],sc=Math.max(...L)/Math.min(...L);if(sc<bs){bs=sc;best=L;}}
+  if(!best)best=[1,1,1,1];const pts=[[0,0]];for(let i=0;i<3;i++)pts.push([pts[i][0]+best[i]*u[i][0],pts[i][1]+best[i]*u[i][1]]);return pts;}
+/* чотирикутник за сторонами AB,BC,CD,DA */
+function quadBySides(a,b,c,d){let best=null,bs=1e9;
+  for(let al=40;al<=140;al+=0.5){const A=[0,0],B=[a,0],D=[d*Math.cos(rad(al)),-d*Math.sin(rad(al))];
+    const dd=dist(B,D);if(dd>b+c-1e-6||dd<Math.abs(b-c)+1e-6)continue;
+    const x=(b*b-c*c+dd*dd)/(2*dd),yy=Math.sqrt(Math.max(0,b*b-x*x));const e=unit(sub(D,B));
+    [-1,1].forEach(sg=>{const C=[B[0]+e[0]*x-sg*e[1]*yy,B[1]+e[1]*x+sg*e[0]*yy];const Q=[A,B,C,D];if(!isConvex(Q))return;
+      const sc=Math.abs(angAt(A,D,B)-90)+Math.abs(angAt(B,A,C)-90)+Math.abs(angAt(C,B,D)-90);if(sc<bs){bs=sc;best=Q;}});}
+  return best||[[0,0],[a,0],[a,c],[0,d]];}
+function isConvex(Q){let s=0;for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],c=Q[(i+2)%Q.length];const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);if(Math.abs(cr)<1e-9)return false;const sg=cr>0?1:-1;if(!s)s=sg;else if(s!==sg)return false;}return true;}
+
+/* ====================== кроки з стрілкою ↓ ====================== */
+function stepsBox(items,onStep){
+  const box=h('div',{class:'steps'});let n=0;
+  const els=items.map((it,i)=>{const e=h('div',{class:'step'+(it.fin?' fin':'')},(it.fin?'':'<span class="sn">'+(i+1)+'</span>')+it.h);box.appendChild(e);return e;});
+  const arr=h('button',{class:'darr',title:'Далі'},'↓');box.appendChild(arr);
+  function next(){if(n<els.length){els[n].classList.add('show');if(onStep)onStep(n,items[n]);n++;}if(n>=els.length)arr.hidden=true;fitSoon();setTimeout(function(){try{(arr.hidden?els[els.length-1]:arr).scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}},60);}
+  arr.onclick=next;
+  function reset(){n=0;els.forEach(e=>e.classList.remove('show'));arr.hidden=false;if(onStep)onStep(-1);fitSoon();}
+  return {box:box,reset:reset,next:next};}
+
+/* ====================== етапи, навігація ====================== */
+const STAGES=[];let cur=0;
+function addStage(def){STAGES.push(def);}
+function mm(sec){const m=sec/60;return (Math.round(m*10)/10).toString().replace('.',',')+' хв';}
+function buildAll(){
+  const box=$('#stages');
+  STAGES.forEach((s,i)=>{const sec=h('section',{class:'stage',id:'st'+i});const card=h('div',{class:'card'});const inner=h('div',{class:'inner'});card.appendChild(inner);sec.appendChild(card);box.appendChild(sec);s.root=inner;s.sec=sec;s.card=card;});
+  STAGES.forEach(s=>{try{s.build(s.root);}catch(e){console.error('build '+s.id,e);}});
+}
+function go(i){
+  if(i<0||i>=STAGES.length)return;
+  cur=i;STAGES.forEach((s,k)=>s.sec.classList.toggle('on',k===i));
+  $('#nav').classList.toggle('hide',i===0||i===STAGES.length-1);
+  startTimer(i);fit();
+  STAGES[i].card.scrollTop=0;
+  if(STAGES[i].show)STAGES[i].show();
+  observeStage();setTimeout(fit,60);
+}
+function fit(){
+  const s=STAGES[cur];if(!s)return;const card=s.card;const app=$('#app');
+  let fs=Math.max(16,Math.min(34,Math.min(app.clientWidth*0.022,app.clientHeight*0.045)));
+  const minFs=s.minFs||11;const rt=document.documentElement;
+  rt.style.setProperty('--fs',fs+'px');let guard=0;
+  while(card.scrollHeight>card.clientHeight+2&&fs>minFs&&guard<70){fs-=0.5;rt.style.setProperty('--fs',fs+'px');guard++;}
+}
+let fitT=0;function fitSoon(){clearTimeout(fitT);fitT=setTimeout(fit,90);}
+window.addEventListener('resize',fitSoon);
+const mo=new MutationObserver(fitSoon);
+function observeStage(){mo.disconnect();const s=STAGES[cur];if(s)mo.observe(s.card,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});}
+/* таймер */
+let tInt=null,tLeft=0,tTot=0;
+function tdraw(){const f=$('#tfill'),tip=$('#ttip');const pc=tTot?Math.max(0,tLeft/tTot*100):0;f.style.height=pc+'%';
+  const m=Math.floor(tLeft/60),s=tLeft%60;const M=Math.floor(tTot/60),S=tTot%60;tip.textContent='Залишилось '+m+':'+String(s).padStart(2,'0')+' з '+M+':'+String(S).padStart(2,'0');}
+function startTimer(i){clearInterval(tInt);tTot=STAGES[i].dur||0;tLeft=tTot;tdraw();tInt=setInterval(()=>{if(tLeft>0){tLeft--;tdraw();}},1000);}
+$('#timer').addEventListener('click',()=>{tLeft=tTot;tdraw();});
+/* методична картка */
+const GEM='<svg viewBox="0 0 64 64"><polygon points="32,4 56,22 46,58 18,58 8,22" fill="#bfe8c9" stroke="#0d5c3a" stroke-width="3" stroke-linejoin="round"/><polygon points="32,4 20,22 44,22" fill="#e8f9ee" stroke="#0d5c3a" stroke-width="2" stroke-linejoin="round"/><polyline points="8,22 56,22" fill="none" stroke="#0d5c3a" stroke-width="2"/><polyline points="20,22 18,58 32,34 46,58 44,22" fill="none" stroke="#0d5c3a" stroke-width="2" stroke-linejoin="round"/></svg>';
+function openCard(){
+  let tot=0;STAGES.forEach(s=>tot+=s.dur||0);
+  let rows='';STAGES.forEach((s,i)=>{if(i===0)return;rows+='<button class="mstage" data-i="'+i+'"><span>'+s.title+'</span><span>'+mm(s.dur)+'</span></button>';});
+  $('#mbox').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-size:1.3rem">Методична картка</h3><button class="nb sec" id="mclose" style="padding:.2rem .8rem;min-height:2rem">✕</button></div>'
+   +'<h3>Мета уроку</h3><div>Повторити властивості й ознаку вписаного в коло чотирикутника; пригадати означення, властивість і ознаку чотирикутника, описаного навколо кола (теореми 10.3 і 10.4); закріпити їх під час розв\'язування задач 339–357.</div>'
+   +'<h3>Ключові компетентності</h3><ul><li>Математична: обґрунтовувати, чи можна описати коло навколо чотирикутника або вписати його; знаходити кути, сторони, радіус.</li><li>Уміння вчитися впродовж життя: досліджувати рухомий рисунок, помічати закономірність.</li><li>Інформаційно-цифрова: працювати з динамічним рисунком.</li></ul>'
+   +'<h3>Перебіг уроку · '+mm(tot)+'</h3>'+rows;
+  $('#modal').classList.add('show');
+  $('#mclose').onclick=()=>$('#modal').classList.remove('show');
+  $$('.mstage',$('#mbox')).forEach(b=>b.onclick=()=>{$('#modal').classList.remove('show');go(+b.dataset.i);});
+}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').classList.remove('show');});
+$('#gem2').innerHTML=GEM;$('#gem2').onclick=openCard;
+$('#back').onclick=()=>go(cur-1);
+$('#next').onclick=()=>go(cur+1);
+function confetti(){const em=['🎉','✨','⭐','🟢','🔶','💜'];for(let i=0;i<40;i++){const e=h('div',{class:'confetti'},pick(em));e.style.left=Math.random()*100+'vw';e.style.animationDuration=(2+Math.random()*2.5)+'s';e.style.animationDelay=(Math.random()*.6)+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),5500);}}
+/* круг із двома кутами-перетягуванням: допоміжні */
+const ev=a=>mod(Math.round(a/2)*2);
+function angDiff(a,b){const d=mod(a-b);return Math.min(d,360-d);}
+function handle(svg,parent,color,txt){const g=sv('g',{},parent);const hit=sv('circle',{r:26,fill:'transparent'},g);const d=sv('circle',{r:9,fill:color,stroke:'#fff','stroke-width':3},g);
+  const t=sv('text',{'font-size':27,fill:color==='#14301f'?INK:color,'text-anchor':'middle','dominant-baseline':'central'},g);t.textContent=txt||'';
+  return {g:g,hit:hit,dot:d,t:t,
+    set:function(x,y,cen,off){hit.setAttribute('cx',f2(x));hit.setAttribute('cy',f2(y));d.setAttribute('cx',f2(x));d.setAttribute('cy',f2(y));
+      const dx=x-cen[0],dy=y-cen[1],l=Math.hypot(dx,dy)||1;const o=off||30;t.setAttribute('x',f2(x+dx/l*o));t.setAttribute('y',f2(y+dy/l*o));}};}
+</script>
+<style>
+.figs4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;width:100%}
+@media (max-width:760px){.figs4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mini select.sel{width:100%}
+</style>
+<script>
+/* ====================== АКТУАЛІЗАЦІЯ: допоміжні ====================== */
+function mkOpts(ans,cands){const set=[];shuffle(cands).forEach(function(x){if(Number.isInteger(x)&&x>0&&x<=360&&x!==ans&&set.indexOf(x)<0)set.push(x);});
+  const o=set.slice(0,3);o.push(ans);return shuffle(o);}
+/* коло з дугою AC, вписаними кутами й центральним кутом */
+function circFig(o){
+  const svg=newSvg(400,400);const c={x:200,y:200},R=130,O=[200,200];
+  sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+  const A=P(c,R,o.a),C=P(c,R,o.a+o.span);
+  (o.arcs||[]).forEach(function(ar){sv('path',{d:arcPath(c,R,ar.a1,ar.span),fill:'none',stroke:ar.col,'stroke-width':11,'stroke-linecap':'round','stroke-opacity':.9},svg);
+    if(ar.txt){const q=P(c,R+(ar.off||36),ar.a1+ar.span/2);nlabel(svg,ar.txt,q[0],q[1],ar.col,22);}});
+  if(o.center){sline(svg,O,A,COL.cen,4);sline(svg,O,C,COL.cen,4);markAngle(svg,O,A,C,o.center.r||38,COL.cen,o.center.txt,22);}
+  const Bs=[];
+  (o.verts||[]).forEach(function(vt,i){const B=P(c,R,vt.a);Bs.push(B);sline(svg,B,A,COL.ang,3.5);sline(svg,B,C,COL.ang,3.5);markAngle(svg,B,A,C,vt.r||32,COL.ang,vt.txt,22);});
+  dot(svg,200,200,INK,5);label(svg,'O',208,222,INK,24);
+  [[A,'A'],[C,'C']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,6);outLabel(svg,O,x[0],x[1],INK,24,24);});
+  Bs.forEach(function(B,i){dot(svg,B[0],B[1],INK,6);outLabel(svg,O,B,'B'+(Bs.length>1?['₁','₂'][i]:''),INK,26,24);});
+  return svg;}
+/* чотирикутник із кутами */
+function quadFig(angles,txts,opt){
+  opt=opt||{};const Q0=quadByAngles(angles);const W=400,H=330;const F=fitPts([Q0],W,H,56);const Q=Q0.map(F.tr);const svg=newSvg(W,H);const cen=[Q.reduce((s,p)=>s+p[0],0)/4,Q.reduce((s,p)=>s+p[1],0)/4];
+  if(opt.circle){const cc=circum(Q[0],Q[1],Q[2]);if(cc)sv('circle',{cx:f2(cc.c[0]),cy:f2(cc.c[1]),r:f2(cc.R),fill:'none',stroke:COL.g,'stroke-width':3.5,'stroke-dasharray':'10 6',class:'circ'},svg);}
+  sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.8,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+  const cols=opt.cols||[COL.g,COL.g,COL.g,COL.g];
+  for(let i=0;i<4;i++){const V=Q[i],p=Q[(i+3)%4],q=Q[(i+1)%4];const t=txts[i];
+    if(t==='sq'){markRight(svg,V,p,q,17,cols[i]);}else markAngle(svg,V,p,q,24,t==='?'?COL.ang:cols[i],t,t==='?'?28:20);
+    dot(svg,V[0],V[1],INK,5);outLabel(svg,cen,V,'ABCD'[i],INK,28,26);}
+  svg._Q=Q;return svg;}
+
+/* ====================== 1. АКТУАЛІЗАЦІЯ ====================== */
+function quizTask(panel,num,gen,unit){
+  panel.innerHTML='<div class="cols"><div><div class="qcard"></div><div class="opts"></div><div class="fb"></div><div class="why"></div><div class="act"><button class="btn sec nq">Нове запитання ↻</button><button class="btn nx" style="display:none">Наступне завдання →</button></div></div><div class="figbox"></div></div>';
+  const qc=$('.qcard',panel),op=$('.opts',panel),fb=$('.fb',panel),wy=$('.why',panel),fg=$('.figbox',panel),nx=$('.nx',panel);
+  function newQ(){
+    const q=gen();qc.innerHTML='<span class="qnum">№ '+num+'</span><span class="qtxt">'+q.txt+'</span>';
+    fg.innerHTML='';fg.appendChild(q.fig);op.innerHTML='';fb.textContent='';fb.className='fb';wy.className='why';wy.innerHTML='';let done=false;
+    q.opts.forEach(function(o,i){const b=h('button',{class:'opt'},'<b>'+'АБВГ'[i]+'</b>'+o+unit);op.appendChild(b);
+      b.onclick=function(){if(done||b.classList.contains('bad'))return;
+        if(o===q.ans){done=true;b.classList.add('ok');fb.className='fb ok';fb.textContent='Правильно!';wy.innerHTML=q.why;wy.classList.add('show');
+          if(q.after)q.after(fg.firstChild);if(panel._next)nx.style.display='';panel.dispatchEvent(new CustomEvent('solved',{bubbles:true}));fitSoon();}
+        else{b.classList.add('bad');fb.className='fb bad';fb.textContent='Неправильно. Спробуйте інший варіант.';}};});
+    fitSoon();}
+  $('.nq',panel).onclick=newQ;nx.onclick=function(){if(panel._next)panel._next();};newQ();}
+
+/* ====================== 0. СТАРТ ====================== */
+addStage({id:'start',title:'Старт',dur:0,build:function(r){
+  r.style.height='100%';r.style.maxWidth='none';
+  r.innerHTML='<div class="start"><div class="big">§ 10 · Урок 2</div><h1>Тема: описане та вписане кола чотирикутника</h1><button class="nb go" id="goStart">Почати ▶</button></div>';
+  const g=h('button',{class:'gem gemcorner',title:'Методична картка'});g.innerHTML=GEM;g.onclick=openCard;r.parentNode.appendChild(g);r.parentNode.style.position='relative';
+  $('#goStart',r).onclick=()=>go(1);
+}});
+
+/* ====================== ПОВТОРЕННЯ: допоміжні ====================== */
+/* чотирикутник, вписаний у коло: s — дуги сторін AB, BC, CD, DA (градуси) */
+function cycFig(s,o){
+  o=o||{};const svg=newSvg(400,400);const c={x:200,y:200},R=o.R||130,O=[200,200];const nm=o.names||'ABCD';
+  sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+  const ang=[o.a0==null?90:o.a0];for(let i=0;i<3;i++)ang.push(ang[i]+s[i]);
+  const Q=ang.map(a=>P(c,R,a));
+  sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.55,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+  (o.diag||[]).forEach(function(d){sline(svg,Q[d[0]],Q[d[1]],o.diagCol||'#7a8a80',3.2);});
+  if(o.center){dot(svg,200,200,INK,4);label(svg,'O',212,220,INK,22);}
+  (o.marks||[]).forEach(function(m){if(m.right)markRight(svg,Q[m.v],Q[m.p],Q[m.q],m.s||17,m.col||INK);else markAngle(svg,Q[m.v],Q[m.p],Q[m.q],m.r||28,m.col,m.txt,m.sz||20);});
+  Q.forEach(function(p,i){dot(svg,p[0],p[1],INK,6);outLabel(svg,O,p,nm[i],INK,26,26);});
+  svg._Q=Q;return svg;}
+function randArcs(lo,hi){let s;for(let t=0;t<500;t++){s=[0,0,0,0].map(()=>rnd(lo/10,hi/10)*10);if(s[0]+s[1]+s[2]+s[3]===360)return s;}return [90,90,90,90];}
+
+/* №1: протилежний кут вписаного чотирикутника */
+function genOpp(){const s=randArcs(50,130);const k=rnd(0,3),kk=(k+2)%4;const A=i=>(s[(i+1)%4]+s[(i+2)%4])/2;const x=A(k),ans=180-x;const L='ABCD';
+  const fig=cycFig(s,{a0:rnd(0,359),marks:[{v:k,p:(k+3)%4,q:(k+1)%4,txt:x+'°',col:COL.ang,r:30},{v:kk,p:(kk+3)%4,q:(kk+1)%4,txt:'?',col:COL.cen,r:30,sz:26}]});
+  return {txt:'Чотирикутник <i class="v">ABCD</i> вписано в коло. ∠<i class="v">'+L[k]+'</i> = <b>'+x+'°</b>. Знайдіть ∠<i class="v">'+L[kk]+'</i>.',fig:fig,ans:ans,
+    opts:mkOpts(ans,[x,360-x,90-x+90,ans+10,ans-10,ans+20,ans-20,x+10,x-10,180-x+5,180-x-5].map(Math.round)),
+    why:'Сума протилежних кутів вписаного чотирикутника дорівнює 180°: ∠<i class="v">'+L[kk]+'</i> = 180° − '+x+'° = '+ans+'°.'};}
+/* №3: два вписані кути на одну дугу */
+function genSame(){let s,x;do{s=randArcs(50,130);}while(s[0]<50||s[0]>120);x=s[0]/2;const ans=x;
+  const fig=cycFig(s,{a0:rnd(0,359),diag:[[0,2],[1,3]],marks:[{v:3,p:0,q:1,txt:x+'°',col:COL.ang,r:34},{v:2,p:0,q:1,txt:'?',col:COL.cen,r:34,sz:26}]});
+  return {txt:'Точки <i class="v">A</i>, <i class="v">B</i>, <i class="v">C</i>, <i class="v">D</i> лежать на колі. ∠<i class="v">ADB</i> = <b>'+x+'°</b>. Знайдіть ∠<i class="v">ACB</i>.',fig:fig,ans:ans,
+    opts:mkOpts(ans,[2*x,x/2,180-x,90-x,x+10,x-10,x+20,x-20,x+5,x-5,360-2*x].map(Math.round)),
+    why:'Кути <i class="v">ADB</i> і <i class="v">ACB</i> вписані й спираються на одну й ту саму дугу <i class="v">AB</i>, тому вони рівні: ∠<i class="v">ACB</i> = '+x+'°.'};}
+/* №4: діаметр */
+function genDiam(){const al=rnd(3,15)*5;const ans=90-al;const svg=newSvg(400,400);const c={x:200,y:200},R=135,O=[200,200];
+  sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+  const A=P(c,R,180),D=P(c,R,0),B=P(c,R,2*al);
+  sv('polygon',{points:polyStr([A,B,D]),fill:'#f1f8ec','fill-opacity':.55,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+  sline(svg,A,D,COL.arc,5);
+  markAngle(svg,A,B,D,40,COL.ang,al+'°',20);markAngle(svg,D,A,B,40,COL.cen,'?',26);
+  dot(svg,200,200,INK,4);label(svg,'O',212,222,INK,22);
+  [[A,'A'],[B,'B'],[D,'D']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,6);outLabel(svg,O,x[0],x[1],INK,26,26);});
+  const after=function(sv0){markRight(sv0,B,A,D,17,INK);};
+  return {txt:'<i class="v">AD</i> — діаметр кола, точка <i class="v">B</i> лежить на колі, ∠<i class="v">BAD</i> = <b>'+al+'°</b>. Знайдіть ∠<i class="v">BDA</i>.',fig:svg,ans:ans,
+    opts:mkOpts(ans,[al,180-al,al+10,al-10,ans+10,ans-10,ans+5,ans-5,2*al,90+al].map(Math.round)),after:after,
+    why:'Кут <i class="v">ABD</i> вписаний і спирається на діаметр, тому ∠<i class="v">ABD</i> = 90°. У трикутнику <i class="v">ABD</i>: ∠<i class="v">BDA</i> = 90° − '+al+'° = '+ans+'°.'};}
+
+/* №2: чи можна описати коло — вибір «Так / Ні» для кожного чотирикутника */
+function genQuadSet(){const out=[];const good=an=>an.every(x=>x>=55&&x<=125&&x%5===0);
+  while(out.length<2){const a=rnd(12,24)*5,b=rnd(12,24)*5;const an=[a,b,180-a,180-b];if(good(an)&&!out.some(o=>o.an[0]===a&&o.an[1]===b))out.push({an:an,ok:true});}
+  {let an;do{const a=rnd(12,24)*5;an=[a,180-a,a,180-a];}while(an[0]===90||!good(an));out.push({an:an,ok:false});}
+  {let an;do{const a=rnd(12,24)*5,b=rnd(12,24)*5,d=pick([-20,-15,-10,10,15,20]);const c=180-a+d;an=[a,b,c,180-b-d];}while(!good(an));out.push({an:an,ok:false});}
+  return shuffle(out);}
+function actQuadYN(panel,num){
+  panel.innerHTML='<div class="qcard"><span class="qnum">№ '+num+'</span><span class="qtxt">Чи можна описати коло навколо чотирикутника <i class="v">ABCD</i> із такими кутами? Оберіть «Так» або «Ні» для кожного.</span></div><div class="figs4" style="margin-top:.6rem"></div><div class="fb" style="margin-top:.4rem"></div><div class="act"><button class="btn sec nq">Нове запитання ↻</button><button class="btn nx" style="display:none">Наступне завдання →</button></div>';
+  const grid=$('.figs4',panel),fb=$('.fb',panel),nx=$('.nx',panel);
+  function newQ(){grid.innerHTML='';fb.textContent='';fb.className='fb';nx.style.display='none';let ok=0;const set=genQuadSet();
+    set.forEach(function(q){const m=h('div',{class:'mini'});const svg=quadFig(q.an,q.an.map(x=>x+'°'),{circle:q.ok});const cr=$('.circ',svg);if(cr)cr.style.display='none';m.appendChild(svg);
+      const sel=h('select',{class:'sel'});sel.appendChild(h('option',{value:''},'Оберіть…'));sel.appendChild(h('option',{value:'1'},'Так, можна'));sel.appendChild(h('option',{value:'0'},'Ні, не можна'));m.appendChild(sel);
+      const cap=h('div',{class:'cap'});m.appendChild(cap);grid.appendChild(m);
+      sel.onchange=function(){if(!sel.value)return;if((sel.value==='1')===q.ok){sel.classList.remove('bad');sel.classList.add('ok');sel.disabled=true;m.classList.remove('badf');m.classList.add('okf');cap.style.color='var(--oktx)';
+          cap.innerHTML=q.ok?'✓ ∠A + ∠C = '+q.an[0]+'° + '+q.an[2]+'° = 180°, ∠B + ∠D = '+q.an[1]+'° + '+q.an[3]+'° = 180°':'✓ ∠A + ∠C = '+q.an[0]+'° + '+q.an[2]+'° = '+(q.an[0]+q.an[2])+'° ≠ 180°';
+          if(cr)cr.style.display='';ok++;
+          if(ok===set.length){fb.className='fb ok';fb.textContent='Правильно!';if(panel._next)nx.style.display='';panel.dispatchEvent(new CustomEvent('solved',{bubbles:true}));}}
+        else{sel.classList.add('bad');m.classList.add('badf');cap.style.color='var(--badtx)';cap.textContent='Неправильно. Порівняйте суми протилежних кутів.';}fitSoon();};});fitSoon();}
+  $('.nq',panel).onclick=newQ;nx.onclick=function(){if(panel._next)panel._next();};newQ();}
+
+/* №5: таблиця тверджень «Так / Ні» */
+function ynTable(panel,num,qtext,S){
+  panel.innerHTML='<div class="qcard"><span class="qnum">№ '+num+'</span><span class="qtxt">'+qtext+'</span></div><table class="tf" style="margin-top:.5rem"></table><div class="fb"></div><div class="act"><button class="btn nx" style="display:none">Наступне завдання →</button></div>';
+  let ok=0;const tb=$('.tf',panel);
+  S.forEach(function(s){const tr=h('tr');const td1=h('td',null,s[0]+'<div class="sol" style="display:none;color:var(--oktx);font-size:.92rem;margin-top:.15rem"></div>');const td2=h('td');
+    const by=h('button',{class:'yn'},'Так'),bn=h('button',{class:'yn'},'Ні');td2.appendChild(by);td2.appendChild(bn);tr.appendChild(td1);tr.appendChild(td2);tb.appendChild(tr);
+    [[by,1],[bn,0]].forEach(function(p){p[0].onclick=function(){if(tr.classList.contains('ok'))return;
+      if(p[1]===s[1]){tr.className='ok';p[0].classList.add('on');by.disabled=bn.disabled=true;const so=$('.sol',td1);so.style.display='block';so.textContent='✓ '+s[2];ok++;
+        if(ok===S.length){$('.fb',panel).className='fb ok';$('.fb',panel).textContent='Правильно!';if(panel._next)$('.nx',panel).style.display='';panel.dispatchEvent(new CustomEvent('solved',{bubbles:true}));}}
+      else{tr.className='bad';setTimeout(function(){if(!tr.classList.contains('ok'))tr.className='';},900);}fitSoon();};});});
+  $('.nx',panel).onclick=function(){if(panel._next)panel._next();};}
+
+/* ====================== 1. ПОВТОРЕННЯ: вписаний чотирикутник ====================== */
+addStage({id:'rep',title:'Повторення: вписаний чотирикутник',dur:420,minFs:15,build:function(r){
+  r.innerHTML='<h2 class="ttl">Вписаний у коло чотирикутник</h2><div class="tabs"></div><div class="body"></div><div class="alldone">Усі завдання виконано правильно!</div>';
+  const tabs=$('.tabs',r),body=$('.body',r),done=$('.alldone',r);
+  const items=[
+   {t:'1',b:function(p){quizTask(p,1,genOpp,'°');}},
+   {t:'2',b:function(p){actQuadYN(p,2);}},
+   {t:'3',b:function(p){quizTask(p,3,genSame,'°');}},
+   {t:'4',b:function(p){quizTask(p,4,genDiam,'°');}},
+   {t:'5',b:function(p){ynTable(p,5,'Чотирикутник вписано в коло. Відповідайте: «Так» чи «Ні».',[
+      ['Сума протилежних кутів вписаного чотирикутника дорівнює 180°.',1,'Так: теорема 10.1.'],
+      ['Навколо будь-якого чотирикутника можна описати коло.',0,'Ні: наприклад, навколо паралелограма, відмінного від прямокутника, описати коло не можна.'],
+      ['Якщо ∠<i class="v">A</i> + ∠<i class="v">B</i> = 180°, то навколо чотирикутника <i class="v">ABCD</i> можна описати коло.',0,'Ні: потрібна сума саме протилежних кутів, ∠<i class="v">A</i> + ∠<i class="v">C</i>.'],
+      ['Якщо ∠<i class="v">A</i> + ∠<i class="v">C</i> = 180°, то навколо чотирикутника <i class="v">ABCD</i> можна описати коло.',1,'Так: теорема 10.2.'],
+      ['Навколо будь-якого прямокутника можна описати коло.',1,'Так: усі кути прямі, суми протилежних кутів дорівнюють 180°.']]);}}];
+  const els=[];
+  function show(i){els.forEach(function(x,k){x.p.style.display=k===i?'block':'none';x.b.classList.toggle('on',k===i);});fitSoon();}
+  items.forEach(function(it,i){const b=h('button',{class:'tab'},it.t);tabs.appendChild(b);const p=h('div');p.style.display='none';body.appendChild(p);
+    if(i<items.length-1)p._next=function(){show(i+1);};it.b(p);els.push({b:b,p:p});b.onclick=function(){show(i);};
+    p.addEventListener('solved',function(){b.classList.add('done');b.textContent=it.t+' ✓';if(els.every(function(x){return x.b.classList.contains('done');}))done.style.display='block';});});
+  show(0);
+}});
+</script>
+<script>
+/* ====================== ТЕОРІЯ: вписаний у коло чотирикутник ====================== */
+const QC=[COL.ang,COL.cen,COL.p,COL.g];   /* кольори кутів A, B, C, D */
+/* ====================== ТЕОРІЯ: описаний навколо кола чотирикутник ====================== */
+const TC=[COL.arc,COL.ang,COL.cen,COL.p];   /* кольори вершин A, B, C, D */
+function buildTang(svg,o){
+  const c={x:200,y:200},R=80,O=[200,200];const st={t:o.t.slice()};
+  sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+  const gU=sv('g',{},svg);const poly=sv('polygon',{fill:'#f1f8ec','fill-opacity':.45,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+  /* коло ще раз над багатокутником, щоб було видно дотик */
+  const circ2=sv('circle',{cx:200,cy:200,r:R,fill:'none',stroke:INK,'stroke-width':3.5},svg);
+  const gO=sv('g',{},svg);const letters=['A','B','C','D'].map(t=>label(svg,t,0,0,INK,28));
+  const names=['M','N','P','K'];const hs=names.map((n,i)=>handle(svg,svg,'#14301f',n));
+  let V=[],T=[];
+  function geom(){T=st.t.map(a=>P(c,R,a));V=[];const gp=[mod(st.t[0]-st.t[3]),mod(st.t[1]-st.t[0]),mod(st.t[2]-st.t[1]),mod(st.t[3]-st.t[2])];
+    /* A між K(3) і M(0); B між M(0) і N(1); C між N(1) і P(2); D між P(2) і K(3) */
+    const dirs=[st.t[3]+gp[0]/2,st.t[0]+gp[1]/2,st.t[1]+gp[2]/2,st.t[2]+gp[3]/2],gap=[gp[0],gp[1],gp[2],gp[3]];
+    for(let i=0;i<4;i++)V.push(P(c,R/Math.cos(rad(gap[i]/2)),dirs[i]));return {V:V,T:T};}
+  function draw(){const g=geom();poly.setAttribute('points',polyStr(g.V));
+    g.V.forEach((p,i)=>{const d=unit(sub(p,O));setPos(letters[i],[p[0]+d[0]*26,p[1]+d[1]*26]);});
+    hs.forEach((hh,i)=>hh.set(g.T[i][0],g.T[i][1],O,26));}
+  hs.forEach(function(hh,i){drag(svg,hh.g,function(x,y){const t=ev(dirAngle(O,[x,y]));const pv=(i+3)%4,nx=(i+1)%4;const d1=mod(t-st.t[pv]),d2=mod(st.t[nx]-t),span=mod(st.t[nx]-st.t[pv]);
+    if(d1>=45&&d1<=125&&d2>=45&&d2<=125&&Math.abs(d1+d2-span)<1){st.t[i]=t;api.draw();}});});
+  const api={c:c,R:R,O:O,st:st,draw:draw,gU:gU,gO:gO,geom:geom,hs:hs,svg:svg,letters:letters};
+  return api;}
+const SC=1/20;   /* 20 одиниць малюнка = 1 см */
+
+/* ====================== 4. ВПИСАНЕ КОЛО ====================== */
+addStage({id:'t4',title:'Вписане коло чотирикутника',dur:120,build:function(r){
+  r.innerHTML='<h2 class="ttl">Вписане коло чотирикутника</h2><div class="cols"><div class="figbox" id="f"></div><div>'
+   +'<div class="rule"><b>Означення.</b> Коло називають <span class="kg">вписаним у чотирикутник</span>, якщо воно дотикається до всіх його сторін.</div>'
+   +'<div class="rule">На рисунку зображено коло, вписане в чотирикутник '+v('ABCD')+'. У цьому разі також говорять, що чотирикутник '+v('ABCD')+' <span class="kg">описаний навколо кола</span>.</div>'
+   +'<div class="chips" id="ch"></div><div class="say" id="say"></div></div></div>';
+  const fb=$('#f',r);const svgA=newSvg(400,400);fb.appendChild(svgA);let mode=0;
+  const tg=buildTang(svgA,{t:[250,330,40,150]});
+  const gB=sv('g',{},tg.gO);const bl=[0,1].map(()=>sline(gB,[0,0],[0,0],COL.arc,3,'9 7'));const rr=[0,1,2,3].map(()=>sline(gB,[0,0],[0,0],'#7a8a80',2.5,'6 6'));const od=sv('circle',{r:7,fill:COL.arc},gB),ot=label(gB,'O',0,0,COL.arc,28);
+  const pd=[0,1,2,3].map(i=>sv('circle',{r:6,fill:INK},tg.gO));
+  const o0=tg.draw;tg.draw=function(){o0();const g=tg.geom();g.T.forEach((p,i)=>setCirc(pd[i],p));
+    [0,1].forEach(i=>{const d=unit(sub(tg.O,g.V[i]));setLine(bl[i],g.V[i],[g.V[i][0]+d[0]*(dist(g.V[i],tg.O)+20),g.V[i][1]+d[1]*(dist(g.V[i],tg.O)+20)]);});
+    rr.forEach((l,i)=>setLine(l,tg.O,g.T[i]));setCirc(od,tg.O);setPos(ot,[tg.O[0]+16,tg.O[1]+22]);gB.style.display=mode===1?'':'none';};
+  /* прямокутник */
+  const svgB=newSvg(400,400);svgB.style.display='none';fb.appendChild(svgB);let wd=210;const X0=60,Y0=130,Hh=140;
+  const rc=sv('rect',{y:Y0,x:X0,height:Hh,fill:'#f1f8ec','fill-opacity':.6,stroke:INK,'stroke-width':3.5},svgB);const ci=sv('circle',{r:Hh/2,fill:'none',stroke:COL.g,'stroke-width':3.5},svgB);
+  const lt=['A','B','C','D'].map(t=>label(svgB,t,0,0,INK,28));const hR=handle(svgB,svgB,INK,'');hR.t.textContent='';
+  const gap1=sline(svgB,[0,0],[0,0],COL.p,5),gap2=sline(svgB,[0,0],[0,0],COL.p,5);
+  function drawB(){rc.setAttribute('width',wd);const cx=X0+wd/2,cy=Y0+Hh/2;setCirc(ci,[cx,cy]);setPos(lt[0],[X0-22,Y0+Hh+16]);setPos(lt[1],[X0-22,Y0-16]);setPos(lt[2],[X0+wd+22,Y0-16]);setPos(lt[3],[X0+wd+22,Y0+Hh+16]);hR.set(X0+wd,Y0,[X0+wd,Y0],0);
+    const sq=Math.abs(wd-Hh)<1,gp=(wd-Hh)/2;
+    if(wd>Hh){setLine(gap1,[X0,cy],[cx-Hh/2,cy]);setLine(gap2,[cx+Hh/2,cy],[X0+wd,cy]);gap1.style.display=gap2.style.display='';}else gap1.style.display=gap2.style.display='none';
+    const w=fmt(wd*SC),hh=fmt(Hh*SC);
+    $('#say',r).innerHTML='Неможливо вписати коло в прямокутник, відмінний від квадрата.<br>'+v('AD')+' = '+w+' см, '+v('AB')+' = '+hh+' см. '+(sq?'<b style="color:var(--oktx)">Квадрат: коло дотикається до всіх чотирьох сторін.</b>':'Коло, яке дотикається до двох сторін, <b style="color:var(--badtx)">не дотикається до інших</b>.')+'<br><span style="color:var(--muted);font-size:.9em">Потягніть вершину '+v('C')+': коли прямокутник стане квадратом, коло впишеться.</span>';}
+  drag(svgB,hR.g,function(x,y){let w=Math.max(100,Math.min(300,x-X0));if(Math.abs(w-Hh)<9)w=Hh;wd=w;drawB();});
+  const T=[{n:'Вписане коло',t:'Коло дотикається до всіх сторін чотирикутника '+v('ABCD')+' у точках '+v('M')+', '+v('N')+', '+v('P')+', '+v('K')+'. Потягніть точки дотику: чотирикутник змінюється, а коло залишається вписаним.'},
+    {n:'Центр вписаного кола',t:'Щоб знайти центр вписаного кола, достатньо знайти точку перетину бісектрис двох сусідніх кутів чотирикутника. Ця точка рівновіддалена від усіх сторін: '+v('OM')+' = '+v('ON')+' = '+v('OP')+' = '+v('OK')+'.'},
+    {n:'Чи завжди можна вписати коло?',t:''}];
+  const ch=$('#ch',r),say=$('#say',r);
+  function sel(i){mode=i;$$('.chip',ch).forEach((b,k)=>b.classList.toggle('on',k===i));svgA.style.display=i===2?'none':'';svgB.style.display=i===2?'':'none';if(i===2)drawB();else{say.innerHTML=T[i].t;tg.draw();}fitSoon();}
+  T.forEach(function(x,i){const b=h('button',{class:'chip'},x.n);b.onclick=function(){sel(i);};ch.appendChild(b);});
+  tg.draw();sel(0);
+}});
+
+/* ====================== 5. ТЕОРЕМА 10.3 ====================== */
+addStage({id:'t5',title:'Теорема 10.3',dur:150,build:function(r){
+  r.innerHTML='<h2 class="ttl">Теорема 10.3</h2><div class="cols"><div class="figbox" id="f"></div><div>'
+   +'<div class="rule"><b>Теорема 10.3.</b> Якщо чотирикутник є описаним навколо кола, то суми його протилежних сторін рівні.</div>'
+   +'<div class="read" id="rd"></div><div class="chips"><button class="chip" id="pf">Показати доведення</button></div><div id="pbox"></div></div></div>';
+  const svg=newSvg(400,400);$('#f',r).appendChild(svg);let proof=false,sN=-1;
+  const tg=buildTang(svg,{t:[250,330,40,150]});
+  const g=tg.gO;
+  const segs=[];for(let i=0;i<4;i++){const s1=sline(g,[0,0],[0,0],TC[i],5),s2=sline(g,[0,0],[0,0],TC[i],5);const tk=sv('g',{},g),tk2=sv('g',{},g);const l1=nlabel(g,'',0,0,TC[i],24),l2=nlabel(g,'',0,0,TC[i],24);segs.push({s1:s1,s2:s2,tk:tk,tk2:tk2,l1:l1,l2:l2});}
+  const pd=[0,1,2,3].map(()=>sv('circle',{r:6,fill:INK},g));
+  const name=['a','b','c','d'];
+  function lay(){tg.draw();}
+  function show(opt){segs.forEach(function(s){[s.s1,s.s2].forEach(x=>x.style.display=opt.seg?'':'none');s.tk.style.display=s.tk2.style.display=opt.tick?'':'none';s.l1.style.display=s.l2.style.display=opt.let?'':'none';});}
+  const o0=tg.draw;
+  tg.draw=function(){o0();const G=tg.geom();G.T.forEach((p,i)=>setCirc(pd[i],p));
+    /* вершина i з'єднана з точками дотику: A(0)-K(3),M(0); B(1)-M(0),N(1); C(2)-N(1),P(2); D(3)-P(2),K(3) */
+    const pairs=[[3,0],[0,1],[1,2],[2,3]];
+    for(let i=0;i<4;i++){const V=G.V[i],a=G.T[pairs[i][0]],b=G.T[pairs[i][1]];setLine(segs[i].s1,V,a);setLine(segs[i].s2,V,b);
+      segs[i].tk.innerHTML='';segs[i].tk2.innerHTML='';tickMark(segs[i].tk,V,a,i+1,TC[i]);tickMark(segs[i].tk2,V,b,i+1,TC[i]);
+      const out=function(p,m){const d=unit(sub(m,tg.O));return [p[0]+d[0]*20,p[1]+d[1]*20];};
+      const m1=mid(V,a),m2=mid(V,b);setPos(segs[i].l1,out(m1,m1));setPos(segs[i].l2,out(m2,m2));segs[i].l1.textContent=segs[i].l2.textContent=name[i];}
+    const L=G.V.map((p,i)=>dist(p,G.V[(i+1)%4])*SC);const s1=L[0]+L[2],s2=L[1]+L[3];
+    $('#rd',r).innerHTML='<div>'+v('AB')+' + '+v('CD')+' = '+fmt(L[0])+' + '+fmt(L[2])+' = <b>'+fmt(s1)+' см</b></div><div>'+v('BC')+' + '+v('AD')+' = '+fmt(L[1])+' + '+fmt(L[3])+' = <b>'+fmt(s2)+' см</b></div>';
+    show({seg:proof&&sN>=1,tick:proof&&sN>=1,let:proof&&sN>=2});};
+  const sb=stepsBox([
+    {h:'Нехай чотирикутник '+v('ABCD')+' описано навколо кола. Точки '+v('M')+', '+v('N')+', '+v('P')+', '+v('K')+' — точки дотику кола до сторін.'},
+    {h:'Відрізки дотичних, проведених до кола через одну точку, рівні: <span style="color:'+TC[0]+'">'+v('AK')+' = '+v('AM')+'</span>, <span style="color:'+TC[1]+'">'+v('BM')+' = '+v('BN')+'</span>, <span style="color:'+TC[2]+'">'+v('CN')+' = '+v('CP')+'</span>, <span style="color:'+TC[3]+'">'+v('DP')+' = '+v('DK')+'</span>.'},
+    {h:'Нехай <span style="color:'+TC[0]+'">'+v('AK')+' = <i class="v">a</i></span>, <span style="color:'+TC[1]+'">'+v('BM')+' = <i class="v">b</i></span>, <span style="color:'+TC[2]+'">'+v('CN')+' = <i class="v">c</i></span>, <span style="color:'+TC[3]+'">'+v('DP')+' = <i class="v">d</i></span>.'},
+    {h:'Тоді '+v('AB')+' + '+v('CD')+' = (<i class="v">a</i> + <i class="v">b</i>) + (<i class="v">c</i> + <i class="v">d</i>) = <i class="v">a</i> + <i class="v">b</i> + <i class="v">c</i> + <i class="v">d</i>,<br>'+v('BC')+' + '+v('AD')+' = (<i class="v">b</i> + <i class="v">c</i>) + (<i class="v">a</i> + <i class="v">d</i>) = <i class="v">a</i> + <i class="v">b</i> + <i class="v">c</i> + <i class="v">d</i>.'},
+    {h:'Отже, '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+'.',fin:true}],function(n){sN=n;tg.draw();});
+  const pb=$('#pbox',r);pb.appendChild(sb.box);pb.style.display='none';
+  $('#pf',r).onclick=function(){proof=!proof;$('#pf',r).classList.toggle('on',proof);$('#pf',r).textContent=proof?'Сховати доведення':'Показати доведення';pb.style.display=proof?'':'none';sb.reset();sN=-1;tg.draw();fitSoon();};
+  tg.draw();
+}});
+
+/* ====================== 6. ТЕОРЕМА 10.4 ====================== */
+addStage({id:'t6',title:'Теорема 10.4',dur:150,build:function(r){
+  r.innerHTML='<h2 class="ttl">Теорема 10.4 (обернена до теореми 10.3)</h2><div class="cols"><div class="figbox" id="f"></div><div>'
+   +'<div class="rule"><b>Теорема 10.4.</b> Якщо в опуклому чотирикутнику суми протилежних сторін рівні, то в нього можна вписати коло.</div>'
+   +'<div class="read" id="rd"></div><div class="chips"><button class="chip" id="eq">Зробити суми рівними</button><button class="chip" id="pf">Показати доведення</button></div><div id="pbox"></div></div></div>';
+  const svg=newSvg(400,400);$('#f',r).appendChild(svg);
+  /* початковий чотирикутник: описаний навколо кола, вершину D трохи висунуто */
+  const T0=buildTang(newSvg(400,400),{t:[250,330,40,150]});const V0=T0.geom().V;const Q=V0.map(p=>p.slice());
+  { const d=unit(sub(Q[3],Q[0]));Q[3]=[Q[3][0]+d[0]*34,Q[3][1]+d[1]*34]; }
+  const cc=sv('circle',{fill:'rgba(46,139,87,.10)',stroke:COL.g,'stroke-width':3.5},svg);
+  const poly=sv('polygon',{fill:'#f1f8ec','fill-opacity':.35,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+  const gb=sv('g',{},svg);const b1=sline(gb,[0,0],[0,0],COL.arc,2.5,'9 7'),b2=sline(gb,[0,0],[0,0],COL.arc,2.5,'9 7');const od=sv('circle',{r:6,fill:COL.arc},gb),ot=label(gb,'O',0,0,COL.arc,26);
+  const dl=sline(svg,[0,0],[0,0],COL.p,3,'6 5');const fp=sv('circle',{r:5,fill:COL.p},svg);
+  const hs=[0,1,2,3].map(i=>handle(svg,svg,INK,'ABCD'[i]));let proof=false,sN=-1;
+  const lens=[0,0,0,0];
+  function draw(){poly.setAttribute('points',polyStr(Q));const ic=incircle(Q);const cen=[Q.reduce((s,p)=>s+p[0],0)/4,Q.reduce((s,p)=>s+p[1],0)/4];
+    hs.forEach((hh,i)=>hh.set(Q[i][0],Q[i][1],cen,30));
+    const L=Q.map((p,i)=>dist(p,Q[(i+1)%4])*SC);const s1=L[0]+L[2],s2=L[1]+L[3];const eq=Math.abs(s1-s2)<0.06;
+    if(ic){cc.setAttribute('cx',f2(ic.c[0]));cc.setAttribute('cy',f2(ic.c[1]));cc.setAttribute('r',f2(ic.r));setCirc(od,ic.c);setPos(ot,[ic.c[0]+14,ic.c[1]+20]);
+      [0,1].forEach(i=>{const d=unit(sub(ic.c,Q[i]));const e=[Q[i][0]+d[0]*(dist(Q[i],ic.c)+25),Q[i][1]+d[1]*(dist(Q[i],ic.c)+25)];setLine(i?b2:b1,Q[i],e);});
+      const F=foot(ic.c,Q[2],Q[3]);setLine(dl,ic.c,F);setCirc(fp,F);const dCD=dist(ic.c,F);
+      gb.style.display=(proof&&sN>=0)?'':'none';
+      const touch=Math.abs(dCD-ic.r)<0.6;
+      $('#rd',r).innerHTML='<div>'+v('AB')+' + '+v('CD')+' = '+fmt(L[0])+' + '+fmt(L[2])+' = <b>'+fmt(s1)+' см</b></div><div>'+v('BC')+' + '+v('AD')+' = '+fmt(L[1])+' + '+fmt(L[3])+' = <b>'+fmt(s2)+' см</b></div>'
+        +'<div style="font-weight:800;color:'+(eq?'var(--oktx)':'var(--badtx)')+'">'+(eq?'Суми рівні: коло дотикається до всіх чотирьох сторін.':'Суми різні: коло, яке дотикається до '+v('AB')+', '+v('BC')+', '+v('AD')+', не дотикається до '+v('CD')+'.')+'</div>';
+      dl.style.display=fp.style.display=eq?'none':'';cc.setAttribute('stroke',eq?COL.g:'#e0464e');}}
+  function mv(i){return function(x,y){const nw=[Math.max(30,Math.min(370,x)),Math.max(30,Math.min(370,y))];const tmp=Q.slice();tmp[i]=nw;if(!isConvex(tmp))return;Q[i]=nw;draw();};}
+  hs.forEach((hh,i)=>drag(svg,hh.g,mv(i)));
+  function equalize(){const A=Q[0],B=Q[1],C=Q[2],D=Q[3];const u=unit(sub(D,A));const AB=dist(A,B),BC=dist(B,C);
+    const f=t=>AB+dist(C,[A[0]+u[0]*t,A[1]+u[1]*t])-BC-t;let lo=10,hi=500;if(f(lo)<0||f(hi)>0)return;for(let k=0;k<60;k++){const m=(lo+hi)/2;if(f(m)>0)lo=m;else hi=m;}
+    const nd=[A[0]+u[0]*lo,A[1]+u[1]*lo];const tmp=Q.slice();tmp[3]=nd;if(isConvex(tmp)){Q[3]=nd;draw();}}
+  $('#eq',r).onclick=equalize;
+  const sb=stepsBox([
+    {h:'Розглянемо опуклий чотирикутник '+v('ABCD')+', у якому '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+'. Бісектриси кутів '+v('A')+' і '+v('B')+' перетинаються в точці '+v('O')+'. Ця точка рівновіддалена від сторін '+v('AB')+', '+v('BC')+' і '+v('AD')+'. Отже, існує коло із центром '+v('O')+', яке дотикається до цих трьох сторін.'},
+    {h:'Припустимо, що це коло не дотикається до сторони '+v('CD')+'. <b>Випадок 1.</b> Сторона '+v('CD')+' не має спільних точок з колом. Проведемо дотичну '+v('C')+'₁'+v('D')+'₁ паралельно '+v('CD')+'. Чотирикутник '+v('ABC')+'₁'+v('D')+'₁ описано навколо кола, тому за теоремою 10.3: '+v('AB')+' + '+v('C')+'₁'+v('D')+'₁ = '+v('BC')+'₁ + '+v('AD')+'₁.'},
+    {h:'Віднімемо цю рівність від рівності '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+': '+v('CD')+' − '+v('C')+'₁'+v('D')+'₁ = '+v('C')+'₁'+v('C')+' + '+v('D')+'₁'+v('D')+'. Звідси '+v('CD')+' = '+v('C')+'₁'+v('C')+' + '+v('D')+'₁'+v('D')+' + '+v('C')+'₁'+v('D')+'₁. Ця рівність суперечить твердженню, доведеному в ключовій задачі п. 1.'},
+    {h:'<b>Випадок 2.</b> Сторона '+v('CD')+' має дві спільні точки з колом. Міркуючи аналогічно, можна показати, що й так бути не може.'},
+    {h:'Отже, коло дотикається до сторони '+v('CD')+', тобто в чотирикутник '+v('ABCD')+' можна вписати коло.',fin:true}],function(n){sN=n;draw();});
+  const pb=$('#pbox',r);pb.appendChild(sb.box);pb.style.display='none';
+  $('#pf',r).onclick=function(){proof=!proof;$('#pf',r).classList.toggle('on',proof);$('#pf',r).textContent=proof?'Сховати доведення':'Показати доведення';pb.style.display=proof?'':'none';sb.reset();sN=-1;draw();fitSoon();};
+  draw();
+}});
+</script>
+<style>
+.tab.done{background:var(--okbg);border-color:var(--okln);color:var(--oktx)}
+.cols.one{grid-template-columns:minmax(0,1fr)}
+.pcond{margin-bottom:.2rem}
+.pcond .cond{font-size:1.2rem}
+.pcond .ref{font-size:.85em;color:var(--muted);font-weight:700}
+.figbox.wide svg.fig{max-height:46dvh}
+.verdict{display:inline-block;font-weight:900;border-radius:.5rem;padding:0 .5rem}
+</style>
+<script>
+/* ====================== ФІГУРИ ДО ЗАДАЧ ====================== */
+const PC1=COL.arc,PC2=COL.cen;
+function tangVerts(t,R,c){const gp=[mod(t[0]-t[3]),mod(t[1]-t[0]),mod(t[2]-t[1]),mod(t[3]-t[2])];const dirs=[t[3]+gp[0]/2,t[0]+gp[1]/2,t[1]+gp[2]/2,t[2]+gp[3]/2];return gp.map((g,i)=>P(c,R/Math.cos(rad(g/2)),dirs[i]));}
+/* універсальний малюнок чотирикутника */
+function quadFig2(Q0,o){
+  o=o||{};const W=o.W||400,H=o.H||330,pad=o.pad||54;let ic0=null,cc0=null;const extra=[];
+  if(o.incirc){ic0=incircle(Q0);if(ic0)extra.push([ic0.c[0],ic0.c[1],ic0.r]);}
+  if(o.circum){cc0=circum(Q0[0],Q0[1],Q0[2]);if(cc0)extra.push([cc0.c[0],cc0.c[1],cc0.R]);}
+  const F=fitPts([Q0],W,H,pad,extra);const Q=Q0.map(F.tr);const svg=newSvg(W,H);const cen=[Q.reduce((s,p)=>s+p[0],0)/4,Q.reduce((s,p)=>s+p[1],0)/4];
+  svg._Q=Q;svg._F=F;
+  if(cc0){const c2=F.tr(cc0.c);svg._circ=sv('circle',{cx:f2(c2[0]),cy:f2(c2[1]),r:f2(cc0.R*F.k),fill:'rgba(46,139,87,.07)',stroke:COL.g,'stroke-width':3.5,'stroke-dasharray':'10 6'},svg);if(!o.circShow)svg._circ.style.display='none';}
+  if(ic0){const c2=F.tr(ic0.c);svg._inc=sv('circle',{cx:f2(c2[0]),cy:f2(c2[1]),r:f2(ic0.r*F.k),fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':3.5},svg);if(!o.incShow)svg._inc.style.display='none';svg._ic=ic0;}
+  sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.55,stroke:'none'},svg);
+  svg._side=[];for(let i=0;i<4;i++)svg._side.push(sline(svg,Q[i],Q[(i+1)%4],INK,3.8));
+  if(o.ticks)o.ticks.forEach(function(t){tickMark(svg,Q[t[0]],Q[(t[0]+1)%4],t[1],INK);});
+  svg._ang=[];
+  for(let i=0;i<4;i++){const t=o.angles?o.angles[i]:null;const col=o.cols?o.cols[i]:COL.g;if(t==null)continue;const V=Q[i],p=Q[(i+3)%4],q=Q[(i+1)%4];
+    if(t==='sq')svg._ang.push({el:markRight(svg,V,p,q,17,col)});else{const m=markAngle(svg,V,p,q,24,col,t,t==='?'?28:20);svg._ang.push({el:m});}}
+  svg._sl=[];if(o.sides)for(let i=0;i<4;i++){if(o.sides[i]==null)continue;svg._sl.push(sideLabel(svg,Q[i],Q[(i+1)%4],cen,o.sides[i],o.sideCols?o.sideCols[i]:INK,24,22));}
+  const L=o.letters||'ABCD';
+  Q.forEach(function(V,i){dot(svg,V[0],V[1],INK,5);outLabel(svg,cen,V,L[i],INK,o.lOff||28,26);});
+  return svg;}
+function recolorSides(svg,cols,w){svg._side.forEach(function(l,i){l.setAttribute('stroke',cols[i]||INK);l.setAttribute('stroke-width',cols[i]&&cols[i]!==INK?(w||6):3.8);});}
+
+/* ====================== ЗАДАЧІ ====================== */
+const PROBLEMS=[];
+const V_=(a)=>v(a);
+/* ---- 339 ---- */
+PROBLEMS.push({tab:'339',wide:true,
+ cond:'<span class="no">339.°</span> Чи можна вписати коло в чотирикутник <i class="v">ABCD</i>, якщо його сторони <i class="v">AB</i>, <i class="v">BC</i>, <i class="v">CD</i>, <i class="v">AD</i> відповідно пропорційні числам:<br>1) 7, 8, 12, 11; &nbsp; 2) 7, 12, 8, 11?<br><span class="ref">Обґрунтуйте вашу відповідь та обговоріть її з однокласниками й однокласницями.</span>',
+ fig:function(box){const grid=h('div',{class:'figs2'});box.appendChild(grid);const cs=[[7,8,12,11],[7,12,8,11]];const M=[];
+   cs.forEach(function(k,i){const m=h('div',{class:'mini'});const svg=quadFig2(quadBySides(k[0],k[1],k[2],k[3]),{sides:[k[0]+'x',k[1]+'x',k[2]+'x',k[3]+'x'],incirc:i===0,W:400,H:330});m.appendChild(svg);const cap=h('div',{class:'cap'},(i+1)+') '+k.join(' : '));m.appendChild(cap);grid.appendChild(m);M.push({m:m,svg:svg,cap:cap});});
+   return function(n){M.forEach(function(x,i){x.m.className='mini';x.cap.innerHTML=(i+1)+') '+cs[i].join(' : ');if(x.svg._inc)x.svg._inc.style.display='none';recolorSides(x.svg,[]);});
+     if(n>=2){M[0].m.className='mini okf';M[0].cap.innerHTML='1) 7<i>x</i> + 12<i>x</i> = 8<i>x</i> + 11<i>x</i> — <b style="color:var(--oktx)">можна</b>';M[0].svg._inc.style.display='';recolorSides(M[0].svg,[PC1,PC2,PC1,PC2],5);}
+     if(n>=3){M[1].m.className='mini badf';M[1].cap.innerHTML='2) 15<i>x</i> ≠ 23<i>x</i> — <b style="color:var(--badtx)">не можна</b>';recolorSides(M[1].svg,[PC1,PC2,PC1,PC2],5);}};},
+ steps:[{h:'Коло можна вписати в опуклий чотирикутник тоді й лише тоді, коли суми його протилежних сторін рівні (теореми 10.3 і 10.4). Нехай сторони дорівнюють відповідно числам, помноженим на <i class="v">x</i>.'},
+  {h:'1) '+v('AB')+' + '+v('CD')+' = 7<i class="v">x</i> + 12<i class="v">x</i> = 19<i class="v">x</i>; '+v('BC')+' + '+v('AD')+' = 8<i class="v">x</i> + 11<i class="v">x</i> = 19<i class="v">x</i>. Суми рівні, тому коло вписати <b>можна</b>.'},
+  {h:'2) '+v('AB')+' + '+v('CD')+' = 7<i class="v">x</i> + 8<i class="v">x</i> = 15<i class="v">x</i>; '+v('BC')+' + '+v('AD')+' = 12<i class="v">x</i> + 11<i class="v">x</i> = 23<i class="v">x</i>. Суми різні, тому коло вписати <b>не можна</b>.'},
+  {h:'Відповідь: 1) так; 2) ні.',fin:true}]});
+/* ---- 340 ---- */
+PROBLEMS.push({tab:'340',
+ cond:'<span class="no">340.°</span> Сума двох протилежних сторін чотирикутника, описаного навколо кола, дорівнює 18 см. Знайдіть периметр даного чотирикутника.',
+ fig:function(box){const Q0=tangVerts([250,330,40,150],70,{x:200,y:200});const svg=quadFig2(Q0,{incirc:true,incShow:true,sides:['','','',''].map(()=>null),W:400,H:330,pad:60});box.appendChild(svg);
+   const t=nlabel(svg,'AB + CD = 18 см',200,20,PC1,24);t.setAttribute('class','n');const t2=nlabel(svg,'',200,314,PC2,24);
+   return function(n){recolorSides(svg,n>=1?[PC1,PC2,PC1,PC2]:[],6);t2.textContent=n>=2?'BC + AD = 18 см':'';};},
+ steps:[{h:'Чотирикутник описано навколо кола, тому за теоремою 10.3 суми його протилежних сторін рівні: '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+'.'},
+  {h:'За умовою '+v('AB')+' + '+v('CD')+' = 18 см. Отже, і '+v('BC')+' + '+v('AD')+' = 18 см.'},
+  {h:'Периметр: <i class="v">P</i> = ('+v('AB')+' + '+v('CD')+') + ('+v('BC')+' + '+v('AD')+') = 18 + 18 = 36 см.'},
+  {h:'Відповідь: 36 см.',fin:true}]});
+/* ---- 341 ---- */
+PROBLEMS.push({tab:'341',
+ cond:'<span class="no">341.°</span> Бічна сторона рівнобічної трапеції дорівнює 7 см. Чому дорівнює периметр даної трапеції, якщо в неї можна вписати коло?',
+ fig:function(box){const hq=Math.sqrt(49-9);const Q0=[[0,hq],[3,0],[7,0],[10,hq]];/* A,B,C,D: A і D — нижня основа */
+   const svg=quadFig2(Q0,{incirc:true,incShow:true,sides:['7 см','?','7 см','?'],sideCols:[INK,PC2,INK,PC2],ticks:[[0,1],[2,1]],W:400,H:330,pad:70});box.appendChild(svg);
+   return function(n){recolorSides(svg,n>=1?[PC1,PC2,PC1,PC2]:[],6);};},
+ steps:[{h:'У рівнобічної трапеції <i class="v">ABCD</i> бічні сторони рівні: '+v('AB')+' = '+v('CD')+' = 7 см. У трапецію вписано коло, тому за теоремою 10.3 '+v('BC')+' + '+v('AD')+' = '+v('AB')+' + '+v('CD')+'.'},
+  {h:v('AB')+' + '+v('CD')+' = 7 + 7 = 14 см, отже '+v('BC')+' + '+v('AD')+' = 14 см.'},
+  {h:'Периметр: <i class="v">P</i> = ('+v('AB')+' + '+v('CD')+') + ('+v('BC')+' + '+v('AD')+') = 14 + 14 = 28 см.'},
+  {h:'Відповідь: 28 см.',fin:true}]});
+/* ---- 343 ---- */
+PROBLEMS.push({tab:'343',
+ cond:'<span class="no">343.°</span> Доведіть, що в будь-який ромб можна вписати коло. Яка точка є центром кола, вписаного в ромб?',
+ fig:function(box){const svg=newSvg(400,400);box.appendChild(svg);const p=130;let q=92,nn=-1;const Ap=[70,200],Cp=[330,200];
+   const inc=sv('circle',{fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':3.5},svg);
+   const poly=sv('polygon',{fill:'#f1f8ec','fill-opacity':.55,stroke:'none'},svg);
+   const sd=[0,1,2,3].map(()=>sline(svg,[0,0],[0,0],INK,3.8));
+   const tk=sv('g',{},svg);const g2=sv('g',{},svg);
+   const rd=[0,1,2,3].map(()=>sline(g2,[0,0],[0,0],'#7a8a80',2.5,'6 5'));
+   const td=[0,1,2,3].map(()=>sv('circle',{r:5.5,fill:COL.g},g2));
+   const d1=sline(svg,Ap,Cp,COL.arc,4.5,'9 7'),d2=sline(svg,[0,0],[0,0],COL.arc,4.5,'9 7');
+   const od=sv('circle',{cx:200,cy:200,r:7,fill:COL.p},svg),ot=label(svg,'O',218,222,COL.p,28);
+   const L=['A','B','C','D'].map(t=>label(svg,t,0,0,INK,28));
+   const hB=handle(svg,svg,INK,'');hB.t.textContent='';
+   const note=nlabel(svg,'',200,384,INK,20);
+   function draw(){const B=[200,200-q],D=[200,200+q],Q=[Ap,B,Cp,D];poly.setAttribute('points',polyStr(Q));
+     Q.forEach(function(a,i){setLine(sd[i],a,Q[(i+1)%4]);});
+     setPos(L[0],[Ap[0]-26,Ap[1]]);setPos(L[1],[B[0],B[1]-26]);setPos(L[2],[Cp[0]+26,Cp[1]]);setPos(L[3],[D[0],D[1]+28]);
+     tk.innerHTML='';if(nn>=0)Q.forEach(function(a,i){tickMark(tk,a,Q[(i+1)%4],1,INK);});
+     const col=[PC1,PC2,PC1,PC2];sd.forEach(function(l,i){l.setAttribute('stroke',nn>=1?col[i]:INK);l.setAttribute('stroke-width',nn>=1?6:3.8);});
+     const r=p*q/Math.hypot(p,q);setCirc(inc,[200,200],r);inc.style.display=nn>=2?'':'none';
+     Q.forEach(function(a,i){const F=foot([200,200],a,Q[(i+1)%4]);setLine(rd[i],[200,200],F);setCirc(td[i],F);});
+     g2.style.display=nn>=2?'':'none';
+     setLine(d2,B,D);d1.style.display=d2.style.display=nn>=3?'':'none';od.style.display=ot.style.display=nn>=3?'':'none';
+     note.textContent=nn>=2?'Потягніть вершину B: коло завжди вписане':'';note.setAttribute('fill','#14663f');
+     hB.set(B[0],B[1],B,0);}
+   drag(svg,hB.g,function(x,y){q=Math.max(55,Math.min(175,200-y));draw();});
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай <i class="v">ABCD</i> — довільний ромб. У ромба всі сторони рівні: '+v('AB')+' = '+v('BC')+' = '+v('CD')+' = '+v('AD')+'.'},
+  {h:'Знайдемо суми протилежних сторін: '+v('AB')+' + '+v('CD')+' = '+v('AB')+' + '+v('AB')+' = 2'+v('AB')+'; '+v('BC')+' + '+v('AD')+' = '+v('AB')+' + '+v('AB')+' = 2'+v('AB')+'. Отже, '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+'.'},
+  {h:'Ромб — опуклий чотирикутник, у якого суми протилежних сторін рівні. За теоремою 10.4 в нього можна вписати коло. Що й треба було довести.'},
+  {h:'Центр вписаного кола рівновіддалений від сторін, тому лежить на бісектрисі кожного кута. Діагоналі ромба є бісектрисами його кутів, отже, центр кола — точка їх перетину.'},
+  {h:'Відповідь: центр кола, вписаного в ромб, — точка перетину його діагоналей.',fin:true}]});
+/* ---- 344 ---- */
+PROBLEMS.push({tab:'344',
+ cond:'<span class="no">344.°</span> Чи можна вписати коло в паралелограм, який не є ромбом?',
+ fig:function(box){const svg=newSvg(400,340);box.appendChild(svg);const A=[120,300],W=160;let len=5,th=70,nn=-1;
+   const circ=sv('circle',{fill:'rgba(224,70,78,.07)',stroke:'#e0464e','stroke-width':3.5,'stroke-dasharray':'10 6'},svg);
+   const poly=sv('polygon',{fill:'#f1f8ec','fill-opacity':.55,stroke:'none'},svg);
+   const sd=[0,1,2,3].map(()=>sline(svg,[0,0],[0,0],INK,3.8));
+   const tk=sv('g',{},svg);
+   const L=['A','B','C','D'].map(t=>label(svg,t,0,0,INK,28));
+   const hB=handle(svg,svg,INK,'');hB.t.textContent='';
+   const rd1=nlabel(svg,'',200,22,PC1,21),rd2=nlabel(svg,'',200,50,PC2,21),vd=nlabel(svg,'',200,326,INK,21);
+   function draw(){const B=P({x:A[0],y:A[1]},len*20,th),D=[A[0]+W,A[1]],C=[B[0]+W,B[1]];const Q=[A,B,C,D];poly.setAttribute('points',polyStr(Q));
+     Q.forEach(function(a,i){setLine(sd[i],a,Q[(i+1)%4]);});
+     setPos(L[0],[A[0]-26,A[1]+8]);setPos(L[1],[B[0]-24,B[1]-8]);setPos(L[2],[C[0]+24,C[1]-8]);setPos(L[3],[D[0]+26,D[1]+8]);
+     tk.innerHTML='';if(nn>=0){tickMark(tk,A,B,1,INK);tickMark(tk,C,D,1,INK);tickMark(tk,B,C,2,INK);tickMark(tk,A,D,2,INK);}
+     const col=[PC1,PC2,PC1,PC2];sd.forEach(function(l,i){l.setAttribute('stroke',nn>=1?col[i]:INK);l.setAttribute('stroke-width',nn>=1?6:3.8);});
+     const rh=len===8;
+     if(nn>=1){rd1.textContent='AB + CD = '+len+' + '+len+' = '+2*len+' см';rd2.textContent='BC + AD = 8 + 8 = 16 см';}else{rd1.textContent=rd2.textContent='';}
+     const h2=len*20*Math.sin(rad(th))/2;const cen=[(A[0]+C[0])/2,(A[1]+C[1])/2];setCirc(circ,cen,h2);circ.style.display=nn>=3?'':'none';
+     circ.setAttribute('stroke',rh?COL.g:'#e0464e');circ.setAttribute('fill',rh?'rgba(46,139,87,.12)':'rgba(224,70,78,.07)');if(rh)circ.removeAttribute('stroke-dasharray');else circ.setAttribute('stroke-dasharray','10 6');
+     vd.textContent=nn>=3?(rh?'AB = BC — ромб: коло вписується':'AB ≠ BC: коло не дотикається до всіх сторін'):'';vd.setAttribute('fill',rh?'#14663f':'#a3232b');
+     hB.set(B[0],B[1],B,0);}
+   drag(svg,hB.g,function(x,y){const dx=x-A[0],dy=A[1]-y;let l=Math.round(Math.hypot(dx,dy)/20);let t=Math.round(deg(Math.atan2(dy,dx))/5)*5;len=Math.max(3,Math.min(10,l));th=Math.max(60,Math.min(120,t));draw();});
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай у паралелограм <i class="v">ABCD</i> вписано коло. Тоді за теоремою 10.3 суми його протилежних сторін рівні: '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+'.'},
+  {h:'У паралелограма протилежні сторони рівні: '+v('CD')+' = '+v('AB')+', '+v('AD')+' = '+v('BC')+'. Тому '+v('AB')+' + '+v('CD')+' = 2'+v('AB')+', '+v('BC')+' + '+v('AD')+' = 2'+v('BC')+'.'},
+  {h:'З рівності 2'+v('AB')+' = 2'+v('BC')+' маємо '+v('AB')+' = '+v('BC')+'. Паралелограм із рівними сусідніми сторонами — це ромб.'},
+  {h:'Отже, коло можна вписати лише в паралелограм, який є ромбом. Якщо паралелограм не ромб, то '+v('AB')+' ≠ '+v('BC')+', суми протилежних сторін різні, і коло вписати не можна. Потягніть вершину '+v('B')+': коло дотикається до всіх сторін лише тоді, коли '+v('AB')+' = '+v('BC')+'.'},
+  {h:'Відповідь: ні, не можна.',fin:true}]});
+/* ---- 345 ---- */
+PROBLEMS.push({tab:'345',
+ cond:'<span class="no">345.•</span> Під яким кутом видно бічну сторону трапеції із центра вписаного кола? Як ви думаєте, чому ця задача аналогічна до задачі 49? Обговоріть це питання в класі.',
+ fig:function(box){const svg=newSvg(400,400);box.appendChild(svg);const c={x:200,y:200},R=70,O=[200,200];let al=200,be=-20,nn=-1;
+   const poly=sv('polygon',{fill:'#f1f8ec','fill-opacity':.5,stroke:INK,'stroke-width':3.8,'stroke-linejoin':'round'},svg);
+   sv('circle',{cx:200,cy:200,r:R,fill:'rgba(46,139,87,.10)',stroke:COL.g,'stroke-width':3.5},svg);
+   const gM=sv('g',{},svg);const gS=sv('g',{},svg);
+   const dO=sv('circle',{cx:200,cy:200,r:6,fill:COL.p},svg),oL=label(svg,'O',216,224,COL.p,26);
+   const L=['A','B','C','D'].map(t=>label(svg,t,0,0,INK,28));
+   const hL=handle(svg,svg,INK,''),hR=handle(svg,svg,INK,'');hL.t.textContent=hR.t.textContent='';
+   const sum=nlabel(svg,'',200,384,COL.ang,21);
+   const vp=function(t1,t2,gap){return P(c,R/Math.cos(rad(gap/2)),(t1+t2)/2);};
+   function draw(){const B=vp(al,90,al-90),A=vp(al,270,270-al),C=vp(90,be,90-be),D=vp(be,-90,be+90);const Q=[A,B,C,D];poly.setAttribute('points',polyStr(Q));
+     Q.forEach(function(p,i){const d=unit(sub(p,O));setPos(L[i],[p[0]+d[0]*26,p[1]+d[1]*26]);});
+     const TL=P(c,R,al),TR=P(c,R,be);hL.set(TL[0],TL[1],O,0);hR.set(TR[0],TR[1],O,0);
+     gM.innerHTML='';gS.innerHTML='';const angA=al-90,angB=270-al;
+     if(nn>=0){const col=nn>=1?PC1:'#7a8a80';sline(gS,A,O,col,nn>=1?4.5:3,nn>=1?'':'7 6');sline(gS,B,O,col,nn>=1?4.5:3,nn>=1?'':'7 6');
+       if(nn<4)markAngle(gM,O,A,B,26,COL.p,'?',26);}
+     if(nn>=2){markAngle(gM,A,D,B,22,COL.cen,'',19);markAngle(gM,B,A,C,22,COL.p,'',19);{const dA=unit(sub(A,O)),dB=unit(sub(B,O));nlabel(gM,angA+'°',A[0]+dA[0]*62,A[1]+dA[1]*62+4,COL.cen,20);nlabel(gM,angB+'°',B[0]+dB[0]*62,B[1]+dB[1]*62+4,COL.p,20);}}
+     if(nn>=1){markAngle(gM,A,B,O,38,COL.cen,nn>=3?(angA/2)+'°':'',17);markAngle(gM,B,A,O,38,COL.p,nn>=3?(angB/2)+'°':'',17);}
+     if(nn>=4){markAngle(gM,O,A,B,26,COL.arc,'90°',22);markRight(gM,O,A,B,15,INK);}
+     if(nn>=5){sline(gS,C,O,PC1,4.5);sline(gS,D,O,PC1,4.5);markAngle(gM,O,C,D,26,COL.arc,'90°',22);markRight(gM,O,C,D,15,INK);}
+     sum.textContent=nn>=2?'∠A + ∠B = '+angA+'° + '+angB+'° = 180°':'';}
+   function dragTo(isL){return function(x,y){let t=dirAngle(O,[x,y]);if(isL){t=Math.round(t/10)*10;al=Math.max(150,Math.min(210,t));}else{if(t>180)t-=360;t=Math.round(t/10)*10;be=Math.max(-30,Math.min(30,t));}draw();};}
+   drag(svg,hL.g,dragTo(true));drag(svg,hR.g,dragTo(false));
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай в трапецію <i class="v">ABCD</i> (<i class="v">BC</i> ∥ <i class="v">AD</i>) вписано коло з центром <i class="v">O</i>. Шукаємо ∠'+v('AOB')+' — кут, під яким із центра видно бічну сторону '+v('AB')+'.'},
+  {h:'Центр вписаного кола лежить на бісектрисах кутів чотирикутника. Тому '+v('AO')+' — бісектриса ∠'+v('A')+', '+v('BO')+' — бісектриса ∠'+v('B')+'.'},
+  {h:'Кути '+v('A')+' і '+v('B')+' — внутрішні односторонні при паралельних прямих '+v('BC')+' і '+v('AD')+' та січній '+v('AB')+'. Тому ∠'+v('A')+' + ∠'+v('B')+' = 180°.'},
+  {h:'У трикутнику '+v('AOB')+': ∠'+v('OAB')+' + ∠'+v('OBA')+' = ½∠'+v('A')+' + ½∠'+v('B')+' = ½ · 180° = 90°.'},
+  {h:'∠'+v('AOB')+' = 180° − (∠'+v('OAB')+' + ∠'+v('OBA')+') = 180° − 90° = 90°.'},
+  {h:'Для бічної сторони '+v('CD')+' міркування таке саме: ∠'+v('COD')+' = 90°. <b>Чому це схоже на задачу 49?</b> Там бісектриси кутів '+v('A')+' і '+v('B')+' паралелограма теж перетинаються під кутом 90°. Ідея та сама: ∠'+v('A')+' + ∠'+v('B')+' = 180°, тому бісектриси цих кутів перпендикулярні.'},
+  {h:'Відповідь: бічну сторону видно із центра вписаного кола під кутом 90°.',fin:true}]});
+/* ---- 346 ---- */
+PROBLEMS.push({tab:'346',
+ cond:'<span class="no">346.•</span> Один із кутів ромба дорівнює 60°, а більша діагональ — 24 см. Знайдіть радіус кола, вписаного в даний ромб.',
+ fig:function(box){const svg=newSvg(400,330);box.appendChild(svg);const A=[68,190],C=[332,190],B=[200,113.8],D=[200,266.2],O=[200,190];const H=foot(O,A,B);let nn=-1;
+   const inc=sv('circle',{cx:200,cy:190,r:66,fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':3.5},svg);
+   sv('polygon',{points:polyStr([A,B,C,D]),fill:'#f1f8ec','fill-opacity':.5,stroke:INK,'stroke-width':3.8,'stroke-linejoin':'round'},svg);
+   const gS=sv('g',{},svg),gM=sv('g',{},svg),gT=sv('g',{},svg);
+   [[A,'A'],[B,'B'],[C,'C'],[D,'D']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,5);outLabel(svg,O,x[0],x[1],INK,26,26);});
+   function draw(){gS.innerHTML='';gM.innerHTML='';gT.innerHTML='';inc.style.display=nn>=4?'':'none';
+     markAngle(gM,A,B,D,32,COL.ang,'60°',20);
+     if(nn>=0){sline(gS,A,C,nn>=1?PC1:'#7a8a80',nn>=1?6:3,nn>=1?'':'8 6');sline(gS,B,D,'#7a8a80',3,'8 6');dot(gS,O[0],O[1],COL.p,6);label(gT,'O',O[0]+14,O[1]+22,COL.p,24);
+       sline(gS,O,H,nn>=3?COL.p:'#7a8a80',nn>=3?6:3.5,nn>=3?'':'6 5');dot(gS,H[0],H[1],COL.p,5);markRight(gM,H,O,A,12,INK);label(gT,'H',H[0]-14,H[1]-14,INK,24);}
+     if(nn>=1){markAngle(gM,B,A,C,30,COL.cen,'120°',20);nlabel(gT,'24 см',292,218,PC1,22);}
+     if(nn>=2){markAngle(gM,A,O,B,56,COL.g,'30°',18);markRight(gM,O,A,B,14,INK);nlabel(gT,'12 см',134,218,PC2,20);}
+     if(nn>=3){nlabel(gT,nn>=3?'OH = 6 см':'',H[0]+34,H[1]+30,COL.p,21);}
+     else if(nn>=0){nlabel(gT,'r = ?',H[0]+30,H[1]+30,COL.p,22);}}
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай <i class="v">ABCD</i> — ромб, ∠'+v('A')+' = 60°. Центр вписаного кола — точка <i class="v">O</i> перетину діагоналей (задача 343). Радіус дорівнює відстані від <i class="v">O</i> до сторони, тобто перпендикуляру '+v('OH')+' до '+v('AB')+'.'},
+  {h:'∠'+v('B')+' = 180° − 60° = 120° (сусідні кути ромба). Кут '+v('B')+' тупий, тому він найбільший кут трикутника '+v('ABC')+', а проти найбільшого кута лежить найбільша сторона. Отже, '+v('AC')+' — більша діагональ: '+v('AC')+' = 24 см.'},
+  {h:'Діагоналі ромба перпендикулярні, точкою перетину діляться навпіл і є бісектрисами його кутів. Тому '+v('AO')+' = 24 : 2 = 12 см, ∠'+v('OAB')+' = 60° : 2 = 30°.'},
+  {h:'У прямокутному трикутнику '+v('AOH')+': ∠'+v('H')+' = 90°, ∠'+v('OAH')+' = 30°. Катет '+v('OH')+' лежить проти кута 30°, тому '+v('OH')+' = '+v('AO')+' : 2 = 12 : 2 = 6 см.'},
+  {h:'Відповідь: 6 см.',fin:true}]});
+/* ---- 349 ---- */
+PROBLEMS.push({tab:'349',
+ cond:'<span class="no">349.•</span> Сторона <i class="v">AD</i> чотирикутника <i class="v">ABCD</i> є діаметром кола, описаного навколо нього, ∠<i class="v">ABC</i> = 108°, ∠<i class="v">BCD</i> = 132°. Знайдіть кути <i class="v">BAD</i>, <i class="v">ADC</i>, <i class="v">CAD</i>, <i class="v">BDA</i>.',
+ fig:function(box){const svg=newSvg(400,400);box.appendChild(svg);const c={x:200,y:200},R=140,O=[200,200];let nn=-1;
+   const A=P(c,R,180),D=P(c,R,0),B=P(c,R,96),C=P(c,R,36);
+   sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+   sv('polygon',{points:polyStr([A,B,C,D]),fill:'#f1f8ec','fill-opacity':.55,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+   sline(svg,A,D,COL.arc,6);dot(svg,200,200,INK,4);label(svg,'O',214,218,INK,22);
+   const gS=sv('g',{},svg),gM=sv('g',{},svg);
+   [[A,'A'],[B,'B'],[C,'C'],[D,'D']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,6);outLabel(svg,O,x[0],x[1],INK,26,26);});
+   function draw(){gS.innerHTML='';gM.innerHTML='';
+     markAngle(gM,B,A,C,34,COL.cen,'108°',19);markAngle(gM,C,B,D,34,COL.p,'132°',19);
+     markAngle(gM,D,A,C,46,COL.ang,nn>=1?'72°':'?',nn>=1?20:26);markAngle(gM,A,B,D,46,COL.ang,nn>=2?'48°':'?',nn>=2?20:26);
+     if(nn>=3){sline(gS,A,C,'#7a8a80',3.2);sline(gS,B,D,'#7a8a80',3.2);markRight(gM,B,A,D,15,INK);markRight(gM,C,A,D,15,INK);}
+     if(nn>=4)markAngle(gM,A,C,D,26,COL.g,'18°',17);
+     if(nn>=5)markAngle(gM,D,B,A,26,COL.g,'42°',17);}
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Чотирикутник '+v('ABCD')+' вписано в коло, тому суми його протилежних кутів дорівнюють 180° (теорема 10.1).'},
+  {h:'∠'+v('ADC')+' = 180° − ∠'+v('ABC')+' = 180° − 108° = 72°.'},
+  {h:'∠'+v('BAD')+' = 180° − ∠'+v('BCD')+' = 180° − 132° = 48°.'},
+  {h:'Проведемо діагоналі '+v('AC')+' і '+v('BD')+'. Кути '+v('ACD')+' і '+v('ABD')+' вписані й спираються на діаметр '+v('AD')+', тому ∠'+v('ACD')+' = ∠'+v('ABD')+' = 90°.'},
+  {h:'У прямокутному трикутнику '+v('ACD')+': ∠'+v('CAD')+' = 90° − ∠'+v('ADC')+' = 90° − 72° = 18°.'},
+  {h:'У прямокутному трикутнику '+v('ABD')+': ∠'+v('BDA')+' = 90° − ∠'+v('BAD')+' = 90° − 48° = 42°.'},
+  {h:'Відповідь: ∠'+v('BAD')+' = 48°, ∠'+v('ADC')+' = 72°, ∠'+v('CAD')+' = 18°, ∠'+v('BDA')+' = 42°.',fin:true}]});
+/* ---- 350 ---- */
+PROBLEMS.push({tab:'350',
+ cond:'<span class="no">350.•</span> Знайдіть кути чотирикутника <i class="v">MNKP</i>, вписаного в коло, якщо ∠<i class="v">MKP</i> = 58°, ∠<i class="v">MPN</i> = 34°, ∠<i class="v">KMP</i> = 16°.',
+ fig:function(box){const svg=newSvg(400,400);box.appendChild(svg);const c={x:200,y:200},R=130,O=[200,200];let nn=-1;
+   const S=[68,144,32,116],a0=100;const ang=[a0];for(let i=0;i<3;i++)ang.push(ang[i]+S[i]);const Q=ang.map(a=>P(c,R,a));const M=Q[0],N=Q[1],K=Q[2],Pp=Q[3];
+   sv('circle',{cx:200,cy:200,r:R,fill:'#fbfdf6',stroke:INK,'stroke-width':3.5},svg);
+   sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.55,stroke:INK,'stroke-width':3.5,'stroke-linejoin':'round'},svg);
+   sline(svg,M,K,'#7a8a80',3.2);sline(svg,N,Pp,'#7a8a80',3.2);
+   const gM=sv('g',{},svg);
+   Q.forEach(function(p,i){dot(svg,p[0],p[1],INK,6);outLabel(svg,O,p,'MNKP'[i],INK,26,26);});
+   function draw(){gM.innerHTML='';
+     markAngle(gM,K,M,Pp,30,COL.cen,'58°',19);markAngle(gM,Pp,M,N,30,COL.ang,'34°',19);markAngle(gM,M,K,Pp,34,COL.g,'16°',18);
+     if(nn>=1)markAngle(gM,K,M,N,30,COL.ang,'34°',19);
+     if(nn>=2)markAngle(gM,K,N,Pp,92,COL.p,'92°',21);
+     if(nn>=3)markAngle(gM,M,N,Pp,96,COL.p,'88°',21);
+     if(nn>=4)markAngle(gM,Pp,K,M,98,COL.p,'106°',21);
+     if(nn>=5)markAngle(gM,N,M,K,92,COL.p,'74°',21);
+     if(nn>=6){const t=nlabel(gM,'88° + 74° + 92° + 106° = 360°',200,386,COL.p,21);}}
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Чотирикутник '+v('MNKP')+' вписано в коло, тому суми протилежних кутів дорівнюють 180°: ∠'+v('M')+' + ∠'+v('K')+' = 180°, ∠'+v('N')+' + ∠'+v('P')+' = 180°.'},
+  {h:'Кути '+v('MKN')+' і '+v('MPN')+' вписані й спираються на одну дугу '+v('MN')+', тому ∠'+v('MKN')+' = ∠'+v('MPN')+' = 34°.'},
+  {h:'∠'+v('K')+' = ∠'+v('NKP')+' = ∠'+v('MKN')+' + ∠'+v('MKP')+' = 34° + 58° = 92°.'},
+  {h:'∠'+v('M')+' = 180° − ∠'+v('K')+' = 180° − 92° = 88°.'},
+  {h:'У трикутнику '+v('KMP')+': ∠'+v('P')+' = ∠'+v('KPM')+' = 180° − ∠'+v('MKP')+' − ∠'+v('KMP')+' = 180° − 58° − 16° = 106°.'},
+  {h:'∠'+v('N')+' = 180° − ∠'+v('P')+' = 180° − 106° = 74°.'},
+  {h:'Перевірка: сума кутів чотирикутника 88° + 74° + 92° + 106° = 360°.'},
+  {h:'Відповідь: ∠'+v('M')+' = 88°, ∠'+v('N')+' = 74°, ∠'+v('K')+' = 92°, ∠'+v('P')+' = 106°.',fin:true}]});
+/* ---- 353 ---- */
+PROBLEMS.push({tab:'353',
+ cond:'<span class="no">353.•</span> У прямокутну трапецію вписано коло. Точка дотику ділить більшу бічну сторону на відрізки завдовжки 8 см і 50 см. Знайдіть периметр даної трапеції, якщо радіус вписаного кола дорівнює 20 см.',
+ fig:function(box){const svg=newSvg(400,340);box.appendChild(svg);const k=4.2;let nn=-1;
+   const A=[50,290],D=[50+70*k,290],B=[50,290-40*k],C=[50+28*k,290-40*k],O=[50+20*k,290-20*k],R=20*k;const K=foot(O,C,D);
+   sv('polygon',{points:polyStr([A,B,C,D]),fill:'#f1f8ec','fill-opacity':.5,stroke:'none'},svg);
+   sv('circle',{cx:f2(O[0]),cy:f2(O[1]),r:f2(R),fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':3.5},svg);
+   const sd=[[A,B],[B,C],[C,D],[D,A]].map(function(s){return sline(svg,s[0],s[1],INK,3.8);});
+   const gS=sv('g',{},svg),gT=sv('g',{},svg);
+   dot(svg,K[0],K[1],COL.p,6);sline(svg,O,K,'#7a8a80',2.5,'6 5');dot(svg,O[0],O[1],INK,4);
+   const cen=[(A[0]+C[0]+D[0]+B[0])/4,(A[1]+B[1]+C[1]+D[1])/4];
+   [[A,'A'],[B,'B'],[C,'C'],[D,'D']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,5);outLabel(svg,cen,x[0],x[1],INK,24,26);});
+   label(svg,'K',K[0]+16,K[1]-6,COL.p,26);
+   nlabel(svg,'8 см',(C[0]+K[0])/2+18,(C[1]+K[1])/2-14,COL.cen,21);nlabel(svg,'50 см',(D[0]+K[0])/2+26,(D[1]+K[1])/2-16,PC1,21);
+   nlabel(svg,'r = 20 см',(O[0]+K[0])/2-4,(O[1]+K[1])/2+20,INK,18);
+   const tT=[[O[0],B[1]],[O[0],A[1]]];
+   function draw(){gS.innerHTML='';gT.innerHTML='';
+     const col=nn>=3?[PC2,PC1,PC2,PC1]:[INK,INK,INK,INK];sd.forEach(function(l,i){l.setAttribute('stroke',col[i]);l.setAttribute('stroke-width',nn>=3?6:3.8);});
+     if(nn>=2){sline(gS,tT[0],tT[1],COL.p,4,'8 6');}
+     let y=24;
+     if(nn>=1){nlabel(gT,'CD = 8 + 50 = 58 см',200,y,PC2,21);y+=26;}
+     if(nn>=2){nlabel(gT,'AB = 2r = 2 · 20 = 40 см',200,y,COL.p,21);y+=26;}
+     if(nn>=3){nlabel(gT,'AD + BC = AB + CD = 40 + 58 = 98 см',200,y,PC1,21);y+=26;}
+     if(nn>=4){nlabel(gT,'P = 98 + 98 = 196 см',200,y,COL.g,22);}}
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай в прямокутну трапецію <i class="v">ABCD</i> (∠'+v('A')+' = ∠'+v('B')+' = 90°) вписано коло з радіусом 20 см. Точка дотику '+v('K')+' ділить більшу бічну сторону '+v('CD')+' на відрізки '+v('CK')+' = 8 см і '+v('KD')+' = 50 см.'},
+  {h:v('CD')+' = '+v('CK')+' + '+v('KD')+' = 8 + 50 = 58 см.'},
+  {h:'Коло дотикається до обох паралельних основ, тому відстань між ними дорівнює діаметру. Бічна сторона '+v('AB')+' перпендикулярна до основ, тому вона дорівнює цій відстані: '+v('AB')+' = 2 · 20 = 40 см.'},
+  {h:'Трапецію описано навколо кола, тому за теоремою 10.3 суми протилежних сторін рівні: '+v('AD')+' + '+v('BC')+' = '+v('AB')+' + '+v('CD')+' = 40 + 58 = 98 см.'},
+  {h:'Периметр: <i class="v">P</i> = ('+v('AD')+' + '+v('BC')+') + ('+v('AB')+' + '+v('CD')+') = 98 + 98 = 196 см.'},
+  {h:'Відповідь: 196 см.',fin:true}]});
+/* ---- 357 ---- */
+PROBLEMS.push({tab:'357',
+ cond:'<span class="no">357.••</span> Бічні сторони та менша основа рівнобічної трапеції дорівнюють 6 см, а один з її кутів дорівнює 60°. Знайдіть радіус кола, описаного навколо даної трапеції.',
+ fig:function(box){const svg=newSvg(400,380);box.appendChild(svg);const k=22;let nn=-1;const O=[200,200];
+   const A=[68,200],D=[332,200],B=[134,200-3*Math.sqrt(3)*k],C=[266,200-3*Math.sqrt(3)*k];
+   const circ=sv('circle',{cx:200,cy:200,r:132,fill:'rgba(46,139,87,.08)',stroke:COL.g,'stroke-width':3.5,'stroke-dasharray':'10 6'},svg);
+   sv('polygon',{points:polyStr([A,B,C,D]),fill:'#f1f8ec','fill-opacity':.55,stroke:INK,'stroke-width':3.8,'stroke-linejoin':'round'},svg);
+   tickMark(svg,A,B,1,INK);tickMark(svg,B,C,1,INK);tickMark(svg,C,D,1,INK);
+   const cen=[200,150];const gS=sv('g',{},svg),gM=sv('g',{},svg),gT=sv('g',{},svg);
+   [[A,'A'],[B,'B'],[C,'C'],[D,'D']].forEach(function(x){dot(svg,x[0][0],x[0][1],INK,5);outLabel(svg,cen,x[0],x[1],INK,26,26);});
+   nlabel(svg,'6 см',(A[0]+B[0])/2-34,(A[1]+B[1])/2,INK,20);nlabel(svg,'6 см',200,B[1]-24,INK,20);nlabel(svg,'6 см',(C[0]+D[0])/2+34,(C[1]+D[1])/2,INK,20);
+   function draw(){gS.innerHTML='';gM.innerHTML='';gT.innerHTML='';circ.style.display=nn>=5?'':'none';
+     markAngle(gM,A,B,D,34,COL.cen,'60°',20);
+     if(nn>=0)markAngle(gM,D,A,C,34,COL.cen,'60°',20);
+     if(nn>=1){markAngle(gM,B,A,C,34,COL.p,'120°',20);markAngle(gM,C,B,D,34,COL.p,'120°',20);}
+     if(nn>=2){sline(gS,A,C,'#7a8a80',3.5);markAngle(gM,A,B,C,52,COL.g,'30°',17);markAngle(gM,C,B,A,34,COL.g,'30°',17);}
+     if(nn>=3)markAngle(gM,A,C,D,52,COL.ang,'30°',17);
+     if(nn>=4)markRight(gM,C,A,D,16,INK);
+     if(nn>=5){dot(gS,200,200,COL.p,6);label(gT,'O',200,222,COL.p,24);sline(gS,A,D,PC1,6);}
+     if(nn>=6){nlabel(gT,'AD = 12 см',200,242,PC1,21);sline(gS,O,B,COL.p,4,'8 6');nlabel(gT,'R = 6 см',150,160,COL.p,20);}}
+   draw();return function(n){nn=n;draw();};},
+ steps:[{h:'Нехай <i class="v">ABCD</i> — рівнобічна трапеція, '+v('BC')+' ∥ '+v('AD')+', '+v('AB')+' = '+v('BC')+' = '+v('CD')+' = 6 см. Кут 60° гострий, тому це кут при більшій основі: ∠'+v('A')+' = ∠'+v('D')+' = 60°.'},
+  {h:'∠'+v('B')+' = ∠'+v('C')+' = 180° − 60° = 120° (внутрішні односторонні кути при паралельних '+v('BC')+' і '+v('AD')+').'},
+  {h:'Проведемо діагональ '+v('AC')+'. Трикутник '+v('ABC')+' рівнобедрений ('+v('AB')+' = '+v('BC')+'), ∠'+v('B')+' = 120°, тому ∠'+v('BAC')+' = ∠'+v('BCA')+' = (180° − 120°) : 2 = 30°.'},
+  {h:'∠'+v('CAD')+' = ∠'+v('BAD')+' − ∠'+v('BAC')+' = 60° − 30° = 30°.'},
+  {h:'У трикутнику '+v('ACD')+': ∠'+v('ACD')+' = 180° − ∠'+v('CAD')+' − ∠'+v('D')+' = 180° − 30° − 60° = 90°.'},
+  {h:'Вписаний кут '+v('ACD')+' прямий, тому він спирається на діаметр: '+v('AD')+' — діаметр описаного кола.'},
+  {h:'У прямокутному трикутнику '+v('ACD')+' катет '+v('CD')+' лежить проти кута 30°, тому '+v('AD')+' = 2 · '+v('CD')+' = 12 см. Радіус <i class="v">R</i> = '+v('AD')+' : 2 = 6 см.'},
+  {h:'Відповідь: 6 см.',fin:true}]});
+/* ====================== ЕТАП: ЗАДАЧІ ====================== */
+function problemTab(panel,t){
+  panel.innerHTML='<div class="pcond"><div class="cond"></div><div class="act"><button class="btn bf">Показати малюнок</button><button class="btn bs" style="display:none">Показати розв\'язання</button></div></div><div class="cols"><div class="stx"></div><div class="figbox" style="display:none"></div></div>';
+  const cond=$('.cond',panel),bf=$('.bf',panel),bs=$('.bs',panel),cols=$('.cols',panel),stx=$('.stx',panel),fb=$('.figbox',panel);cond.innerHTML=t.cond;
+  if(t.wide){cols.className='cols one';cols.insertBefore(fb,stx);fb.classList.add('wide');}
+  let onStep=null,sb=null;
+  bf.onclick=function(){fb.style.display='';onStep=t.fig(fb);if(onStep)onStep(-1);bf.style.display='none';bs.style.display='';fitSoon();};
+  bs.onclick=function(){bs.style.display='none';sb=stepsBox(t.steps,function(n){if(onStep)onStep(n);});stx.appendChild(sb.box);sb.next();fitSoon();};}
+addStage({id:'tasks',title:'Вправи 339–357',dur:1740,minFs:17,build:function(r){
+  r.innerHTML='<h2 class="ttl">Вправи з підручника</h2><div class="tabs"></div><div class="body"></div>';
+  const tabs=$('.tabs',r),body=$('.body',r);const els=[];
+  function show(i){els.forEach((x,k)=>{x.p.style.display=k===i?'block':'none';x.b.classList.toggle('on',k===i);});els[i].b.classList.add('seen');STAGES.filter(s=>s.id==='tasks')[0].card.scrollTop=0;fitSoon();}
+  PROBLEMS.forEach(function(t,i){const b=h('button',{class:'tab'},t.tab);tabs.appendChild(b);const p=h('div');p.style.display='none';body.appendChild(p);problemTab(p,t);els.push({b:b,p:p});b.onclick=function(){show(i);};});
+  show(0);
+}});
+</script>
+<script>
+/* ====================== ПІДСУМОК ====================== */
+function sumFig(kind){
+  const svg=sv('svg',{viewBox:'0 0 120 120'});const c={x:60,y:60};
+  if(kind==='ins'){sv('circle',{cx:60,cy:60,r:46,fill:'#fbfdf6',stroke:INK,'stroke-width':2.5},svg);const Q=[200,300,20,110].map(a=>P(c,46,a));sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.5,'stroke-linejoin':'round'},svg);
+    [0,2].forEach(i=>{const w=angleWedge(Q[i],Q[(i+3)%4],Q[(i+1)%4],14);sv('path',{d:w.d,fill:QC[i],'fill-opacity':.45,stroke:QC[i],'stroke-width':1.8},svg);});Q.forEach(p=>dot(svg,p[0],p[1],INK,2.5));}
+  if(kind==='tang'){const Q=tangVerts([250,330,40,150],26,c);sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.5,'stroke-linejoin':'round'},svg);sv('circle',{cx:60,cy:60,r:26,fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':2.5},svg);
+    const cl=[PC1,PC2,PC1,PC2];for(let i=0;i<4;i++)sline(svg,Q[i],Q[(i+1)%4],cl[i],3.4);Q.forEach(p=>dot(svg,p[0],p[1],INK,2.5));}
+  if(kind==='bis'){const Q=tangVerts([250,330,40,150],26,c);sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.2},svg);sv('circle',{cx:60,cy:60,r:26,fill:'none',stroke:COL.g,'stroke-width':2.2},svg);
+    [0,1].forEach(i=>{sline(svg,Q[i],[60,60],COL.arc,2,'6 4');});dot(svg,60,60,COL.arc,3.5);}
+  if(kind==='rhomb'){const Q=[[18,60],[60,36],[102,60],[60,84]];sv('polygon',{points:polyStr(Q),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.4,'stroke-linejoin':'round'},svg);
+    sv('circle',{cx:60,cy:60,r:Math.round(42*24/Math.hypot(42,24)*10)/10,fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':2.4},svg);sline(svg,Q[0],Q[2],COL.arc,2,'6 4');sline(svg,Q[1],Q[3],COL.arc,2,'6 4');dot(svg,60,60,COL.p,3.5);}
+  if(kind==='trap'){const A=[22,86],B=[40,34],C=[80,34],D=[98,86];sv('polygon',{points:polyStr([A,B,C,D]),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.4,'stroke-linejoin':'round'},svg);
+    sv('circle',{cx:60,cy:60,r:26,fill:'rgba(46,139,87,.12)',stroke:COL.g,'stroke-width':2.4},svg);sline(svg,A,[60,60],COL.arc,2,'6 4');sline(svg,B,[60,60],COL.arc,2,'6 4');dot(svg,60,60,COL.p,3.5);sv('path',{d:rightMark([60,60],A,B,6),fill:'none',stroke:INK,'stroke-width':1.6},svg);}
+  if(kind==='no'){sv('circle',{cx:60,cy:60,r:30,fill:'rgba(224,70,78,.07)',stroke:'#e0464e','stroke-width':2.2,'stroke-dasharray':'6 4'},svg);sv('polygon',{points:polyStr([[16,40],[104,40],[104,80],[16,80]]),fill:'#f1f8ec','fill-opacity':.7,stroke:INK,'stroke-width':2.4,'stroke-linejoin':'round'},svg);}
+  return svg;}
+addStage({id:'sum',title:'Підсумок уроку',dur:90,build:function(r){
+  r.innerHTML='<h2 class="ttl">Підсумок уроку</h2><div id="sumw"><div id="blocks"></div><div style="display:flex;gap:.6rem;align-items:center;margin-top:.4rem"><button class="btn" id="sdown">↓ Далі</button><button class="btn sec" id="sself" style="display:none">Перевірте себе ▶</button></div></div>'
+   +'<div id="selfw" style="display:none"><div id="selfs"></div><div style="margin-top:.5rem"><button class="btn sec" id="sback">Показати підсумок</button></div></div>';
+  const B=[
+   ['tang','<b class="kc">Описаний навколо кола чотирикутник</b> (коло дотикається до всіх сторін): '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+' <span class="kb">(теорема 10.3)</span>'],
+   ['tang','<b class="kc">Ознака.</b> Якщо в опуклому чотирикутнику '+v('AB')+' + '+v('CD')+' = '+v('BC')+' + '+v('AD')+', то в нього можна вписати коло <span class="kb">(теорема 10.4)</span>'],
+   ['bis','Центр вписаного кола — точка перетину <span class="ka">бісектрис</span> кутів чотирикутника'],
+   ['rhomb','У будь-який <b>ромб</b> можна вписати коло; його центр — точка перетину діагоналей'],
+   ['no','У паралелограм, який не є ромбом, і в прямокутник, який не є квадратом, коло вписати <b>не можна</b>'],
+   ['trap','Якщо в трапецію вписано коло, то сума її основ дорівнює сумі бічних сторін, а бічну сторону видно із центра кола під кутом <b>90°</b>'],
+   ['ins','<b class="kg">Вписаний у коло чотирикутник:</b> ∠'+v('A')+' + ∠'+v('C')+' = ∠'+v('B')+' + ∠'+v('D')+' = 180°; кути, що спираються на одну дугу, рівні; кут, що спирається на діаметр, прямий']];
+  const bx=$('#blocks',r);const els=B.map(function(b){const e=h('div',{class:'sumblock'});const f=h('div',{class:'mf'});f.appendChild(sumFig(b[0]));e.appendChild(f);e.appendChild(h('div',null,b[1]));bx.appendChild(e);return e;});
+  let n=0;$('#sdown',r).onclick=function(){if(n<els.length){els[n].classList.add('show');n++;}if(n>=els.length){$('#sdown',r).style.display='none';$('#sself',r).style.display='';}fitSoon();};
+  const S=[['У чотирикутник можна вписати коло, якщо …','суми його протилежних сторін рівні.'],['У паралелограм можна вписати коло, тільки якщо він є …','ромбом.'],['Периметр рівнобічної трапеції з бічною стороною '+v('b')+', у яку вписано коло, дорівнює …','4'+v('b')+' (основи разом дають 2'+v('b')+').'],['Бічну сторону трапеції видно із центра вписаного кола під кутом …','90°.']];
+  S.forEach(function(s){const q=h('div',{class:'selfq'});q.appendChild(h('span',null,s[0]));q.appendChild(h('span',{class:'ans'},s[1]));const b=h('button',{class:'btn'},'Показати');b.onclick=function(){q.classList.add('show');b.style.display='none';fitSoon();};q.appendChild(b);$('#selfs',r).appendChild(q);});
+  $('#sself',r).onclick=function(){$('#sumw',r).style.display='none';$('#selfw',r).style.display='';fitSoon();};
+  $('#sback',r).onclick=function(){$('#sumw',r).style.display='';$('#selfw',r).style.display='none';fitSoon();};
+}});
+
+/* ====================== СВІТЛОФОР ====================== */
+addStage({id:'light',title:'Рефлексія «Світлофор»',dur:30,build:function(r){
+  r.innerHTML='<h2 class="ttl">Світлофор</h2><div class="tl"><div class="votes" id="vt"></div><div style="display:flex;gap:.6rem"><button class="btn" id="vok">ОК</button><button class="btn sec" id="vrs">Скинути</button></div><div class="lamps"><div class="lamp" style="background:#e0464e;color:#e0464e" id="l0"></div><div class="lamp" style="background:#f2b705;color:#f2b705" id="l1"></div><div class="lamp" style="background:#2fa564;color:#2fa564" id="l2"></div></div><div class="say" id="vm" style="text-align:center"></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center"><button class="btn" id="vend">Завершити урок</button><button class="btn sec" id="vre">↻ Почати спочатку</button></div></div>';
+  const cfg=[['#2fa564','Усе зрозуміло','Можу пояснити іншому'],['#f2b705','Є запитання','Потрібно повторити'],['#e0464e','Потрібна допомога','Тема ще не зрозуміла']];const cnt=[0,0,0];const btn=[];
+  cfg.forEach(function(c,i){const b=h('button',{class:'vote'},'<div class="cnt">0</div>'+c[1]+'<small>'+c[2]+'</small>');b.style.borderColor=c[0];b.style.color=c[0];b.onclick=function(){cnt[i]++;$('.cnt',b).textContent=cnt[i];};$('#vt',r).appendChild(b);btn.push(b);});
+  function lamp(k){[0,1,2].forEach(function(i){$('#l'+i,r).classList.toggle('on',i===k);});}
+  $('#vok',r).onclick=function(){const tot=cnt[0]+cnt[1]+cnt[2];if(!tot)return;let k;const mx=Math.max(cnt[0],cnt[1],cnt[2]);if(cnt[2]===mx)k=0;else if(cnt[1]===mx)k=1;else k=2;lamp(k);
+    $('#vm',r).textContent=k===2?'Тема засвоєна. Рухаємося далі!':(k===1?'Є запитання. Розберемо складні місця.':'Потрібна допомога. Повернемося до теорії та вправ.');};
+  $('#vrs',r).onclick=function(){cnt[0]=cnt[1]=cnt[2]=0;btn.forEach(function(b){$('.cnt',b).textContent='0';});lamp(-1);$('#vm',r).textContent='';};
+  $('#vend',r).onclick=function(){confetti();$('#vm',r).textContent='Дякую за урок!';};
+  $('#vre',r).onclick=function(){$('#vrs',r).click();go(0);};
+}});
+
+/* ====================== ЗАПУСК ====================== */
+buildAll();
+go(0);
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (початок) =====================
+     Вставити цей блок цілком перед </body> будь-якої розробки.
+     Тонка смужка збоку: урок трохи звужується і ніколи не перекривається панелькою.
+     Малюнок тимчасовий: нічого не зберігається, після закриття уроку все зникає. -->
+<style>
+#pm-ink{position:fixed;left:0;top:0;z-index:2147483200;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pm-ink.on{pointer-events:auto;cursor:crosshair}
+#pm-paper{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;z-index:2147483100}
+.pm-sheet{position:absolute;background:#fff;border:1px solid #c9c9c9;box-shadow:0 2px 10px rgba(0,0,0,.2);box-sizing:border-box}
+.pm-sheet.grid{background-image:linear-gradient(#cfe0f3 1px,transparent 1px),linear-gradient(90deg,#cfe0f3 1px,transparent 1px);background-size:24px 24px}
+.pm-sheet.pm-prev{border:2px dashed #f08a00;background-color:rgba(255,255,255,.85)}
+
+/* місце під панельку забираємо в уроку, а не перекриваємо ним */
+html.pm-dock-r{padding-right:var(--pm-w,26px)!important;box-sizing:border-box!important}
+html.pm-dock-l{padding-left:var(--pm-w,26px)!important;box-sizing:border-box!important}
+
+#pm-panel,#pm-fab{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
+#pm-panel *{box-sizing:border-box}
+#pm-panel[hidden],#pm-fab[hidden]{display:none!important}
+#pm-panel{position:fixed;right:4px;top:50%;transform:translateY(-50%);z-index:2147483600;width:42px;max-height:calc(100vh - 10px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-radius:14px;box-shadow:0 2px 12px rgba(40,50,70,.22)}
+#pm-panel::-webkit-scrollbar{display:none}
+#pm-panel.pm-left{right:auto;left:4px}
+.pm-b{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#465162;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pm-b svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pm-b:hover{background:#d3d9e3}
+.pm-b:active{transform:scale(.93)}
+.pm-b.on{background:#c5cedb;color:#26303f;box-shadow:inset 0 0 0 1px #8f9db2}
+#pm-panel.pm-left [data-a="hide"] svg{transform:scaleX(-1)}
+.pm-sep{flex:none;width:18px;height:1px;margin:3px 0;background:#bcc4d0}
+.pm-colors{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:3px 0}
+.pm-c{width:15px;height:15px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #9aa4b3;cursor:pointer}
+.pm-c.on{box-shadow:0 0 0 2px #3b4452}
+
+#pm-fab{position:fixed;right:0;top:50%;margin-top:-26px;z-index:2147483600;width:20px;height:52px;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#465162;cursor:pointer;
+  background:#e3e7ee;border:1px solid #aeb7c4;border-right:0;border-radius:12px 0 0 12px;box-shadow:0 2px 8px rgba(40,50,70,.2)}
+#pm-fab.pm-left{right:auto;left:0;border:1px solid #aeb7c4;border-left:0;border-radius:0 12px 12px 0}
+#pm-fab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+
+/* низький екран: кнопки стають у дві колонки */
+@media (max-height:600px){
+  #pm-panel{width:78px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 2px}
+  .pm-sep{display:none}
+  .pm-colors{width:100%;grid-template-columns:repeat(4,auto);justify-content:center;gap:4px;padding:4px 0}
+  .pm-c{width:14px;height:14px}
+}
+</style>
+
+<canvas id="pm-ink"></canvas>
+<div id="pm-paper"></div>
+
+<button id="pm-fab" type="button" title="Відкрити панельку для письма"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+
+<div id="pm-panel" hidden>
+  <button type="button" class="pm-b" data-a="cursor" title="Керувати уроком (не писати)"><svg viewBox="0 0 24 24"><path d="M5.5 3.5l6.2 16 2.4-6.6 6.6-2.4z"/></svg></button>
+  <button type="button" class="pm-b" data-a="pen" title="Писати"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+  <button type="button" class="pm-b" data-a="eraser" title="Гумка"><svg viewBox="0 0 24 24"><path d="M15.6 4.6l3.8 3.8a1.8 1.8 0 010 2.5L11.2 19H7.6l-3-3a1.8 1.8 0 010-2.5l8.5-8.9a1.8 1.8 0 012.5 0z"/><path d="M8.8 10.8l5.4 5.4"/><path d="M11.5 19H20"/></svg></button>
+  <div class="pm-sep"></div>
+  <div class="pm-colors">
+    <button type="button" class="pm-c" data-a="color" data-c="#e53935" style="background:#e53935" title="Червоний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1e5fd6" style="background:#1e5fd6" title="Синій"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#222222" style="background:#222" title="Чорний"></button>
+    <button type="button" class="pm-c" data-a="color" data-c="#1f9d55" style="background:#1f9d55" title="Зелений"></button>
+  </div>
+  <button type="button" class="pm-b" data-a="width" title="Тонка / товста лінія"><svg viewBox="0 0 24 24"><path d="M4 8h16" style="stroke-width:1.1"/><path d="M4 15.5h16" style="stroke-width:3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="smart" title="Рівні фігури: трикутник, коло, пряма"><svg viewBox="0 0 24 24"><path d="M3.5 19.5l6-12 6 12z"/><circle cx="17" cy="8" r="3.4"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="paper" title="Виділити прямокутник білим"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2" stroke-dasharray="3 2.6"/></svg></button>
+  <button type="button" class="pm-b" data-a="board" title="Закрити весь екран білим"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:currentColor;fill-opacity:.14"/></svg></button>
+  <button type="button" class="pm-b" data-a="grid" title="Клітинка: відкриває білу дошку в клітинку, а якщо біле поле вже є, вмикає й вимикає клітинку на ньому"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg></button>
+  <button type="button" class="pm-b" data-a="rmpaper" title="Прибрати біле, залишити написане"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4.5 19L19.5 5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="undo" title="Скасувати останнє"><svg viewBox="0 0 24 24"><path d="M9 8h6a5 5 0 010 10H8"/><path d="M12 4.5L8.5 8 12 11.5"/></svg></button>
+  <button type="button" class="pm-b" data-a="clear" title="Стерти все написане і біле"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/><path d="M10.5 11v5.5M13.5 11v5.5"/></svg></button>
+  <div class="pm-sep"></div>
+  <button type="button" class="pm-b" data-a="side" title="Перемістити на інший бік"><svg viewBox="0 0 24 24"><path d="M5 8h14M15.2 4.6L19 8l-3.8 3.4"/><path d="M19 16H5M8.8 12.6L5 16l3.8 3.4"/></svg></button>
+  <button type="button" class="pm-b" data-a="hide" title="Сховати панельку"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+
+<script>
+(function(){
+  if (window.__pmLoaded) return; window.__pmLoaded = true;
+
+  var ink = document.getElementById('pm-ink'), ctx = ink.getContext('2d');
+  var panel = document.getElementById('pm-panel'), fab = document.getElementById('pm-fab');
+  var layer = document.getElementById('pm-paper');
+  document.documentElement.appendChild(layer);   // біле поле лежить у координатах сторінки і гортається разом з нею
+
+  var st = { tool: null, color: '#e53935', thick: false, smart: true, grid: false };
+  var strokes = [], sheets = [], hist = [], cur = null, penSeen = false, dpr = 1, sheetSeq = 0;
+
+  /* ---------- розмір і перемальовування ---------- */
+  function sx(){ return window.pageXOffset || 0; }
+  function sy(){ return window.pageYOffset || 0; }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    ink.style.width = w + 'px'; ink.style.height = h + 'px';
+    ink.width = Math.round(w * dpr); ink.height = Math.round(h * dpr);
+    redraw();
+  }
+  function setup(){ ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function drawStroke(s){
+    var p = s.p, ox = -sx(), oy = -sy(), i;
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.fillStyle = s.e ? '#000' : s.c;
+    ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (p.length === 1){
+      ctx.beginPath(); ctx.arc(p[0][0] + ox, p[0][1] + oy, s.w / 2, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(p[0][0] + ox, p[0][1] + oy);
+      if (s.raw === false || p.length < 3){
+        for (i = 1; i < p.length; i++) ctx.lineTo(p[i][0] + ox, p[i][1] + oy);
+      } else {
+        for (i = 1; i < p.length - 1; i++){
+          var mx = (p[i][0] + p[i+1][0]) / 2 + ox, my = (p[i][1] + p[i+1][1]) / 2 + oy;
+          ctx.quadraticCurveTo(p[i][0] + ox, p[i][1] + oy, mx, my);
+        }
+        ctx.lineTo(p[p.length-1][0] + ox, p[p.length-1][1] + oy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // напис, зроблений ДО білого поля, ховається під ним
+  function clipUnderSheets(s){
+    var W = ink.width / dpr, H = ink.height / dpr;
+    for (var k = 0; k < sheets.length; k++){
+      var sh = sheets[k];
+      if (!sh._r || sh._seq <= s.seq) continue;
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      ctx.rect(sh._r.x - sx(), sh._r.y - sy(), sh._r.w, sh._r.h);
+      ctx.clip('evenodd');
+    }
+  }
+  function redraw(){
+    setup(); ctx.clearRect(0, 0, ink.width / dpr, ink.height / dpr);
+    for (var i = 0; i < strokes.length; i++){
+      ctx.save(); clipUnderSheets(strokes[i]); drawStroke(strokes[i]); ctx.restore();
+    }
+  }
+  function seg(s, a, b){
+    ctx.save();
+    ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = s.e ? '#000' : s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0] - sx(), a[1] - sy()); ctx.lineTo(b[0] - sx(), b[1] - sy()); ctx.stroke();
+    ctx.restore();
+  }
+  var raf = 0;
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(function(){ raf = 0; redraw(); }); }, { passive: true });
+  window.addEventListener('resize', size);
+
+  /* ---------- рівні фігури ---------- */
+  function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  function perp(p, a, b){
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    if (!l) return dist(p, a);
+    return Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / l;
+  }
+  function rdp(P, eps){
+    if (P.length < 3) return P.slice();
+    var d = 0, idx = 0, A = P[0], B = P[P.length - 1];
+    for (var i = 1; i < P.length - 1; i++){ var dd = perp(P[i], A, B); if (dd > d){ d = dd; idx = i; } }
+    if (d > eps){ var l = rdp(P.slice(0, idx + 1), eps), r = rdp(P.slice(idx), eps); return l.slice(0, -1).concat(r); }
+    return [A, B];
+  }
+  function resample(P, n){
+    var L = 0, i; for (i = 1; i < P.length; i++) L += dist(P[i-1], P[i]);
+    var step = L / (n - 1), out = [[P[0][0], P[0][1]]], acc = 0, prev = P[0];
+    for (i = 1; i < P.length; i++){
+      var cu = P[i], d = dist(prev, cu);
+      while (d > 0 && acc + d >= step){
+        var t = (step - acc) / d, q = [prev[0] + (cu[0] - prev[0]) * t, prev[1] + (cu[1] - prev[1]) * t];
+        out.push(q); prev = q; d = dist(prev, cu); acc = 0;
+      }
+      acc += d; prev = cu;
+    }
+    if (out.length < n) out.push([P[P.length-1][0], P[P.length-1][1]]);
+    return out;
+  }
+  function recognize(P){
+    var n = P.length, i;
+    if (n < 8) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, L = 0;
+    for (i = 0; i < n; i++){
+      x0 = Math.min(x0, P[i][0]); x1 = Math.max(x1, P[i][0]); y0 = Math.min(y0, P[i][1]); y1 = Math.max(y1, P[i][1]);
+      if (i) L += dist(P[i-1], P[i]);
+    }
+    var w = x1 - x0, h = y1 - y0, diag = Math.hypot(w, h);
+    if (diag < 80) return null;                       // дрібне (цифри, літери) не чіпаємо
+    var a = P[0], b = P[n-1], d = dist(a, b);
+
+    // пряма лінія
+    var dev = 0; for (i = 1; i < n - 1; i++) dev = Math.max(dev, perp(P[i], a, b));
+    if (d > 80 && d > 0.88 * L && dev < 0.07 * d){
+      var A = [a[0], a[1]], B = [b[0], b[1]];
+      if (Math.abs(B[1] - A[1]) < 0.1 * d){ var m = (A[1] + B[1]) / 2; A[1] = B[1] = m; }
+      else if (Math.abs(B[0] - A[0]) < 0.1 * d){ var m2 = (A[0] + B[0]) / 2; A[0] = B[0] = m2; }
+      return [A, B];
+    }
+    // далі тільки замкнені фігури
+    if (d > 0.3 * L || L < diag * 1.6) return null;
+    if (Math.min(w, h) < 0.18 * Math.max(w, h)) return null;
+
+    // коло / еліпс
+    var R = resample(P, 96), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, sum = 0, sum2 = 0;
+    for (i = 0; i < R.length; i++){
+      var r = Math.hypot((R[i][0] - cx) / rx, (R[i][1] - cy) / ry); sum += r; sum2 += r * r;
+    }
+    var mean = sum / R.length, sd = Math.sqrt(Math.max(0, sum2 / R.length - mean * mean));
+    if (sd < 0.09 && Math.abs(mean - 1) < 0.1){
+      if (Math.abs(w - h) < 0.18 * Math.max(w, h)){ rx = ry = (w + h) / 4; }
+      var out = [];
+      for (i = 0; i <= 72; i++){ var ang = i / 72 * 2 * Math.PI; out.push([cx + rx * Math.cos(ang), cy + ry * Math.sin(ang)]); }
+      return out;
+    }
+
+    // багатокутник (3–6 кутів)
+    var k = 0, md = -1;
+    for (i = 1; i < R.length; i++){ var dd = dist(R[i], R[0]); if (dd > md){ md = dd; k = i; } }
+    var eps = Math.max(7, 0.05 * diag);
+    var p1 = rdp(R.slice(0, k + 1), eps), p2 = rdp(R.slice(k).concat([R[0]]), eps);
+    var V = p1.concat(p2.slice(1, -1));
+    var changed = true;
+    while (changed && V.length > 3){
+      changed = false;
+      for (i = 0; i < V.length; i++){
+        var pv = V[(i + V.length - 1) % V.length], c = V[i], q = V[(i + 1) % V.length];
+        var a1 = Math.atan2(c[1] - pv[1], c[0] - pv[0]), a2 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+        var t = Math.abs(a2 - a1); if (t > Math.PI) t = 2 * Math.PI - t;
+        if (t < 0.38 || dist(c, pv) < 0.08 * diag){ V.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (V.length < 3 || V.length > 6) return null;
+    // тільки опуклі
+    var sign = 0;
+    for (i = 0; i < V.length; i++){
+      var o = V[i], p = V[(i + 1) % V.length], z = V[(i + 2) % V.length];
+      var cr = (p[0] - o[0]) * (z[1] - p[1]) - (p[1] - o[1]) * (z[0] - p[0]);
+      if (Math.abs(cr) < 1e-6) continue;
+      if (!sign) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) return null;
+    }
+    // майже горизонтальні / вертикальні сторони робимо рівними
+    var t5 = Math.tan(5 * Math.PI / 180), j, e;
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx = V[j][0] - V[i][0], dy = V[j][1] - V[i][1];
+      if (Math.abs(dy) < t5 * Math.abs(dx)){ e = (V[i][1] + V[j][1]) / 2; V[i][1] = V[j][1] = e; } }
+    for (i = 0; i < V.length; i++){ j = (i + 1) % V.length; var dx2 = V[j][0] - V[i][0], dy2 = V[j][1] - V[i][1];
+      if (Math.abs(dx2) < t5 * Math.abs(dy2)){ e = (V[i][0] + V[j][0]) / 2; V[i][0] = V[j][0] = e; } }
+    V.push([V[0][0], V[0][1]]);
+    return V;
+  }
+
+  /* ---------- біле поле ---------- */
+  function mkSheet(x, y, w, h, preview){
+    var el = document.createElement('div');
+    el.className = 'pm-sheet' + (st.grid ? ' grid' : '') + (preview ? ' pm-prev' : '');
+    placeSheet(el, x, y, w, h);
+    layer.appendChild(el);
+    return el;
+  }
+  function placeSheet(el, x, y, w, h){
+    el._r = { x: x, y: y, w: w, h: h };
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+  function addSheet(el){ el._seq = ++sheetSeq; sheets.push(el); push({ t: 'p', el: el }); redraw(); }
+
+  /* ---------- історія ---------- */
+  function push(a){ hist.push(a); if (hist.length > 150) hist.shift(); }
+  function undo(){
+    var a = hist.pop(); if (!a) return;
+    if (a.t === 's'){ var i = strokes.lastIndexOf(a.s); if (i >= 0) strokes.splice(i, 1); redraw(); }
+    else if (a.t === 'p'){ var j = sheets.indexOf(a.el); if (j >= 0) sheets.splice(j, 1); a.el.remove(); redraw(); }
+    else if (a.t === 'clear'){
+      a.strokes.forEach(function(s){ strokes.push(s); });
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    } else if (a.t === 'rm'){
+      a.sheets.forEach(function(el){ layer.appendChild(el); sheets.push(el); });
+      redraw();
+    }
+  }
+  function clearAll(){
+    if (!strokes.length && !sheets.length) return;
+    var s = strokes.splice(0), sh = sheets.splice(0);
+    sh.forEach(function(el){ el.remove(); });
+    push({ t: 'clear', strokes: s, sheets: sh }); redraw();
+  }
+  function removePaper(){
+    if (!sheets.length) return;
+    var sh = sheets.splice(0); sh.forEach(function(el){ el.remove(); });
+    push({ t: 'rm', sheets: sh }); redraw();
+  }
+
+  /* ---------- малювання ---------- */
+  function lw(eraser){ return eraser ? (st.thick ? 50 : 26) : (st.thick ? 6 : 3); }
+  ink.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  ink.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'pen') penSeen = true;
+    else if (e.pointerType === 'touch' && penSeen) return;   // долоня не малює, коли працює стилус
+    if (cur || e.button > 0 && e.pointerType !== 'pen') return;
+    e.preventDefault();
+    try { ink.setPointerCapture(e.pointerId); } catch (_) {}
+    var t = st.tool;
+    if (e.pointerType === 'pen' && (e.buttons & 32)) t = 'eraser';   // гумка на кінці стилуса
+    var pt = [e.clientX + sx(), e.clientY + sy()];
+    if (t === 'paper'){
+      cur = { id: e.pointerId, m: 'paper', x0: pt[0], y0: pt[1], el: mkSheet(pt[0], pt[1], 0, 0, true) };
+    } else {
+      var s = { c: st.color, w: lw(t === 'eraser'), e: t === 'eraser', p: [pt], seq: sheetSeq };
+      cur = { id: e.pointerId, m: 'draw', s: s };
+      setup(); drawStroke(s);
+    }
+  });
+  ink.addEventListener('pointermove', function(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    e.preventDefault();
+    var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+    if (!evs.length) evs = [e];
+    for (var i = 0; i < evs.length; i++){
+      var pt = [evs[i].clientX + sx(), evs[i].clientY + sy()];
+      if (cur.m === 'paper'){
+        placeSheet(cur.el, Math.min(cur.x0, pt[0]), Math.min(cur.y0, pt[1]), Math.abs(pt[0] - cur.x0), Math.abs(pt[1] - cur.y0));
+      } else {
+        var last = cur.s.p[cur.s.p.length - 1];
+        if (dist(last, pt) < 1.2) continue;
+        cur.s.p.push(pt); setup(); seg(cur.s, last, pt);
+      }
+    }
+  });
+  function end(e){
+    if (!cur || e.pointerId !== cur.id) return;
+    var c = cur; cur = null;
+    if (c.m === 'paper'){
+      var el = c.el, w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+      if (w < 30 || h < 30){ el.remove(); return; }
+      el.classList.remove('pm-prev'); addSheet(el); setTool('pen');
+    } else {
+      var s = c.s;
+      if (!s.e && st.smart){ var r = recognize(s.p); if (r){ s.p = r; s.raw = false; } }
+      strokes.push(s); push({ t: 's', s: s }); redraw();
+    }
+  }
+  ink.addEventListener('pointerup', end);
+  ink.addEventListener('pointercancel', end);
+
+  /* ---------- панель ---------- */
+  var root = document.documentElement, dockW = 26;
+  function q(a){ return panel.querySelector('[data-a="' + a + '"]'); }
+  function isLeft(){ return panel.classList.contains('pm-left'); }
+  // забираємо місце під панельку в уроку: він звужується, а не перекривається
+  function dock(){
+    dockW = (panel.hidden ? fab.offsetWidth : panel.offsetWidth + 4) + 4;
+    root.style.setProperty('--pm-w', dockW + 'px');
+    root.classList.toggle('pm-dock-l', isLeft());
+    root.classList.toggle('pm-dock-r', !isLeft());
+  }
+  function ui(){
+    ink.classList.toggle('on', !!st.tool);
+    q('cursor').classList.toggle('on', !st.tool);
+    q('pen').classList.toggle('on', st.tool === 'pen');
+    q('eraser').classList.toggle('on', st.tool === 'eraser');
+    q('paper').classList.toggle('on', st.tool === 'paper');
+    q('width').classList.toggle('on', st.thick);
+    q('smart').classList.toggle('on', st.smart);
+    q('grid').classList.toggle('on', st.grid);
+    var cs = panel.querySelectorAll('.pm-c');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.toggle('on', cs[i].getAttribute('data-c') === st.color);
+  }
+  function setTool(t){ st.tool = t; ui(); }
+  function board(){
+    // біла дошка закриває тільки сам урок, не смужку з панелькою
+    var el = mkSheet(sx() + (isLeft() ? dockW : 0), sy(), root.clientWidth - dockW, root.clientHeight);
+    addSheet(el); setTool('pen');
+  }
+  panel.addEventListener('click', function(e){
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'cursor') setTool(null);
+    else if (a === 'pen') setTool('pen');
+    else if (a === 'eraser') setTool(st.tool === 'eraser' ? 'pen' : 'eraser');
+    else if (a === 'paper') setTool(st.tool === 'paper' ? 'pen' : 'paper');
+    else if (a === 'color'){ st.color = b.getAttribute('data-c'); st.tool = 'pen'; ui(); }
+    else if (a === 'width'){ st.thick = !st.thick; ui(); }
+    else if (a === 'smart'){ st.smart = !st.smart; ui(); }
+    else if (a === 'grid'){
+      if (!sheets.length){ st.grid = true; board(); }          // білого поля ще немає: одразу відкриваємо дошку в клітинку
+      else { st.grid = !st.grid; sheets.forEach(function(el){ el.classList.toggle('grid', st.grid); }); }
+      ui();
+    }
+    else if (a === 'board') board();
+    else if (a === 'rmpaper'){ removePaper(); st.grid = false; ui(); }
+    else if (a === 'undo') undo();
+    else if (a === 'clear'){ clearAll(); st.grid = false; ui(); }
+    else if (a === 'side'){ panel.classList.toggle('pm-left'); fab.classList.toggle('pm-left'); dock(); }
+    else if (a === 'hide'){ panel.hidden = true; fab.hidden = false; setTool(null); dock(); }
+  });
+  fab.addEventListener('click', function(){ fab.hidden = true; panel.hidden = false; setTool('pen'); dock(); });
+  window.addEventListener('resize', dock);
+  document.addEventListener('keydown', function(e){
+    if (!panel.hidden && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'я')){ e.preventDefault(); undo(); }
+  });
+
+  window.pencilOverlay = { get strokes(){ return strokes; }, get sheets(){ return sheets; }, recognize: recognize };
+  size(); ui(); dock();
+})();
+</script>
+<!-- ===================== ПАНЕЛЬКА-ОЛІВЕЦЬ v2 (кінець) ===================== -->
+</body></html>
+
