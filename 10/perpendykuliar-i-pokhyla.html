@@ -434,7 +434,7 @@ function Item3(){
     {t:'seg',a:sub(Cc,mul(u,3)),b:add(Cc,mul(u,3)),c:is90?C.par:C.gold,w:5.2},
     lbl(add(Cc,mul(u,3)),'a',is90?C.par:C.gold,[1,0],1.5),
     ...rmark(B,[0,0,1],[1,0,0],.4,C.par),...vp(['A','B','C'])];
-  if(is90)pr.push(...rmark(Cc,[-1,0,0],[0,1,0],.4,C.par));
+  if(is90)pr.push(...rmark(Cc,[-1,0,0],[0,1,0],.45,C.proj),...rmark(Cc,nrm(sub(A,Cc)),[0,1,0],.9,C.ga));
   const left=(<>
     <Box title="Теорема про три перпендикуляри">Якщо пряма, яка належить площині, перпендикулярна до проекції похилої до цієї площини, то вона перпендикулярна й до самої похилої. І навпаки, якщо пряма, яка належить площині, перпендикулярна до похилої до цієї площини, то вона перпендикулярна й до проекції похилої на цю площину.</Box>
     <Note><M>AB ⊥ α</M>, <span className="cv"><M>AC</M></span> — похила, <span className="co"><M>BC</M></span> — її проекція, пряма <span className="ca"><M>a</M></span> ⊂ <M>α</M> проходить через <M>C</M>.</Note>
@@ -443,7 +443,7 @@ function Item3(){
       <div><b className={is90?'cg':''}>{Math.round(a1)}°</b>кут між <M>a</M> і <M>BC</M></div>
       <div><b className={is90?'cg':''}>{Math.round(a2)}°</b>кут між <M>a</M> і <M>AC</M></div>
     </div>
-    <Note>{is90?<><span className="cg"><M>a ⊥ BC</M> і <M>a ⊥ AC</M></span> одночасно.</>:<>Поверни пряму <M>a</M> так, щоб вона стала перпендикулярною до <M>BC</M>, і подивись на другий кут.</>}</Note>
+    <Note>{is90?<><span className="cg"><M>a ⊥ BC</M> і <M>a ⊥ AC</M></span> одночасно: на малюнку обидва прямі кути позначено.</>:<>Поверни пряму <M>a</M> так, щоб вона стала перпендикулярною до <M>BC</M>, і подивись на другий кут.</>}</Note>
   </>);
   return <Frame left={left} scene={{P,prims:pr,R:5.4,ctr:[0,0,1.3]}} legend={[[C.par,'перпендикуляр AB'],[C.ga,'похила AC'],[C.proj,'проекція BC'],[C.gold,'пряма a']]} yaw0={0.35} pitch0={0.5}/>;
 }
@@ -487,7 +487,7 @@ function Item4(){
    Пункт 5. Задачі
    ===================================================================== */
 function taskScene(id,st){
-  const ok=!!st.ok,k=st.k||0;
+  const k=st.k||0,ok=!!st.ok||k>=1,fin=!!st.ok||(st.n>0&&k>=st.n);
   const pr=[],P={};let R=4.4,ctr=[0,0,1.4],legend=null,yaw0=.35,pitch0=.5;
   if(id.startsWith('35.1-')){
     const n=+id.slice(5);Object.assign(P,boxP(1.4,1.4,1.4));
@@ -511,7 +511,7 @@ function taskScene(id,st){
       {t:'seg',a:'A',b:'B',c:ok?C.par:C.ink,w:4},{t:'seg',a:'A',b:'C',c:ok?C.ga:C.ink,w:4},
       {t:'seg',a:'B',b:'C',c:ok?C.proj:gray,w:ok?6:2,dash:!ok},...vp(['A','B','C']),
       lbl(mid(P.A,P.B),'12 см',C.ink,[-1.4,0]),lbl(mid(P.A,P.C),'13 см',C.ink,[1.2,0]),
-      lbl(mid(P.B,P.C),ok?'5 см':'?',ok?C.proj:C.skew,[0,1],ok?1:1.3,1.4));
+      lbl(mid(P.B,P.C),fin?'5 см':'?',fin?C.proj:C.skew,[0,1],fin?1:1.3,1.4));
     if(ok)pr.push(...rmark(P.B,[0,0,1],[1,0,0],.3,C.par));
     R=4.4;ctr=[0,0,1.5];
   }
@@ -524,8 +524,9 @@ function taskScene(id,st){
       {t:'seg',a:'B',b:'C',c:ok?C.proj:gray,w:ok?5.4:2,dash:!ok},{t:'seg',a:'C',b:'D',c:ok?C.proj:gray,w:ok?5.4:2,dash:!ok},...vp(['A','B','C','D']),
       lbl(mid(P.A,P.B),'8 см',C.ink,[-1.3,-.3]),lbl(mid(P.A,P.D),'9 см',C.ink,[1.3,0]),
       {t:'txt',p:add(P.A,[-.45,0,-.95]),s:'45°',upright:true,size:.9,c:C.ink,lo:[0,0]},
-      lbl(mid(P.C,P.D),ok?'7 см':'?',ok?C.proj:C.skew,[0,1],ok?1:1.3,1.4));
+      lbl(mid(P.C,P.D),fin?'7 см':'?',fin?C.proj:C.skew,[0,1],fin?1:1.3,1.4));
     if(ok)pr.push(...rmark(P.C,[0,0,1],[-1,0,0],.3,C.par),...rmark(P.C,[0,0,1],nrm(P.D),.3,C.par));
+    if(k>=2||st.ok)pr.push(lbl(lerp(P.A,P.C,.4),'4√2 см',C.par,[1,0],1,2.6));
     R=5.2;ctr=[0.2,0,1.2];
   }
   if(id==='35.7'||id==='35.8'){
@@ -587,7 +588,7 @@ function taskScene(id,st){
       lbl(mid(P.A,P.B),'25 см',C.ink,[-1.4,0]),lbl(mid(P.A,P.C),'17 см',C.ink,[1.4,0]));
     if(ok)pr.push({t:'seg',a:'A',b:'H',c:C.par,w:5},{t:'seg',a:'H',b:'B',c:C.proj,w:5},{t:'seg',a:'H',b:'C',c:C.proj,w:5},{t:'pt',id:'H',c:C.ink},
       ...rmark(P.H,[0,0,1],nrm(B),.35,C.par),...rmark(P.H,[0,0,1],nrm(Cp),.35,C.par),
-      lbl(mid(P.A,P.H),'15 см',C.par,[-1,0],1,1.1),lbl(mid(P.H,P.B),'5x',C.proj,[0,1],1,1.1),lbl(mid(P.H,P.C),'2x',C.proj,[0,1],1,1.1));
+      ...(fin?[lbl(mid(P.A,P.H),'15 см',C.par,[-1,0],1,1.1)]:[]),lbl(mid(P.H,P.B),'5x',C.proj,[0,1],1,1.1),lbl(mid(P.H,P.C),'2x',C.proj,[0,1],1,1.1));
     R=6.0;ctr=[0,0,1.3];
   }
   if(id==='35.18'){
@@ -596,10 +597,11 @@ function taskScene(id,st){
     const pl=alPlane([0,0,0],4.2,3.4);
     pr.push(plane(pl,C.al,.1),txtPl(pl,3,'α',C.al),{t:'poly',p:['A','B','C'],fill:C.al,op:.2,stroke:C.edge,sw:2.4},
       {t:'seg',a:'M',b:'A',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'M',b:'B',c:ok?C.ga:C.ink,w:4},{t:'seg',a:'M',b:'C',c:ok?C.ga:C.ink,w:4},...vp(['A','B','C','M']),
-      lbl(lerp(P.M,P.A,.7),'6 см',C.ink,[1,.3],1,1.0),lbl(mid(P.M,P.B),'6 см',C.ink,[1,-.2]),lbl(mid(P.M,P.C),'6 см',C.ink,[-1,-.2]),
+      lbl(lerp(P.M,P.A,.5),'6 см',C.ink,[1,0],1,1.2),lbl(mid(P.M,P.B),'6 см',C.ink,[1,-.2]),lbl(mid(P.M,P.C),'6 см',C.ink,[-1,-.2]),
       lbl(mid(P.A,P.B),'9 см',C.ink,[1,1],1,1.1));
     if(ok)pr.push({t:'seg',a:'M',b:'O',c:C.par,w:5},{t:'seg',a:'O',b:'A',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'B',c:C.proj,w:3,dash:true},{t:'seg',a:'O',b:'C',c:C.proj,w:3,dash:true},
-      {t:'pt',id:'O',c:C.proj,r:8},...rmark(P.O,[0,0,1],nrm(sub(P.A,P.O)),.3,C.par),lbl(lerp(P.M,P.O,.4),'3 см',C.par,[-1,0],1,1.0));
+      {t:'pt',id:'O',c:C.proj,r:8},...rmark(P.O,[0,0,1],nrm(sub(P.A,P.O)),.3,C.par),...(fin?[lbl(lerp(P.M,P.O,.4),'3 см',C.par,[-1,0],1,1.0)]:[]));
+    if(k>=2||st.ok)pr.push(lbl(mid(P.O,P.A),'3√3 см',C.proj,[-1,.5],1,2.2));
     R=4.2;ctr=[0,0,.8];
   }
   return{scene:{P,prims:pr,R,ctr},legend,yaw0,pitch0};
@@ -615,13 +617,15 @@ const TASKS=[
     ['BA₁','AB₁','CA₁','D₁A₁','BB₁'],0,<>Точка <M>C</M> проектується в <M>B</M> (<M>CB ⊥ AA₁B₁</M>), точка <M>D₁</M> — в <M>A₁</M> (<M>D₁A₁ ⊥ AA₁B₁</M>). Проекція <M>CD₁</M> — відрізок <M>BA₁</M>.</>)},
   {id:'35.3',tab:'35.3',kind:'num',hasFig:false,ans:5,
     q:<>Із точки до площини проведено перпендикуляр завдовжки 12 см і похилу завдовжки 13 см. Знайдіть проекцію цієї похилої на дану площину.</>,
-    sol:[<>Нехай <span className="cg"><M>AB</M></span> — перпендикуляр (12 см), <span className="cv"><M>AC</M></span> — похила (13 см), <span className="co"><M>BC</M></span> — її проекція. Оскільки <M>AB ⊥ α</M>, то <M>AB ⊥ BC</M>, і <M>△ABC</M> прямокутний.</>,
-      <><M>BC² = AC² − AB² = 13² − 12² = 169 − 144 = 25</M>. <span className="co"><M>BC = 5 см</M></span>.</>]},
+    sol:[<>Нехай <span className="cg"><M>AB</M></span> — перпендикуляр (12 см), <span className="cv"><M>AC</M></span> — похила (13 см), <span className="co"><M>BC</M></span> — її проекція. Оскільки <M>AB ⊥ α</M>, то <M>AB ⊥ BC</M>. Отже, <M>△ABC</M> прямокутний (<M>∠B = 90°</M>), а <M>AC</M> — гіпотенуза.</>,
+      <>За теоремою Піфагора <M>BC² = AC² − AB² = 13² − 12² = 169 − 144 = 25</M>.</>,
+      <><M>BC = 5 см</M>. Проекція похилої дорівнює <span className="co"><M>5 см</M></span>.</>]},
   {id:'35.5',tab:'35.5',kind:'num',hasFig:true,ans:7,
     q:<>Із точки <M>A</M> проведено до площини <M>α</M> перпендикуляр <M>AC</M> та похилі <M>AB</M> і <M>AD</M>. Знайдіть проекцію похилої <M>AD</M> на площину <M>α</M>, якщо <M>∠BAC = 45°</M>, <M>AB = 8 см</M>, <M>AD = 9 см</M>.</>,
-    sol:[<><span className="cg"><M>AC ⊥ α</M></span>, тому <M>△ACB</M> і <M>△ACD</M> прямокутні (<M>∠C = 90°</M>).</>,
-      <>У <M>△ACB</M>: <M>AC = AB · cos 45° = 8 · √2⁄2 = 4√2</M> см.</>,
-      <>У <M>△ACD</M>: <M>CD² = AD² − AC² = 81 − 32 = 49</M>. Проекція <span className="co"><M>CD = 7 см</M></span>.</>]},
+    sol:[<><span className="cg"><M>AC ⊥ α</M></span>, тому <M>AC ⊥ CB</M> і <M>AC ⊥ CD</M>. Трикутники <M>ACB</M> і <M>ACD</M> прямокутні (<M>∠C = 90°</M>).</>,
+      <>У <M>△ACB</M>: гіпотенуза <M>AB = 8</M>, <M>∠BAC = 45°</M>. Тоді <span className="cg"><M>AC = AB · cos 45° = 8 · √2⁄2 = 4√2</M></span> см.</>,
+      <>У <M>△ACD</M>: <M>CD² = AD² − AC² = 9² − (4√2)² = 81 − 32 = 49</M>.</>,
+      <><M>CD = 7 см</M>. Проекція похилої <M>AD</M> дорівнює <span className="co"><M>7 см</M></span>.</>]},
   {id:'35.7',tab:'35.7',kind:'proof',hasFig:false,
     q:<>Доведіть, що рівні похилі, проведені до площини з однієї точки, мають рівні проекції.</>,
     steps:[<>Нехай <span className="cv"><M>AB</M></span> і <span className="cv"><M>AC</M></span> — похилі, <M>AB = AC</M>. Проведемо перпендикуляр <span className="cg"><M>AO ⊥ α</M></span>. Тоді <M>AO ⊥ OB</M> і <M>AO ⊥ OC</M>, тобто <M>△AOB</M> і <M>△AOC</M> прямокутні.</>,
@@ -649,24 +653,26 @@ const TASKS=[
       <>Пряма <span className="ca"><M>a</M></span> лежить у площині кола й перпендикулярна до проекції <M>OB</M>. За теоремою про три перпендикуляри <span className="ca"><M>a</M></span> <M>⊥</M> <span className="cv"><M>AB</M></span>. <i>Доведено.</i></>]},
   {id:'35.16',tab:'35.16',kind:'num',hasFig:false,ans:15,
     q:<>Із точки <M>A</M> до площини <M>α</M> проведено похилі <M>AB</M> і <M>AC</M> завдовжки 25 см і 17 см відповідно. Знайдіть відстань від точки <M>A</M> до площини <M>α</M>, якщо проекції даних похилих на цю площину відносяться як 5 : 2.</>,
-    sol:[<>Нехай <span className="cg"><M>AH ⊥ α</M></span>. Проекції: <span className="co"><M>HB = 5x</M></span>, <span className="co"><M>HC = 2x</M></span>. Трикутники <M>AHB</M> і <M>AHC</M> прямокутні.</>,
-      <><M>AH² = 25² − 25x²</M> і <M>AH² = 17² − 4x²</M>. Тому <M>625 − 25x² = 289 − 4x²</M>, <M>21x² = 336</M>, <M>x² = 16</M>, <M>x = 4</M>.</>,
+    sol:[<>Нехай <span className="cg"><M>AH ⊥ α</M></span>. Проекції відносяться як 5 : 2, тому <span className="co"><M>HB = 5x</M></span>, <span className="co"><M>HC = 2x</M></span>. Трикутники <M>AHB</M> і <M>AHC</M> прямокутні.</>,
+      <>З <M>△AHB</M>: <M>AH² = 25² − (5x)² = 625 − 25x²</M>. З <M>△AHC</M>: <M>AH² = 17² − (2x)² = 289 − 4x²</M>.</>,
+      <>Прирівнюємо: <M>625 − 25x² = 289 − 4x²</M>, <M>21x² = 336</M>, <M>x² = 16</M>, <M>x = 4</M>.</>,
       <><M>AH² = 289 − 4 · 16 = 225</M>. Відстань <span className="cg"><M>AH = 15 см</M></span>.</>]},
   {id:'35.18',tab:'35.18',kind:'num',hasFig:false,ans:3,
     q:<>Точка <M>M</M> розташована на відстані 6 см від кожної вершини правильного трикутника <M>ABC</M>, сторона якого дорівнює 9 см. Знайдіть відстань від точки <M>M</M> до площини <M>ABC</M>.</>,
-    sol:[<><M>MA = MB = MC</M>, тому проекція <M>O</M> точки <M>M</M> на площину <M>ABC</M> — центр описаного кола трикутника <M>ABC</M>.</>,
-      <>Радіус описаного кола правильного трикутника: <M>OA = 9 ⁄ √3 = 3√3</M> см.</>,
-      <><M>△MOA</M> прямокутний: <M>MO² = MA² − OA² = 36 − 27 = 9</M>. Відстань <span className="cg"><M>MO = 3 см</M></span>.</>]}
+    sol:[<><M>MA = MB = MC</M>, тому проекція <M>O</M> точки <M>M</M> на площину <M>ABC</M> — центр описаного кола трикутника <M>ABC</M>. <M>MO</M> — перпендикуляр до площини.</>,
+      <>Радіус описаного кола правильного трикутника зі стороною 9: <M>OA = 9 ⁄ √3 = 3√3</M> см, тобто <M>OA² = 27</M>.</>,
+      <><M>△MOA</M> прямокутний (<M>MO ⊥ ABC</M>): <M>MO² = MA² − OA² = 36 − 27 = 9</M>.</>,
+      <><M>MO = 3 см</M>. Відстань від точки <M>M</M> до площини <span className="cg"><M>3 см</M></span>.</>]}
 ];
 
 function Item5(){
   const [ti,setTi]=useState(0);const [S,setS]=useState({});
   const t=TASKS[ti],st=S[t.id]||{};
   const up=(id,patch)=>setS(s=>({...s,[id]:{...(s[id]||{}),...patch}}));
-  const isDone=x=>{const s=S[x.id]||{};return x.kind==='proof'?(s.k||0)===x.steps.length:!!s.ok;};
+  const isDone=x=>{const s=S[x.id]||{};return x.kind==='proof'?(s.k||0)===x.steps.length:x.kind==='num'?(!!s.ok||(s.k||0)===x.sol.length):!!s.ok;};
   const allDone=TASKS.every(isDone);
-  const showFig=t.hasFig||st.fig||(t.kind==='num'&&st.ok)||(t.kind==='proof'&&(st.k||0)>0);
-  const sc=showFig?taskScene(t.id,t.kind==='proof'?{k:st.k||0}:{ok:st.ok}):null;
+  const showFig=t.hasFig||st.fig||(t.kind!=='mc'&&(st.ok||(st.k||0)>0));
+  const sc=showFig?taskScene(t.id,{ok:st.ok,k:st.k||0,n:t.kind==='proof'?t.steps.length:(t.sol?t.sol.length:0)}):null;
   const labelOf=t.id.startsWith('35.1-')?'35.1':t.id;
 
   const tabs=<div className="tabs">{TASKS.map((x,i)=><button key={x.id} className={'tab'+(ti===i?' on':'')+(isDone(x)?' done':'')} onClick={()=>setTi(i)}>{isDone(x)?'✓ ':''}{x.tab}</button>)}</div>;
@@ -685,7 +691,7 @@ function Item5(){
     body=<>
       {!t.hasFig&&!showFig&&<button className="btn ghost sm" onClick={()=>up(t.id,{fig:true})}>Показати рисунок</button>}
       <NumAns key={t.id} ans={t.ans} val={st.val||''} setVal={v=>up(t.id,{val:v})} ok={!!st.ok} setOk={()=>up(t.id,{ok:true,fig:true})}/>
-      {st.ok&&<div className="steps">{t.sol.map((s,i)=><div key={i} className={'step'+(i===t.sol.length-1?' last':'')}><span className="sn">{i+1})</span><div>{s}</div></div>)}</div>}
+      <Steps items={t.sol} k={st.k||0} setK={v=>up(t.id,{k:v,fig:true})}/>
     </>;
   }
   if(t.kind==='proof'){
