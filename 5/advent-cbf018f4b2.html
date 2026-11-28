@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Математичний адвент (5 клас)</title>
 <meta name="theme-color" content="#0a1a44">
@@ -216,8 +216,6 @@ h2{margin:.1rem 0 .3rem;font-size:1.3rem;font-weight:900;color:var(--acc)}
       <div class="intro" id="intro"></div>
       <div class="card">
         <h2>Вхід</h2>
-        <label class="l">Клас</label>
-        <div class="chips" id="classChips"></div>
         <label class="l" for="inSur">Прізвище</label>
         <input class="t" id="inSur" autocomplete="off" autocapitalize="words" spellcheck="false">
         <label class="l" for="inNam">Ім’я</label>
@@ -1201,7 +1199,7 @@ function initDecor() {
 function netErr() { toast("Немає зв’язку. Перевірте інтернет і спробуйте ще раз."); }
 
 /* ===== ДЕМО-СЕРВЕР (лише для перегляду; повторює правила сервера) ===== */
-var D = { recs: {}, kids: {}, today: 7, strict: false, cfg: { classes: ["5-α", "5-β"], attempts: 3, catchup: 5, start: "2026-12-01" } };
+var D = { recs: {}, kids: {}, today: 7, strict: false, cfg: { classes: ["5"], attempts: 3, catchup: 5, start: "2026-12-01" } };
 function dState(key) {
   var days = {}, used = 0;
   Object.keys(D.recs).forEach(function (k) {
@@ -1295,24 +1293,17 @@ function dateLabel(day) {
 /* ===== вхід ===== */
 function buildEntry() {
   $("intro").textContent = ST.intro;
-  var c = $("classChips"); c.innerHTML = "";
-  St.cfg.classes.forEach(function (n) {
-    var b = document.createElement("button"); b.className = "chip" + (St.cls === n ? " on" : ""); b.textContent = n;
-    b.onclick = function () { St.cls = n; buildEntry(); };
-    c.appendChild(b);
-  });
 }
 function entryGo() {
   var sur = $("inSur").value, nam = $("inNam").value, bad = false;
   $("inSur").classList.toggle("err", !AR.clean(sur)); $("inNam").classList.toggle("err", !AR.clean(nam));
-  if (!St.cls) { $("entryErr").textContent = "Оберіть клас."; return; }
   if (!AR.clean(sur) || !AR.clean(nam)) { $("entryErr").textContent = "Введіть прізвище та ім’я."; return; }
   $("entryErr").textContent = ""; $("entryGo").disabled = true;
-  api("login", { cls: St.cls, sur: sur, nam: nam }).then(function (r) {
+  api("login", { cls: "5", sur: sur, nam: nam }).then(function (r) {
     $("entryGo").disabled = false;
-    if (!r.ok) { $("entryErr").textContent = r.reason === "bad_class" ? "Оберіть клас зі списку." : "Перевірте прізвище та ім’я."; return; }
+    if (!r.ok) { $("entryErr").textContent = "Перевірте прізвище та ім’я."; return; }
     St.pending = r;
-    $("cfName").innerHTML = esc(r.me.sur + " " + r.me.nam) + "<br><small style='font-size:.9rem;color:var(--muted)'>" + esc(r.me.cls) + "</small>";
+    $("cfName").innerHTML = esc(r.me.sur + " " + r.me.nam);
     var n = 0; Object.keys(r.state.days).forEach(function (d) { if (r.state.days[d].s !== "open") n++; });
     $("cfNote").textContent = r.isNew
       ? "Ви тут уперше. Якщо прізвище чи ім’я з помилкою, натисніть «Виправити»."
