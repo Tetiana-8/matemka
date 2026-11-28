@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Математичний адвент (5 клас)</title>
+<meta name="theme-color" content="#0a1a44">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1d2b53;--muted:#5d6b95;--acc:#c0283c;--acc2:#e8505b;--accL:#fde8e8;--soft:#fff4e6;--soft2:#fffaf2;--line:#efd9a0;
+  --gold:#ffd86b;--gold2:#f2b632;--night:#0b1d4a;--night2:#14306b;
+  --ok:#1e9e62;--okbg:#e6f7ee;--oktx:#14663f;--okln:#8fd3b0;
+  --bad:#e0464e;--badbg:#fdecee;--badtx:#a3232b;--badln:#efa3a8;
+  --warnbg:#fff6e5;--warntx:#8a5a00;--warnln:#f3d9a4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:clamp(15px,1.1vw + 11px,22px);height:100%}
+body{margin:0;height:100%;font-family:Nunito,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(180deg,#0a1a44 0%,#14306b 55%,#251c5c 100%) fixed;overflow:hidden;touch-action:manipulation}
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#sky:before,#sky:after{content:"";position:absolute;inset:0;background-repeat:repeat}
+#sky:before{background-image:radial-gradient(1.6px 1.6px at 22px 34px,#fff,transparent),radial-gradient(1.2px 1.2px at 96px 120px,#ffe9a8,transparent),radial-gradient(1.8px 1.8px at 160px 60px,#fff,transparent),radial-gradient(1.2px 1.2px at 60px 170px,#cfe0ff,transparent);background-size:200px 200px;animation:twk 3.2s ease-in-out infinite}
+#sky:after{background-image:radial-gradient(1.4px 1.4px at 130px 20px,#fff,transparent),radial-gradient(1.8px 1.8px at 30px 110px,#ffe9a8,transparent),radial-gradient(1.2px 1.2px at 180px 150px,#fff,transparent);background-size:230px 230px;animation:twk 2.3s ease-in-out infinite -1.2s}
+@keyframes twk{0%,100%{opacity:.95}50%{opacity:.3}}
+#snow{position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden;transition:opacity .4s}
+body.intask #snow{opacity:.55}
+#snow i{position:absolute;top:-6vh;color:#fff;font-style:normal;text-shadow:0 0 6px rgba(170,205,255,.95),0 0 12px rgba(120,170,255,.6);animation:snowf linear infinite;will-change:transform}
+@keyframes snowf{from{transform:translate3d(0,-6vh,0) rotate(0)}to{transform:translate3d(var(--dx,20px),108vh,0) rotate(200deg)}}
+#app{position:relative;z-index:2;height:100dvh;display:flex;flex-direction:column;max-width:42rem;margin:0 auto}
+.garland{flex:none;display:flex;justify-content:space-around;padding:0 .4rem;height:1.25rem;position:relative}
+.garland:before{content:"";position:absolute;left:0;right:0;top:2px;height:2px;background:#0a1230;border-radius:2px}
+.garland i{position:relative;top:3px;width:.62rem;height:.82rem;border-radius:50% 50% 55% 55%;animation:bulb 1.6s ease-in-out infinite;transform-origin:top}
+.garland i:before{content:"";position:absolute;left:25%;top:-.22rem;width:50%;height:.25rem;background:#0a1230;border-radius:2px}
+.garland i:nth-child(5n+1){background:#ff4d5e;color:#ff4d5e}.garland i:nth-child(5n+2){background:#ffd86b;color:#ffd86b;animation-delay:-.3s}
+.garland i:nth-child(5n+3){background:#4cd48a;color:#4cd48a;animation-delay:-.6s}.garland i:nth-child(5n+4){background:#5fb4ff;color:#5fb4ff;animation-delay:-.9s}
+.garland i:nth-child(5n+5){background:#c58bff;color:#c58bff;animation-delay:-1.2s}
+@keyframes bulb{0%,100%{opacity:1;box-shadow:0 0 .7rem .1rem currentColor}50%{opacity:.35;box-shadow:0 0 .2rem 0 currentColor}}
+header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem .8rem .45rem}
+header h1{margin:0;font-family:Pacifico,"Marck Script",Nunito,cursive;font-weight:400;font-size:1.55rem;color:var(--gold);line-height:1.15;text-shadow:0 0 .8rem rgba(255,216,107,.55)}
+header .r{display:flex;align-items:center;gap:.5rem}
+header .sub{font-size:.8rem;color:#bcd0ff;font-weight:800;line-height:1.2;margin-top:.1rem}
+.rb{border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:50%;width:2.5rem;height:2.5rem;font-size:1.15rem;line-height:1;padding:0}.rb.off{opacity:.45}
+main{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;overflow:auto;padding:.2rem .8rem .8rem;-webkit-overflow-scrolling:touch}
+.view[hidden]{display:none}
+footer{flex:none;text-align:center;font:10px/1.2 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:.05em;color:#8fa4d6;padding:2px 0 5px}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+.card{--ink:#fff;--muted:#c5d6ff;--acc:#ffd86b;--line:rgba(255,255,255,.4);background:rgba(12,30,82,.5);color:#fff;border:2px solid rgba(255,216,107,.75);border-radius:1.2rem;padding:1rem;box-shadow:0 0 1.2rem rgba(255,216,107,.22)}
+.btn{border:2px solid var(--gold);border-radius:.9rem;padding:.7rem 1.1rem;min-height:2.8rem;font-size:1rem;font-weight:800;background:linear-gradient(180deg,#e8505b,#b81f35);color:#fff;box-shadow:0 .15rem .5rem rgba(0,0,0,.25)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.g{background:#fff4e6;border-color:#efd9a0;color:#b81f35;box-shadow:none}
+.btn.wide{width:100%}
+label.l{display:block;font-weight:800;color:var(--muted);font-size:.85rem;margin:.8rem 0 .3rem}
+input.t{width:100%;font:inherit;font-size:1.1rem;font-weight:700;color:#1d2b53;padding:.65rem .8rem;border:2px solid var(--line);border-radius:.8rem;background:#fff;outline:none}
+input.t:focus{border-color:var(--gold2)}
+input.t.err{border-color:var(--bad);background:var(--badbg)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{border:2px solid #efd9a0;background:#fff;color:#1d2b53;border-radius:.8rem;padding:.55rem 1rem;font-size:1.05rem;font-weight:800;min-height:2.8rem}
+.chip.on{background:var(--acc);border-color:var(--gold);color:#fff}
+.note{font-size:.85rem;color:var(--muted);margin:.7rem 0 0;line-height:1.35}
+.errmsg{color:#ffb3b8;font-weight:800;font-size:.9rem;margin:.6rem 0 0;min-height:1.2em}
+h2{margin:.1rem 0 .3rem;font-size:1.3rem;font-weight:900;color:var(--acc)}
+.intro{background:rgba(255,216,107,.14);border:2px solid rgba(255,216,107,.7);border-radius:1rem;padding:.7rem .9rem;margin-bottom:.8rem;font-weight:700;line-height:1.45;color:#fff3cf;font-size:.95rem}
+.who{font-size:1.5rem;font-weight:900;text-align:center;margin:.4rem 0}
+.tabs{display:flex;gap:.4rem;margin:.2rem 0 .7rem}
+.tab{flex:1;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:.9rem;padding:.5rem .2rem;font-weight:900;font-size:.95rem;color:#cfe0ff;min-height:2.8rem}
+.tab.on{background:linear-gradient(180deg,#ffe28a,#f2b632);border-color:#fff1bd;color:#5b3600;box-shadow:0 0 .9rem rgba(255,216,107,.6)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.4rem}
+.top .hi{font-weight:900;font-size:1.1rem;color:#fff}
+.link{background:none;border:0;color:#bcd0ff;text-decoration:underline;font-size:.8rem;padding:.3rem}
+.bar{height:.7rem;border-radius:1rem;background:#f3e6c4;overflow:hidden;margin:.3rem 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#f2b632,#e8505b);border-radius:1rem;transition:width .4s}
+.stat{display:flex;justify-content:space-between;gap:.5rem;font-weight:800;font-size:.9rem;color:var(--muted);flex-wrap:wrap}
+.pill{display:inline-block;background:var(--warnbg);color:var(--warntx);border:1.5px solid var(--warnln);border-radius:1rem;padding:.15rem .7rem;font-weight:800;font-size:.8rem}
+.banner{background:var(--warnbg);border:2px solid var(--warnln);color:var(--warntx);border-radius:1rem;padding:.6rem .8rem;font-weight:800;margin:.4rem 0;font-size:.9rem}
+.banner.win{background:linear-gradient(180deg,#fff3cf,#ffe18a);border-color:var(--gold2);color:#5b3600;text-align:center;font-size:1rem}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:.6rem auto;max-width:34rem}
+.cell{position:relative;aspect-ratio:1/1;border-radius:1rem;border:2px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.05rem;padding:0;font-weight:900;color:var(--ink);overflow:hidden;transition:transform .15s}
+.cell:active{transform:scale(.93)}
+.cell .n{font-size:1.45rem;line-height:1}
+.cell .i{font-size:1.05rem;line-height:1.1}
+.cell .sp{position:absolute;top:.1rem;right:.2rem;font-size:.75rem}
+.c-lock{border:2px dashed rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:#8fa4d6}
+.c-today{background:radial-gradient(circle at 50% 40%,#fff3b0,#ffc83d 70%);border-color:#fff;color:#5b2d00;animation:glow 1.5s ease-in-out infinite}
+.c-today .i{animation:wob 1.4s ease-in-out infinite}
+.c-fin{background:linear-gradient(160deg,#27a56f,#146b46);border-color:var(--gold);color:#fff;box-shadow:0 0 .6rem rgba(255,216,107,.35)}
+.c-fin:after{content:"✦";position:absolute;top:.05rem;left:.25rem;font-size:.7rem;color:var(--gold);animation:twk 2s ease-in-out infinite}
+.c-miss{background:rgba(255,200,80,.12);border:2px dashed var(--gold);color:var(--gold)}
+.c-open{background:#ffefc2;border-color:var(--gold2);color:#7a4b00}
+@keyframes glow{0%,100%{box-shadow:0 0 .4rem .1rem rgba(255,216,107,.6)}50%{box-shadow:0 0 1.3rem .4rem rgba(255,216,107,.95)}}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) scale(1.15)}}
+.legend{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-size:.78rem;color:#bcd0ff;font-weight:700;margin-top:.4rem}
+.treewrap{padding:0}
+.treewrap .note{color:#bcd0ff}
+.treewrap svg{display:block;width:100%;max-width:32rem;height:auto;margin:0 auto;overflow:visible}
+.lt{animation:lt 1.6s ease-in-out infinite}@keyframes lt{0%,100%{opacity:1}50%{opacity:.25}}
+.glow{animation:tw 2.6s ease-in-out infinite}
+.dot{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;margin-right:.3rem;vertical-align:-.1rem}
+/* ділення в стовпчик (клітинки) */
+.colwrap{display:flex;justify-content:center;margin-top:.9rem;overflow-x:auto;padding-bottom:.2rem}
+.dvm{--g:.3rem;--ch:calc(var(--cw)*1.12);display:inline-flex;align-items:flex-start;gap:.3rem;padding:.7rem .7rem;background:rgba(255,255,255,.07);border:2px dashed rgba(255,255,255,.4);border-radius:1rem}
+.dvl{display:flex;flex-direction:column;gap:var(--g)}
+.crow{display:flex}
+.slot{flex:none;width:var(--cw);height:var(--ch);display:flex;align-items:center;justify-content:center}
+.dvl .crow .slot:first-child{width:calc(var(--cw)*.7)}
+.slot.dig{font-size:calc(var(--cw)*.7);font-weight:900;color:#fff}
+.slot.sg{font-size:calc(var(--cw)*.66);font-weight:900;color:var(--gold)}
+.crow.rl .slot{height:3px}
+.slot.ln{background:#fff}
+.dvr{display:flex;flex-direction:column;gap:var(--g);border-left:3px solid #fff;padding-left:.4rem}
+.dvt{position:relative;display:flex}
+.dvt:after{content:"";position:absolute;left:-.4rem;right:0;bottom:calc(var(--g)/-2 - 1.5px);height:3px;background:#fff;border-radius:2px}
+.dvq{display:flex}
+.gc{flex:none;width:calc(var(--cw) - .2rem);height:var(--ch);padding:0;text-align:center;font:inherit;font-size:calc(var(--cw)*.6);font-weight:900;color:#1d2b53;background:#fff;border:2px solid #efd9a0;border-radius:.5rem;outline:none;caret-color:transparent}
+.gc.act{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(242,182,50,.5);background:#fff8dc}
+.gc.ok{border-color:var(--ok);background:var(--okbg)}
+.gc.no{border-color:var(--bad);background:var(--badbg)}
+.gc.opt{width:calc(var(--cw)*.62);height:calc(var(--ch)*.62);font-size:calc(var(--cw)*.38);border:2px dashed #b9c4e8;background:rgba(255,255,255,.85);border-radius:.4rem}
+.slot.optc{height:calc(var(--ch)*.66)}
+.crow.cr{margin-bottom:-.15rem}
+.mulnote{font-size:.85rem;opacity:.85;text-align:center;margin-top:.4rem}
+.remrow{display:flex;justify-content:flex-end;height:1.5rem;margin-top:.1rem}
+.rem{font-weight:900;font-size:.95rem;color:var(--gold);background:rgba(255,216,107,.16);border:2px solid var(--gold);border-radius:.8rem;padding:0 .6rem;display:none;align-items:center;animation:pop .35s ease-out}
+.rem.on{display:inline-flex}.remrow{scroll-margin-bottom:1.2rem}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+/* історія */
+.chap{display:flex;gap:.7rem;background:rgba(12,30,82,.5);color:#fff;border:2px solid rgba(255,216,107,.7);border-radius:1rem;padding:.7rem .8rem;margin-bottom:.6rem}
+.chap .e{font-size:1.9rem;line-height:1;flex:none}
+.chap h4{margin:0 0 .2rem;font-size:1rem;color:var(--gold);font-weight:900}
+.chap p{margin:0;font-weight:700;line-height:1.45;font-size:.92rem}
+.chap.lk{background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.25);box-shadow:none;align-items:center;color:#8fa4d6;font-weight:800;padding:.5rem .8rem}
+.chap.lk .e{font-size:1.2rem}
+.story{margin-top:.9rem;border:2px solid var(--gold);border-radius:1rem;background:rgba(255,216,107,.16);padding:.8rem .9rem;color:#fff;animation:rev .9s ease-out;box-shadow:0 0 1rem rgba(255,216,107,.45)}
+.story h4{margin:0 0 .35rem;font-size:1.05rem;color:var(--gold);font-weight:900}
+.story p{margin:0;font-weight:700;line-height:1.5}
+.tease{margin-top:.8rem;font-size:.85rem;font-weight:800;color:#ffe9a8;background:rgba(255,216,107,.1);border:1.5px dashed var(--gold);border-radius:.8rem;padding:.4rem .7rem}
+@keyframes rev{from{opacity:0;transform:translateY(.8rem) scale(.96)}to{opacity:1;transform:none}}
+/* завдання */
+#vTask{display:flex;flex-direction:column;padding:0;overflow:hidden}
+#vTask[hidden]{display:none}
+.thead{flex:none;display:flex;align-items:center;gap:.6rem;padding:.2rem .8rem .5rem}
+.thead .back{border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:.8rem;padding:.4rem .8rem;font-weight:800;color:var(--gold);min-height:2.5rem;font-size:.95rem}
+.thead .ttl{font-weight:900;font-size:1.05rem;line-height:1.15;color:#fff}
+.thead .ttl small{display:block;font-weight:700;color:#bcd0ff;font-size:.78rem}
+.tbody{flex:1;min-height:0;overflow:auto;padding:0 .8rem .6rem}
+.q{font-size:1.2rem;font-weight:700;line-height:1.45}
+.q i,.sol i,.fl i{font-family:"Times New Roman",serif;font-size:1.1em}
+.big{display:block;font-size:1.5em;font-weight:900;text-align:center;margin:.6rem 0;color:var(--acc)}
+.fld{display:block;margin-top:.8rem}
+.fl{display:block;font-weight:800;color:var(--muted);font-size:.9rem;margin-bottom:.25rem;min-height:1px}
+.fld input{width:100%;font:inherit;font-size:1.4rem;font-weight:900;text-align:center;padding:.55rem;border:2px solid #efd9a0;border-radius:.8rem;background:#fff;color:#1d2b53;outline:none}
+.fld input.act{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(242,182,50,.35)}
+.fld input.ok{border-color:var(--ok);background:var(--okbg)}
+.fld input.no{border-color:var(--bad);background:var(--badbg)}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.8rem}
+.opt{border:2px solid #efd9a0;background:#fff;border-radius:.9rem;padding:.7rem .4rem;font-size:1.15rem;font-weight:800;color:#1d2b53;min-height:3rem}
+.opt.on{border-color:var(--gold2);background:#fff3cf;color:#5b3600}
+.opt.ok{border-color:var(--ok);background:var(--okbg);color:var(--oktx)}
+.opt.no{border-color:var(--bad);background:var(--badbg);color:var(--badtx)}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:.9rem;font-weight:800;font-size:.85rem;color:var(--muted)}
+.dots i{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:transparent;border:1.5px solid var(--gold2);margin-left:.25rem}
+.dots i.u{background:var(--gold2)}
+.msg{margin-top:.8rem;border-radius:.9rem;padding:.7rem .9rem;font-weight:800;line-height:1.35;font-size:.98rem}
+.msg.bad{background:var(--badbg);color:var(--badtx);border:2px solid var(--badln)}
+.msg.ok{background:var(--okbg);color:var(--oktx);border:2px solid var(--okln)}
+.msg.warn{background:var(--warnbg);color:var(--warntx);border:2px solid var(--warnln)}
+.sol{margin-top:.7rem;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35);border-radius:.9rem;padding:.7rem .9rem;font-weight:600;line-height:1.5;font-size:.98rem}
+.sol b{color:var(--acc)}
+.tfoot{flex:none;padding:.4rem .8rem .5rem}
+#kp{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;padding:.4rem .8rem .5rem;background:rgba(8,16,50,.55);border-top:2px solid rgba(255,255,255,.2)}
+#kp[hidden]{display:none}
+#kp button{border-radius:.7rem;background:#fff;border:2px solid var(--line);font-size:1.4rem;font-weight:900;color:var(--ink);min-height:2.9rem}
+#kp button.fn{background:#ffe9a8;color:#5b3600}
+@media (max-height:820px){#kp button{min-height:2.5rem;font-size:1.25rem}#kp{gap:.3rem;padding:.3rem .8rem .4rem}.fld{margin-top:.55rem}.q{font-size:1.1rem}}
+@media (max-height:640px){#kp button{min-height:2.3rem;font-size:1.15rem}.q{font-size:1.02rem}}
+/* вікна */
+.modal{position:fixed;inset:0;background:rgba(5,10,35,.6);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:50}
+.modal[hidden]{display:none}
+.mbox{background:#fffaf0;border:2px solid var(--gold2);border-radius:1.2rem;padding:1.1rem;max-width:26rem;width:100%;box-shadow:0 1rem 3rem rgba(0,0,0,.4)}
+.mbox h3{margin:0 0 .5rem;font-size:1.2rem;font-weight:900;color:var(--acc)}
+.mbox p{margin:.3rem 0 1rem;font-weight:700;line-height:1.45}
+.mbtns{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:2.2rem;transform:translateX(-50%);background:#fff3cf;color:#5b3600;border:2px solid var(--gold2);border-radius:1rem;padding:.6rem 1rem;font-weight:800;font-size:.9rem;z-index:60;max-width:90%;text-align:center}
+.confetti{position:fixed;top:-2rem;font-size:1.4rem;z-index:55;pointer-events:none;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:.9}}
+#demoBar{flex:none;background:var(--warnbg);border-bottom:2px solid var(--warnln);color:var(--warntx);font-weight:800;font-size:.78rem;padding:.35rem .8rem;display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:center}
+#demoBar[hidden]{display:none}
+#demoBar select,#demoBar button{font:inherit;font-size:.78rem;padding:.1rem .3rem}
+.tw{animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.55}}
+.orn{animation:orn 2.2s ease-in-out infinite}
+@keyframes orn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+.ring{animation:ring 1.6s ease-in-out infinite}
+@keyframes ring{0%,100%{opacity:1}50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){#snow{display:none}.garland i,.c-today,.c-today .i,#sky:before,#sky:after,.orn,.tw{animation:none}}
+</style>
+</head>
+<body>
+<div id="sky"></div><div id="snow"></div>
+<div id="app">
+  <div class="garland" id="garland"></div>
+  <header>
+    <div><h1>Математичний адвент</h1><div class="sub">5 клас · 1–25 грудня</div></div>
+    <div class="r"><button id="mus" class="rb" aria-label="Музика" title="Музика">🎵</button><button id="snd" class="rb" aria-label="Звуки" title="Звуки">🔔</button></div>
+  </header>
+  <div id="demoBar" hidden>
+    <span>Тестовий режим: нічого не зберігається.</span>
+    <span>Сьогодні — день <select id="demoDay"></select></span>
+    <label><input type="checkbox" id="demoStrict"> закривати при другому виході</label>
+    <button id="demoReset">Скинути все</button>
+  </div>
+  <main>
+    <section id="vEntry" class="view">
+      <div class="intro" id="intro"></div>
+      <div class="card">
+        <h2>Вхід</h2>
+        <label class="l">Клас</label>
+        <div class="chips" id="classChips"></div>
+        <label class="l" for="inSur">Прізвище</label>
+        <input class="t" id="inSur" autocomplete="off" autocapitalize="words" spellcheck="false">
+        <label class="l" for="inNam">Ім’я</label>
+        <input class="t" id="inNam" autocomplete="off" autocapitalize="words" spellcheck="false">
+        <div class="errmsg" id="entryErr"></div>
+        <button class="btn wide" id="entryGo">Далі</button>
+        <p class="note">Щоразу вводьте прізвище та ім’я однаково: від цього залежить ваш прогрес.</p>
+      </div>
+    </section>
+
+    <section id="vConfirm" class="view" hidden>
+      <div class="card">
+        <h2>Перевірте дані</h2>
+        <div class="who" id="cfName"></div>
+        <p class="note" id="cfNote" style="text-align:center;font-size:.95rem"></p>
+        <button class="btn wide" id="cfYes" style="margin-top:.8rem">Усе правильно</button>
+        <button class="btn g wide" id="cfNo" style="margin-top:.5rem">← Виправити</button>
+      </div>
+    </section>
+
+    <section id="vHome" class="view" hidden>
+      <div class="top"><div class="hi" id="hiName"></div><button class="link" id="notMe">Не ви?</button></div>
+      <div class="card" style="padding:.7rem .9rem">
+        <div class="stat"><span id="stDone"></span><span id="stCatch"></span></div>
+        <div class="bar"><i id="barFill" style="width:0%"></i></div>
+      </div>
+      <div id="banner"></div>
+      <div class="tabs" style="margin-top:.7rem">
+        <button class="tab on" id="tabCal">🎁 Календар</button>
+        <button class="tab" id="tabStory">📖 Історія</button>
+        <button class="tab" id="tabTree">🎄 Ялинка</button>
+      </div>
+      <div id="paneCal">
+        <div class="grid" id="grid"></div>
+        <div class="legend">
+          <span>🎁 сьогодні</span><span>✦ виконано (є розділ історії)</span><span>↺ можна наздогнати</span><span>🔒 ще закрито</span>
+        </div>
+      </div>
+      <div id="paneStory" hidden></div>
+      <div id="paneTree" hidden>
+        <div class="treewrap" id="treeBox"><p class="note" style="text-align:center">Завантаження…</p></div>
+        <div class="legend" id="treeLeg"></div>
+      </div>
+    </section>
+
+    <section id="vTask" class="view" hidden>
+      <div class="thead"><button class="back" id="tBack">← Календар</button><div class="ttl" id="tTtl"></div></div>
+      <div class="tbody" id="tBody"></div>
+      <div class="tfoot" id="tFoot"></div>
+      <div id="kp" hidden></div>
+    </section>
+  </main>
+  <footer>Автор розробки <b>Ковтун Тетяна</b></footer>
+</div>
+<div class="modal" id="modal" hidden><div class="mbox"><h3 id="mTtl"></h3><p id="mTxt"></p><div class="mbtns" id="mBtns"></div></div></div>
+
+<script>
+(function () {
+"use strict";
+var AdventRules = (function () {
+  "use strict";
+  var DAYS = 25;
+
+  function clean(s) {
+    return String(s == null ? "" : s).replace(/[’'`ʼ′´]/g, "’").replace(/\s+/g, " ").trim();
+  }
+  function cap(s) {
+    return clean(s).toLowerCase().replace(/(^|[\s\-])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
+  function makeKey(cls, sur, nam) {
+    return [clean(cls).toLowerCase(), clean(sur).toLowerCase(), clean(nam).toLowerCase()].join("|");
+  }
+
+  function newRec(key, day, now, catchup, qtext, ctext) {
+    return {
+      key: key, day: day, status: "open", attempts: 0, exits: 0, awaySec: 0, firstTry: false,
+      catchup: !!catchup, started: now, finished: 0, qtext: qtext || "", ctext: ctext || "", last: ""
+    };
+  }
+  function isDone(rec) { return !!rec && rec.status !== "open"; }
+
+  /* Чи можна відкрити день. rec — запис дитини за цей день або null. */
+  function canOpen(rec, day, today, usedCatch, maxCatch) {
+    if (!(day >= 1 && day <= DAYS)) return { ok: false, reason: "bad_day" };
+    if (rec) return { ok: true, consume: false };
+    if (day > today) return { ok: false, reason: "future" };
+    if (day === today) return { ok: true, consume: false };
+    if (usedCatch >= maxCatch) return { ok: false, reason: "no_catchup" };
+    return { ok: true, consume: true };
+  }
+
+  function closeExit(rec, now) { rec.status = "exit"; rec.finished = now; }
+
+  /* Дитина знову відкрила незавершене завдання: це вважається виходом. */
+  function onResume(rec, now) {
+    if (rec.status !== "open") return rec;
+    rec.exits += 1;
+    if (rec.exits >= 2) closeExit(rec, now);
+    return rec;
+  }
+  function onExit(rec, awaySec, now) {
+    if (rec.status !== "open") return rec;
+    rec.exits += 1;
+    rec.awaySec += Math.max(0, Math.round(awaySec || 0));
+    if (rec.exits >= 2) closeExit(rec, now);
+    return rec;
+  }
+  function onAttempt(rec, correct, answer, now, maxAtt) {
+    if (rec.status !== "open") return rec;
+    rec.attempts += 1;
+    rec.last = String(answer == null ? "" : answer);
+    if (correct) {
+      rec.status = "correct";
+      rec.firstTry = rec.attempts === 1;
+      rec.finished = now;
+    } else if (rec.attempts >= maxAtt) {
+      rec.status = "wrong";
+      rec.finished = now;
+    }
+    return rec;
+  }
+  /* Позначка в таблиці вчительки. */
+  function symbol(rec) {
+    if (!rec) return "";
+    if (rec.status === "correct") return rec.firstTry ? "★" : "✓";
+    if (rec.status === "wrong") return "✗";
+    if (rec.status === "exit") return "🚪";
+    return "…";
+  }
+
+  return {
+    DAYS: DAYS, clean: clean, cap: cap, makeKey: makeKey, newRec: newRec, isDone: isDone,
+    canOpen: canOpen, onResume: onResume, onExit: onExit, onAttempt: onAttempt, symbol: symbol
+  };
+})();
+
+var AdventTasks = (function () {
+  "use strict";
+
+  /* ---------- допоміжне ---------- */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function hash(str) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h >>> 0;
+  }
+  function makeR(seed) {
+    var f = mulberry32(seed);
+    var R = {
+      f: f,
+      int: function (a, b) { return a + Math.floor(f() * (b - a + 1)); },
+      pick: function (arr) { return arr[Math.floor(f() * arr.length)]; },
+      shuffle: function (arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(f() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+        return a;
+      },
+      /* число, після якого іменник стоїть у формі «багато» (0, 5–9, 11–14, ...) */
+      nice: function (a, b) {
+        for (var i = 0; i < 400; i++) {
+          var n = R.int(a, b), d = n % 10, m = n % 100;
+          if (d === 0 || d >= 5 || (m >= 11 && m <= 14)) return n;
+        }
+        return b - (b % 10);
+      }
+    };
+    return R;
+  }
+  var NB = " ";
+  function fmt(n) {
+    var s = String(n);
+    if (n < 10000) return s;
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, NB);
+  }
+  function form(n, f) {
+    var m = n % 100, d = n % 10;
+    if (m >= 11 && m <= 14) return f[2];
+    if (d === 1) return f[0];
+    if (d >= 2 && d <= 4) return f[1];
+    return f[2];
+  }
+  function cnt(n, f) { return fmt(n) + NB + form(n, f); }
+  function I(x) { return "<i>" + x + "</i>"; }
+  function sp(s) { return s.replace(/ /g, NB); }
+  var WEEK = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
+  var MUL = "·", MIN = "−";
+
+  function num(label) { return { label: label }; }
+  function mkNum(day, title, q, qtext, fields, answers, hints, sol) {
+    return {
+      day: day, title: title, q: q, qtext: qtext, fields: fields, answers: answers, choices: null, okIndex: -1,
+      hints: hints, sol: sol, ctext: answers.join("; ")
+    };
+  }
+  function mkChoice(day, title, q, qtext, choices, okIndex, hints, sol) {
+    return {
+      day: day, title: title, q: q, qtext: qtext, fields: null, answers: null, choices: choices, okIndex: okIndex,
+      hints: hints, sol: sol, ctext: choices[okIndex].t
+    };
+  }
+  function plain(html) { return html.replace(/<[^>]+>/g, "").replace(/ /g, " "); }
+
+
+  /* Ділення куточком у клітинках: учень вписує кожну цифру (частка, добутки, різниці, знесені цифри) */
+  function divPlan(a, b) {
+    var D = String(a), L = D.length, pos = 1, cur = Number(D.charAt(0));
+    while (cur < b && pos < L) { cur = cur * 10 + Number(D.charAt(pos)); pos++; }
+    if (cur < b) return null;
+    var steps = [], qs = "";
+    for (;;) {
+      var qd = Math.floor(cur / b), prod = qd * b, rem = cur - prod, st = { end: pos - 1, qd: qd, prod: prod, rem: rem, part: cur, after: [] };
+      steps.push(st); qs += qd;
+      if (pos >= L) break;
+      if (rem === 0) return null;
+      var c = rem * 10 + Number(D.charAt(pos)); st.after.push({ t: "b", col: pos }); pos++;
+      while (c < b) {
+        if (pos >= L) return null;
+        st.after.push({ t: "z" }); qs += "0";
+        c = c * 10 + Number(D.charAt(pos)); st.after.push({ t: "b", col: pos }); pos++;
+      }
+      cur = c;
+    }
+    return { steps: steps, qs: qs, rem: steps[steps.length - 1].rem };
+  }
+  function divBoard(a, b, plan) {
+    var D = String(a), L = D.length, COLS = L + 1, exp = [], qIdx = [], lines = [], last = [];
+    function mk() { var r = [], i; for (i = 0; i < COLS; i++) r.push({ e: 1 }); return r; }
+    function addC(ch) { exp.push(ch); return exp.length - 1; }
+    var r0 = mk(), i;
+    for (i = 0; i < L; i++) r0[i + 1] = { d: D.charAt(i) };
+    lines.push({ items: r0 });
+    plan.steps.forEach(function (st, si) {
+      qIdx.push(addC(String(st.qd)));
+      var endc = st.end + 1, ps = String(st.prod), pr = mk(), pIdx = [], j;
+      for (j = ps.length - 1; j >= 0; j--) pIdx[j] = addC(ps.charAt(j));
+      for (j = 0; j < ps.length; j++) pr[endc - (ps.length - 1 - j)] = { c: pIdx[j] };
+      pr[endc - ps.length] = { sg: "−" };
+      lines.push({ items: pr });
+      var ru = mk(), c;
+      for (c = endc - ps.length; c <= endc; c++) ru[c] = { ln: 1 };
+      lines.push({ rule: 1, items: ru });
+      var rs = String(st.rem), rr = mk(), rIdx = [];
+      for (j = rs.length - 1; j >= 0; j--) rIdx[j] = addC(rs.charAt(j));
+      for (j = 0; j < rs.length; j++) rr[endc - (rs.length - 1 - j)] = { c: rIdx[j] };
+      st.after.forEach(function (it) {
+        if (it.t === "b") { var k = addC(D.charAt(it.col)); rr[it.col + 1] = { c: k }; } else qIdx.push(addC("0"));
+      });
+      if (si === plan.steps.length - 1) last = rIdx.slice();
+      lines.push({ items: rr });
+    });
+    var R = Math.max(String(b).length, plan.qs.length);
+    return { exp: exp, board: { lines: lines, divisor: String(b), R: R, tot: (L + 0.7) + R + 0.3, qIdx: qIdx, last: last } };
+  }
+  function divSol(plan, b) {
+    return "Кроки: " + plan.steps.map(function (st) { return st.part + " " + MIN + " " + st.prod + " = " + st.rem; }).join("; ") + ".";
+  }
+  function gridTask(day, q, qtext, a, b, plan, hasRem, sol, ctext) {
+    var bd = divBoard(a, b, plan);
+    var t = mkNum(day, TITLES[day], q, qtext, bd.exp.map(function () { return num(""); }), bd.exp.map(Number), COLHINTS, sol);
+    t.col = { board: bd.board, hasRem: hasRem }; t.ctext = ctext;
+    return t;
+  }
+  var COLHINTS = ["Вписуйте цифри по порядку: цифра частки, потім добуток, різниця й знесена цифра. Підсвічена клітинка показує, куди писати.", "Беремо стільки перших цифр, щоб число було не менше за дільник. Підбираємо цифру частки, множимо її на дільник і віднімаємо. Різниця має бути меншою від дільника."];
+
+  var TITLES = [
+    "", "Порядок дій", "Зручне обчислення", "Властивості додавання й віднімання", "Рівняння", "Координатний промінь",
+    "Подарунки Святого Миколая", "Множення в стовпчик", "Рівняння з дужками", "Відрізок", "Ціна й вартість",
+    "Кути", "Задумане число", "Ділиться націло", "Прямокутник", "Види трикутників",
+    "Ділення в стовпчик", "Рівняння на ділення", "Кульки на ялинці", "День тижня",
+    "Цукерки для друзів", "Ділення з остачею", "Знайдіть ділене", "Найменша кількість",
+    "Скільки можна купити", "Різдвяний хор"
+  ];
+
+  var GEN = {};
+
+  /* 1. Порядок дій */
+  GEN[1] = function (R) {
+    var b = R.int(3, 9), c = R.int(6, 19), e = R.int(3, 9), q = R.int(4, 14), D = e * q, bc = b * c;
+    var plus = R.f() < 0.5, A, v, expr, sol;
+    if (!plus) {
+      A = R.int(bc + 8, bc + 70); v = A - bc + q;
+      expr = A + " " + MIN + " " + b + " " + MUL + " " + c + " + " + D + " : " + e;
+      sol = "1) " + b + " " + MUL + " " + c + " = " + bc + "; 2) " + D + " : " + e + " = " + q + "; 3) " + A + " " + MIN + " " + bc + " = " + (A - bc) + "; 4) " + (A - bc) + " + " + q + " = " + v + ".";
+    } else {
+      A = R.int(10, 80); v = A + bc - q;
+      expr = A + " + " + b + " " + MUL + " " + c + " " + MIN + " " + D + " : " + e;
+      sol = "1) " + b + " " + MUL + " " + c + " = " + bc + "; 2) " + D + " : " + e + " = " + q + "; 3) " + A + " + " + bc + " = " + (A + bc) + "; 4) " + (A + bc) + " " + MIN + " " + q + " = " + v + ".";
+    }
+    var q1 = "Обчисліть значення виразу:<span class=\"big\">" + sp(expr) + "</span>";
+    return mkNum(1, TITLES[1], q1, "Обчисліть: " + expr, [num("")], [v],
+      ["Спочатку виконайте множення й ділення, а потім додавання й віднімання.", "Дії одного рівня виконуйте зліва направо."], sol);
+  };
+
+  /* 2. Зручне обчислення */
+  GEN[2] = function (R) {
+    var a = R.pick([13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 26, 27, 28, 29, 31, 32, 33, 34, 36, 37, 38, 39, 41, 42, 43, 44, 46, 47, 48, 49, 52, 53, 56, 57, 58, 63, 64, 67, 68, 73, 74, 76, 78, 82, 83, 87, 89, 92, 93, 94, 96, 97, 98]);
+    var expr, v, sol;
+    if (R.f() < 0.5) {
+      var b = R.int(11, 89), c = 100 - b;
+      expr = a + " " + MUL + " " + b + " + " + a + " " + MUL + " " + c; v = a * 100;
+      sol = a + " " + MUL + " (" + b + " + " + c + ") = " + a + " " + MUL + " 100 = " + v + ".";
+    } else {
+      var c2 = R.int(12, 89), d = R.pick([10, 100]), b2 = c2 + d;
+      expr = a + " " + MUL + " " + b2 + " " + MIN + " " + a + " " + MUL + " " + c2; v = a * d;
+      sol = a + " " + MUL + " (" + b2 + " " + MIN + " " + c2 + ") = " + a + " " + MUL + " " + d + " = " + v + ".";
+    }
+    return mkNum(2, TITLES[2], "Обчисліть зручним способом:<span class=\"big\">" + sp(expr) + "</span>", "Обчисліть зручним способом: " + expr,
+      [num("")], [v], ["Винесіть спільний множник за дужки.", "Знайдіть суму або різницю чисел у дужках: вона має бути круглою."], sol);
+  };
+
+  /* 3. Рівняння a·x − b = c */
+  GEN[3] = function (R) {
+    var a = R.int(2, 9), x = R.int(5, 30), b = R.int(3, a * x - 1), c = a * x - b;
+    var eq = a + I("x") + " " + MIN + " " + b + " = " + c;
+    return mkNum(3, TITLES[3], "Розв’яжіть рівняння:<span class=\"big\">" + sp(eq) + "</span>", "Рівняння: " + plain(eq),
+      [num(I("x") + " =")], [x],
+      ["Спочатку знайдіть зменшуване " + a + I("x") + ": воно дорівнює сумі різниці й від’ємника.", "Потім невідомий множник: добуток поділіть на відомий множник."],
+      a + I("x") + " = " + c + " + " + b + " = " + (a * x) + "; " + I("x") + " = " + (a * x) + " : " + a + " = " + x + ".");
+  };
+
+  /* 4. Рівняння з дужками */
+  GEN[4] = function (R) {
+    var x = R.int(3, 40), a = R.int(2, 30), b = R.int(2, 9), c = (x + a) * b;
+    var eq = "(" + I("x") + " + " + a + ") " + MUL + " " + b + " = " + c;
+    return mkNum(4, TITLES[4], "Розв’яжіть рівняння:<span class=\"big\">" + sp(eq) + "</span>", "Рівняння: " + plain(eq),
+      [num(I("x") + " =")], [x],
+      ["Вираз у дужках — невідомий множник. Знайдіть його: " + c + " : " + b + ".", "Потім знайдіть невідомий доданок."],
+      I("x") + " + " + a + " = " + c + " : " + b + " = " + (x + a) + "; " + I("x") + " = " + (x + a) + " " + MIN + " " + a + " = " + x + ".");
+  };
+
+  /* 5. Числовий ряд */
+  GEN[5] = function (R) {
+    var t = [], i, h = R.int(2, 4), mode = R.f() < 0.5, d, k, a1, sol;
+    if (mode) {
+      a1 = R.int(2, 40); d = R.int(3, 12);
+      for (i = 0; i < 6; i++) t.push(a1 + i * d);
+      sol = "Кожне наступне число більше на " + d + ". Пропущене число: " + t[h - 1] + " + " + d + " = " + t[h] + ".";
+    } else {
+      a1 = R.int(1, 5); k = R.pick([2, 3]);
+      for (i = 0; i < 6; i++) t.push(a1 * Math.pow(k, i));
+      sol = "Кожне наступне число більше в " + k + " рази. Пропущене число: " + t[h - 1] + " " + MUL + " " + k + " = " + t[h] + ".";
+    }
+    var shown = t.map(function (v, j) { return j === h ? "?" : fmt(v); }).join(", ");
+    return mkNum(5, TITLES[5], "Яке число має стояти замість знака питання?<span class=\"big\">" + shown + "</span>",
+      "Числовий ряд: " + shown, [num("?")], [t[h]],
+      ["Подивіться, як змінюється кожне наступне число порівняно з попереднім.", mode ? "Числа збільшуються на однакове число." : "Числа збільшуються в однакову кількість разів."], sol);
+  };
+
+  /* 6. Подарунки Святого Миколая */
+  GEN[6] = function (R) {
+    var m = R.nice(5, 20), k = R.nice(5, 20), N = m * k + R.int(15, 120);
+    var q = "У мішку Святого Миколая було " + cnt(N, ["подарунок", "подарунки", "подарунків"]) + ". У " + m + " будинках він залишив по " + k + " подарунків. Скільки подарунків залишилося в мішку?";
+    return mkNum(6, TITLES[6], q, q, [num("")], [N - m * k],
+      ["Спочатку дізнайтеся, скільки подарунків Миколай залишив у будинках.", "Це " + m + " " + MUL + " " + k + ". Далі віднімайте."],
+      "1) " + m + " " + MUL + " " + k + " = " + (m * k) + " (подарунків залишив); 2) " + N + " " + MIN + " " + (m * k) + " = " + (N - m * k) + ".");
+  };
+
+  /* 7. Ділення націло */
+  GEN[7] = function (R) {
+    var b, qq, a, plan, n = 0;
+    do { b = R.int(12, 45); qq = R.int(120, 480); a = b * qq; plan = divPlan(a, b); n++; } while ((!plan || plan.qs !== String(qq)) && n < 2000);
+    return gridTask(7, "Виконайте ділення в стовпчик. Впишіть цифри в клітинки:<span class=\"big\">" + fmt(a) + " : " + b + "</span>", "Ділення: " + a + " : " + b, a, b, plan, false,
+      fmt(a) + " : " + b + " = " + qq + ", бо " + b + " " + MUL + " " + qq + " = " + fmt(a) + ". " + divSol(plan, b), String(qq));
+  };
+
+  /* 8. Рівняння на ділення */
+  GEN[8] = function (R) {
+    var a, b, x, eq, hint, sol;
+    if (R.f() < 0.5) {
+      a = R.int(8, 30); b = R.int(6, 40); x = a * b;
+      eq = I("x") + " : " + a + " = " + b;
+      hint = "Ділене дорівнює добутку дільника й частки.";
+      sol = I("x") + " = " + a + " " + MUL + " " + b + " = " + x + ".";
+    } else {
+      b = R.int(6, 40); x = R.int(8, 30); a = x * b;
+      eq = fmt(a) + " : " + I("x") + " = " + b;
+      hint = "Дільник дорівнює діленому, поділеному на частку.";
+      sol = I("x") + " = " + fmt(a) + " : " + b + " = " + x + ".";
+    }
+    return mkNum(8, TITLES[8], "Розв’яжіть рівняння:<span class=\"big\">" + sp(eq) + "</span>", "Рівняння: " + plain(eq),
+      [num(I("x") + " =")], [x], [hint, "Перевірте відповідь підстановкою."], sol);
+  };
+
+  /* 9. Ціна й вартість */
+  GEN[9] = function (R) {
+    var items = ["зошитів", "олівців", "листівок", "ялинкових кульок", "свічок", "наліпок"];
+    var it = R.pick(items), k = R.nice(5, 20), n, p = R.int(6, 35), S = k * p;
+    do { n = R.nice(5, 30); } while (n === k);
+    var q = k + " " + it + " коштують " + S + " грн. Скільки гривень коштують " + n + " таких " + it + "?";
+    return mkNum(9, TITLES[9], q, q, [num("")], [n * p],
+      ["Спочатку дізнайтеся ціну одного: " + S + " : " + k + ".", "Потім помножте ціну на кількість."],
+      "1) " + S + " : " + k + " = " + p + " (грн за 1); 2) " + p + " " + MUL + " " + n + " = " + (n * p) + " грн.");
+  };
+
+  /* 10. Кульки на ялинці */
+  GEN[10] = function (R) {
+    var m = R.int(2, 9), y = R.int(6, 45), x = m * y;
+    var q = "Червоних кульок на ялинці " + x + ", а синіх — у " + m + " " + form(m, ["раз", "рази", "разів"]) + " менше. Скільки всього кульок на ялинці?";
+    return mkNum(10, TITLES[10], q, q, [num("")], [x + y],
+      ["Синіх кульок у " + m + " " + form(m, ["раз", "рази", "разів"]) + " менше, тому поділіть.", "Щоб дізнатися, скільки всього, додайте червоні й сині."],
+      "1) " + x + " : " + m + " = " + y + " (синіх); 2) " + x + " + " + y + " = " + (x + y) + ".");
+  };
+
+  /* 11. Прямокутник */
+  GEN[11] = function (R) {
+    var a = R.int(6, 24), b;
+    do { b = R.int(6, 40); } while (b === a);
+    var S = a * b;
+    var q = "Площа прямокутника " + S + " см<sup>2</sup>, одна зі сторін " + a + " см. Знайдіть периметр прямокутника (у сантиметрах).";
+    return mkNum(11, TITLES[11], q, plain(q).replace("см2", "см²"), [num("")], [2 * (a + b)],
+      ["Друга сторона дорівнює площі, поділеній на першу сторону.", "Периметр: " + I("P") + " = 2 " + MUL + " (" + I("a") + " + " + I("b") + ")."],
+      "1) " + S + " : " + a + " = " + b + " (см) — друга сторона; 2) " + I("P") + " = 2 " + MUL + " (" + a + " + " + b + ") = " + (2 * (a + b)) + " см.");
+  };
+
+  /* 12. Задумане число */
+  GEN[12] = function (R) {
+    var k = R.int(2, 9), x, m, n, q, sol, minus = R.f() < 0.5;
+    if (!minus) {
+      x = R.int(5, 60); m = R.int(3, 50); n = k * x + m;
+      q = "Задумали число, помножили його на " + k + ", додали " + m + " і отримали " + n + ". Яке число задумали?";
+      sol = "Йдемо від кінця: " + n + " " + MIN + " " + m + " = " + (k * x) + "; " + (k * x) + " : " + k + " = " + x + ".";
+    } else {
+      x = R.int(8, 60); m = R.int(3, Math.max(3, k * x - 1)); n = k * x - m;
+      q = "Задумали число, помножили його на " + k + ", відняли " + m + " і отримали " + n + ". Яке число задумали?";
+      sol = "Йдемо від кінця: " + n + " + " + m + " = " + (k * x) + "; " + (k * x) + " : " + k + " = " + x + ".";
+    }
+    return mkNum(12, TITLES[12], q, q, [num("")], [x],
+      ["Рухайтеся від кінця й виконуйте обернені дії.", "Додавання замініть відніманням, множення — діленням."], sol);
+  };
+
+  /* 13. Ділиться націло (вибір) */
+  GEN[13] = function (R) {
+    var d = R.int(7, 19), M = d * R.int(12, 60), set = {}, vals = [M], tries = 0;
+    set[M] = 1;
+    while (vals.length < 4 && tries++ < 500) {
+      var v = d * R.int(12, 60) + R.int(1, d - 1);
+      if (!set[v]) { set[v] = 1; vals.push(v); }
+    }
+    var order = R.shuffle(vals);
+    var choices = order.map(function (v) { return { t: String(v), ok: v === M }; });
+    var okIndex = order.indexOf(M);
+    var sol = order.map(function (v) {
+      var qq = Math.floor(v / d), r = v % d;
+      return v + " : " + d + " = " + qq + (r ? " (ост. " + r + ")" : " — націло");
+    }).join("; ") + ".";
+    return mkChoice(13, TITLES[13], "Яке з чисел ділиться націло на " + d + "?", "Яке з чисел ділиться націло на " + d + "?",
+      choices, okIndex,
+      ["Поділіть кожне число на " + d + ".", "Націло ділиться те число, у якого остача дорівнює нулю."], sol);
+  };
+
+  /* 14. Найбільше / найменше число, що ділиться націло */
+  GEN[14] = function (R) {
+    var t = R.int(1, 3), d, qq, r, ans, q, h, sol;
+    if (t === 1) {
+      do { d = R.int(12, 49); } while (999 % d === 0);
+      qq = Math.floor(999 / d); r = 999 % d; ans = qq * d;
+      q = "Яке найбільше трицифрове число ділиться націло на " + d + "?";
+      h = "Найбільше трицифрове число \u2014 999. Поділіть його на " + d + ". Остачу треба відняти від 999.";
+      sol = "999 : " + d + " = " + qq + " (ост. " + r + "). Тому " + d + " " + MUL + " " + qq + " = " + ans + ", або 999 " + MIN + " " + r + " = " + ans + ".";
+    } else if (t === 2) {
+      do { d = R.int(12, 99); } while (9999 % d === 0);
+      qq = Math.floor(9999 / d); r = 9999 % d; ans = qq * d;
+      q = "Яке найбільше чотирицифрове число ділиться націло на " + d + "?";
+      h = "Найбільше чотирицифрове число \u2014 9999. Поділіть його на " + d + ". Остачу треба відняти від 9999.";
+      sol = "9999 : " + d + " = " + qq + " (ост. " + r + "). Тому 9999 " + MIN + " " + r + " = " + ans + ".";
+    } else {
+      do { d = R.int(12, 49); } while (100 % d === 0);
+      qq = Math.floor(100 / d); r = 100 % d; ans = (qq + 1) * d;
+      q = "Яке найменше трицифрове число ділиться націло на " + d + "?";
+      h = "Найменше трицифрове число \u2014 100. Поділіть його на " + d + ". Подумайте, чи є остача, і що тоді робити.";
+      sol = "100 : " + d + " = " + qq + " (ост. " + r + "). " + d + " " + MUL + " " + qq + " = " + (qq * d) + " \u2014 це двоцифрове. Беремо наступне: " + d + " " + MUL + " " + (qq + 1) + " = " + ans + ".";
+    }
+    return mkNum(14, TITLES[14], q, q, [num("")], [ans], [h, "Перевірте відповідь діленням."], sol);
+  };
+
+  /* 15. Цукерки для друзів */
+  GEN[15] = function (R) {
+    var k = R.int(4, 9), qq = R.int(3, 9), r = R.int(1, k - 1), N = k * qq + r;
+    var q = cnt(N, ["цукерку", "цукерки", "цукерок"]) + " поділили порівну між " + k + " друзями. Скільки цукерок отримав кожний друг і скільки цукерок залишилося?";
+    return mkNum(15, TITLES[15], q, q, [num("Кожний отримав"), num("Залишилося")], [qq, r],
+      ["Кожному дістається найбільше число цукерок, яке можна дати всім порівну.", "Остача завжди менша від дільника."],
+      N + " = " + k + " " + MUL + " " + qq + " + " + r + ". Кожний отримав " + qq + ", залишилося " + r + ".");
+  };
+
+  /* 16. Ділення з остачею */
+  GEN[16] = function (R) {
+    var b, qq, r, a, plan, n = 0;
+    do { b = R.int(7, 48); qq = R.int(6, 60); r = R.int(1, b - 1); a = b * qq + r; plan = divPlan(a, b); n++; } while ((!plan || plan.qs !== String(qq) || plan.rem !== r) && n < 2000);
+    return gridTask(16, "Виконайте ділення з остачею в стовпчик. Впишіть цифри в клітинки:<span class=\"big\">" + fmt(a) + " : " + b + "</span>", "Ділення з остачею: " + a + " : " + b, a, b, plan, true,
+      fmt(a) + " = " + b + " " + MUL + " " + qq + " + " + r + ". Неповна частка " + qq + ", остача " + r + ". " + divSol(plan, b), "неповна частка " + qq + ", остача " + r);
+  };
+
+  /* 17. Остача при діленні на 5, 10, 100 */
+  GEN[17] = function (R) {
+    var d = R.pick([5, 10, 100]), N;
+    do { N = d === 100 ? R.int(1000, 999999) : R.int(100, 999999); } while (N % d === 0);
+    var r = N % d, h2;
+    if (d === 10) h2 = "Остача при діленні на 10 дорівнює останній цифрі числа.";
+    else if (d === 100) h2 = "Остача при діленні на 100 — це число, утворене двома останніми цифрами.";
+    else h2 = "На 5 ділиться кожне число, що закінчується на 0 або 5. Подивіться на останню цифру.";
+    var sol = d === 10 ? "Остача при діленні на 10 — остання цифра: " + r + "." :
+      d === 100 ? "Остача при діленні на 100 — число з двох останніх цифр: " + r + "." :
+        "Остання цифра " + (N % 10) + "; " + (N % 10) + " : 5 дає остачу " + r + ".";
+    return mkNum(17, TITLES[17], "Знайдіть остачу при діленні числа " + fmt(N) + " на " + d + ".", "Остача при діленні " + N + " на " + d,
+      [num("Остача")], [r], ["Подумайте, які цифри числа впливають на остачу.", h2], sol);
+  };
+
+  /* 18. Найбільша остача */
+  GEN[18] = function (R) {
+    var b = R.int(8, 150);
+    return mkNum(18, TITLES[18], "Яку найбільшу остачу можна одержати при діленні на " + b + "?", "Найбільша остача при діленні на " + b,
+      [num("")], [b - 1], ["Остача завжди менша від дільника.", "Яке найбільше число менше від " + b + "?"],
+      "Остача менша від " + b + ", тому найбільша остача — " + (b - 1) + ".");
+  };
+
+  /* 19. День тижня (вибір): 19 грудня 2026 — субота */
+  GEN[19] = function (R) {
+    var N, r;
+    do { N = R.int(30, 400); r = N % 7; } while (r === 0);
+    var qq = Math.floor(N / 7), idx = (5 + N) % 7;
+    var choices = WEEK.map(function (w, i) { return { t: w, ok: i === idx }; });
+    var q = "19 грудня 2026 року — субота. Який день тижня буде через " + cnt(N, ["день", "дні", "днів"]) + " після 19 грудня?";
+    return mkChoice(19, TITLES[19], q, q, choices, idx,
+      ["У тижні 7 днів. Поділіть " + N + " на 7.", "Через повні тижні день тижня повторюється. Важлива лише остача."],
+      N + " : 7 = " + qq + " (ост. " + r + "). Через " + qq + " повних тижнів знову буде субота, а ще через " + cnt(r, ["день", "дні", "днів"]) + " — " + WEEK[idx].toLowerCase() + ".");
+  };
+
+  /* 20. Скільки можна купити */
+  GEN[20] = function (R) {
+    var items = [
+      { n: "Коробка цукерок", g: "коробок" }, { n: "Набір наліпок", g: "наборів" },
+      { n: "Книга з головоломками", g: "книг" }, { n: "Ялинкова іграшка", g: "іграшок" },
+      { n: "Новорічна листівка", g: "листівок" }
+    ];
+    var it = R.pick(items), p = R.int(25, 95), qq = R.int(3, 12), r = R.int(1, p - 1), M = p * qq + r;
+    var q = it.n + " коштує " + p + " грн. Яку найбільшу кількість таких " + it.g + " можна купити, маючи " + M + " грн?";
+    return mkNum(20, TITLES[20], q, q, [num("")], [qq],
+      ["Поділіть наявну суму на ціну одного.", "Остачу — гроші, яких не вистачає на ще одну, — не враховуйте."],
+      M + " : " + p + " = " + qq + " (ост. " + r + "). Можна купити " + qq + ".");
+  };
+
+  /* 21. Найменша кількість */
+  GEN[21] = function (R) {
+    var t = R.int(1, 3), c, qq, r, N, q, unit;
+    if (t === 1) {
+      c = R.int(3, 9); qq = R.int(5, 15); r = R.int(1, c - 1); N = c * qq + r;
+      q = "На одну вантажівку можна навантажити " + c + " т піску. Яка найменша кількість таких вантажівок потрібна, щоб перевезти " + N + " т піску, якщо кожна виконає один рейс?";
+    } else if (t === 2) {
+      c = R.int(12, 30); qq = R.int(4, 12); r = R.int(1, c - 1); N = c * qq + r;
+      q = "В один ящик вміщується " + c + " кг яблук. У яку найменшу кількість таких ящиків можна розкласти " + N + " кг яблук?";
+    } else {
+      c = R.int(25, 45); qq = R.int(3, 8); r = R.int(1, c - 1); N = c * qq + r;
+      q = "Учнів, яких треба відвезти на ялинку, \u2014 " + N + ". В один автобус сідає " + cnt(c, ["учень", "учні", "учнів"]) + ". Яка найменша кількість автобусів потрібна, щоб відвезти всіх?";
+    }
+    return mkNum(21, TITLES[21], q, q, [num("")], [qq + 1],
+      ["Спочатку виконайте ділення з остачею.", "Якщо остача не дорівнює нулю, то для неї потрібне ще одне місце."],
+      N + " : " + c + " = " + qq + " (ост. " + r + "). Остачу теж треба перевезти, тому " + qq + " + 1 = " + (qq + 1) + ".");
+  };
+
+  /* 22. Знайдіть ділене */
+  GEN[22] = function (R) {
+    var b = R.int(7, 45), qq = R.int(3, 40), r = R.int(1, b - 1), a = b * qq + r;
+    var q = "Дільник дорівнює " + b + ", неповна частка — " + qq + ", остача — " + r + ". Знайдіть ділене.";
+    return mkNum(22, TITLES[22], q, q, [num("")], [a],
+      ["Щоб знайти ділене, треба дільник помножити на неповну частку й додати остачу.", I("a") + " = " + I("b") + I("q") + " + " + I("r")],
+      I("a") + " = " + b + " " + MUL + " " + qq + " + " + r + " = " + (b * qq) + " + " + r + " = " + a + ".");
+  };
+
+  /* 23. Знайдіть дільник */
+  GEN[23] = function (R) {
+    var b = R.int(9, 50), qq = R.int(4, 20), r = R.int(1, b - 1), a = b * qq + r;
+    var q = "Число " + a + " поділили на деяке число й отримали неповну частку " + qq + " та остачу " + r + ". На яке число поділили?";
+    return mkNum(23, TITLES[23], q, q, [num("")], [b],
+      ["Спочатку відніміть остачу: " + a + " " + MIN + " " + r + ". Це добуток дільника й неповної частки.", "Щоб знайти невідомий множник, поділіть добуток на відомий множник."],
+      "1) " + a + " " + MIN + " " + r + " = " + (a - r) + "; 2) " + (a - r) + " : " + qq + " = " + b + ".");
+  };
+
+  /* 24. Найменше натуральне a */
+  GEN[24] = function (R) {
+    var t = R.int(1, 3), d = R.int(5, 19), n, a, expr, r, sol, hint;
+    do { n = R.int(40, 200); } while (n % d === 0);
+    if (t === 1) {
+      a = d - n % d; expr = n + " + " + I("a") + " ділиться націло на " + d;
+      sol = n + " : " + d + " = " + Math.floor(n / d) + " (ост. " + (n % d) + "). До наступного числа, що ділиться на " + d + ", не вистачає " + d + " " + MIN + " " + (n % d) + " = " + a + ".";
+      hint = "Знайдіть остачу при діленні " + n + " на " + d + ". Скільки не вистачає до наступного кратного?";
+    } else if (t === 2) {
+      a = n % d; expr = n + " " + MIN + " " + I("a") + " ділиться націло на " + d;
+      sol = n + " : " + d + " = " + Math.floor(n / d) + " (ост. " + a + "). Відніміть остачу: " + n + " " + MIN + " " + a + " ділиться на " + d + ", тому " + I("a") + " = " + a + ".";
+      hint = "Знайдіть остачу при діленні " + n + " на " + d + ". Її й треба відняти.";
+    } else {
+      r = R.int(1, d - 1); var tt = ((n - r) % d + d) % d; a = tt === 0 ? d : tt;
+      expr = n + " " + MIN + " " + I("a") + " при діленні на " + d + " дає остачу " + r;
+      sol = "Число " + n + " " + MIN + " " + a + " = " + (n - a) + ". " + (n - a) + " : " + d + " = " + Math.floor((n - a) / d) + " (ост. " + r + "). Менше натуральне " + I("a") + " не підходить.";
+      hint = "Знайдіть остачу при діленні " + n + " на " + d + " і порівняйте її з потрібною остачею " + r + ".";
+    }
+    var q = "При якому найменшому натуральному " + I("a") + " значення виразу " + expr + "?";
+    return mkNum(24, TITLES[24], q, plain(q), [num(I("a") + " =")], [a], [hint, "Перевірте відповідь підстановкою."], sol);
+  };
+
+  /* 25. Різдвяний хор */
+  GEN[25] = function (R) {
+    var k = R.int(6, 12), N, r;
+    do { N = R.int(70, 190); r = N % k; } while (r === 0);
+    var qq = Math.floor(N / k);
+    var q = "Колядників на різдвяному святі — " + N + ". Їх вишикували в ряди по " + k + " дітей.";
+    return mkNum(25, TITLES[25], q, q,
+      [num("Скільки вийшло повних рядів?"), num("Скільки дітей у неповному ряду?"), num("Скільки дітей треба додати, щоб неповний ряд став повним?")], [qq, r, k - r],
+      ["Виконайте ділення з остачею: " + N + " : " + k + ".", "Щоб неповний ряд став повним, до остачі треба додати стільки, скільки не вистачає до " + k + "."],
+      N + " : " + k + " = " + qq + " (ост. " + r + "). Повних рядів " + qq + ", у неповному " + r + ", додати " + k + " " + MIN + " " + r + " = " + (k - r) + ".");
+  };
+
+  /* ---------- публічне ---------- */
+
+  /* ---------- нові теми (Мерзляк, 5 клас) ---------- */
+  var NEW = {};
+  function ang(x) { return x + "°"; }
+
+  /* Властивості додавання й віднімання */
+  NEW[3] = function (R) {
+    var q, qt, v, sol, h;
+    if (R.f() < 0.5) {
+      var a = R.int(1, 8) * 100 + R.int(11, 89), b = R.int(1, 6) * 100 + R.int(11, 89), c = 100 - a % 100, d = 100 - b % 100;
+      var order = R.f() < 0.5 ? [a, b, c, d] : [b, a, d, c];
+      var ex = order.join(" + "); v = a + b + c + d;
+      sol = "Переставимо доданки: (" + a + " + " + c + ") + (" + b + " + " + d + ") = " + (a + c) + " + " + (b + d) + " = " + v + ".";
+      h = ["Переставте доданки так, щоб утворилися круглі числа.", "Знайдіть доданки, які разом дають сотні: " + a + " і " + c + ", " + b + " і " + d + "."];
+      q = "Обчисліть зручним способом:<span class=\"big\">" + sp(ex) + "</span>"; qt = "Обчисліть зручним способом: " + ex;
+    } else {
+      var y = R.int(1, 4) * 100 + R.int(11, 89), z = 100 - y % 100 + R.int(0, 2) * 100, x = y + z + R.int(5, 4) * 0 + R.int(20, 400);
+      var ex2 = fmt(x) + " " + MIN + " " + y + " " + MIN + " " + z; v = x - y - z;
+      sol = fmt(x) + " " + MIN + " (" + y + " + " + z + ") = " + fmt(x) + " " + MIN + " " + (y + z) + " = " + v + ".";
+      h = ["Щоб відняти кілька чисел, можна відняти їхню суму.", "Спочатку знайдіть суму " + y + " + " + z + ": вона кругла."];
+      q = "Обчисліть зручним способом:<span class=\"big\">" + sp(ex2) + "</span>"; qt = "Обчисліть зручним способом: " + ex2;
+    }
+    return mkNum(3, TITLES[3], q, qt, [num("")], [v], h, sol);
+  };
+
+  /* Координатний промінь */
+  NEW[5] = function (R) {
+    var kind = R.int(1, 3), q, qt, v, h, sol, lab = "";
+    if (kind === 1) {
+      var u = R.pick([2, 3, 5]), a = R.int(2, 15), b = a + R.int(4, 20); v = (b - a) * u;
+      q = "На координатному промені одиничний відрізок дорівнює " + u + " см. Точка A має координату " + a + ", точка B — координату " + b + ". Яка довжина відрізка AB (у сантиметрах)?";
+      qt = "Координатний промінь: одиничний відрізок " + u + " см, A(" + a + "), B(" + b + "). Довжина AB, см";
+      h = ["Спочатку знайдіть, скільки одиничних відрізків між точками: " + b + " " + MIN + " " + a + ".", "Помножте це число на довжину одного одиничного відрізка."];
+      sol = "Між точками " + (b - a) + " одиничних відрізків: " + (b - a) + " " + MUL + " " + u + " = " + v + " (см).";
+    } else if (kind === 2) {
+      var m = R.int(8, 40), k = R.int(3, 7), right = R.f() < 0.5;
+      if (!right && m <= k) m = k + R.int(3, 20);
+      v = right ? m + k : m - k;
+      q = "На координатному промені точка M має координату " + m + ". Яку координату має точка K, що лежить на " + cnt(k, ["одиничний відрізок", "одиничні відрізки", "одиничних відрізків"]) + (right ? " праворуч" : " ліворуч") + " від точки M?";
+      qt = "Точка M(" + m + "), точка K на " + k + (right ? " праворуч" : " ліворуч") + " від M. Координата K";
+      h = ["Праворуч від точки координати збільшуються, ліворуч — зменшуються.", right ? "Додайте " + k + " до " + m + "." : "Від " + m + " відніміть " + k + "."];
+      sol = right ? m + " + " + k + " = " + v + "." : m + " " + MIN + " " + k + " = " + v + ".";
+    } else {
+      var a2 = R.int(3, 30), b2 = a2 + R.int(5, 25); v = b2 - a2 - 1;
+      q = "Скільки натуральних чисел лежить між точками з координатами " + a2 + " і " + b2 + " на координатному промені?";
+      qt = "Скільки натуральних чисел між " + a2 + " і " + b2;
+      h = ["Самі числа " + a2 + " і " + b2 + " не враховуються.", "Від " + b2 + " відніміть " + a2 + " і ще 1."];
+      sol = b2 + " " + MIN + " " + a2 + " " + MIN + " 1 = " + v + ".";
+    }
+    return mkNum(5, TITLES[5], q, qt, [num(lab)], [v], h, sol);
+  };
+
+  /* Множення в стовпчик (клітинки, «числа в пам’яті» необов’язкові) */
+  function mulBoard(a, b) {
+    var A = String(a), m = A.length, bu = b % 10, bt = Math.floor(b / 10), P = a * b, np = String(P).length, COLS = np + 1, exp = [], opt = [];
+    function mk() { var r = [], i; for (i = 0; i < COLS; i++) r.push({ e: 1 }); return r; }
+    function add(ch, o) { exp.push(ch); if (o) opt.push(exp.length - 1); return exp.length - 1; }
+    var r0 = mk(), i;
+    for (i = 0; i < m; i++) r0[np - m + 1 + i] = { d: A.charAt(i) };
+    var r1 = mk(); r1[0] = { sg: "×" }; r1[np - 1] = { d: String(bt) }; r1[np] = { d: String(bu) };
+    function rule() { var r = mk(), c; for (c = 1; c <= np; c++) r[c] = { ln: 1 }; return r; }
+    function partial(PP, shift, md) {
+      var sP = String(PP), n = sP.length, cr = mk(), row = mk(), carry = 0, j;
+      for (j = 1; j <= n; j++) {
+        if (j >= 2 && j <= m) cr[np - j + 1] = { c: add(String(carry), true), o: 1 };
+        row[np - shift - j + 1] = { c: add(sP.charAt(n - j), false) };
+        if (j <= m) carry = Math.floor((Number(A.charAt(m - j)) * md + carry) / 10);
+      }
+      return { cr: cr, row: row };
+    }
+    var p1 = partial(a * bu, 0, bu), p2 = partial(a * bt, 1, bt);
+    p2.row[np] = { ph: 1 }; p2.row[0] = { sg: "+" };
+    var res = mk(), sPs = String(P), j;
+    for (j = 1; j <= np; j++) res[np - j + 1] = { c: add(sPs.charAt(np - j), false) };
+    var lines = [{ items: r0 }, { items: r1 }, { rule: 1, items: rule() }, { carry: 1, items: p1.cr }, { items: p1.row }, { carry: 1, items: p2.cr }, { items: p2.row }, { rule: 1, items: rule() }, { items: res }];
+    return { exp: exp, opt: opt, board: { lines: lines, divisor: null, R: 0, tot: np + 1.0, qIdx: [], last: [] } };
+  }
+  function digs(n, lo, hi) { return n; }
+  NEW[7] = function (R) {
+    function nz(lo, hi) { var x; do { x = R.int(lo, hi); } while (String(x).indexOf("0") >= 0); return x; }
+    var a = R.f() < 0.6 ? nz(12, 99) : nz(112, 499), b = nz(12, 98);
+    var bd = mulBoard(a, b), P = a * b, u = b % 10, t = Math.floor(b / 10);
+    var tk = mkNum(7, TITLES[7], "Виконайте множення в стовпчик. Впишіть цифри в клітинки (числа, які запам’ятовуєте, писати необов’язково):<span class=\"big\">" + fmt(a) + " " + MUL + " " + b + "</span>",
+      "Множення в стовпчик: " + a + " · " + b, bd.exp.map(function () { return num(""); }), bd.exp.map(Number),
+      ["Спочатку множимо на цифру одиниць, а другий добуток записуємо зі зсувом на один розряд ліворуч.", "Перший добуток: " + a + " " + MUL + " " + u + " = " + (a * u) + ". Другий: " + a + " " + MUL + " " + t + " = " + (a * t) + ", пишемо його зсунутим вліво. Потім додаємо."],
+      fmt(a) + " " + MUL + " " + b + ": " + fmt(a) + " " + MUL + " " + u + " = " + fmt(a * u) + "; " + fmt(a) + " " + MUL + " " + t + " = " + fmt(a * t) + " (десятків), тобто " + fmt(a * t * 10) + "; " + fmt(a * u) + " + " + fmt(a * t * 10) + " = " + fmt(P) + ".");
+    tk.col = { board: bd.board, hasRem: false, mul: true }; tk.opt = bd.opt; tk.ctext = fmt(P);
+    return tk;
+  };
+
+  /* Відрізок */
+  NEW[9] = function (R) {
+    var kind = R.int(1, 3), q, qt, v, h, sol;
+    if (kind === 1) {
+      var x = R.int(12, 95), y = R.int(12, 95); v = x + y;
+      q = "Точка C лежить на відрізку AB. Відрізок AC дорівнює " + x + " см, а відрізок CB — " + y + " см. Знайдіть довжину відрізка AB (у сантиметрах).";
+      qt = "Відрізок: AC = " + x + " см, CB = " + y + " см. AB";
+      h = ["Довжина відрізка дорівнює сумі довжин його частин.", "AB = AC + CB."]; sol = "AB = AC + CB = " + x + " + " + y + " = " + v + " (см).";
+    } else if (kind === 2) {
+      var L = R.int(40, 180), x2 = R.int(10, L - 10); v = L - x2;
+      q = "Точка C лежить на відрізку AB. Відрізок AB дорівнює " + L + " см, а відрізок AC — " + x2 + " см. Знайдіть довжину відрізка CB (у сантиметрах).";
+      qt = "Відрізок: AB = " + L + " см, AC = " + x2 + " см. CB";
+      h = ["AB = AC + CB, тому CB = AB " + MIN + " AC.", "Відніміть від довжини всього відрізка довжину відомої частини."]; sol = "CB = AB " + MIN + " AC = " + L + " " + MIN + " " + x2 + " = " + v + " (см).";
+    } else {
+      var d = R.int(1, 8) * 2, half = R.int(10, 60), L2 = 2 * half + d; v = half + d;
+      q = "Точка C лежить на відрізку AB, AB = " + L2 + " см. Відрізок AC на " + d + " см довший за відрізок CB. Знайдіть довжину відрізка AC (у сантиметрах).";
+      qt = "Відрізок: AB = " + L2 + " см, AC на " + d + " см довший за CB. AC";
+      h = ["Якби відрізок AC був коротшим на " + d + " см, обидві частини були б рівними.", "Відніміть " + d + " від " + L2 + ", поділіть навпіл, а тоді додайте " + d + " до меншої частини."];
+      sol = "CB = (" + L2 + " " + MIN + " " + d + ") : 2 = " + half + " см; AC = " + half + " + " + d + " = " + v + " (см).";
+    }
+    return mkNum(9, TITLES[9], q, qt, [num("")], [v], h, sol);
+  };
+
+  /* Кути */
+  NEW[11] = function (R) {
+    var kind = R.int(1, 4), q, qt, v, h, sol;
+    if (kind === 1) {
+      var x = R.int(15, 85), y = R.int(15, 85); v = x + y;
+      q = "Промінь OC проходить між сторонами кута AOB. Кут AOC дорівнює " + ang(x) + ", а кут COB — " + ang(y) + ". Знайдіть кут AOB (у градусах).";
+      qt = "Кут AOC = " + x + "°, кут COB = " + y + "°. Кут AOB";
+      h = ["Промінь ділить кут на два кути, тому градусна міра кута AOB дорівнює сумі градусних мір двох кутів.", "AOB = AOC + COB."]; sol = "∠AOB = ∠AOC + ∠COB = " + x + "° + " + y + "° = " + v + "°.";
+    } else if (kind === 2) {
+      var L = R.int(60, 170), x2 = R.int(15, L - 15); v = L - x2;
+      q = "Промінь OC проходить між сторонами кута AOB. Кут AOB дорівнює " + ang(L) + ", а кут AOC — " + ang(x2) + ". Знайдіть кут COB (у градусах).";
+      qt = "Кут AOB = " + L + "°, кут AOC = " + x2 + "°. Кут COB";
+      h = ["AOB = AOC + COB, тому COB = AOB " + MIN + " AOC.", "Від градусної міри всього кута відніміть міру відомої частини."]; sol = "∠COB = " + L + "° " + MIN + " " + x2 + "° = " + v + "°.";
+    } else if (kind === 3) {
+      var x3 = R.int(20, 160); v = 180 - x3;
+      q = "Розгорнутий кут поділили променем на два кути. Один із них дорівнює " + ang(x3) + ". Знайдіть другий кут (у градусах).";
+      qt = "Розгорнутий кут, один з кутів " + x3 + "°. Другий кут";
+      h = ["Розгорнутий кут дорівнює 180°.", "Від 180° відніміть відомий кут."]; sol = "180° " + MIN + " " + x3 + "° = " + v + "°.";
+    } else {
+      var k = R.pick([2, 4, 5, 8, 9, 14]); v = 90 / (k + 1);
+      q = "Прямий кут поділили променем на два кути, один з яких у " + k + " " + (k === 2 || k === 4 ? "рази" : "разів") + " більший за інший. Знайдіть менший із цих кутів (у градусах).";
+      qt = "Прямий кут поділили на два кути, один у " + k + " разів більший. Менший кут";
+      h = ["Прямий кут дорівнює 90°. Менший кут — одна частина, більший — " + k + " таких частин.", "Усього частин: " + (k + 1) + ". Поділіть 90 на " + (k + 1) + "."]; sol = "Усього " + (k + 1) + " рівних частин: 90° : " + (k + 1) + " = " + v + "°.";
+    }
+    return mkNum(11, TITLES[11], q, qt, [num("")], [v], h, sol);
+  };
+
+  /* Види трикутників */
+  NEW[15] = function (R) {
+    var kind = R.int(1, 5), q, qt, v, h, sol, a, b, c;
+    if (kind === 1) {
+      a = R.int(5, 40); v = 3 * a;
+      q = "Периметр рівностороннього трикутника дорівнює " + v + " см. Знайдіть його сторону (у сантиметрах).";
+      qt = "Периметр рівностороннього трикутника " + v + " см. Сторона";
+      h = ["У рівностороннього трикутника всі три сторони рівні.", "Поділіть периметр на 3."]; sol = v + " : 3 = " + a + " (см).";
+      return mkNum(15, TITLES[15], q, qt, [num("")], [a], h, sol);
+    }
+    if (kind === 2) {
+      a = R.int(8, 40); do { b = R.int(4, 2 * a - 2); } while (b === a); v = 2 * a + b;
+      q = "Бічна сторона рівнобедреного трикутника дорівнює " + a + " см, а основа — " + b + " см. Знайдіть периметр трикутника (у сантиметрах).";
+      qt = "Рівнобедрений трикутник: бічна сторона " + a + " см, основа " + b + " см. Периметр";
+      h = ["У рівнобедреного трикутника дві бічні сторони рівні.", "Периметр — сума всіх трьох сторін: " + a + " + " + a + " + " + b + "."]; sol = a + " + " + a + " + " + b + " = " + v + " (см).";
+      return mkNum(15, TITLES[15], q, qt, [num("")], [v], h, sol);
+    }
+    if (kind === 3) {
+      a = R.int(8, 40); do { b = R.int(4, 2 * a - 2); } while (b === a); var P = 2 * a + b; v = b;
+      q = "Периметр рівнобедреного трикутника дорівнює " + P + " см, його бічна сторона — " + a + " см. Знайдіть основу трикутника (у сантиметрах).";
+      qt = "Рівнобедрений трикутник: периметр " + P + " см, бічна сторона " + a + " см. Основа";
+      h = ["Дві бічні сторони разом: " + a + " + " + a + ".", "Від периметра відніміть суму двох бічних сторін."]; sol = P + " " + MIN + " " + a + " " + MIN + " " + a + " = " + v + " (см).";
+      return mkNum(15, TITLES[15], q, qt, [num("")], [v], h, sol);
+    }
+    var names, ok;
+    if (kind === 4) {
+      var t = R.int(1, 3);
+      if (t === 1) { a = R.int(5, 20); b = a; c = a; ok = 0; }
+      else if (t === 2) { a = R.int(6, 20); do { b = R.int(3, 2 * a - 1); } while (b === a); c = a; ok = 1; }
+      else { do { a = R.int(5, 15); b = R.int(5, 15); c = R.int(5, 15); } while (a === b || b === c || a === c || a + b <= c || a + c <= b || b + c <= a); ok = 2; }
+      var arr = t === 2 ? R.shuffle([a, b, c]) : [a, b, c];
+      names = ["рівносторонній", "рівнобедрений", "різносторонній"];
+      q = "Сторони трикутника дорівнюють " + arr[0] + " см, " + arr[1] + " см і " + arr[2] + " см. Який це трикутник за сторонами?";
+      return mkChoice(15, TITLES[15], q, "Трикутник за сторонами: " + arr.join(", "), names.map(function (n, i) { return { t: n, ok: i === ok }; }), ok,
+        ["Порівняйте довжини сторін: скільки з них рівні?", "Три рівні сторони — рівносторонній, дві рівні — рівнобедрений, усі різні — різносторонній."],
+        "Рівних сторін: " + (ok === 0 ? "три" : ok === 1 ? "дві" : "жодної") + ", тому трикутник " + names[ok] + ".");
+    }
+    var tt = R.int(1, 3), x, y, z;
+    if (tt === 1) { x = R.int(30, 80); y = R.int(30, 80); z = 180 - x - y; while (z >= 90 || z < 20) { x = R.int(30, 80); y = R.int(30, 80); z = 180 - x - y; } ok = 0; }
+    else if (tt === 2) { x = 90; y = R.int(20, 70); z = 90 - y; ok = 1; }
+    else { x = R.int(95, 150); y = R.int(10, Math.min(60, 175 - x)); z = 180 - x - y; ok = 2; }
+    var ar = R.shuffle([x, y, z]); names = ["гострокутний", "прямокутний", "тупокутний"];
+    q = "Кути трикутника дорівнюють " + ang(ar[0]) + ", " + ang(ar[1]) + " і " + ang(ar[2]) + ". Який це трикутник за кутами?";
+    return mkChoice(15, TITLES[15], q, "Трикутник за кутами: " + ar.join(", "), names.map(function (n, i) { return { t: n, ok: i === ok }; }), ok,
+      ["Знайдіть найбільший кут і порівняйте його з 90°.", "Усі кути менші від 90° — гострокутний, є кут 90° — прямокутний, є кут більший за 90° — тупокутний."],
+      "Найбільший кут " + Math.max(x, y, z) + "°, тому трикутник " + names[ok] + ".");
+  };
+
+  /* ---------- нове розташування по днях ---------- */
+  var OLD = GEN; GEN = {};
+  var MAP = { 1: 1, 2: 2, 4: 3, 6: 6, 8: 4, 10: 9, 12: 12, 13: 13, 14: 11, 16: 7, 17: 8, 18: 10, 19: 19, 20: 15, 21: 16, 22: 22, 23: 21, 24: 20, 25: 25 };
+  Object.keys(MAP).forEach(function (nd) {
+    GEN[nd] = function (R) { var t = OLD[MAP[nd]](R); t.day = Number(nd); t.title = TITLES[nd]; return t; };
+  });
+  Object.keys(NEW).forEach(function (nd) { GEN[nd] = NEW[nd]; });
+
+  var ITEM_NAMES = TITLES;
+  function seedFor(key, day) { return hash(String(key) + "|advent2026|" + day); }
+  function make(day, seed) { return GEN[day](makeR(seed)); }
+
+  /* Перевірка відповіді: input — масив рядків (поля) або число (індекс варіанта) */
+  function parseNum(s) {
+    var t = String(s == null ? "" : s).replace(/[\s ]/g, "").replace(",", ".");
+    if (!/^-?\d+(\.\d+)?$/.test(t)) return NaN;
+    return Number(t);
+  }
+  function check(task, input) {
+    if (task.choices) return input === task.okIndex;
+    if (!Array.isArray(input) || input.length !== task.answers.length) return false;
+    for (var i = 0; i < task.answers.length; i++) {
+      if (task.opt && task.opt.indexOf(i) >= 0) continue;
+      if (parseNum(input[i]) !== task.answers[i]) return false;
+    }
+    return true;
+  }
+  function complete(task, input) {
+    if (task.choices) return typeof input === "number" && input >= 0;
+    if (!Array.isArray(input)) return false;
+    for (var i = 0; i < task.answers.length; i++) { if (task.opt && task.opt.indexOf(i) >= 0) continue; if (isNaN(parseNum(input[i]))) return false; }
+    return true;
+  }
+  function inputText(task, input) {
+    if (task.choices) return task.choices[input] ? task.choices[input].t : "";
+    return input.filter(function (s, i) { return !(task.opt && task.opt.indexOf(i) >= 0); }).map(function (s) { return String(s).trim(); }).join("; ");
+  }
+  function correctText(task) { return task.ctext; }
+
+  return {
+    DAYS: 25, TITLES: TITLES, WEEK: WEEK, hash: hash, seedFor: seedFor, make: make, check: check, complete: complete,
+    inputText: inputText, correctText: correctText, parseNum: parseNum, plain: plain, fmt: fmt, cnt: cnt, form: form
+  };
+})();
+
+var AdventStory = (function () {
+  var C = {
+    1: ["❄️", "Зникла зірка", "У ніч перед першим днем грудня з верхівки Великої Ялинки зникла Золота Зірка. На снігу лишився тільки золотий пилок. Їжачок Біб, який усе на світі рахує, і мудра Сова Уна кинулися на пошуки, але самі не впораються. Їм потрібні помічники. Тобто ви!"],
+    2: ["👣", "Дивні сліди", "Біб знайшов на снігу дивні сліди. Це були не лапки, а крихітні зірочки. Він порахував їх усі: сліди тяглися до лісу й раптом обривалися біля старого пня. А на пні щось блищало…"],
+    3: ["🧤", "Золота рукавичка", "На пні лежала золота рукавичка, повна іскристого пилку. «Хтось дуже поспішав і загубив її», — сказала Уна. Біб вивернув її та радісно пискнув: у кишеньці лежав крихітний ключик."],
+    4: ["🔑", "Маленький ключик", "Ключик був такий малий, що Біб ледь тримав його лапками. На ньому було вирізьблено годинник. «Нам треба на дзвіницю!» — вирішила Уна, і друзі вирушили в дорогу."],
+    5: ["🕰️", "Годинник на дзвіниці", "Старий годинник на дзвіниці стояв: обидві стрілки застигли на дванадцятій. Ключик ідеально підійшов до замочка. У дверцятах лежала записка: «Шукайте там, де пахне мандаринами»."],
+    6: ["🎅", "Святий Миколай", "Сьогодні день Святого Миколая! Він зустрів друзів біля дзвіниці й залишив їм по цукерці. «Зірка не вкрадена, — усміхнувся Миколай. — Вона полетіла сама. Але чому? Це ви маєте з’ясувати. Ідіть туди, де пахне мандаринами»."],
+    7: ["🍊", "Пекарня пані Кекс", "У пекарні пані Кекс пахло мандаринами й імбирним печивом. «Минулої ночі до мене у вікно зазирнув хтось із довгим хвостом із іскор!» — розповіла вона. Біб записав це в блокнот і двічі підкреслив."],
+    8: ["☄️", "Хвіст з іскор", "Хвіст з іскор буває лише в комети! Уна розгорнула велику зоряну мапу. Минулої ночі над містом і справді пролітала комета. Звали її Іскра, і була вона зовсім маленька."],
+    9: ["✉️", "Лист без підпису", "Під мапою друзі знайшли пом’ятий лист: «Мені так самотньо літати між зірками. Я лише хотіла з кимось погратися!» Підпису не було, але на папері блищав той самий золотий пилок."],
+    10: ["🦌", "Олень Гордій", "У лісі друзів зустрів Олень Гордій. «Бачив, — сказав він. — Дві світлі цяточки пролетіли над ялинами до Темного лісу. Одна була золота, друга — з хвостом». Біб вже діставав блокнот."],
+    11: ["🌲", "Темний ліс", "Темний ліс виявився справді темним. Гілки скрипіли, а за деревами щось шелестіло. «Я не боюся! — шепотів Біб. — Я просто… дуже обережний»."],
+    12: ["🔦", "Ліхтарик", "У дуплі старого дуба друзі знайшли ліхтарик, що світився теплим жовтим світлом. Біб аж підстрибнув від радості. Тепер можна йти далі й не плутатися в темряві між гілками."],
+    13: ["🐺", "Вовчик Тихон", "Із-за кущів вийшов вовчик Тихон: маленький, пухнастий і наляканий. «Я боюся темряви, — зізнався він. — Але бачив, як ті світлі цяточки полетіли до Крижаної печери. Я вас проведу»."],
+    14: ["🌉", "Крижаний місток", "Довгий місток над замерзлою річкою блищав, як скло. Йти треба було повільно, крок за кроком. Тихон рахував кроки вголос, і страх потроху зник."],
+    15: ["🧊", "Крижана печера", "У печері було тихо-тихо. Стіни світилися блакитним, а на підлозі лежали дивні кристали — трикутні, гострі й тупі, рівні й нерівні. «Тут ціла колекція трикутників!» — захоплено сказав Біб і взявся їх вимірювати."],
+    16: ["🪞", "Дзеркальна зала", "Глибоко в печері була зала, де всі стіни — дзеркала. Тисяча Бібів дивилася на Біба! «Хто з вас справжній?» — розгубився їжачок. Допомогла Уна: справжній той, хто чхнув."],
+    17: ["📣", "Ехо-пустун", "У залі жило ехо-пустун. Воно повторювало останні слова й плутало дорогу. Друзі довго кричали, поки не почули тоненький голосок: «Сюди! Тут вихід!»"],
+    18: ["🌙", "Розмова з Місяцем", "Вибравшись із печери, друзі побачили Місяць. «Ваші зірки пішли до Небесної долини, — сказав він. — Але без санчат туди не потрапити». Тихон винувато зітхнув: сани в нього є, тільки зламані."],
+    19: ["🛷", "Лагодимо сани", "Друзі лагодили сани цілий день: Біб рахував цвяхи, Уна креслила, Тихон тримав дошки. До вечора сани були як нові, з дзвіночками на полозах."],
+    20: ["🌠", "Небесна долина", "Сани злетіли високо-високо. Внизу залишилися ліс і місто, а довкола засяяли тисячі зірок. Небесна долина була схожа на величезний сад, де зорі ростуть, як квіти. Уна запропонувала розкласти дрібні зірочки по кошиках порівну, але одна зірочка все одно залишилась зайвою."],
+    21: ["🌟", "Знайшлася!", "Золота Зірка сиділа край хмаринки й тихо плакала. Поруч сором’язливо ховалася крихітна комета Іскра. «Ми заблукали, — зізналася Зірка. — Ми гралися й не запам’ятали дорогу додому»."],
+    22: ["🤝", "Нова подруга", "Іскра розповіла, що завжди літала сама й ніколи не мала друзів. Зірка просто хотіла з нею пограти. Біб діловито кивнув: «Це не крадіжка, а запізніла прогулянка. Тепер треба повертатися»."],
+    23: ["🏮", "Світла стежка", "Але як знайти дорогу? Уна згадала, що найкраще шлях показують вогні. Усі, хто допомагав у пошуках, засвітили свої ліхтарики, і над долиною засяяла довга світла стежка."],
+    24: ["🎶", "Забуті слова", "Стежка вела вниз, але Зірка вагалася: «Я пам’ятаю лише мелодію зі Святої ночі, а слів не пригадаю». «Нічого, — сказав Тихон. — Унизу вже збираються колядники. Вони співають її щороку!»"],
+    25: ["🎄", "Різдвяна ніч", "Колядники вийшли на майдан, і над Великою Ялинкою полилася колядка. Золота Зірка впізнала мелодію, спустилася й засяяла на верхівці, а поруч із нею отримала місце комета Іскра. Усі іграшки на Ялинці спалахнули, і кожна з них — ваша. Дякуємо, що знайшли Зірку! 🎉"]
+  };
+  return { get: function (d) { var c = C[d]; return c ? { e: c[0], t: c[1], p: c[2] } : null; }, intro: "Золота Зірка зникла з Великої Ялинки! Допоможіть Їжачку Бібу й Сові Уні її знайти: щодня — нове віконечко, завдання й новий розділ історії." };
+})();
+
+var AR = AdventRules, T = AdventTasks, ST = AdventStory;
+
+/* ===== налаштування ===== */
+var API_URL = "";   // ← сюди вставляється адреса веб-застосунку Google Apps Script (закінчується на /exec)
+var DEMO = !API_URL || /[?&]demo=1/.test(location.search);
+var TEACHER = /[?&]teacher=1/.test(location.search);
+var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+var isTouch = false;
+try { isTouch = window.matchMedia("(pointer: coarse)").matches; } catch (e) { }
+
+var St = { cfg: null, me: null, srv: null, tab: "cal", view: "entry", cls: "", pending: null,
+  day: 0, task: null, rec: null, viewOnly: false, busy: false, vals: [], sel: -1, act: 0, awayAt: 0, closed: false, done: false };
+
+/* ===== зв'язок з сервером ===== */
+function api(action, data) {
+  data = data || {}; data.action = action;
+  if (DEMO) return new Promise(function (res) { setTimeout(function () { res(demoServer(data)); }, 60); });
+  return fetch(API_URL, { method: "POST", body: JSON.stringify(data) }).then(function (r) { return r.json(); });
+}
+
+/* ===== звук і прикраси ===== */
+var Snd = { on: true, ctx: null }, Mus = { on: true, m: null, timer: 0, playing: false };
+try { if (localStorage.getItem("adv_snd") === "0") Snd.on = false; if (localStorage.getItem("adv_mus") === "0") Mus.on = false; } catch (e) { }
+function actx() {
+  try {
+    if (!Snd.ctx) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; Snd.ctx = new C(); }
+    if (Snd.ctx.state === "suspended") Snd.ctx.resume();
+    return Snd.ctx;
+  } catch (e) { return null; }
+}
+function ac() { return Snd.on ? actx() : null; }
+function tone(f, t0, dur, type, vol, dest) {
+  var c = dest ? actx() : ac(); if (!c) return;
+  try {
+    var o = c.createOscillator(), g = c.createGain(), s = c.currentTime + t0;
+    o.type = type || "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(vol || 0.12, s + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+    o.connect(g); g.connect(dest || c.destination); o.start(s); o.stop(s + dur + 0.05);
+  } catch (e) { }
+}
+function bell(f, t0, vol) { tone(f, t0, 0.9, "sine", vol || 0.1); tone(f * 2.76, t0, 0.35, "sine", (vol || 0.1) * 0.35); }
+/* «Jingle Bells» (народна мелодія), тихо, по колу */
+var JB = [["E", 1], ["E", 1], ["E", 2], ["E", 1], ["E", 1], ["E", 2], ["E", 1], ["G", 1], ["C", 1.5], ["D", .5], ["E", 4],
+  ["F", 1], ["F", 1], ["F", 1.5], ["F", .5], ["F", 1], ["E", 1], ["E", 1], ["E", .5], ["E", .5], ["E", 1], ["D", 1], ["D", 1], ["E", 1], ["D", 2], ["G", 2],
+  ["E", 1], ["E", 1], ["E", 2], ["E", 1], ["E", 1], ["E", 2], ["E", 1], ["G", 1], ["C", 1.5], ["D", .5], ["E", 4],
+  ["F", 1], ["F", 1], ["F", 1.5], ["F", .5], ["F", 1], ["E", 1], ["E", 1], ["E", .5], ["E", .5], ["G", 1], ["G", 1], ["F", 1], ["D", 1], ["C", 4], ["R", 2]];
+var NF = { C: 261.63, D: 293.66, E: 329.63, F: 349.23, G: 392.0 };
+function musStart() {
+  if (!Mus.on || Mus.playing) return;
+  var c = actx(); if (!c) return;
+  Mus.playing = true;
+  var m = c.createGain(); m.gain.value = 1; m.connect(c.destination); Mus.m = m;
+  var t = 0.1, beat = 0.34;
+  JB.forEach(function (n) {
+    if (n[0] !== "R") { tone(NF[n[0]], t, Math.min(n[1] * beat * 1.05, 0.8), "triangle", 0.05, m); tone(NF[n[0]] * 2, t, 0.25, "sine", 0.012, m); }
+    t += n[1] * beat;
+  });
+  Mus.timer = setTimeout(function () { Mus.playing = false; Mus.m = null; if (Mus.on && !document.hidden) musStart(); }, (t + 1.2) * 1000);
+}
+function musStop() {
+  clearTimeout(Mus.timer);
+  if (Mus.m) { try { Mus.m.gain.value = 0; Mus.m.disconnect(); } catch (e) { } Mus.m = null; }
+  Mus.playing = false;
+}
+var Fx = {
+  tap: function () { tone(740, 0, 0.06, "triangle", 0.05); },
+  open: function () { bell(784, 0, .09); bell(1175, .09, .08); },
+  ok: function () { bell(523, 0, .11); bell(659, .1, .11); bell(784, .2, .11); bell(1047, .32, .12); },
+  bad: function () { tone(262, 0, .16, "sine", .09); tone(220, .14, .26, "sine", .09); },
+  story: function () { bell(659, 0, .08); bell(784, .16, .08); bell(988, .32, .08); bell(1319, .5, .09); },
+  fin: function () { Fx.ok(); setTimeout(function () { bell(1047, 0, .1); bell(1319, .12, .1); bell(1568, .24, .1); bell(2093, .4, .1); }, 450); }
+};
+function setSndBtn() { $("snd").textContent = Snd.on ? "🔔" : "🔕"; $("snd").classList.toggle("off", !Snd.on); $("mus").classList.toggle("off", !Mus.on); }
+function initDecor() {
+  var g = "", i;
+  for (i = 0; i < 16; i++) g += "<i></i>";
+  $("garland").innerHTML = g;
+  var sn = "", ch = ["❄", "❅", "❆", "•"];
+  for (i = 0; i < 60; i++) {
+    var sz = 12 + Math.random() * 20, dur = 8 + Math.random() * 10;
+    sn += "<i style='left:" + (Math.random() * 100).toFixed(1) + "%;font-size:" + sz.toFixed(0) + "px;animation-duration:" + dur.toFixed(1) + "s;animation-delay:-" + (Math.random() * dur).toFixed(1) + "s;opacity:" + (0.55 + Math.random() * 0.45).toFixed(2) + ";--dx:" + (Math.random() * 80 - 40).toFixed(0) + "px'>" + ch[i % ch.length] + "</i>";
+  }
+  $("snow").innerHTML = sn;
+  setSndBtn();
+  $("mus").onclick = function () { Mus.on = !Mus.on; try { localStorage.setItem("adv_mus", Mus.on ? "1" : "0"); } catch (e) { } setSndBtn(); if (Mus.on) musStart(); else musStop(); };
+  var firstTap = function () { document.removeEventListener("pointerdown", firstTap); musStart(); };
+  document.addEventListener("pointerdown", firstTap);
+  $("snd").onclick = function () { Snd.on = !Snd.on; try { localStorage.setItem("adv_snd", Snd.on ? "1" : "0"); } catch (e) { } setSndBtn(); if (Snd.on) Fx.open(); };
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest ? e.target.closest("button") : null;
+    if (b && b.id !== "snd" && b.id !== "mus" && !b.classList.contains("cell")) Fx.tap();
+  });
+}
+
+function netErr() { toast("Немає зв’язку. Перевірте інтернет і спробуйте ще раз."); }
+
+/* ===== ДЕМО-СЕРВЕР (лише для перегляду; повторює правила сервера) ===== */
+var D = { recs: {}, kids: {}, today: 7, strict: false, cfg: { classes: ["5-α", "5-β"], attempts: 3, catchup: 5, start: "2026-12-01" } };
+function dState(key) {
+  var days = {}, used = 0;
+  Object.keys(D.recs).forEach(function (k) {
+    var r = D.recs[k]; if (r.key !== key) return;
+    days[r.day] = { s: r.status, a: r.attempts, e: r.exits }; if (r.catchup) used++;
+  });
+  return { today: D.today, days: days, catchupLeft: Math.max(0, D.cfg.catchup - used), catchupMax: D.cfg.catchup, attempts: D.cfg.attempts };
+}
+function dPub(r) { return { status: r.status, attempts: r.attempts, exits: r.exits, maxAttempts: D.cfg.attempts }; }
+function demoServer(p) {
+  var a = p.action, key, day, rec, used, ci;
+  if (a === "config") return { ok: true, today: D.today, start: D.cfg.start, classes: D.cfg.classes, attempts: D.cfg.attempts, catchup: D.cfg.catchup };
+  if (a === "login") {
+    var cls = AR.clean(p.cls), sur = AR.cap(p.sur), nam = AR.cap(p.nam);
+    if (!cls || !sur || !nam) return { ok: false, reason: "empty" };
+    key = AR.makeKey(cls, sur, nam);
+    var isNew = !D.kids[key];
+    if (isNew) D.kids[key] = { cls: cls, sur: sur, nam: nam };
+    return { ok: true, isNew: isNew, me: { key: key, cls: cls, sur: sur, nam: nam }, state: dState(key) };
+  }
+  if (a === "open") {
+    key = p.key; day = Number(p.day); if (!D.kids[key]) return { ok: false, reason: "no_kid" };
+    rec = D.recs[key + "|" + day] || null; used = 0;
+    Object.keys(D.recs).forEach(function (k) { if (D.recs[k].key === key && D.recs[k].catchup) used++; });
+    ci = AR.canOpen(rec, day, D.today, used, D.cfg.catchup);
+    if (!ci.ok) return { ok: false, reason: ci.reason, state: dState(key) };
+    if (!rec) { rec = D.recs[key + "|" + day] = AR.newRec(key, day, Date.now(), ci.consume, p.qtext, p.ctext); }
+    else if (rec.status === "open") { var keep = rec.exits; AR.onResume(rec, Date.now()); if (!D.strict && rec.status === "exit") { rec.status = "open"; rec.finished = 0; rec.exits = keep + 1; } }
+    return { ok: true, rec: dPub(rec), state: dState(key) };
+  }
+  if (a === "attempt") {
+    rec = D.recs[p.key + "|" + p.day]; if (!rec) return { ok: false, reason: "not_opened" };
+    AR.onAttempt(rec, p.correct === true, p.answer, Date.now(), D.cfg.attempts);
+    return { ok: true, rec: dPub(rec), state: dState(p.key) };
+  }
+  if (a === "exit") {
+    rec = D.recs[p.key + "|" + p.day]; if (!rec) return { ok: false, reason: "not_opened" };
+    var k2 = rec.exits; AR.onExit(rec, p.awaySec, Date.now());
+    if (!D.strict && rec.status === "exit") { rec.status = "open"; rec.finished = 0; rec.exits = k2 + 1; }
+    return { ok: true, rec: dPub(rec), state: dState(p.key) };
+  }
+  if (a === "tree") {
+    var kids = [];
+    if (/[?&]fake=1/.test(location.search)) { for (var fi = 1; fi <= 24; fi++) kids.push({ c: D.cfg.classes[fi % 2], f: "Учень " + fi, i: "У", d: (fi * 7) % 26, me: false }); }
+    var total = 0;
+    Object.keys(D.kids).forEach(function (k) {
+      var d = 0; Object.keys(D.recs).forEach(function (x) { if (D.recs[x].key === k && D.recs[x].status !== "open") d++; });
+      kids.push({ c: D.kids[k].cls, f: D.kids[k].nam, i: D.kids[k].sur.charAt(0), d: d, me: k === p.key });
+    });
+    kids.forEach(function (k) { total += k.d; });
+    return { ok: true, kids: kids, total: total };
+  }
+  return { ok: false, reason: "bad_action" };
+}
+
+/* ===== допоміжний інтерфейс ===== */
+function show(v) {
+  St.view = v; document.body.classList.toggle("intask", v === "vTask");
+  ["vEntry", "vConfirm", "vHome", "vTask"].forEach(function (id) { $(id).hidden = (id !== v); });
+  $("kp").hidden = true;
+}
+var toastT = 0;
+function toast(t) {
+  var old = document.querySelector(".toast"); if (old) old.remove();
+  var d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d);
+  clearTimeout(toastT); toastT = setTimeout(function () { d.remove(); }, 2800);
+}
+function modal(title, text, buttons) {
+  $("mTtl").textContent = title; $("mTxt").textContent = text;
+  var b = $("mBtns"); b.innerHTML = "";
+  buttons.forEach(function (x) {
+    var el = document.createElement("button"); el.className = "btn" + (x.g ? " g" : ""); el.textContent = x.t;
+    el.onclick = function () { $("modal").hidden = true; if (x.fn) x.fn(); };
+    b.appendChild(el);
+  });
+  $("modal").hidden = false;
+}
+function confetti() {
+  var em = ["🎄", "⭐", "🎁", "❄️", "✨", "🔔", "🌟"];
+  for (var i = 0; i < 22; i++) {
+    var s = document.createElement("span"); s.className = "confetti"; s.textContent = em[i % em.length];
+    s.style.left = (Math.random() * 96) + "vw"; s.style.animationDelay = (Math.random() * .5) + "s";
+    document.body.appendChild(s); (function (x) { setTimeout(function () { x.remove(); }, 2600); })(s);
+  }
+}
+function dateLabel(day) {
+  var p = St.cfg.start.split("-"), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + day - 1));
+  return d.getUTCDate() + " " + MONTHS[d.getUTCMonth()];
+}
+
+/* ===== вхід ===== */
+function buildEntry() {
+  $("intro").textContent = ST.intro;
+  var c = $("classChips"); c.innerHTML = "";
+  St.cfg.classes.forEach(function (n) {
+    var b = document.createElement("button"); b.className = "chip" + (St.cls === n ? " on" : ""); b.textContent = n;
+    b.onclick = function () { St.cls = n; buildEntry(); };
+    c.appendChild(b);
+  });
+}
+function entryGo() {
+  var sur = $("inSur").value, nam = $("inNam").value, bad = false;
+  $("inSur").classList.toggle("err", !AR.clean(sur)); $("inNam").classList.toggle("err", !AR.clean(nam));
+  if (!St.cls) { $("entryErr").textContent = "Оберіть клас."; return; }
+  if (!AR.clean(sur) || !AR.clean(nam)) { $("entryErr").textContent = "Введіть прізвище та ім’я."; return; }
+  $("entryErr").textContent = ""; $("entryGo").disabled = true;
+  api("login", { cls: St.cls, sur: sur, nam: nam }).then(function (r) {
+    $("entryGo").disabled = false;
+    if (!r.ok) { $("entryErr").textContent = r.reason === "bad_class" ? "Оберіть клас зі списку." : "Перевірте прізвище та ім’я."; return; }
+    St.pending = r;
+    $("cfName").innerHTML = esc(r.me.sur + " " + r.me.nam) + "<br><small style='font-size:.9rem;color:var(--muted)'>" + esc(r.me.cls) + "</small>";
+    var n = 0; Object.keys(r.state.days).forEach(function (d) { if (r.state.days[d].s !== "open") n++; });
+    $("cfNote").textContent = r.isNew
+      ? "Ви тут уперше. Якщо прізвище чи ім’я з помилкою, натисніть «Виправити»."
+      : "Вже виконано: " + n + " з 25. Це ви?";
+    show("vConfirm");
+  }).catch(function () { $("entryGo").disabled = false; netErr(); });
+}
+function enter(r) {
+  St.me = r.me; St.srv = r.state; St.tab = "cal";
+  if (!DEMO) { try { localStorage.setItem("adv_me", JSON.stringify({ cls: r.me.cls, sur: r.me.sur, nam: r.me.nam })); } catch (e) { } }
+  renderHome(); show("vHome");
+}
+
+/* ===== головний екран ===== */
+function renderHome() {
+  var S = St.srv, done = 0, d;
+  for (d = 1; d <= 25; d++) { if (S.days[d] && S.days[d].s !== "open") done++; }
+  $("hiName").textContent = "Привіт, " + St.me.nam + "!";
+  $("stDone").textContent = "Виконано: " + done + " з 25";
+  $("stCatch").innerHTML = "Наздоганяння: <b>" + S.catchupLeft + "</b> з " + S.catchupMax;
+  $("barFill").style.width = (done / 25 * 100) + "%";
+  var bn = "";
+  if (S.today < 1) bn = "<div class='banner'>Адвент почнеться " + dateLabel(1) + ". Приходьте тоді!</div>";
+  else if (S.today > 25) bn = "<div class='banner'>Адвент завершено. Пропущені віконечка ще можна наздогнати.</div>";
+  if (done === 25) bn = "<div class='banner win'>🌟 Ви пройшли весь адвент і допомогли знайти Золоту Зірку! 🌟</div>";
+  $("banner").innerHTML = bn;
+  var g = "";
+  for (d = 1; d <= 25; d++) {
+    var inf = S.days[d], cls, ico, cap;
+    if (inf && inf.s !== "open") { cls = "c-fin"; ico = ST.get(d).e; cap = "виконано"; }
+    else if (inf && inf.s === "open") { cls = "c-open"; ico = "…"; cap = "продовжити"; }
+    else if (d === S.today) { cls = "c-today"; ico = "🎁"; cap = "сьогодні"; }
+    else if (d < S.today) { cls = "c-miss"; ico = "↺"; cap = "наздогнати"; }
+    else { cls = "c-lock"; ico = "🔒"; cap = "закрито"; }
+    var sp = d === 6 ? "🎅" : d === 25 ? "⭐" : "";
+    g += "<button class='cell " + cls + "' data-d='" + d + "' aria-label='День " + d + ", " + cap + "'><span class='n'>" + d + "</span><span class='i'>" + ico + "</span>" + (sp ? "<span class='sp'>" + sp + "</span>" : "") + "</button>";
+  }
+  $("grid").innerHTML = g;
+  var cells = $("grid").querySelectorAll(".cell");
+  for (var i = 0; i < cells.length; i++) cells[i].onclick = (function (el) { return function () { openDay(+el.getAttribute("data-d")); }; })(cells[i]);
+  $("tabCal").classList.toggle("on", St.tab === "cal"); $("tabStory").classList.toggle("on", St.tab === "story"); $("tabTree").classList.toggle("on", St.tab === "tree");
+  $("paneCal").hidden = St.tab !== "cal"; $("paneStory").hidden = St.tab !== "story"; $("paneTree").hidden = St.tab !== "tree";
+  if (St.tab === "story") renderStory();
+  if (St.tab === "tree") renderTree();
+}
+
+/* ===== історія ===== */
+function renderStory() {
+  var S = St.srv, h = "", d, n = 0;
+  for (d = 1; d <= 25; d++) {
+    var inf = S.days[d], c = ST.get(d);
+    if (inf && inf.s !== "open") { n++; h += "<div class='chap'><div class='e'>" + c.e + "</div><div><h4>День " + d + ". " + esc(c.t) + "</h4><p>" + esc(c.p) + "</p></div></div>"; }
+    else h += "<div class='chap lk'><div class='e'>🔒</div><div>День " + d + ": розділ відкриється після завдання</div></div>";
+  }
+  if (!n) h = "<div class='intro'>" + esc(ST.intro) + "</div>" + h;
+  $("paneStory").innerHTML = h;
+}
+
+/* ===== ялинка ===== */
+var ORN = ["#e63946", "#f7b731", "#4ea8de", "#9b5de5", "#2ec4b6", "#ff7bac", "#f4a259", "#9bdc6a"];
+function alloc(N) {
+  var R = Math.max(3, Math.ceil(Math.sqrt(2 * N))), w = [], s = 0, i;
+  for (i = 0; i < R; i++) { w.push(i + 1); s += i + 1; }
+  var cnt = w.map(function (x) { return Math.floor(N * x / s); });
+  var rem = N - cnt.reduce(function (a, b) { return a + b; }, 0);
+  var fr = w.map(function (x, k) { return { k: k, f: N * x / s - cnt[k] }; }).sort(function (a, b) { return b.f - a.f; });
+  for (i = 0; i < rem; i++) cnt[fr[i].k]++;
+  return cnt;
+}
+var TIERS = [{ ya: 55, yb: 255, w: 135 }, { ya: 150, yb: 400, w: 182 }, { ya: 260, yb: 560, w: 232 }, { ya: 380, yb: 735, w: 285 }];
+function hw(y) {
+  var m = 0;
+  TIERS.forEach(function (t) { if (y >= t.ya && y <= t.yb + 8) m = Math.max(m, t.w * Math.min(1, (y - t.ya) / (t.yb - t.ya))); });
+  return m;
+}
+function scallop(t, up) {
+  var n = Math.max(5, Math.round(t.w / 30)), step = 2 * t.w / n, d = "", x = 300 - t.w, i;
+  for (i = 0; i < n; i++) { d += " Q" + (x + step / 2).toFixed(1) + "," + (t.yb + up).toFixed(1) + " " + (x + step).toFixed(1) + "," + t.yb; x += step; }
+  return d;
+}
+var LCOL = ["#ff4d5e", "#ffd86b", "#5fb4ff", "#c58bff", "#6ee7b7", "#ff9ed1"];
+function drawTree(r) {
+  var kids = r.kids.slice().sort(function (a, b) { return (a.c + a.f + a.i) < (b.c + b.f + b.i) ? -1 : 1; });
+  var N = kids.length, i;
+  var svg = "<svg viewBox='0 0 600 830' role='img' aria-label='Спільна ялинка'><defs>" +
+    "<linearGradient id='tg1' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3fb577'/><stop offset='1' stop-color='#1f7f52'/></linearGradient>" +
+    "<linearGradient id='tg2' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#37a96c'/><stop offset='1' stop-color='#186a45'/></linearGradient>" +
+    "<radialGradient id='sg' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff3b0' stop-opacity='.95'/><stop offset='1' stop-color='#ffd86b' stop-opacity='0'/></radialGradient></defs>";
+  /* земля */
+  svg += "<path d='M-20,790 Q150,742 300,760 T620,780 L620,840 L-20,840 Z' fill='#e9f2ff'/><path d='M-20,812 Q200,780 330,800 T620,806 L620,840 L-20,840 Z' fill='#cfe0fb'/>";
+  svg += "<rect x='268' y='715' width='64' height='62' rx='6' fill='#8b5a2b'/><rect x='268' y='715' width='20' height='62' rx='6' fill='#a8723a'/>";
+  /* яруси */
+  TIERS.slice().reverse().forEach(function (t, k) {
+    svg += "<path d='M300," + t.ya + " L" + (300 - t.w) + "," + t.yb + scallop(t, 24) + " Z' fill='url(#tg" + (k % 2 + 1) + ")' stroke='#145c3b' stroke-width='3' stroke-linejoin='round'/>";
+    svg += "<path d='M" + (300 - t.w + 4) + "," + (t.yb - 2) + scallop({ w: t.w - 4, yb: t.yb - 2 }, 22).replace(/Q([\d.]+),([\d.]+) ([\d.]+),/g, function (m, qx, qy, ex) { return "Q" + (Number(qx) + 4) + "," + qy + " " + (Number(ex) + 4) + ","; }) + "' fill='none' stroke='#fff' stroke-width='6' stroke-linecap='round' opacity='.92'/>";
+  });
+  /* гірлянди з вогниками */
+  var li = 0;
+  TIERS.forEach(function (t, k) {
+    var y1 = t.ya + (t.yb - t.ya) * 0.62, y2 = t.ya + (t.yb - t.ya) * 0.86, xl = 300 - hw(y1) + 14, xr = 300 + hw(y2) - 14, cx = 300, cy = (y1 + y2) / 2 + 46;
+    svg += "<path d='M" + xl.toFixed(1) + "," + y1.toFixed(1) + " Q" + cx + "," + cy.toFixed(1) + " " + xr.toFixed(1) + "," + y2.toFixed(1) + "' fill='none' stroke='#ffd86b' stroke-width='3' opacity='.85'/>";
+    var nb = 4 + k * 2;
+    for (i = 1; i < nb; i++) {
+      var tt = i / nb, x = (1 - tt) * (1 - tt) * xl + 2 * (1 - tt) * tt * cx + tt * tt * xr, y = (1 - tt) * (1 - tt) * y1 + 2 * (1 - tt) * tt * cy + tt * tt * y2;
+      svg += "<circle class='lt' style='animation-delay:-" + ((li * 0.43) % 1.6).toFixed(2) + "s' cx='" + x.toFixed(1) + "' cy='" + (y + 4).toFixed(1) + "' r='4.5' fill='" + LCOL[li % LCOL.length] + "'/>"; li++;
+    }
+  });
+  /* подарунки */
+  var gifts = [[60, 752, 46, 40, "#e63946"], [108, 764, 36, 30, "#4ea8de"], [440, 756, 44, 38, "#9b5de5"], [488, 764, 40, 30, "#f7b731"]];
+  gifts.forEach(function (g) {
+    svg += "<rect x='" + g[0] + "' y='" + g[1] + "' width='" + g[2] + "' height='" + g[3] + "' rx='4' fill='" + g[4] + "'/><rect x='" + (g[0] + g[2] / 2 - 4) + "' y='" + g[1] + "' width='8' height='" + g[3] + "' fill='#fff' opacity='.85'/><rect x='" + g[0] + "' y='" + (g[1] + g[3] / 2 - 4) + "' width='" + g[2] + "' height='8' fill='#fff' opacity='.85'/>";
+  });
+  /* зірка */
+  svg += "<circle class='glow' cx='300' cy='46' r='62' fill='url(#sg)'/><polygon class='tw' points='300,0 311,28 342,30 318,49 326,79 300,62 274,79 282,49 258,30 289,28' fill='#ffd86b' stroke='#f2b632' stroke-width='3' stroke-linejoin='round'/>";
+  /* іграшки дітей */
+  if (N) {
+    var cnt = alloc(N), R = cnt.length, sc = Math.min(1, 6.5 / R), names = {}, idx = 0, y0 = 150, y1 = 710;
+    kids.forEach(function (k) { names[k.f] = (names[k.f] || 0) + 1; });
+    for (var row = 0; row < R; row++) {
+      var n = cnt[row], y = y0 + (row + 0.5) * ((y1 - y0) / R), avail = Math.max(30, 2 * (hw(y) - 44));
+      var step = n > 1 ? Math.min(120, avail / (n - 1)) : 0;
+      for (var j = 0; j < n; j++, idx++) {
+        var k = kids[idx], x = 300 + (j - (n - 1) / 2) * step + ((idx * 7) % 9 - 4), yy = y + (((idx * 5) % 7) - 3);
+        var col = ORN[T.hash(k.c + k.f + k.i) % ORN.length], rad = (13 + 12 * (k.d / 25)) * sc;
+        var nm = k.f.length > 8 ? k.f.slice(0, 7) + "…" : k.f;
+        if (names[k.f] > 1) nm = (k.f.length > 7 ? k.f.slice(0, 6) + "…" : k.f) + " " + k.i + ".";
+        var gold = k.d >= 25, fs = 16 * Math.max(sc, .85);
+        if (k.me) svg += "<circle class='ring' cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='" + (rad + 8).toFixed(1) + "' fill='none' stroke='#fff' stroke-width='3.5'/>";
+        svg += "<rect x='" + (x - 4).toFixed(1) + "' y='" + (yy - rad - 7).toFixed(1) + "' width='8' height='8' rx='1.5' fill='#f2b632'/>";
+        svg += "<circle" + (k.d > 0 ? " class='orn' style='animation-delay:-" + ((idx * 0.37) % 2.2).toFixed(2) + "s'" : "") + " cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='" + rad.toFixed(1) + "' fill='" + col + "' fill-opacity='" + (k.d === 0 ? 0.5 : 1) + "' stroke='" + (gold ? "#ffd86b" : "#fff") + "' stroke-width='" + (gold ? 4 : 2.5) + "'" + (k.d === 0 ? " stroke-dasharray='4 3'" : "") + "/>";
+        svg += "<ellipse cx='" + (x - rad * 0.35).toFixed(1) + "' cy='" + (yy - rad * 0.4).toFixed(1) + "' rx='" + (rad * 0.28).toFixed(1) + "' ry='" + (rad * 0.18).toFixed(1) + "' fill='#fff' fill-opacity='.6'/>";
+        if (k.d > 0) svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + rad * 0.3).toFixed(1) + "' text-anchor='middle' font-size='" + (rad * 0.85).toFixed(1) + "' font-weight='900' fill='#fff' stroke='rgba(0,0,0,.35)' stroke-width='2' paint-order='stroke' font-family='Nunito,system-ui,sans-serif'>" + k.d + "</text>";
+        svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + rad + fs + 1).toFixed(1) + "' text-anchor='middle' font-size='" + fs.toFixed(1) + "' font-weight='900' fill='#fff' stroke='#0f4a2e' stroke-width='4' paint-order='stroke' stroke-linejoin='round' font-family='Nunito,system-ui,sans-serif'>" + esc(nm) + "</text>";
+      }
+    }
+  }
+  svg += "</svg>";
+  $("treeBox").innerHTML = svg;
+  $("treeLeg").innerHTML = N ? "<span>Кожна іграшка росте з кожним виконаним днем.</span><span><b>Разом виконано: " + r.total + "</b></span>" : "<span>Ялинка чекає на перші іграшки.</span>";
+}
+function renderTree() {
+  api("tree", { key: St.me.key }).then(function (r) { if (r.ok) drawTree(r); }).catch(function () { $("treeBox").innerHTML = "<p class='note' style='text-align:center'>Не вдалося завантажити ялинку.</p>"; });
+}
+
+/* ===== відкриття дня ===== */
+function openDay(d) {
+  Fx.open();
+  var S = St.srv, inf = S.days[d], task = T.make(d, T.seedFor(St.me.key, d));
+  if (inf && inf.s !== "open") { showTask(d, task, { status: inf.s, attempts: inf.a, exits: inf.e, maxAttempts: S.attempts }, true, false); return; }
+  if (inf && inf.s === "open") { doOpen(d, task, true); return; }
+  if (d > S.today) { toast("Це віконечко відкриється " + dateLabel(d) + "."); return; }
+  if (d < S.today) {
+    if (S.catchupLeft <= 0) { toast("Наздоганяння закінчилися."); return; }
+    modal("Пропущений день", "Це наздоганяння. Залишилось " + S.catchupLeft + " з " + S.catchupMax + ". Відкрити завдання?",
+      [{ t: "Скасувати", g: true }, { t: "Відкрити", fn: function () { doOpen(d, task, false); } }]);
+    return;
+  }
+  doOpen(d, task, false);
+}
+function doOpen(d, task, resumed) {
+  if (St.busy) return; St.busy = true;
+  api("open", { key: St.me.key, day: d, qtext: task.qtext, ctext: task.ctext }).then(function (r) {
+    St.busy = false;
+    if (!r.ok) {
+      if (r.state) { St.srv = r.state; renderHome(); }
+      toast(r.reason === "future" ? "Це віконечко ще закрито." : r.reason === "no_catchup" ? "Наздоганяння закінчилися." : "Не вдалося відкрити завдання.");
+      return;
+    }
+    St.srv = r.state;
+    showTask(d, task, r.rec, r.rec.status !== "open", resumed);
+  }).catch(function () { St.busy = false; netErr(); });
+}
+
+/* ===== екран завдання ===== */
+function attemptDots() {
+  var max = St.rec.maxAttempts, h = "";
+  for (var i = 0; i < max; i++) h += "<i class='" + (i < St.rec.attempts ? "u" : "") + "'></i>";
+  return h;
+}
+function showTask(d, task, rec, viewOnly, resumed) {
+  St.day = d; St.task = task; St.rec = rec; St.viewOnly = viewOnly; St.closed = false; St.done = viewOnly;
+  St.vals = task.choices ? [] : task.fields.map(function () { return ""; }); St.sel = -1; St.act = 0; St.awayAt = 0;
+  $("tTtl").innerHTML = "День " + d + " · " + esc(task.title) + "<small>" + dateLabel(d) + "</small>";
+  show("vTask");
+  renderTask();
+  if (!viewOnly && resumed && rec.status === "open" && rec.exits > 0) warnExit();
+  if (viewOnly && resumed && rec.status === "exit") modal("Завдання закрито", "Ви вдруге вийшли з вікна. Завдання закрито, день зараховано.", [{ t: "До календаря", fn: backHome }]);
+}
+function storyBlock() {
+  var c = ST.get(St.day);
+  return "<div class='story'><h4>" + c.e + " Розділ " + St.day + ". " + esc(c.t) + "</h4><p>" + esc(c.p) + "</p></div>";
+}
+function solBlock() {
+  return "<div class='sol'><b>Розв’язання.</b> " + St.task.sol + "</div>";
+}
+function isOpt(k) { var t = St.task; return !!(t && t.opt && t.opt.indexOf(k) >= 0); }
+function nextCell(k) { var t = St.task, n = k + 1; while (n < t.fields.length && isOpt(n)) n++; return n; }
+function prevCell(k) { var n = k - 1; while (n > 0 && isOpt(n)) n--; return n; }
+function gcInp(k) {
+  return "<input class='gc" + (isOpt(k) ? " opt" : "") + "' id='f" + k + "' type='text' maxlength='1' autocomplete='off' autocapitalize='off' spellcheck='false' aria-label='цифра' value='" + esc(St.vals[k]) + "'" + (isTouch ? " readonly inputmode='none'" : " inputmode='numeric'") + ">";
+}
+function colHtml(t) {
+  var bd = t.col.board, h = "<div class='colwrap'><div class='dvm' style='--cw:min(2.3rem,calc((min(100vw,42rem) - 5.6rem)/" + bd.tot.toFixed(2) + "))'><div class='dvl'>";
+  bd.lines.forEach(function (l) {
+    h += "<div class='crow" + (l.rule ? " rl" : "") + (l.carry ? " cr" : "") + "'>" + l.items.map(function (it) {
+      if (it.e) return "<span class='slot'></span>";
+      if (it.d !== undefined) return "<span class='slot dig'>" + it.d + "</span>";
+      if (it.sg) return "<span class='slot sg'>" + it.sg + "</span>";
+      if (it.ln) return "<span class='slot ln'></span>";
+      if (it.ph) return "<span class='slot'></span>";
+      return "<span class='slot" + (it.o ? " optc" : "") + "'>" + gcInp(it.c) + "</span>";
+    }).join("") + "</div>";
+  });
+  if (t.col.mul) return h + "</div></div></div><div class='mulnote'>Пунктирні клітинки (числа, які запам’ятовуєте) заповнювати необов’язково.</div>";
+  if (t.col.hasRem) h += "<div class='remrow'><span class='rem' id='remLbl'>остача</span></div>";
+  h += "</div><div class='dvr' style='min-width:calc(var(--cw)*" + bd.R + " + .5rem)'><div class='dvt'>" +
+    bd.divisor.split("").map(function (d) { return "<span class='slot dig'>" + d + "</span>"; }).join("") + "</div><div class='dvq'>" +
+    bd.qIdx.map(function (k) { return "<span class='slot'>" + gcInp(k) + "</span>"; }).join("") + "</div></div></div></div>";
+  return h;
+}
+function remCheck() {
+  var t = St.task, lb = $("remLbl"); if (!t || !t.col || !lb) return;
+  var on = t.col.board.last.every(function (k) { return St.vals[k] !== ""; });
+  var was = lb.classList.contains("on");
+  lb.classList.toggle("on", on);
+  if (on && !was && lb.scrollIntoView) { try { lb.scrollIntoView({ block: "nearest" }); } catch (e) { } }
+}
+function renderTask() {
+  var t = St.task, rec = St.rec, h = "<div class='card'><div class='q'>" + t.q + "</div>", fin = rec.status !== "open";
+  if (!fin && !St.closed) {
+    if (t.choices) {
+      h += "<div class='opts'>";
+      t.choices.forEach(function (c, i) { h += "<button class='opt" + (St.sel === i ? " on" : "") + "' data-i='" + i + "'>" + esc(c.t) + "</button>"; });
+      h += "</div>";
+    } else if (t.col) {
+      h += colHtml(t);
+    } else {
+      t.fields.forEach(function (f, i) {
+        h += "<label class='fld'>" + (f.label ? "<span class='fl'>" + f.label + "</span>" : "") +
+          "<input id='f" + i + "' type='text' autocomplete='off' autocapitalize='off' spellcheck='false' value='" + esc(St.vals[i]) + "'" +
+          (isTouch ? " readonly inputmode='none'" : " inputmode='numeric'") + "></label>";
+      });
+    }
+    h += "<div class='meta'><span>Спроба " + Math.min(rec.attempts + 1, rec.maxAttempts) + " з " + rec.maxAttempts + "</span><span class='dots'>" + attemptDots() + "</span></div>";
+    h += "<div class='tease'>📖 Виконайте завдання, і відкриється розділ історії про Золоту Зірку.</div><div id='fb'></div>";
+  } else {
+    h += resultBlock();
+  }
+  h += "</div>";
+  $("tBody").innerHTML = h;
+  var foot = "";
+  if (!fin && !St.closed) foot = "<button class='btn wide' id='tGo'>Відповісти</button>";
+  else foot = "<button class='btn wide' id='tHome'>До календаря</button>";
+  if (DEMO && TEACHER && !fin && !St.closed) foot += "<button class='link' id='tPeek' style='display:block;margin:.3rem auto 0'>Показати відповідь (лише для вчительки)</button>";
+  $("tFoot").innerHTML = foot;
+  wireTask();
+  var showKp = isTouch && !fin && !St.closed && !t.choices;
+  $("kp").hidden = !showKp;
+  if (showKp) buildKp();
+}
+function resultBlock() {
+  var rec = St.rec, t = St.task;
+  if (St.closed || rec.status === "exit") {
+    return "<div class='msg warn'>Завдання закрито, бо ви виходили з вікна. День зараховано.</div>" + storyBlock();
+  }
+  if (rec.status === "correct") return "<div class='msg ok'>Правильно! 🎉 Відповідь: <b>" + esc(t.ctext.replace(/; /g, "; ")) + "</b></div>" + solBlock() + storyBlock();
+  return "<div class='msg bad'>Спроби закінчилися. Правильна відповідь: <b>" + esc(t.ctext) + "</b></div>" + solBlock() + storyBlock();
+}
+function wireTask() {
+  var go = $("tGo"), hm = $("tHome"), pk = $("tPeek");
+  if (hm) hm.onclick = backHome;
+  if (go) go.onclick = submit;
+  if (pk) pk.onclick = function () { $("fb").innerHTML = "<div class='msg warn'>Відповідь: <b>" + esc(St.task.ctext) + "</b></div><span id='peekAns' hidden>" + (St.task.answers || []).join(";") + "</span>" + solBlock(); };
+  var t = St.task, i, el;
+  if (t.choices) {
+    var os = $("tBody").querySelectorAll(".opt");
+    for (i = 0; i < os.length; i++) os[i].onclick = (function (b) { return function () { St.sel = +b.getAttribute("data-i"); renderTask(); }; })(os[i]);
+  } else if (!St.done) {
+    for (i = 0; i < t.fields.length; i++) {
+      el = $("f" + i);
+      if (!el) continue;
+      el.onfocus = (function (k) { return function () { St.act = k; markAct(); }; })(i);
+      el.onclick = (function (k) { return function () { St.act = k; markAct(); }; })(i);
+      el.oninput = (function (k) { return function (e) {
+        if (t.col) {
+          var d = e.target.value.replace(/\D/g, "").slice(-1); St.vals[k] = d; e.target.value = d; remCheck();
+          if (d && nextCell(k) < t.fields.length) $("f" + nextCell(k)).focus();
+        } else St.vals[k] = e.target.value;
+      }; })(i);
+      el.onkeydown = (function (k) { return function (e) {
+        if (e.key === "Enter") { e.preventDefault(); if (nextCell(k) < t.fields.length) { $("f" + nextCell(k)).focus(); } else submit(); }
+        else if (t.col && e.key === "Backspace" && !e.target.value && k > 0) { e.preventDefault(); var pk = prevCell(k); St.vals[pk] = ""; $("f" + pk).value = ""; $("f" + pk).focus(); remCheck(); }
+      }; })(i);
+    }
+    markAct();
+    if (!isTouch && $("f0")) $("f0").focus();
+  }
+}
+function markAct() {
+  var t = St.task; if (!t.fields) return;
+  for (var i = 0; i < t.fields.length; i++) { var el = $("f" + i); if (el) el.classList.toggle("act", i === St.act); }
+  var cur = $("f" + St.act); if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ block: "nearest" }); } catch (e) { } }
+}
+function buildKp() {
+  var keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "➜"], h = "";
+  keys.forEach(function (k) { h += "<button class='" + (k === "⌫" || k === "➜" ? "fn" : "") + "' data-k='" + k + "'>" + k + "</button>"; });
+  $("kp").innerHTML = h;
+  var bs = $("kp").querySelectorAll("button");
+  for (var i = 0; i < bs.length; i++) bs[i].onclick = (function (b) { return function () { kpress(b.getAttribute("data-k")); }; })(bs[i]);
+}
+function kpress(k) {
+  var t = St.task, a = St.act, el = $("f" + a);
+  if (!el) return;
+  if (t.col) {
+    if (k === "⌫") {
+      if (St.vals[a] !== "") { St.vals[a] = ""; el.value = ""; }
+      else if (a > 0) { var pa = prevCell(a); St.act = pa; St.vals[pa] = ""; $("f" + pa).value = ""; markAct(); }
+    } else if (k === "➜") { if (nextCell(a) < t.fields.length) { St.act = nextCell(a); markAct(); } else submit(); }
+    else { St.vals[a] = k; el.value = k; if (nextCell(a) < t.fields.length) { St.act = nextCell(a); markAct(); } }
+    remCheck(); return;
+  }
+  if (k === "⌫") St.vals[a] = St.vals[a].slice(0, -1);
+  else if (k === "➜") { if (a < t.fields.length - 1) { St.act = a + 1; markAct(); } else submit(); return; }
+  else if (St.vals[a].length < 9) St.vals[a] += k;
+  el.value = St.vals[a];
+}
+function backHome() {
+  show("vHome"); St.task = null; renderHome();
+}
+
+/* ===== відповідь ===== */
+function submit() {
+  if (St.busy || St.done || St.closed) return;
+  var t = St.task, input = t.choices ? St.sel : St.vals.slice();
+  if (!T.complete(t, input)) { $("fb").innerHTML = "<div class='msg warn'>" + (t.choices ? "Оберіть відповідь." : (t.col ? "Заповніть усі клітинки." : (t.fields.length > 1 ? "Введіть відповідь у всі поля." : "Введіть число."))) + "</div>"; return; }
+  var ok = T.check(t, input), txt = T.inputText(t, input);
+  St.busy = true; $("tGo").disabled = true;
+  api("attempt", { key: St.me.key, day: St.day, answer: txt, correct: ok }).then(function (r) {
+    St.busy = false;
+    if (!r.ok) { $("tGo").disabled = false; toast("Не вдалося зберегти відповідь. Спробуйте ще раз."); return; }
+    St.rec = r.rec; St.srv = r.state;
+    if (r.rec.status === "correct") { St.done = true; renderTask(); confetti(); if (St.day === 25) { Fx.fin(); } else { Fx.ok(); setTimeout(Fx.story, 900); } return; }
+    if (r.rec.status === "wrong") { St.done = true; renderTask(); Fx.bad(); setTimeout(Fx.story, 800); return; }
+    if (r.rec.status === "exit") { St.closed = true; St.done = true; renderTask(); return; }
+    Fx.bad();
+    var hint = t.hints[Math.min(r.rec.attempts - 1, t.hints.length - 1)];
+    var keepVals = St.vals.slice(), keepSel = St.sel;
+    renderTask();
+    St.vals = keepVals; St.sel = keepSel;
+    if (t.choices) { var os = $("tBody").querySelectorAll(".opt"); if (keepSel >= 0 && os[keepSel]) { os[keepSel].classList.remove("on"); os[keepSel].classList.add("no"); } St.sel = -1; }
+    else { t.fields.forEach(function (f, i) { var el = $("f" + i); if (el) { el.value = St.vals[i]; if (!(t.col && isOpt(i))) el.classList.add(t.col ? (T.parseNum(St.vals[i]) === t.answers[i] ? "ok" : "no") : "no"); } }); }
+    remCheck();
+    $("fb").innerHTML = "<div class='msg bad'>Неправильно. Спробуйте ще раз.<br><span style='font-weight:700'>Підказка: " + hint + "</span></div>";
+  }).catch(function () { St.busy = false; $("tGo").disabled = false; netErr(); });
+}
+
+/* ===== виходи з вікна ===== */
+function watching() { return St.view === "vTask" && St.rec && St.rec.status === "open" && !St.viewOnly && !St.done && !St.closed && !St.busy; }
+function leave() { if (St.awayAt) return; St.awayAt = Date.now(); }
+function back() {
+  if (!St.awayAt) return;
+  var sec = Math.round((Date.now() - St.awayAt) / 1000); St.awayAt = 0;
+  if (sec < 1) return;
+  if (!watching()) { if ($("modal").hidden) warnSoft(); return; }
+  api("exit", { key: St.me.key, day: St.day, awaySec: sec }).then(function (r) {
+    if (!r.ok) return;
+    St.rec = r.rec; St.srv = r.state;
+    if (r.rec.status === "exit") { St.closed = true; St.done = true; renderTask(); modal("Завдання закрито", "Ви вдруге вийшли з вікна. Завдання закрито, день зараховано.", [{ t: "До календаря", fn: backHome }]); }
+    else warnExit();
+  }).catch(function () { });
+}
+function warnSoft() {
+  modal("Виходити з вікна не можна", "Так тут не працює. Будь ласка, не виходьте зі сторінки адвента, поки з нею працюєте.", [{ t: "Зрозуміло" }]);
+}
+function warnExit() {
+  modal("Виходити з вікна не можна", "Якщо ви вийдете ще раз, завдання закриється, і відповісти вже не вийде.", [{ t: "Зрозуміло" }]);
+}
+document.addEventListener("visibilitychange", function () { if (document.hidden) leave(); else back(); });
+if (!isTouch) { window.addEventListener("blur", leave); window.addEventListener("focus", back); }
+
+/* ===== запуск ===== */
+function startApp(cfg) {
+  St.cfg = cfg; buildEntry(); show("vEntry");
+  if (DEMO) {
+    $("demoBar").hidden = false;
+    var sel = $("demoDay"), h = "";
+    for (var i = 0; i <= 26; i++) h += "<option value='" + i + "'" + (i === D.today ? " selected" : "") + ">" + (i === 0 ? "до початку" : i === 26 ? "після 25" : i) + "</option>";
+    sel.innerHTML = h;
+    sel.onchange = function () { D.today = +sel.value; if (St.me) { St.srv = dState(St.me.key); if (St.view === "vHome") renderHome(); } };
+    $("demoStrict").onchange = function () { D.strict = this.checked; };
+    $("demoReset").onclick = function () { D.recs = {}; D.kids = {}; St.me = null; show("vEntry"); };
+    return;
+  }
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem("adv_me") || "null"); } catch (e) { }
+  if (saved && saved.sur) {
+    api("login", saved).then(function (r) { if (r.ok) enter(r); }).catch(function () { });
+  }
+}
+$("entryGo").onclick = entryGo;
+$("inNam").onkeydown = function (e) { if (e.key === "Enter") entryGo(); };
+$("cfNo").onclick = function () { show("vEntry"); };
+$("cfYes").onclick = function () { enter(St.pending); };
+$("notMe").onclick = function () { try { localStorage.removeItem("adv_me"); } catch (e) { } St.me = null; $("inSur").value = ""; $("inNam").value = ""; show("vEntry"); };
+$("tabCal").onclick = function () { St.tab = "cal"; renderHome(); };
+$("tabStory").onclick = function () { St.tab = "story"; renderHome(); };
+$("tabTree").onclick = function () { St.tab = "tree"; renderHome(); };
+initDecor();
+$("tBack").onclick = function () {
+  if (watching() && St.rec.status === "open") {
+    modal("Вийти з завдання?", "Завдання залишиться відкритим, але повернення до нього вважається виходом.", [{ t: "Лишитись", g: true }, { t: "Вийти", fn: backHome }]);
+  } else backHome();
+};
+api("config").then(function (cfg) {
+  if (!cfg.ok) { toast("Адвент тимчасово недоступний."); return; }
+  startApp(cfg);
+}).catch(function () { netErr(); });
+})();
+</script>
+</body>
+</html>
