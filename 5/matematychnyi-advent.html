@@ -65,6 +65,11 @@ h2{margin:.1rem 0 .3rem;font-size:1.3rem;font-weight:900;color:var(--acc)}
 .intro{background:rgba(255,216,107,.14);border:2px solid rgba(255,216,107,.7);border-radius:1rem;padding:.7rem .9rem;margin-bottom:.8rem;font-weight:700;line-height:1.45;color:#fff3cf;font-size:.95rem}
 .who{font-size:1.5rem;font-weight:900;text-align:center;margin:.4rem 0}
 .tabs{display:flex;gap:.4rem;margin:.2rem 0 .7rem}
+.pick{background:rgba(255,255,255,.12);border-radius:1rem;padding:.7rem;margin:.6rem 0;color:#fff;text-align:center;width:100%}
+.pickrow{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.5rem}
+.toy{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);border-radius:.9rem;padding:.35rem .5rem;min-width:4.4rem;color:#fff;font-weight:800;cursor:pointer}
+.toy span{display:block;font-size:2rem;line-height:1.2}.toy small{display:block;font-size:.75rem}
+.toy:active{transform:scale(.94)}
 .tab{flex:1;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:.9rem;padding:.5rem .2rem;font-weight:900;font-size:.95rem;color:#cfe0ff;min-height:2.8rem}
 .tab.on{background:linear-gradient(180deg,#ffe28a,#f2b632);border-color:#fff1bd;color:#5b3600;box-shadow:0 0 .9rem rgba(255,216,107,.6)}
 .top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.4rem}
@@ -246,7 +251,7 @@ h2{margin:.1rem 0 .3rem;font-size:1.3rem;font-weight:900;color:var(--acc)}
       <div class="tabs" style="margin-top:.7rem">
         <button class="tab on" id="tabCal">🎁 Календар</button>
         <button class="tab" id="tabStory">📖 Історія</button>
-        <button class="tab" id="tabTree">🎄 Ялинка</button>
+        <button class="tab" id="tabTree">🎄 Моя ялинка</button>
       </div>
       <div id="paneCal">
         <div class="grid" id="grid"></div>
@@ -1123,7 +1128,7 @@ function api(action, data) {
     setTimeout(function () {
       if (LOCAL) { localToday(); }
       var out = demoServer(data);
-      if (LOCAL) { try { localStorage.setItem("adv_local", JSON.stringify({ recs: D.recs, kids: D.kids })); } catch (e) { } }
+      if (LOCAL) { try { localStorage.setItem("adv_local", JSON.stringify({ recs: D.recs, kids: D.kids, toys: D.toys })); } catch (e) { } }
       res(out);
     }, 60);
   });
@@ -1215,14 +1220,15 @@ function localToday() {
   var n = Math.round((Date.UTC(+a[0], +a[1] - 1, +a[2]) - Date.UTC(+b[0], +b[1] - 1, +b[2])) / 86400000) + 1;
   D.today = n < 1 ? 0 : n > 25 ? 26 : n;
 }
-if (LOCAL) { try { var _l = JSON.parse(localStorage.getItem("adv_local") || "null"); if (_l) { D.recs = _l.recs || {}; D.kids = _l.kids || {}; } } catch (e) { } localToday(); }
+if (LOCAL) { try { var _l = JSON.parse(localStorage.getItem("adv_local") || "null"); if (_l) { D.recs = _l.recs || {}; D.kids = _l.kids || {}; D.toys = _l.toys || {}; } } catch (e) { } localToday(); }
 function dState(key) {
   var days = {}, used = 0;
   Object.keys(D.recs).forEach(function (k) {
     var r = D.recs[k]; if (r.key !== key) return;
     days[r.day] = { s: r.status, a: r.attempts, e: r.exits }; if (r.catchup) used++;
   });
-  return { today: D.today, days: days, catchupLeft: Math.max(0, D.cfg.catchup - used), catchupMax: D.cfg.catchup, attempts: D.cfg.attempts };
+  var toys = {}; Object.keys(D.toys || {}).forEach(function (k) { var c = k.lastIndexOf("|"); if (k.slice(0, c) === key) toys[k.slice(c + 1)] = D.toys[k]; });
+  return { today: D.today, days: days, toys: toys, catchupLeft: Math.max(0, D.cfg.catchup - used), catchupMax: D.cfg.catchup, attempts: D.cfg.attempts };
 }
 function dPub(r) { return { status: r.status, attempts: r.attempts, exits: r.exits, maxAttempts: D.cfg.attempts }; }
 function demoServer(p) {
@@ -1256,6 +1262,12 @@ function demoServer(p) {
     var k2 = rec.exits; AR.onExit(rec, p.awaySec, Date.now());
     if (!D.strict && rec.status === "exit") { rec.status = "open"; rec.finished = 0; rec.exits = k2 + 1; }
     return { ok: true, rec: dPub(rec), state: dState(p.key) };
+  }
+  if (a === "toy") {
+    rec = D.recs[p.key + "|" + p.day]; if (!rec || rec.status === "open") return { ok: false, reason: "not_done" };
+    if (!/^[0-9]$/.test(String(p.toy))) return { ok: false, reason: "bad_toy" };
+    D.toys = D.toys || {}; D.toys[p.key + "|" + p.day] = String(p.toy);
+    return { ok: true, state: dState(p.key) };
   }
   if (a === "tree") {
     var kids = [];
@@ -1334,6 +1346,12 @@ function enter(r) {
 }
 
 /* ===== головний екран ===== */
+function pendToys() {
+  var S = St.srv, n = 0, d, t = S.toys || {};
+  for (d = 1; d <= 25; d++) if (S.days[d] && S.days[d].s !== "open" && t[d] === undefined) n++;
+  return n;
+}
+function updToyBanner() { var n = pendToys(); $("tabTree").textContent = "🎄 Моя ялинка" + (n ? " ❗" : ""); }
 function renderHome() {
   var S = St.srv, done = 0, d;
   for (d = 1; d <= 25; d++) { if (S.days[d] && S.days[d].s !== "open") done++; }
@@ -1345,7 +1363,10 @@ function renderHome() {
   if (S.today < 1) bn = "<div class='banner'>Адвент почнеться " + dateLabel(1) + ". Приходьте тоді!</div>";
   else if (S.today > 25) bn = "<div class='banner'>Адвент завершено. Пропущені віконечка ще можна наздогнати.</div>";
   if (done === 25) bn = "<div class='banner win'>🌟 Ви пройшли весь адвент і допомогли знайти Золоту Зірку! 🌟</div>";
+  var pt = pendToys();
+  if (pt && done < 25) bn += "<div class='banner'>🎄 Є іграшка для ялинки! Відкрий «Моя ялинка» і повісь її.</div>";
   $("banner").innerHTML = bn;
+  updToyBanner();
   var g = "";
   for (d = 1; d <= 25; d++) {
     var inf = S.days[d], cls, ico, cap;
@@ -1401,10 +1422,14 @@ function scallop(t, up) {
   return d;
 }
 var LCOL = ["#ff4d5e", "#ffd86b", "#5fb4ff", "#c58bff", "#6ee7b7", "#ff9ed1"];
-function drawTree(r) {
-  var kids = r.kids.slice().sort(function (a, b) { return (a.c + a.f + a.i) < (b.c + b.f + b.i) ? -1 : 1; });
-  var N = kids.length, i;
-  var svg = "<svg viewBox='0 0 600 830' role='img' aria-label='Спільна ялинка'><defs>" +
+var TOYS = [
+  { e: "🔴", n: "Кулька" }, { e: "⭐", n: "Зірочка" }, { e: "🔔", n: "Дзвіночок" },
+  { e: "🍬", n: "Цукерка" }, { e: "❄️", n: "Сніжинка" }, { e: "🎅", n: "Дід Мороз" },
+  { e: "🧦", n: "Шкарпетка" }, { e: "🦔", n: "Їжачок Біб" }
+];
+function drawTree() {
+  var S = St.srv, toys = S.toys || {}, d, i;
+  var svg = "<svg viewBox='0 0 600 830' role='img' aria-label='Моя ялинка'><defs>" +
     "<linearGradient id='tg1' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3fb577'/><stop offset='1' stop-color='#1f7f52'/></linearGradient>" +
     "<linearGradient id='tg2' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#37a96c'/><stop offset='1' stop-color='#186a45'/></linearGradient>" +
     "<radialGradient id='sg' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff3b0' stop-opacity='.95'/><stop offset='1' stop-color='#ffd86b' stop-opacity='0'/></radialGradient></defs>";
@@ -1434,35 +1459,54 @@ function drawTree(r) {
   });
   /* зірка */
   svg += "<circle class='glow' cx='300' cy='46' r='62' fill='url(#sg)'/><polygon class='tw' points='300,0 311,28 342,30 318,49 326,79 300,62 274,79 282,49 258,30 289,28' fill='#ffd86b' stroke='#f2b632' stroke-width='3' stroke-linejoin='round'/>";
-  /* іграшки дітей */
-  if (N) {
-    var cnt = alloc(N), R = cnt.length, sc = Math.min(1, 6.5 / R), names = {}, idx = 0, y0 = 150, y1 = 710;
-    kids.forEach(function (k) { names[k.f] = (names[k.f] || 0) + 1; });
-    for (var row = 0; row < R; row++) {
-      var n = cnt[row], y = y0 + (row + 0.5) * ((y1 - y0) / R), avail = Math.max(30, 2 * (hw(y) - 44));
-      var step = n > 1 ? Math.min(120, avail / (n - 1)) : 0;
-      for (var j = 0; j < n; j++, idx++) {
-        var k = kids[idx], x = 300 + (j - (n - 1) / 2) * step + ((idx * 7) % 9 - 4), yy = y + (((idx * 5) % 7) - 3);
-        var col = ORN[T.hash(k.c + k.f + k.i) % ORN.length], rad = (13 + 12 * (k.d / 25)) * sc;
-        var nm = k.f.length > 8 ? k.f.slice(0, 7) + "…" : k.f;
-        if (names[k.f] > 1) nm = (k.f.length > 7 ? k.f.slice(0, 6) + "…" : k.f) + " " + k.i + ".";
-        var gold = k.d >= 25, fs = 16 * Math.max(sc, .85);
-        if (k.me) svg += "<circle class='ring' cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='" + (rad + 8).toFixed(1) + "' fill='none' stroke='#fff' stroke-width='3.5'/>";
-        svg += "<rect x='" + (x - 4).toFixed(1) + "' y='" + (yy - rad - 7).toFixed(1) + "' width='8' height='8' rx='1.5' fill='#f2b632'/>";
-        svg += "<circle" + (k.d > 0 ? " class='orn' style='animation-delay:-" + ((idx * 0.37) % 2.2).toFixed(2) + "s'" : "") + " cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='" + rad.toFixed(1) + "' fill='" + col + "' fill-opacity='" + (k.d === 0 ? 0.5 : 1) + "' stroke='" + (gold ? "#ffd86b" : "#fff") + "' stroke-width='" + (gold ? 4 : 2.5) + "'" + (k.d === 0 ? " stroke-dasharray='4 3'" : "") + "/>";
-        svg += "<ellipse cx='" + (x - rad * 0.35).toFixed(1) + "' cy='" + (yy - rad * 0.4).toFixed(1) + "' rx='" + (rad * 0.28).toFixed(1) + "' ry='" + (rad * 0.18).toFixed(1) + "' fill='#fff' fill-opacity='.6'/>";
-        if (k.d > 0) svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + rad * 0.3).toFixed(1) + "' text-anchor='middle' font-size='" + (rad * 0.85).toFixed(1) + "' font-weight='900' fill='#fff' stroke='rgba(0,0,0,.35)' stroke-width='2' paint-order='stroke' font-family='Nunito,system-ui,sans-serif'>" + k.d + "</text>";
-        svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + rad + fs + 1).toFixed(1) + "' text-anchor='middle' font-size='" + fs.toFixed(1) + "' font-weight='900' fill='#fff' stroke='#0f4a2e' stroke-width='4' paint-order='stroke' stroke-linejoin='round' font-family='Nunito,system-ui,sans-serif'>" + esc(nm) + "</text>";
+  /* 25 місць для іграшок */
+  var cnt = alloc(25), R = cnt.length, idx = 0, y0 = 150, y1 = 710, pend = [];
+  for (var row = 0; row < R; row++) {
+    var n = cnt[row], y = y0 + (row + 0.5) * ((y1 - y0) / R), avail = Math.max(30, 2 * (hw(y) - 44));
+    var step = n > 1 ? Math.min(120, avail / (n - 1)) : 0;
+    for (var j = 0; j < n; j++, idx++) {
+      d = idx + 1;
+      var x = 300 + (j - (n - 1) / 2) * step, yy = y;
+      var fin = S.days[d] && S.days[d].s !== "open", t = toys[d];
+      if (t !== undefined && TOYS[+t]) {
+        svg += "<g class='orn' style='animation-delay:-" + ((idx * 0.37) % 2.2).toFixed(2) + "s'><text x='" + x.toFixed(1) + "' y='" + (yy + 10).toFixed(1) + "' text-anchor='middle' font-size='34'>" + TOYS[+t].e + "</text></g>";
+        svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + 34).toFixed(1) + "' text-anchor='middle' font-size='15' font-weight='900' fill='#fff' stroke='#0f4a2e' stroke-width='4' paint-order='stroke'>" + d + "</text>";
+      } else if (fin) {
+        pend.push(d);
+        svg += "<circle class='ring' cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='17' fill='rgba(255,255,255,.25)' stroke='#fff' stroke-width='3' stroke-dasharray='5 4'/><text x='" + x.toFixed(1) + "' y='" + (yy + 6).toFixed(1) + "' text-anchor='middle' font-size='16' font-weight='900' fill='#fff'>+</text>";
+        svg += "<text x='" + x.toFixed(1) + "' y='" + (yy + 34).toFixed(1) + "' text-anchor='middle' font-size='15' font-weight='900' fill='#fff' stroke='#0f4a2e' stroke-width='4' paint-order='stroke'>" + d + "</text>";
+      } else {
+        svg += "<circle cx='" + x.toFixed(1) + "' cy='" + yy.toFixed(1) + "' r='10' fill='rgba(0,0,0,.18)'/><text x='" + x.toFixed(1) + "' y='" + (yy + 5).toFixed(1) + "' text-anchor='middle' font-size='13' font-weight='900' fill='rgba(255,255,255,.7)'>" + d + "</text>";
       }
     }
   }
   svg += "</svg>";
   $("treeBox").innerHTML = svg;
-  $("treeLeg").innerHTML = N ? "<span>Кожна іграшка росте з кожним виконаним днем.</span><span><b>Разом виконано: " + r.total + "</b></span>" : "<span>Ялинка чекає на перші іграшки.</span>";
+  var got = Object.keys(toys).length, pk = "";
+  if (pend.length) {
+    if (St.pickDay && pend.indexOf(St.pickDay) < 0) St.pickDay = 0;
+    if (!St.pickDay) St.pickDay = pend[0];
+    pk = "<div class='pick'><b>Обери іграшку для дня " + St.pickDay + ":</b><div class='pickrow'>";
+    TOYS.forEach(function (t, k) { pk += "<button class='toy' data-t='" + k + "' aria-label='" + t.n + "'><span>" + t.e + "</span><small>" + t.n + "</small></button>"; });
+    pk += "</div>" + (pend.length > 1 ? "<div class='note'>Ще без іграшки: дні " + pend.join(", ") + ". Натисни порожнє місце на ялинці, щоб вибрати інший день.</div>" : "") + "</div>";
+  } else St.pickDay = 0;
+  $("treeLeg").innerHTML = pk + "<span><b>Іграшок на ялинці: " + got + " з 25</b></span>" + (pend.length ? "" : "<span>Виконай завдання дня — і з'явиться нове місце для іграшки.</span>");
+  var ts = $("treeLeg").querySelectorAll(".toy");
+  for (i = 0; i < ts.length; i++) ts[i].onclick = (function (el) { return function () { setToy(St.pickDay, el.getAttribute("data-t")); }; })(ts[i]);
+  var gs = $("treeBox").querySelectorAll("svg .ring");
+  var slots = []; idx = 0;
+  for (d = 1; d <= 25; d++) if (pend.indexOf(d) >= 0) slots.push(d);
+  for (i = 0; i < gs.length; i++) gs[i].parentNode && (gs[i].style.cursor = "pointer", gs[i].onclick = (function (dd) { return function () { St.pickDay = dd; drawTree(); }; })(slots[i]));
 }
-function renderTree() {
-  api("tree", { key: St.me.key }).then(function (r) { if (r.ok) drawTree(r); }).catch(function () { $("treeBox").innerHTML = "<p class='note' style='text-align:center'>Не вдалося завантажити ялинку.</p>"; });
+function setToy(day, t) {
+  if (St.busy) return; St.busy = true;
+  api("toy", { key: St.me.key, day: day, toy: t }).then(function (r) {
+    St.busy = false;
+    if (!r.ok) { toast("Не вдалося повісити іграшку. Спробуйте ще раз."); return; }
+    St.srv = r.state; St.pickDay = 0; Fx.ok && Fx.ok(); drawTree(); updToyBanner();
+  }).catch(function () { St.busy = false; netErr(); });
 }
+function renderTree() { drawTree(); }
 
 /* ===== відкриття дня ===== */
 function openDay(d) {
