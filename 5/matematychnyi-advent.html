@@ -1104,6 +1104,7 @@ var AR = AdventRules, T = AdventTasks, ST = AdventStory;
 /* ===== налаштування ===== */
 var API_URL = "";   // ← сюди вставляється адреса веб-застосунку Google Apps Script (закінчується на /exec)
 var DEMO = !API_URL || /[?&]demo=1/.test(location.search);
+var LOCAL = !API_URL && !/[?&]demo=1/.test(location.search);   // без сервера: дати за годинником, прогрес у цьому браузері
 var TEACHER = /[?&]teacher=1/.test(location.search);
 var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
 
@@ -1118,7 +1119,14 @@ var St = { cfg: null, me: null, srv: null, tab: "cal", view: "entry", cls: "", p
 /* ===== зв'язок з сервером ===== */
 function api(action, data) {
   data = data || {}; data.action = action;
-  if (DEMO) return new Promise(function (res) { setTimeout(function () { res(demoServer(data)); }, 60); });
+  if (DEMO) return new Promise(function (res) {
+    setTimeout(function () {
+      if (LOCAL) { localToday(); }
+      var out = demoServer(data);
+      if (LOCAL) { try { localStorage.setItem("adv_local", JSON.stringify({ recs: D.recs, kids: D.kids })); } catch (e) { } }
+      res(out);
+    }, 60);
+  });
   return fetch(API_URL, { method: "POST", body: JSON.stringify(data) }).then(function (r) { return r.json(); });
 }
 
@@ -1200,6 +1208,14 @@ function netErr() { toast("Немає зв’язку. Перевірте інт
 
 /* ===== ДЕМО-СЕРВЕР (лише для перегляду; повторює правила сервера) ===== */
 var D = { recs: {}, kids: {}, today: 7, strict: false, cfg: { classes: ["5"], attempts: 3, catchup: 5, start: "2026-12-01" } };
+function localToday() {
+  var ymd;
+  try { ymd = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Kiev", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); } catch (e) { ymd = new Date().toISOString().slice(0, 10); }
+  var a = ymd.split("-"), b = D.cfg.start.split("-");
+  var n = Math.round((Date.UTC(+a[0], +a[1] - 1, +a[2]) - Date.UTC(+b[0], +b[1] - 1, +b[2])) / 86400000) + 1;
+  D.today = n < 1 ? 0 : n > 25 ? 26 : n;
+}
+if (LOCAL) { try { var _l = JSON.parse(localStorage.getItem("adv_local") || "null"); if (_l) { D.recs = _l.recs || {}; D.kids = _l.kids || {}; } } catch (e) { } localToday(); }
 function dState(key) {
   var days = {}, used = 0;
   Object.keys(D.recs).forEach(function (k) {
@@ -1313,7 +1329,7 @@ function entryGo() {
 }
 function enter(r) {
   St.me = r.me; St.srv = r.state; St.tab = "cal";
-  if (!DEMO) { try { localStorage.setItem("adv_me", JSON.stringify({ cls: r.me.cls, sur: r.me.sur, nam: r.me.nam })); } catch (e) { } }
+  if (!DEMO || LOCAL) { try { localStorage.setItem("adv_me", JSON.stringify({ cls: r.me.cls, sur: r.me.sur, nam: r.me.nam })); } catch (e) { } }
   renderHome(); show("vHome");
 }
 
@@ -1687,7 +1703,7 @@ if (!isTouch) { window.addEventListener("blur", leave); window.addEventListener(
 /* ===== запуск ===== */
 function startApp(cfg) {
   St.cfg = cfg; buildEntry(); show("vEntry");
-  if (DEMO) {
+  if (DEMO && !LOCAL) {
     $("demoBar").hidden = false;
     var sel = $("demoDay"), h = "";
     for (var i = 0; i <= 26; i++) h += "<option value='" + i + "'" + (i === D.today ? " selected" : "") + ">" + (i === 0 ? "до початку" : i === 26 ? "після 25" : i) + "</option>";
