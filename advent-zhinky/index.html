@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b1534">
+<title>Адвент · П’ять жінок</title>
+<style>
+:root{--gold:#f6c453;--gold2:#ffe29a;--ink:#f6f2e8;--soft:#c9d0ee;--card:rgba(255,255,255,.07);--line:rgba(255,226,154,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;-webkit-text-size-adjust:100%}
+body{color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.5;
+  background:linear-gradient(180deg,#070d24 0%,#12204f 55%,#263874 100%) fixed}
+#snow{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#app{position:relative;z-index:1;height:100vh;height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;
+  padding:6px 10px calc(6px + env(safe-area-inset-bottom))}
+.panel{display:none;flex:1;min-height:0;flex-direction:column}
+.panel.on{display:flex}
+button{font-family:inherit;color:inherit}
+/* шапка */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 0}
+h1{margin:0;font-size:clamp(22px,6vw,28px);line-height:1.1;color:var(--gold2);
+  background:linear-gradient(180deg,#fff2c4,#f2b93b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{margin:0;color:var(--soft);font-size:12.5px;font-style:italic}
+#status{margin:2px 2px 4px;color:var(--soft);font-size:12.5px;min-height:18px}
+#resetBtn{background:none;border:1px solid var(--line);border-radius:10px;width:34px;height:34px;font-size:17px;color:var(--soft);opacity:.7;cursor:pointer}
+#resetBtn.armed{opacity:1;border-color:#ff9a8a;color:#ffb3a6}
+/* свічки */
+.candles{display:flex;justify-content:space-around;align-items:flex-end;padding:4px 0 6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.cd{display:flex;flex-direction:column;align-items:center;width:23%}
+.fl{width:11px;height:16px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:transparent;margin-bottom:1px;transition:.4s}
+.cd.lit .fl{background:radial-gradient(circle at 50% 70%,#fff6c9,#ffc94d 55%,#ff9a2e);box-shadow:0 0 12px 3px rgba(255,201,77,.75);animation:fk 1.6s infinite alternate}
+.st{width:13px;height:22px;border-radius:3px;background:linear-gradient(90deg,#d9cfb4,#fbf3dc 50%,#cdbf9c);opacity:.55}
+.cd.lit .st{opacity:1}
+.cl{font-size:11px;color:var(--soft);margin-top:2px;white-space:nowrap}
+.cd.lit .cl{color:var(--gold2)}
+@keyframes fk{from{transform:scale(1) rotate(-2deg)}to{transform:scale(1.08,1.12) rotate(2deg)}}
+/* сітка ліхтариків */
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:4px 6px}
+.cell{min-width:0;min-height:0;padding:0;background:none;border:0;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center}
+.cell svg{width:100%;height:100%;display:block;overflow:visible}
+.cell .halo{fill:url(#hg);opacity:0}
+.cell .body{fill:rgba(8,14,40,.8);stroke:rgba(201,208,238,.3);stroke-width:2;stroke-linejoin:round}
+.cell .hd{fill:none;stroke:rgba(201,208,238,.35);stroke-width:2.6;stroke-linecap:round}
+.cell .capf{fill:rgba(201,208,238,.28)}
+.cell .bar{stroke:rgba(201,208,238,.16);stroke-width:1.4;fill:none}
+.cell .flame,.cell .core{display:none}
+.cell .lock{fill:none;stroke:rgba(201,208,238,.5);stroke-width:2;stroke-linecap:round}
+.cell .lock rect{fill:rgba(201,208,238,.4);stroke:none}
+.cell .num{fill:rgba(201,208,238,.6);font:700 14px Georgia,serif;text-anchor:middle}
+.cell.open .body{fill:rgba(246,196,83,.1);stroke:var(--gold)}
+.cell.open .hd{stroke:var(--gold)}
+.cell.open .capf{fill:var(--gold)}
+.cell.open .bar{stroke:rgba(246,196,83,.35)}
+.cell.open .lock{display:none}
+.cell.open .num{fill:var(--gold2)}
+.cell.open .flame{display:block;fill:none;stroke:rgba(255,226,154,.65);stroke-width:1.6;stroke-dasharray:3 2}
+.cell.next svg{animation:pu 1.8s ease-in-out infinite}
+.cell.done .halo{opacity:1;animation:hp 2.4s ease-in-out infinite}
+.cell.done .body{fill:url(#gl);stroke:#ffd873}
+.cell.done .hd{stroke:#ffd873}
+.cell.done .capf{fill:#ffd873}
+.cell.done .bar{stroke:rgba(150,80,0,.4)}
+.cell.done .lock{display:none}
+.cell.done .flame{display:block;fill:url(#fg);stroke:none;transform-box:fill-box;transform-origin:50% 100%;animation:fk 1.4s infinite alternate}
+.cell.done .core{display:block;fill:#fffbe6}
+.cell.done .num{fill:#4a3000}
+.cell.done svg{filter:drop-shadow(0 0 7px rgba(255,200,80,.85))}
+.cell.star.done .flame,.cell.star.done .core{display:none}
+.lt .vs{font-style:italic;color:var(--gold2);border-left:2px solid var(--gold);padding-left:10px}
+@keyframes hp{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+/* нижні вкладки */
+.tabs{display:flex;gap:6px;margin-top:6px}
+.tab{flex:1;padding:10px 4px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;cursor:pointer}
+.tab.on{background:linear-gradient(180deg,#ffe29a,#f2b93b);color:#2b1c00;font-weight:700;border-color:transparent}
+.tab.hid{display:none}
+.tab.pulse{animation:pu 1.4s infinite}
+/* сторінка-сторінка */
+.pg{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin:6px 0 0}
+.kick{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.fitbox{flex:1;min-height:0;display:flex;align-items:center;overflow-y:auto}
+.fitbox>div{width:100%}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.nb{min-width:92px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:15px;cursor:pointer}
+.nb.pri{background:linear-gradient(180deg,#ffe29a,#f2b93b);color:#2b1c00;font-weight:700;border-color:transparent}
+.nb[disabled]{opacity:.35;cursor:default}
+.nb.gone{visibility:hidden}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}
+.dots i.on{background:var(--gold)}
+.empty{margin:auto;text-align:center;color:var(--soft);padding:20px;font-style:italic}
+/* модальне вікно дня */
+#modal{position:fixed;inset:0;z-index:5;display:none;background:linear-gradient(180deg,#070d24,#14224f 60%,#243670)}
+#modal.on{display:block}
+#mcard{height:100vh;height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+.mh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mt{font-size:14px;color:var(--soft)}
+.mt b{color:var(--gold2)}
+.close{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;cursor:pointer}
+.mb{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 2px 0}
+.verse{font-style:italic;color:#fff6dc;line-height:1.45}
+.vref{margin-top:10px;color:var(--gold2);font-size:15px}
+.vref small{color:var(--soft);font-size:12px;display:block;margin-top:2px}
+.prose{color:var(--ink);line-height:1.55}
+.q{color:#fff6dc;font-size:22px;line-height:1.3;margin:0 0 12px}
+.inp{width:100%;font:inherit;font-size:19px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.09);color:var(--ink);outline:none}
+.inp:focus{border-color:var(--gold)}
+.hint{margin:8px 0 12px;color:var(--soft);font-size:13px}
+.err{color:#ffb3a6;font-size:13px;min-height:18px;margin:0 0 6px}
+.wide{width:100%;padding:13px;font-size:17px}
+/* лист */
+.lt{font-size:17px;line-height:1.55;color:#fff6dc}
+.lt p{margin:0 0 .5em}
+.row2{display:flex;gap:8px;width:100%}
+.row2 .nb{flex:1}
+/* повідомлення */
+.toast{position:fixed;left:50%;top:calc(60px + env(safe-area-inset-top));transform:translate(-50%,-20px);z-index:9;background:#fff2c4;color:#2b1c00;padding:10px 16px;border-radius:14px;font-size:14.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+#printOut{display:none}
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  #app,#modal,#snow,.toast{display:none!important}
+  #printOut{display:block;white-space:pre-wrap;font:16pt/1.6 Georgia,serif;color:#000;padding:20mm}
+}
+@media (max-height:600px){.sub{display:none}.cl{font-size:10px}.q{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="gl" cx=".5" cy=".5" r=".65"><stop offset="0" stop-color="#fff8dc"/><stop offset=".55" stop-color="#ffd05a"/><stop offset="1" stop-color="#e98a22"/></radialGradient><radialGradient id="hg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="rgba(255,208,90,.55)"/><stop offset="1" stop-color="rgba(255,208,90,0)"/></radialGradient><linearGradient id="fg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e8611a"/><stop offset=".6" stop-color="#ff9a2e"/><stop offset="1" stop-color="#ffe27a"/></linearGradient>
+</defs></svg>
+<div id="app">
+  <section class="panel on" id="p-cal">
+    <div class="top">
+      <div><h1>Адвент</h1></div>
+      <button id="resetBtn" type="button" title="Почати спочатку" aria-label="Почати спочатку">↺</button>
+    </div>
+    <div id="status"></div>
+    <div class="candles" id="candles"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+  <section class="panel" id="p-story"></section>
+  <section class="panel" id="p-letter"></section>
+  <nav class="tabs">
+    <button class="tab on" data-t="cal" type="button">🏮 Календар</button>
+    <button class="tab" data-t="story" type="button">📖 Історія</button>
+    <button class="tab hid" data-t="letter" type="button">✉ Лист</button>
+  </nav>
+</div>
+<div id="modal"><div id="mcard"></div></div>
+<div class="toast" id="toast"></div>
+<div id="printOut"></div>
+<script>
+var PREVIEW = false; // true - версія для перегляду вчителькою: усі дні відкриті
+var YEAR = 2026;
+var THEMES = ["Надія","Мир","Радість і довіра","Любов","Різдво"];
+var DAYS = [{"who":"Тамара","ref":"Ісаї 9:2","tr":"UMT","verse":"Люди, які ходили у пітьмі, побачили яскраве світло. Засяяло «Велике Світло» тим, хто жив на землі мороку.","thought":"Світло приходить не тоді, коли в домі вже зовсім світло, а саме тоді, коли найтемніше. Адвент починається з чесного визнання, що десь у нас ще темно, і це не соромно. Сьогодні просто назви місце, куди хочеш запросити світло.","q":"Що зараз найбільше потребує світла у твоєму житті?","story":"Євангеліє від Матвія відкривається довгим списком імен. Це родовід Ісуса, і серед чоловічих імен, мов несподівані вогники, стоять п’ять жінок. Ми пройдемо Адвент разом із ними. Першою зустрінемо Тамару. Вона була дружиною одного з синів Юди. Чоловік помер, потім помер і його брат, за яким вона мала виходити заміж за звичаєм. Тамара лишилась удовою, без дітей і без захисту (Буття 38). Юда відіслав її жити до батька й пообіцяв віддати їй наймолодшого сина, коли той виросте. Так почався її довгий вечір."},
+{"who":"Тамара","ref":"Псалом 130:5","tr":"UMT","verse":"На Господа надії покладаю, життя моє в Його руках, залежу від Його повчань.","thought":"Чекати — це не бездіяльність, а непроста робота серця. Пастух чекає ранку, мати — першого кроку дитини, а ми — Того, Хто вже йде до нас. Сьогодні дозволь собі чекати без поспіху.","q":"Чого ти чекаєш найдовше?","story":"Роки йшли. Шела, наймолодший син Юди, давно виріс, але обіцянка так і не здійснилась (Буття 38:11,14). Тамара жила в батьковому домі: без прав, без дітей, без відповіді. Писання не розповідає про її сльози, та ми розуміємо, що чекання без виконаної обіцянки належить до найважчих. Усе ж вона не зникла й не змирилась мовчки. Вона чекала, але й дивилась, чи не відчиниться якась інша дорога."},
+{"who":"Тамара","ref":"Матвія 1:3","tr":"НПУ","verse":"Юда був батьком Фареса та Зари від Тамари.","thought":"Матвій міг би пропустити її ім’я, але записав: «від Тамари». Біблія не вдає, що Тамара була бездоганною, і все ж Бог вплів її історію в історію Месії. Він бачить тих, кого люди вважають зайвими. Сьогодні подумай, що тобі важливо, щоб почули.","q":"Що тобі важливо, щоб почули?","story":"Одного дня Тамара зважилась на відчайдушний крок. Вона вдалась до хитрощів, щоб домогтися того, що їй належало, і ризикувала життям: коли Юда дізнався, що вона при надії, він наказав її спалити. Тоді вона послала йому його печатку, шнури й палицю, які він залишив у заставу. Юда впізнав їх і сказав, що вона справедливіша за нього (Буття 38:18-26). У Тамари народились близнюки, Фарес і Зара. Матвій згадує її в родоводі Христа (Мт 1:3)."},
+{"who":"Рахав","ref":"Якова 2:25","tr":"CUV","verse":"Так само й блудниця Рахав хіба не з діл оправдалася, прийнявши розвідників і вивівши їх іншою дорогою?","thought":"Рахав не мала ні доброї репутації, ні знання Закону, ні храму. Вона мала лише те, що чула про Бога, і готовність стати на Його бік. Біблія називає її вчинок вірою. Іноді віра починається не з великих слів, а з одного ризикованого рішення.","q":"Чого ти вирішила не боятися?","story":"Єрихон жив у страху. Про Бога Ізраїлю тут чули: про Червоне море й про перемоги над царями. У домі Рахав, жінки з нелегкою славою, зупинились двоє чужинців, вивідувачі Ісуса Навина (Ісуса Навина 2). Коли посланці царя прийшли по них, Рахав сховала їх на даху між в’язками льону й відвела погоню. Вона ризикувала життям заради людей, яких ледве знала."},
+{"who":"Рахав","ref":"Євреїв 11:31","tr":"УТТ","verse":"Вірою блудниця Рахав, прийнявши з миром розвідників, не загинула з невірними.","thought":"Віра Рахав виглядала майже буденно: вона зібрала родину в одному домі й чекала. Іноді довіра не подвиг, а просто залишитись там, де ти під захистом, коли довкола все падає. Сьогодні згадай, що тримає тебе.","q":"Що тримає тебе, коли все хитається?","story":"Рахав попросила в двох чужинців милості для себе й усієї своєї родини. Вони дали їй знак: червоний шнур, прив’язаний у вікні її дому (Ісуса Навина 2:18). Коли мури Єрихону впали, її оселя лишилась, а Рахав і її рідні були врятовані (Ісуса Навина 6:22-25). Вона не мусила нічого доводити. Їй було досить лишитись під знаком, який вона отримала."},
+{"who":"Рахав","ref":"Римлян 15:13","tr":"CUV","verse":"Бог же надії нехай наповнить вас усякою радістю і миром у вірі, щоб ви силою Святого Духа збагатилися надією.","thought":"Надія — не настрій, а подарунок. Апостол не просить нас надіятися щосили, він молиться, щоб Бог Сам наповнив нас. Тож сьогодні не треба нічого вигадувати, досить відкрити долоні.","q":"Що дає тобі надію?","story":"Рахав більше не повернулась до свого колишнього життя. Вона лишилась жити серед Ізраїлю (Ісуса Навина 6:25). А в родоводі Христа Матвій записав її поруч із Воазом (Мт 1:5). Жінка, яку місто вважало останньою, стала прародителькою царя Давида й предком Месії. Бог не викреслює людей зі Своєї історії через їхнє минуле. Перший тиждень, тиждень надії, добіг кінця."},
+{"who":"Рут","ref":"Рут 1:16","tr":"UMT","verse":"Але Рут відповіла: «Не змушуй мене залишити тебе саму! Хоч куди б ти пішла, я піду за тобою, хоч де б ти заночувала, і я заночую з тобою. Твій народ буде моїм народом. І твій Бог буде моїм Богом!»","thought":"Вірність не завжди гучна. Часто вона звучить тихо: «я лишаюсь». Мир приходить не завжди тому, що біль зник, а тому, що поруч є хтось, хто не пішов.","q":"Кому ти хочеш лишитись вірною?","story":"У Моаві померли чоловіки трьох жінок: Ноемі та її двох невісток. Ноемі зібралась додому, до Віфлеєму, і відпускала невісток до їхніх родин. Одна, Орпа, повернулась. А Рут, чужоземка з Моаву, сказала слова, які люди пам’ятають уже тисячі років (Рут 1). Вона не знала, що чекає на неї в чужому краї. Вона знала лише одне: Ноемі не буде самою."},
+{"who":"Рут","ref":"Филип’ян 4:6","tr":"UMT","verse":"Ні про що не турбуйтеся. За будь-яких обставин, через молитву прохайте Господа про що потребуєте, та завжди дякуйте Йому за все, що маєте.","thought":"Тривога любить жити в голові. Молитва переселяє її туди, де за неї відповідає Хтось сильніший. Не обов’язково говорити гарно: досить назвати свою турботу й сказати: «Візьми».","q":"Що ти віддаєш Богові сьогодні?","story":"Коли дві жінки прийшли до Віфлеєму, містом пішла чутка: невже це Ноемі? Вона відповіла, що не хоче звати себе Ноемі, хай звуть її Марою, тобто «гіркою», бо її життя було гірким (Рут 1:19-21). Ноемі не вдавала, що їй легко, і Бог не відштовхнув її за це. Поруч мовчки йшла Рут, не нав’язуючи ні порад, ні пояснень."},
+{"who":"Рут","ref":"Ісаї 26:3","tr":"CUV","verse":"Незмінного в намірах Ти зберігаєш у повному спокої, бо він надію покладає на Тебе.","thought":"Мир — це не відсутність бурі, а міцна опора під ногами. Той, хто спирається на Бога, може пройти крізь шум і не розгубити спокою. Сьогодні вибери, на що спертися.","q":"На що ти спираєшся, коли страшно?","story":"Починалися жнива ячменю. Рут вирішила піти на поле збирати колоски, що лишали за собою женці. Так за Законом жили бідні й чужинці (Рут 2). Вона йшла, не знаючи, на чиє поле потрапить. Це була звичайна важка праця на сонці. Але Бог уже розставляв Свої зустрічі: поле належало Воазові."},
+{"who":"Рут","ref":"Матвія 11:28","tr":"UMT","verse":"Всі втомлені та обтяжені, приходьте до Мене, і Я дам вам відпочинок.","thought":"Втома буває не лише від роботи, а й від того, що ми надто довго тримаємо все самі. Ісус не вимагає від нас сили, Він пропонує відпочинок. Дозволь собі сьогодні бути не найсильнішою.","q":"Від чого ти найбільше втомилась?","story":"Воаз помітив чужоземку й наказав, щоб вона лишалась поруч із його служницями, не ходила на інші поля й пила з його посуду. Опівдні він запросив її до спільної трапези, і Рут наїлась, ще й залишила на потім (Рут 2:8-9,14). Для жінки, яка стільки втратила, це була не просто їжа. Це було перше за довгий час відчуття, що про неї піклуються."},
+{"who":"Рут","ref":"Івана 14:27","tr":"UMT","verse":"Я залишаю вам мир, та не так, як світ його дає! Нехай не тривожаться серця ваші й не страхаються.","thought":"Світ дає мир, коли все гаразд: немає боргів, суперечок і проблем. Христос дає мир, який лишається, навіть коли не все гаразд. Це мир не навколо нас, а всередині.","q":"Що тебе зараз тривожить?","story":"Ноемі думала, як забезпечити майбутнє Рут. За звичаєм її міг викупити родич, і Воаз був таким родичем. Рут пішла вночі на тік, де Воаз ночував після жнив, і попросила його стати її захисником (Рут 3). Усе було зроблено так, як порадила Ноемі, і тепер лишалось чекати. Ноемі сказала їй просто бути спокійною, доки справа не вирішиться (Рут 3:18). Мир не завжди приходить із відповідями. Іноді він приходить із дозволом чекати."},
+{"who":"Рут","ref":"Филип’ян 4:7","tr":"UMT","verse":"І мир, який йде від Бога, що вище людського розуміння, буде стерегти серця ваші та думки в Христі Ісусі.","thought":"Божий мир вищий за наше розуміння: він не просить пояснень, щоб берегти серце. Серед імен Месії є й таке — Князь миру. Сьогодні досить одного слова про мир, того, що тобі зараз найближче.","q":"Одне слово про мир","story":"Воаз усе зробив чесно й при свідках: викупив спадок і взяв Рут за дружину (Рут 4). У них народився син Овид. Жінки Віфлеєму благословили Ноемі, а вона взяла малого на коліна й стала йому нянею (Рут 4:14-16). Овид став дідом царя Давида. Через століття в тому ж Віфлеємі народиться Князь миру. Бог починає велике дуже тихо: з Рут, яка не пішла."},
+{"who":"Вирсавія","ref":"Псалом 51:10","tr":"UMT","verse":"Дай знов почути пісні радості та щастя, кісткам, потрощеним Тобою, звеселитись знов.","thought":"Це слова з Давидового псалма покаяння. Але вони підходять і тим, у кого радість забрала чужа провина. Бог не відводить очей від болю й уміє повертати те, що було відібране. Сьогодні подумай, яку радість тобі хотілось би повернути.","q":"Яку радість тобі хочеться повернути?","story":"У родоводі Матвій записує не просто ім’я. Він називає «Урієву», тобто дружину Урії (Мт 1:6). Це жінка, яку ми знаємо як Вирсавію. Вона жила в Єрусалимі, поки її чоловік воював. Цар Давид побачив її й послав по неї (2 Самуїла 11). Писання майже не розповідає, що вона відчувала. Воно мовчить, але це мовчання не означає, що їй було легко. Урія загинув за наказом того ж царя. Вирсавія носила жалобу."},
+{"who":"Вирсавія","ref":"2 Самуїла 12:24","tr":"УТТ","verse":"І потішив Давид Вирсавію, свою жінку…","thought":"Матвій міг би пропустити цю сторінку, а він записав Вирсавію як «Урієву». Бог не соромиться нашої історії, навіть найболючішої. Він не вдає, що шрамів немає, але вміє писати далі, і з цього ж роду прийде Христос.","q":"Що втішило тебе цього року?","story":"Пророк Натан викрив царя, і те, що було зроблено, стало явним. Дитя, яке народила Вирсавія, померло. Давид утішив її, і в них народився Соломон (2 Самуїла 12). Далі Вирсавія діє сама: коли йшлося про престол для Соломона, саме вона говорила з Давидом (1 Царів 1). Жінка, якій заподіяли зло, не лишилась лише його частиною. У родоводі Христа її ім’я стоїть поруч із ім’ям Урії, ніби історія не дозволяє забути про скривдженого."},
+{"who":"Єлизавета","ref":"Луки 1:25","tr":"CUV","verse":"Так мені вчинив Господь у ці дні, коли зглянувся, щоби зняти мою ганьбу перед людьми.","thought":"Радість, що приходить після довгого чекання, особлива: тиха, глибока й сповнена вдячності. Не кожне чекання закінчується так, як у Єлизавети, але в кожному Бог поруч. Згадай, де Він тебе зглянувся, навіть якщо це сталося нескоро.","q":"Яка радість прийшла до тебе нескоро?","story":"Єлизавета й Захарій були праведними, але дітей не мали, а за тодішніми поглядами це вважали ганьбою (Луки 1:5-7). Вони постаріли в чеканні. І ось, після видіння Захарії, Єлизавета зачала й п’ять місяців не показувалась людям. Коли вона заговорила, то не про себе, а про Господа: Він зглянувся. Її радість мала присмак довгих років."},
+{"who":"Марія","ref":"Луки 1:38","tr":"CUV","verse":"А Марія промовила: Ось, я раба Господня, нехай буде мені за словом твоїм!","thought":"Марія не отримала відповідей на всі запитання, але сказала: «Нехай буде». Це не покора від безсилля, це довіра від любові. Іноді найсміливіше, що ми можемо зробити, — відпустити контроль.","q":"Що ти довіряєш Богові?","story":"На шостому місяці Єлизаветиної вагітності Бог послав ангела Гавриїла до Назарету, до молодої дівчини Марії (Луки 1:26-38). Вона була заручена з теслею Йосипом і, мабуть, мріяла про звичайне життя. Звістка була несподіваною й неймовірною. Марія поставила одне запитання: як це станеться? А потім сказала слова, які змінили історію."},
+{"who":"Марія","ref":"Луки 1:41-42","tr":"CUV","verse":"Коли ж почула Єлизавета привітання Марії, заворушилося немовля в її утробі. Єлизавета сповнилася Святим Духом і вигукнула гучним голосом, промовляючи: Благословенна ти між жінками і благословенний плід твоєї утроби!","thought":"Дві жінки зустрілися, і радість стала такою великою, що її відчула навіть дитина. Різдво народжується в зустрічах, де нас упізнають і благословляють. Згадай, хто в твоєму житті вміє радіти разом із тобою.","q":"Кому ти зрадієш у ці дні?","story":"Марія нікому в Назареті не могла це пояснити, тому вирушила в гори Юдеї, до своєї родички Єлизавети (Луки 1:39-40). Щойно вона ввійшла й привіталась, дитя в Єлизавети ворухнулось, а та вигукнула слова благословення. Дві жінки, літня й зовсім юна, стояли поруч у тиші чудес. Для Марії це була перша людина, яка зрозуміла все без пояснень."},
+{"who":"Марія","ref":"Луки 1:46-47","tr":"CUV","verse":"А Марія промовила: Величає душа моя Господа, і радіє дух мій у Бозі, Спасителі моїм,","thought":"Перше, що робить Марія зі своєю радістю, — дякує. Вдячність перетворює звичайне на святе: чашку чаю, голос сестри, теплу хату. Сьогодні подивись на свій день очима вдячності.","q":"Дякую за… (одне слово)","story":"Марія пробула в Єлизавети близько трьох місяців (Луки 1:56). У ці дні в неї народилась пісня. Вона співала не про себе, а про Бога, Який підіймає смиренних, насичує голодних і пам’ятає Свій народ (Луки 1:46-55). Її радість була вдячністю: вона вже казала Богові «дякую», коли ще багато чого лишалось незрозумілим."},
+{"who":"Марія","ref":"Матвія 1:23","tr":"UMT","verse":"«Слухайте! Діва незаймана завагітніє і народить Сина, і назвуть Його Еммануїлом», що означає «З нами Бог».","thought":"Еммануїл означає «Бог з нами». Не над нами й не десь далеко, а з нами: у лікарняному коридорі, на кухні, у безсонній ночі. Різдво — це обіцянка, що ми не самі.","q":"Де ти відчула, що Бог поруч?","story":"Марія повернулась до Назарету (Луки 1:56). Там уже було що пояснювати, а хто захоче слухати? Давно, за сім століть до того, пророк Ісая говорив про знак: Діва зачне й породить Сина, і ім’я Йому Еммануїл, «Бог з нами». Марія могла лише тримати в серці цю обітницю. Її життя було повне запитань, але вона йшла вулицею Назарету з відчуттям, що не одна."},
+{"who":"Марія","ref":"Матвія 1:20","tr":"CUV","verse":"Щойно він про це подумав, як ось Господній ангел з’явився йому уві сні, кажучи: Йосипе, сину Давидів, не бійся прийняти Марію, дружину свою, бо зачате в ній є від Духа Святого.","thought":"Йосип не вимовив в Євангелії жодного слова, але зробив те, що було непросто: прийняв, повірив, залишився. Інколи віра виглядає не як гучний вчинок, а як тихий крок назустріч. Який крок чекає на тебе?","q":"Який твій тихий крок віри?","story":"Йосип, наречений Марії, був праведним. Дізнавшись, що вона при надії, він надумав таємно відпустити її, щоб не зганьбити (Матвія 1:19). Тоді в сні йому з’явився ангел. Марії лишалось чекати його відповіді, і ці дні, мабуть, були для неї найдовшими. А Йосип прокинувся й зробив, як було наказано: взяв Марію до себе. Без зайвих слів, самим рішенням."},
+{"who":"Марія","ref":"Луки 2:7","tr":"CUV","verse":"І вона народила свого Первістка Сина, сповила Його й поклала в яслах, оскільки у світлиці не було для них місця.","thought":"Для Нього не знайшлося місця в заїзді, але знайшлося в яслах. Різдво питає нас не про розкішні кімнати, а про відкритість: чи є в моєму серці куточок, який я звільню для Нього?","q":"Що ти відкриєш для Нього в серці?","story":"Імператор наказав переписати всіх, і Йосип із Марією вирушили з Назарету до Віфлеєму (Луки 2:1-6). Це було те саме місто, де колись Рут збирала колоски на полі Воаза. Тепер у ньому не знайшлося вільного місця. Марія породила Первістка, сповила Його й поклала в ясла. Для Творця світу знайшлась лише годівниця для худоби, і цього було досить."},
+{"who":"Марія","ref":"Луки 2:10","tr":"UMT","verse":"Та Ангел сказав їм: «Не бійтеся, я приніс вам добру звістку, яка дасть велику радість людям.","thought":"Першими про Різдво дізналися не князі й не вчені, а нічні пастухи. Добра звістка любить прості місця й прості слова. Можливо, і тобі сьогодні є кому її розповісти.","q":"Кому ти розкажеш добру новину?","story":"На віфлеємських полях пастухи пильнували отару. Ангел сповістив їм велику радість, і вони, не гаючись, пішли до міста й знайшли Марію, Йосипа та Дитятко в яслах (Луки 2:8-16). Пастухи розповідали про те, що почули, і всі дивувались. Для Марії це було ще одним підтвердженням: усе, що вона чула, правда. Їй не потрібно було слави, їй вистачало погляду простих людей, які прийшли привітати її Сина."},
+{"who":"Марія","ref":"Івана 3:16","tr":"CUV","verse":"Бо так Бог полюбив світ, що дав Свого Єдинородного Сина, щоб кожен, хто вірить у Нього, не загинув, але мав життя вічне.","thought":"Любов у цьому вірші має вигляд дару. Бог не лише сказав про любов, Він її віддав. Різдво — це день, коли любов набула імені й обличчя.","q":"Як ти бачиш Божу любов у своєму житті?","story":"Марія тримала на руках немовля. Вона не могла осягнути, що в цій маленькій руці вміщується весь Божий задум. Бог не прислав листа й не подав знаку з далекого неба. Він прийшов Сам: малий, із теплим диханням. Це найбільший дар, який будь-коли тримала на руках жінка з роду Тамари, Рахав, Рут і Вирсавії."},
+{"who":"Марія","ref":"Луки 2:19","tr":"CUV","verse":"Марія ж зберігала всі ці слова, беручи до свого серця.","thought":"Марія не коментувала подій і нікому нічого не доводила. Вона просто зберігала слова в серці й обмірковувала їх. Не все в нашому житті треба одразу пояснювати. Деякі слова краще носити в собі, як свічку.","q":"Яку думку ти збережеш у серці?","story":"Минали дні. Пастухи повернулись до отар, у хліві стало тихіше. Марія лишилась із Дитям і своїми думками. Вона не пояснювала й не доводила, а зберігала слова в серці (Луки 2:19). Її мовчання було не слабкістю, а глибиною. Мабуть, у цій тиші вона згадувала слова ангела, і пісню Єлизавети, і все, що було досі."},
+{"who":"Усі п’ятеро","ref":"Луки 2:11","tr":"UMT","verse":"Тому що сьогодні в місті Давидовім народився для вас Спаситель — Христос Господь.","thought":"Сьогодні народився Спаситель. Для тебе, для твоєї сестри, для сусідки, для всіх, кого ти любиш і кого ще вчишся любити. Нехай це Різдво буде не лише днем, а й початком.","q":"Що в твоєму серці в цей день?","story":"Різдво настало. Родовід Матвія, що починався зі списку чоловічих імен, закінчується словами про Марію, від якої народився Ісус, званий Христом (Мт 1:16). Тамара, яка не зникла. Рахав, яка вибрала Бога. Рут, яка не пішла. Вирсавія, чий біль Бог не забув. Марія, яка сказала «нехай буде». Кожна мала своє «чому», і до кожної Бог прийшов особисто. Твоє слово в цьому листі теж стало рядком цієї історії. З Різдвом!"}];
+var WEEKS = [[1,6,"Надія"],[7,12,"Мир"],[13,19,"Радість"],[20,24,"Любов"]];
+var TRN = {CUV:"Сучасний переклад",UMT:"Сучасною мовою","УТТ":"пер. Р. Турконяка","НПУ":"Новий переклад українською"};
+var LT = [null,
+ function(a){return "Ти бачиш: найбільше світла потребує "+a+".";},
+ function(a){return "Я довго чекаю: "+a+", і лишаюсь із надією на Тебе.";},
+ function(a){return "Мені важливо, щоб почули: "+a+".";},
+ function(a){return "Я вирішила не боятися: "+a+".";},
+ function(a){return "Коли все хитається, мене тримає: "+a+".";},
+ function(a){return "Надію мені дає: "+a+".";},
+ function(a){return "Я хочу лишитися вірною: "+a+".";},
+ function(a){return "Віддаю Тобі: "+a+".";},
+ function(a){return "Коли страшно, я спираюся на: "+a+".";},
+ function(a){return "Найбільше я втомилась від: "+a+". Дай мені спокій.";},
+ function(a){return "Мене тривожить: "+a+". Дай мені Твій мир.";},
+ function(a){return "Мир для мене: "+a+".";},
+ function(a){return "Хочу, щоб Ти повернув мені радість: "+a+".";},
+ function(a){return "Цього року мене втішило: "+a+".";},
+ function(a){return "Радість, що прийшла не одразу: "+a+".";},
+ function(a){return "Довіряю Тобі: "+a+".";},
+ function(a){return "У ці дні я зрадію: "+a+".";},
+ function(a){return "Дякую Тобі за: "+a+".";},
+ function(a){return "Я відчула, що Ти поруч: "+a+".";},
+ function(a){return "Мій тихий крок віри: "+a+".";},
+ function(a){return "Для Тебе в серці відкриваю: "+a+".";},
+ function(a){return "Добру новину розкажу: "+a+".";},
+ function(a){return "Твою любов бачу в цьому: "+a+".";},
+ function(a){return "У серці збережу: "+a+".";},
+ function(a){return "У це Різдво в моєму серці: "+a+".";}
+];
+var DEMO = ["світло","мама","мир","страх","молитва","діти","дім","тиша","Бог","робота","війна","спокій","сміх","зустріч","дитинство","завтра","сестра","здоров’я","церква","ранок","прощення","хліб","українці","тепло","дякую"];
+
+function $(id){return document.getElementById(id);}
+function themeIdx(n){return n<=6?0:(n<=12?1:(n<=19?2:(n<=24?3:4)));}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+
+var mem = {done:{}};
+var hashDen = (function(){var m=/den=(\d+)/.exec(location.hash||"");return m?Math.max(0,Math.min(25,parseInt(m[1],10))):null;})();
+var KEY = PREVIEW ? "advent_zhinky_preview_v2" : (hashDen!==null ? "advent_zhinky_test_v2" : "advent_zhinky_v2");
+function loadState(){
+  try{var s=window.localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o&&o.done)mem=o;}}catch(e){}
+}
+function saveState(){try{window.localStorage.setItem(KEY,JSON.stringify(mem));}catch(e){}}
+
+function kyivToday(){
+  var zones=["Europe/Kyiv","Europe/Kiev"],i,p;
+  for(i=0;i<zones.length;i++){
+    try{p=new Intl.DateTimeFormat("en-CA",{timeZone:zones[i],year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+      var a=p.split("-");return {y:parseInt(a[0],10),m:parseInt(a[1],10),d:parseInt(a[2],10)};}catch(e){}
+  }
+  var n=new Date();return {y:n.getFullYear(),m:n.getMonth()+1,d:n.getDate()};
+}
+function openUpTo(){
+  if(PREVIEW)return 25;
+  if(hashDen!==null)return hashDen;
+  var t=kyivToday();
+  if(t.y<YEAR||(t.y===YEAR&&t.m<12))return 0;
+  if(t.y>YEAR||t.m>12)return 25;
+  return Math.min(t.d,25);
+}
+var OPEN = openUpTo();
+
+function isDone(n){return mem.done[String(n)]!==undefined;}
+function doneCount(){var c=0,i;for(i=1;i<=25;i++)if(isDone(i))c++;return c;}
+function weekCount(w){var c=0,i;for(i=WEEKS[w][0];i<=WEEKS[w][1];i++)if(isDone(i))c++;return c;}
+function weekTotal(w){return WEEKS[w][1]-WEEKS[w][0]+1;}
+function weekDone(w){return weekCount(w)===weekTotal(w);}
+
+/* підгонка тексту під висоту без прокрутки */
+function fit(box){
+  var inner=box.firstChild;if(!inner||!box.clientHeight)return;
+  var mx=parseInt(box.getAttribute("data-max"),10)||20,mn=parseInt(box.getAttribute("data-min"),10)||13,s;
+  for(s=mx;s>=mn;s--){inner.style.fontSize=s+"px";if(inner.offsetHeight<=box.clientHeight)break;}
+}
+function fitAll(root){var b=root.querySelectorAll(".fitbox"),i;for(i=0;i<b.length;i++)fit(b[i]);}
+function fitbox(max,min){var b=el("div","fitbox");b.setAttribute("data-max",max);b.setAttribute("data-min",min);return b;}
+
+/* ---------- календар ---------- */
+function lanternSvg(n){
+  var V='viewBox="0 0 60 90" aria-hidden="true"';
+  if(n===25){
+    var pts=[],k,r,a;
+    for(k=0;k<10;k++){r=(k%2===0)?33:14;a=-Math.PI/2+k*Math.PI/5;pts.push((30+r*Math.cos(a)).toFixed(1)+","+(46+r*Math.sin(a)).toFixed(1));}
+    return '<svg '+V+'><circle class="halo" cx="30" cy="46" r="34"/><polygon class="body" points="'+pts.join(" ")+'"/><g class="lock"><rect x="25" y="43" width="10" height="8" rx="1.5"/><path d="M27 43 V40 a3 3 0 0 1 6 0 V43"/></g><text class="num" x="30" y="66">25</text></svg>';
+  }
+  return '<svg '+V+'><circle class="halo" cx="30" cy="48" r="32"/>'+
+   '<path class="hd" d="M23 17 Q30 3 37 17"/>'+
+   '<path class="capf" d="M16 26 L30 14 L44 26 Z"/>'+
+   '<path class="body" d="M15 27 H45 L49 66 Q49 72 43 72 H17 Q11 72 11 66 Z"/>'+
+   '<path class="bar" d="M23 27 L22 71 M37 27 L38 71"/>'+
+   '<path class="flame" d="M30 34 C37 42 37 50 30 56 C23 50 23 42 30 34 Z"/>'+
+   '<ellipse class="core" cx="30" cy="50" rx="3" ry="5"/>'+
+   '<g class="lock"><rect x="25" y="45" width="10" height="8" rx="1.5"/><path d="M27 45 V42 a3 3 0 0 1 6 0 V45"/></g>'+
+   '<rect class="capf" x="12" y="72" width="36" height="14" rx="4"/>'+
+   '<text class="num" x="30" y="83">'+n+'</text></svg>';
+}
+function buildGrid(){
+  var g=$("grid"),n,b;g.textContent="";
+  for(n=1;n<=25;n++){b=el("button","cell");b.type="button";b.setAttribute("data-n",n);b.innerHTML=lanternSvg(n);g.appendChild(b);}
+  g.addEventListener("click",function(e){var t=e.target;while(t&&t!==g&&!t.getAttribute("data-n"))t=t.parentNode;if(t&&t!==g)openDay(parseInt(t.getAttribute("data-n"),10));});
+}
+function nextDay(){var n;for(n=1;n<=OPEN&&n<=25;n++)if(!isDone(n))return n;return 0;}
+function refreshGrid(){
+  var cells=$("grid").children,nx=nextDay(),i,n,c,cls;
+  for(i=0;i<cells.length;i++){
+    n=i+1;c=cells[i];cls="cell"+(n===25?" star":"");
+    if(isDone(n))cls+=" done";else if(n<=OPEN)cls+=" open"+(n===nx?" next":"");
+    c.className=cls;
+    c.setAttribute("aria-label","День "+n+(isDone(n)?": ліхтарик засвічено":(n<=OPEN?": відкрито":": ще закрито")));
+  }
+}
+function buildCandles(){
+  var c=$("candles"),w,d;c.textContent="";
+  for(w=0;w<WEEKS.length;w++){d=el("div","cd");d.appendChild(el("div","fl"));d.appendChild(el("div","st"));d.appendChild(el("div","cl"));c.appendChild(d);}
+}
+function refreshCandles(){
+  var c=$("candles").children,w;
+  for(w=0;w<WEEKS.length;w++){c[w].className="cd"+(weekDone(w)?" lit":"");c[w].lastChild.textContent=WEEKS[w][2]+" "+weekCount(w)+"/"+weekTotal(w);}
+}
+function refreshStatus(){
+  var s=$("status"),txt;
+  if(OPEN===0)txt="Адвент почнеться 1 грудня 2026 року";
+  else if(PREVIEW)txt="Режим перегляду: усі віконця відкриті · засвічено "+doneCount()+" із 25";
+  else if(doneCount()===25)txt="Усі 25 ліхтариків світяться ✨";
+  else txt="Відкрито віконець: "+OPEN+" · засвічено "+doneCount()+" із 25";
+  s.textContent=txt;
+  if(PREVIEW&&doneCount()<25){
+    var b=el("button","nb","заповнити для перегляду");b.type="button";b.style.cssText="min-width:0;margin-left:8px;padding:3px 8px;font-size:12px";
+    b.addEventListener("click",function(){var i;for(i=1;i<=25;i++)if(!isDone(i))mem.done[String(i)]=DEMO[i-1];saveState();refreshAll();toast("Демо-слова додано. З’явився лист ✉");});
+    s.appendChild(b);
+  }
+}
+
+/* ---------- історія ---------- */
+var sIdx=-1;
+function refreshStory(){
+  var p=$("p-story");p.textContent="";
+  var pg=el("div","pg");p.appendChild(pg);
+  var list=[],i;for(i=1;i<=25;i++)if(isDone(i))list.push(i);
+  if(!list.length){pg.appendChild(el("div","empty","Історія відкриватиметься по шматочку: щодня, після того як ти відповіси на запитання дня."));return;}
+  if(sIdx<0||sIdx>=list.length)sIdx=list.length-1;
+  var n=list[sIdx],d=DAYS[n-1];
+  pg.appendChild(el("div","kick",d.who+" · день "+n));
+  var fb=fitbox(20,13),t=el("div","prose",d.story);fb.appendChild(t);pg.appendChild(fb);
+  var nav=el("div","nav"),bp=el("button","nb","‹ Назад"),bn=el("button","nb","Далі ›"),dots=el("div","dots",""),k;
+  bp.type=bn.type="button";
+  if(sIdx===0)bp.className="nb gone";if(sIdx===list.length-1)bn.className="nb gone";
+  dots.appendChild(el("span","",(sIdx+1)+" / "+list.length));dots.style.color="#c9d0ee";dots.style.fontSize="13px";
+  bp.addEventListener("click",function(){sIdx--;refreshStory();});
+  bn.addEventListener("click",function(){sIdx++;refreshStory();});
+  nav.appendChild(bp);nav.appendChild(dots);nav.appendChild(bn);pg.appendChild(nav);
+  fitAll(p);
+}
+
+/* ---------- лист ---------- */
+function rawAns(n){return String(mem.done[String(n)]||"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/[.!?…,;:]+$/,"");}
+function cleanAns(s){s=String(s||"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/[.!?…,;:]+$/,"");return "«"+s+"»";}
+function ans(n){return cleanAns(mem.done[String(n)]);}
+function sentence(n){return LT[n](ans(n));}
+var DS=[null,
+ function(a){return "Світло вже йде туди, де "+a+". Темрява не має останнього слова.";},
+ function(a){return "Те, чого ти чекаєш, — "+a+" — Бог не забув. Твоє чекання не марне.";},
+ function(a){return "Ти маєш право бути почутою. Бог чує тебе: "+a+".";},
+ function(a){return "Ти вирішила не боятися: "+a+". Бог уже йде попереду тебе.";},
+ function(a){return "Коли все хитається, тебе тримає "+a+", а над усім цим тримає Бог.";},
+ function(a){return "Надія, яку ти назвала, — "+a+" — не випадкова. Це Божий подарунок тобі.";},
+ function(a){return "Вірність, якій ти хочеш лишитись, — "+a+" — Бог бачить і береже.";},
+ function(a){return "Усе, що ти віддала Йому, — "+a+" — тепер у Його руках, а не в твоїх.";},
+ function(a){return "Коли страшно, "+a+" — добра опора, але найміцніша опора — Той, Хто поруч із тобою.";},
+ function(a){return "Ти втомилась від "+a+". Це чесна втома, і тобі дозволено відпочити.";},
+ function(a){return "Те, що тебе тривожить, — "+a+" — не мусить лишатися з тобою наодинці.";},
+ function(a){return "Мир, який ти назвала, — "+a+" — Бог хоче дарувати тобі щодня.";},
+ function(a){return "Радість, яку ти хочеш повернути, — "+a+". Бог уміє повертати відібране.";},
+ function(a){return "Те, що втішило тебе цього року, — "+a+". Нехай такого стане більше.";},
+ function(a){return "Радість, що прийшла не одразу, — "+a+" — нагадує: Бог не спізнюється.";},
+ function(a){return "Усе, що ти довірила Йому, — "+a+" — лежить у надійних руках.";},
+ function(a){return "Нехай радість зустрічі — "+a+" — буде справжньою й теплою.";},
+ function(a){return "Твоя вдячність за "+a+" — тиха молитва, яка дорога Богові.";},
+ function(a){return "Бог був поруч: "+a+". І лишається з тобою.";},
+ function(a){return "Твій тихий крок — "+a+" — Бог бачить. Кожен такий крок має значення.";},
+ function(a){return "Те, що ти відкриваєш для Нього в серці, — "+a+" — Він прийме з любов’ю.";},
+ function(a){return "Добра новина, яку ти понесеш, — "+a+" — зігріє когось поруч.";},
+ function(a){return "Любов, яку ти бачиш, — "+a+" — лише відблиск Божої любові до тебе.";},
+ function(a){return "Те, що ти збережеш у серці, — "+a+" — нехай гріє, як свічка.";},
+ function(a){return "Нехай "+a+" стане для тебе початком, а не кінцем.";}
+];
+var CATS=[
+ {id:"war",vd:11,st:["війн","обстріл","тривог","ракет","фронт","вибух","сирен","мобіл","окупац"],
+  f:function(w){return "Ти назвала «"+w+"», і Бог знає, скільки в цьому тривоги й безсонних ночей. Він поруч і в підвалі, і в дорозі. Його мир не залежить від новин.";}},
+ {id:"fear",vd:11,st:["страх","боюс","боязн","паніч","лякає","тривож"],
+  f:function(w){return "Страх не робить тебе слабкою. Бог знову й знову каже: не бійся, Я з тобою. Тримайся за Нього, поки страх мине.";}},
+ {id:"tired",vd:10,st:["втом","втомл","виснаж","вигор","немає сил","нема сил"],
+  f:function(w){return "Ти втомилась, і це не провина. Ісус кличе до Себе втомлених, а не сильних. Сьогодні можна просто посидіти поруч із Ним.";}},
+ {id:"lonely",vd:19,st:["самот","одинок","сама","нікого","покинут","забут"],
+  f:function(w){return "Ти не самотня. «З нами Бог» — це не лише слова Різдва, а обіцянка кожній, хто почувається забутою.";}},
+ {id:"grief",vd:19,st:["смерт","помер","втрат","горе","сум","плач","сльоз","похорон","загин","розлук","розлучен","зрад"],
+  f:function(w){return "Бог близько до тих, у кого болить серце. Твої сльози для Нього не слабкість. Біль має право бути, а втіха прийде.";}},
+ {id:"sick",vd:10,st:["хвор","лікар","діагноз","лікуван","біль","операц","здоров","недуг"],
+  f:function(w){return "Про твоє тіло й здоров’я Бог піклується. Ти можеш просити і про зцілення, і про терпіння: Він чує обидва прохання.";}},
+ {id:"family",vd:19,st:["діти","дитин","син","донь","мам","тат","чолові","родин","внук","онук","сестр","брат","батьк","сім"],
+  f:function(w){return "Тих, кого ти любиш, Бог любить ще більше. Ти можеш покласти їх у Його руки й трохи видихнути.";}},
+ {id:"money",vd:8,st:["гроші","грош","робот","борг","зарплат","кредит","бідн","житл","квартир"],
+  f:function(w){return "Турбота про хліб насущний Богові добре відома. Ти не сама з цим тягарем, і Він знає, чого тобі бракує.";}},
+ {id:"faith",vd:18,st:["молитв","церкв","біблі","віра","віри","вірю","бог","господ","ісус"],
+  f:function(w){return "Твоя молитва для Бога не слова, а подих, і Він її чує. Навіть коли віри мало, Він тримає тебе.";}},
+ {id:"joy",vd:18,st:["радіс","сміх","щаст","дякую","вдячн","тепл"],
+  f:function(w){return "Радість, яку ти називаєш, — це добре. Прийми її без почуття провини: Бог радіє разом із тобою.";}}
+];
+function catOf(n){
+  var t=rawAns(n).toLowerCase(),i,j;
+  for(i=0;i<CATS.length;i++)for(j=0;j<CATS[i].st.length;j++)if(t.indexOf(CATS[i].st[j])>=0)return CATS[i];
+  return null;
+}
+function comfortFor(lo,hi,dflt,maxP){
+  var found=[],seen={},n,c,i,paras=[],vd=dflt,used={};
+  for(n=lo;n<=hi;n++){c=catOf(n);if(c&&!seen[c.id]){seen[c.id]=1;found.push({n:n,c:c});}}
+  for(i=0;i<found.length&&paras.length<maxP;i++){paras.push(found[i].c.f(rawAns(found[i].n)));used[found[i].n]=1;}
+  if(found.length)vd=found[0].c.vd;
+  for(n=lo;n<=hi&&paras.length<maxP;n++){if(!used[n]){paras.push(DS[n](ans(n)));used[n]=1;}}
+  var d=DAYS[vd-1];
+  paras.push("Слово для тебе: "+d.verse+" ("+d.ref+")");
+  return paras;
+}
+function letterPages(){
+  var pages=[],bounds=[[1,6,"Надія",6],[7,12,"Мир",12],[13,19,"Радість і довіра",18],[20,24,"Любов",23],[25,25,"Різдво",25]],b,n,paras,bd;
+  for(b=0;b<bounds.length;b++){
+    bd=bounds[b];paras=[];
+    if(b===0)paras.push("Господи, цього Адвенту я приносила Тобі свої слова, по одному щодня.");
+    for(n=bd[0];n<=bd[1];n++)paras.push(sentence(n));
+    if(b===4)paras.push("Нехай усе, що я назвала цього Адвенту, зокрема "+ans(1)+", "+ans(11)+" і "+ans(25)+", буде в Твоїх руках. Амінь.");
+    pages.push({kick:"Твої слова · "+bd[2],paras:paras});
+    if(b<4)paras=comfortFor(bd[0],bd[1],bd[3],3);
+    else{
+      paras=["Ти пройшла 25 днів і назвала свої слова. Кожне з них Бог почув."];
+      var cf=comfortFor(1,25,25,2);
+      paras=paras.concat(cf);
+      paras.push("З Різдвом Христовим! Бог пише Свою історію й через тебе, так само як колись писав її через Тамару, Рахав, Рут, Вирсавію та Марію.");
+    }
+    pages.push({kick:"Відповідь для тебе · "+bd[2],paras:paras});
+  }
+  return pages;
+}
+function letterText(){
+  var ps=letterPages(),out=["Мій різдвяний лист"],i;
+  for(i=0;i<ps.length;i++){out.push(ps[i].kick.toUpperCase());out.push(ps[i].paras.join("\n"));}
+  return out.join("\n\n");
+}
+var lIdx=0;
+function refreshLetter(){
+  var p=$("p-letter");p.textContent="";
+  if(doneCount()<25)return;
+  var ps=letterPages(),pg=el("div","pg");p.appendChild(pg);
+  if(lIdx>=ps.length)lIdx=ps.length-1;
+  var cur=ps[lIdx],i;
+  pg.appendChild(el("div","kick",cur.kick));
+  var fb=fitbox(19,13),w=el("div","lt");
+  for(i=0;i<cur.paras.length;i++){var pp=el("p",cur.paras[i].indexOf("Слово для тебе:")===0?"vs":"",cur.paras[i]);w.appendChild(pp);}
+  fb.appendChild(w);pg.appendChild(fb);
+  if(lIdx===ps.length-1){
+    var r=el("div","row2"),c1=el("button","nb pri","Копіювати"),c2=el("button","nb","Друкувати");
+    c1.type=c2.type="button";
+    c1.addEventListener("click",copyLetter);
+    c2.addEventListener("click",function(){$("printOut").textContent=letterText();window.print();});
+    r.appendChild(c1);r.appendChild(c2);pg.appendChild(r);
+  }
+  var nav=el("div","nav"),bp=el("button","nb","‹ Назад"),bn=el("button","nb","Далі ›"),dots=el("div","dots");
+  bp.type=bn.type="button";
+  if(lIdx===0)bp.className="nb gone";if(lIdx===ps.length-1)bn.className="nb gone";
+  for(i=0;i<ps.length;i++)dots.appendChild(el("i",i===lIdx?"on":""));
+  bp.addEventListener("click",function(){lIdx--;refreshLetter();});
+  bn.addEventListener("click",function(){lIdx++;refreshLetter();});
+  nav.appendChild(bp);nav.appendChild(dots);nav.appendChild(bn);pg.appendChild(nav);
+  fitAll(p);
+}
+function copyLetter(){
+  var t=letterText();
+  function fb(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("Лист скопійовано");}catch(e){toast("Не вдалося скопіювати");}document.body.removeChild(a);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("Лист скопійовано");},fb);}else fb();
+}
+
+/* ---------- повідомлення ---------- */
+var toastT=null;
+function toast(msg){var t=$("toast");t.textContent=msg;t.className="toast on";clearTimeout(toastT);toastT=setTimeout(function(){t.className="toast";},3200);}
+
+/* ---------- вікно дня ---------- */
+var mN=0,mStep=0;
+function closeModal(){$("modal").className="";mN=0;}
+function openDay(n){
+  if(n>OPEN){toast(OPEN===0?"Адвент почнеться 1 грудня":"Це віконце відкриється "+n+" грудня");return;}
+  mN=n;mStep=0;$("modal").className="on";renderModal();
+}
+function renderModal(){
+  if(!mN)return;
+  var d=DAYS[mN-1],c=$("mcard"),h,t,b,x,nav,i;
+  c.textContent="";
+  h=el("div","mh");t=el("div","mt");t.appendChild(el("b","","День "+mN));
+  x=el("button","close","✕");x.type="button";x.setAttribute("aria-label","Закрити");x.addEventListener("click",closeModal);
+  h.appendChild(t);h.appendChild(x);c.appendChild(h);
+  b=el("div","mb");c.appendChild(b);
+  var fb,w;
+  if(mStep===0){
+    b.appendChild(el("div","kick","Слово на сьогодні"));
+    fb=fitbox(26,15);w=el("div","");w.appendChild(el("div","verse",d.verse));
+    var vr=el("div","vref",d.ref);vr.appendChild(el("small","",(TRN[d.tr]||d.tr)));w.appendChild(vr);fb.appendChild(w);b.appendChild(fb);
+  }else if(mStep===1){
+    b.appendChild(el("div","kick","Думка"));
+    fb=fitbox(21,14);fb.appendChild(el("div","prose",d.thought));b.appendChild(fb);
+  }else if(mStep===2){
+    b.appendChild(el("div","kick","Запитання"));
+    var box=el("div","");box.style.cssText="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center";
+    box.appendChild(el("p","q",d.q));
+    var inp=el("input","inp");inp.id="ans";inp.type="text";inp.maxLength=40;inp.setAttribute("autocomplete","off");inp.setAttribute("placeholder","одне-два слова");
+    if(isDone(mN))inp.value=mem.done[String(mN)];
+    box.appendChild(inp);
+    box.appendChild(el("p","hint","Правильних відповідей немає. Це слово лише для тебе: воно нікуди не надсилається."));
+    var er=el("p","err","");er.id="err";box.appendChild(er);
+    var sv=el("button","nb pri wide",isDone(mN)?"Змінити слово":"Засвітити ліхтарик");sv.type="button";sv.addEventListener("click",saveAnswer);
+    box.appendChild(sv);
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();saveAnswer();}});
+    b.appendChild(box);
+  }else{
+    b.appendChild(el("div","kick","Історія · "+d.who));
+    fb=fitbox(19,13);fb.appendChild(el("div","prose",d.story));b.appendChild(fb);
+  }
+  nav=el("div","nav");
+  var bp=el("button","nb","‹ Назад"),bn=el("button","nb pri",mStep===3?"Закрити":"Далі ›"),dots=el("div","dots");
+  bp.type=bn.type="button";
+  if(mStep===0)bp.className="nb gone";
+  if(mStep===2&&!isDone(mN))bn.disabled=true;
+  for(i=0;i<4;i++)dots.appendChild(el("i",i===mStep?"on":""));
+  bp.addEventListener("click",function(){mStep--;renderModal();});
+  bn.addEventListener("click",function(){if(mStep===3){closeModal();}else{mStep++;renderModal();}});
+  nav.appendChild(bp);nav.appendChild(dots);nav.appendChild(bn);c.appendChild(nav);
+  fitAll(c);
+  if(mStep===2&&!isDone(mN)){try{$("ans").focus();}catch(e){}}
+}
+function saveAnswer(){
+  var v=$("ans").value.replace(/\s+/g," ").replace(/^\s+|\s+$/g,"");
+  if(v.length<2||!/[A-Za-zА-Яа-яЇїІіЄєҐґ]/.test(v)){$("err").textContent="Напиши хоча б одне слово";return;}
+  var first=!isDone(mN),w=themeIdx(mN),was=(w<4)?weekDone(w):false;
+  mem.done[String(mN)]=v;saveState();refreshAll();
+  if(!first)toast("Збережено");
+  else if(doneCount()===25)toast("Усі ліхтарики світяться! З’явився твій лист ✉");
+  else if(w<4&&!was&&weekDone(w))toast("Свічку «"+WEEKS[w][2]+"» засвічено");
+  else toast("Ліхтарик засвічено");
+  mStep=3;renderModal();
+}
+
+/* ---------- вкладки та загальне ---------- */
+var curTab="cal",letterSeen=false;
+function pick(t){
+  var tabs=document.querySelectorAll(".tab"),j;
+  curTab=t;
+  for(j=0;j<tabs.length;j++){var on=tabs[j].getAttribute("data-t")===t;tabs[j].className=tabs[j].className.replace(/ ?\bon\b/,"")+(on?" on":"");}
+  var ids={cal:"p-cal",story:"p-story",letter:"p-letter"},k;
+  for(k in ids)$(ids[k]).className="panel"+(k===t?" on":"");
+  if(t==="letter"){letterSeen=true;$("tabLetter").className=$("tabLetter").className.replace(" pulse","");}
+  if(t==="story")refreshStory();
+  if(t==="letter")refreshLetter();
+}
+function refreshAll(){
+  refreshCandles();refreshGrid();refreshStatus();
+  var full=doneCount()===25,tl=$("tabLetter");
+  tl.className="tab"+(full?"":" hid")+(curTab==="letter"?" on":"")+(full&&!letterSeen&&curTab!=="letter"?" pulse":"");
+  if(!full&&curTab==="letter")pick("cal");
+  if(curTab==="story")refreshStory();
+  if(curTab==="letter")refreshLetter();
+}
+(function(){
+  var tabs=document.querySelectorAll(".tab"),i;
+  tabs[2].id="tabLetter";
+  for(i=0;i<tabs.length;i++)(function(b){b.addEventListener("click",function(){pick(b.getAttribute("data-t"));});})(tabs[i]);
+})();
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal();});
+window.addEventListener("resize",function(){if(mN)fitAll($("mcard"));else fitAll($("app"));});
+(function(){
+  var armed=false,tm=null,b=$("resetBtn");
+  b.addEventListener("click",function(){
+    if(!armed){armed=true;b.className="armed";toast("Стерти все й почати спочатку? Натисни ↺ ще раз");tm=setTimeout(function(){armed=false;b.className="";},4000);return;}
+    clearTimeout(tm);armed=false;b.className="";mem={done:{}};saveState();sIdx=-1;lIdx=0;letterSeen=false;pick("cal");refreshAll();toast("Усе стерто. Можна починати спочатку");
+  });
+})();
+
+/* ---------- сніг і зорі ---------- */
+(function(){
+  var cv=$("snow"),ctx=cv.getContext&&cv.getContext("2d");if(!ctx)return;
+  var W=0,H=0,dpr=Math.min(window.devicePixelRatio||1,2),flakes=[],stars=[],sprites=[],i;
+  function sprite(size){
+    var c=document.createElement("canvas"),px=size*2*dpr;c.width=c.height=px;var g=c.getContext("2d");
+    g.translate(px/2,px/2);g.strokeStyle="rgba(255,255,255,.92)";g.lineWidth=Math.max(1,size*.09*dpr);g.lineCap="round";
+    var r=size*dpr*.9,a;
+    for(a=0;a<6;a++){g.save();g.rotate(a*Math.PI/3);g.beginPath();g.moveTo(0,0);g.lineTo(0,-r);
+      g.moveTo(0,-r*.55);g.lineTo(r*.28,-r*.8);g.moveTo(0,-r*.55);g.lineTo(-r*.28,-r*.8);
+      g.moveTo(0,-r*.28);g.lineTo(r*.18,-r*.45);g.moveTo(0,-r*.28);g.lineTo(-r*.18,-r*.45);g.stroke();g.restore();}
+    return c;
+  }
+  function resize(){
+    W=window.innerWidth;H=window.innerHeight;cv.width=W*dpr;cv.height=H*dpr;
+    stars=[];var n=Math.round(W*H/9000),k;for(k=0;k<n;k++)stars.push({x:Math.random()*W,y:Math.random()*H*0.7,r:Math.random()*1.3+.3,p:Math.random()*6.28});
+  }
+  resize();window.addEventListener("resize",resize);
+  sprites=[sprite(5),sprite(8),sprite(12)];
+  var N=window.innerWidth<500?32:50;
+  for(i=0;i<N;i++)flakes.push({x:Math.random()*W,y:Math.random()*H,s:Math.floor(Math.random()*3),v:.25+Math.random()*.7,d:Math.random()*6.28,rot:Math.random()*6.28,rv:(Math.random()-.5)*.01});
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var raf=window.requestAnimationFrame||function(f){return setTimeout(f,33);};
+  function frame(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    var k,s0;
+    for(k=0;k<stars.length;k++){s0=stars[k];var a=.35+.35*Math.sin(t/900+s0.p);ctx.fillStyle="rgba(255,244,205,"+a.toFixed(2)+")";ctx.beginPath();ctx.arc(s0.x*dpr,s0.y*dpr,s0.r*dpr,0,6.283);ctx.fill();}
+    for(k=0;k<flakes.length;k++){
+      var f=flakes[k],sp=sprites[f.s];
+      if(!reduce){f.y+=f.v;f.x+=Math.sin(t/1500+f.d)*.35;f.rot+=f.rv;if(f.y>H+20){f.y=-20;f.x=Math.random()*W;}}
+      ctx.save();ctx.translate(f.x*dpr,f.y*dpr);ctx.rotate(f.rot);ctx.globalAlpha=.55+f.s*.15;ctx.drawImage(sp,-sp.width/2,-sp.height/2);ctx.restore();
+    }
+    if(!reduce)raf(frame);
+  }
+  raf(frame);
+})();
+
+
+
+
+
+
+
+/* ---------- старт ---------- */
+loadState();
+buildCandles();buildGrid();refreshAll();
+</script>
+</body>
+</html>
