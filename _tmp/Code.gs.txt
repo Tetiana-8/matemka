@@ -1,0 +1,503 @@
+/**
+ * МАТЕМАТИЧНИЙ АДВЕНТ — серверна частина (Google Apps Script)
+ * Автор розробки Ковтун Тетяна
+ *
+ * ЯК ЗАПУСТИТИ (один раз):
+ * 1. Створіть нову порожню Google-таблицю (назвіть, наприклад, «Математичний адвент 5 клас»).
+ * 2. Меню «Розширення» → «Apps Script». Видаліть увесь код і вставте цей файл повністю. Збережіть.
+ * 3. Угорі виберіть функцію «setup» і натисніть «Виконати». Дозвольте доступ (Google попросить один раз).
+ *    У таблиці з’являться всі аркуші.
+ * 4. «Розгорнути» → «Нове розгортання» → тип «Веб-застосунок».
+ *    Виконувати від імені: «Я». Доступ: «Усі». Натисніть «Розгорнути» і скопіюйте адресу (закінчується на /exec).
+ * 5. Вставте цю адресу в сторінку адвента (рядок API_URL на початку скрипта) або надішліть її мені.
+ *
+ * Якщо ви змінюєте цей код, потрібно «Розгорнути» → «Керувати розгортаннями» → олівець → «Нова версія».
+ */
+
+var AdventRules = (function () {
+  "use strict";
+  var DAYS = 25;
+
+  function clean(s) {
+    return String(s == null ? "" : s).replace(/[’'`ʼ′´]/g, "’").replace(/\s+/g, " ").trim();
+  }
+  function cap(s) {
+    return clean(s).toLowerCase().replace(/(^|[\s\-])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
+  function makeKey(cls, sur, nam) {
+    return [clean(cls).toLowerCase(), clean(sur).toLowerCase(), clean(nam).toLowerCase()].join("|");
+  }
+
+  function newRec(key, day, now, catchup, qtext, ctext) {
+    return {
+      key: key, day: day, status: "open", attempts: 0, exits: 0, awaySec: 0, firstTry: false,
+      catchup: !!catchup, started: now, finished: 0, qtext: qtext || "", ctext: ctext || "", last: ""
+    };
+  }
+  function isDone(rec) { return !!rec && rec.status !== "open"; }
+
+  /* Чи можна відкрити день. rec — запис дитини за цей день або null. */
+  function canOpen(rec, day, today, usedCatch, maxCatch) {
+    if (!(day >= 1 && day <= DAYS)) return { ok: false, reason: "bad_day" };
+    if (rec) return { ok: true, consume: false };
+    if (day > today) return { ok: false, reason: "future" };
+    if (day === today) return { ok: true, consume: false };
+    if (usedCatch >= maxCatch) return { ok: false, reason: "no_catchup" };
+    return { ok: true, consume: true };
+  }
+
+  function closeExit(rec, now) { rec.status = "exit"; rec.finished = now; }
+
+  /* Дитина знову відкрила незавершене завдання: це вважається виходом. */
+  function onResume(rec, now) {
+    if (rec.status !== "open") return rec;
+    rec.exits += 1;
+    if (rec.exits >= 2) closeExit(rec, now);
+    return rec;
+  }
+  function onExit(rec, awaySec, now) {
+    if (rec.status !== "open") return rec;
+    rec.exits += 1;
+    rec.awaySec += Math.max(0, Math.round(awaySec || 0));
+    if (rec.exits >= 2) closeExit(rec, now);
+    return rec;
+  }
+  function onAttempt(rec, correct, answer, now, maxAtt) {
+    if (rec.status !== "open") return rec;
+    rec.attempts += 1;
+    rec.last = String(answer == null ? "" : answer);
+    if (correct) {
+      rec.status = "correct";
+      rec.firstTry = rec.attempts === 1;
+      rec.finished = now;
+    } else if (rec.attempts >= maxAtt) {
+      rec.status = "wrong";
+      rec.finished = now;
+    }
+    return rec;
+  }
+  /* Позначка в таблиці вчительки. */
+  function symbol(rec) {
+    if (!rec) return "";
+    if (rec.status === "correct") return rec.firstTry ? "★" : "✓";
+    if (rec.status === "wrong") return "✗";
+    if (rec.status === "exit") return "🚪";
+    return "…";
+  }
+
+  return {
+    DAYS: DAYS, clean: clean, cap: cap, makeKey: makeKey, newRec: newRec, isDone: isDone,
+    canOpen: canOpen, onResume: onResume, onExit: onExit, onAttempt: onAttempt, symbol: symbol
+  };
+})();
+
+
+var AR = AdventRules;
+var TZ = 'Europe/Kiev';
+var DAYS = 25;
+var SH = { LOG: 'Журнал', RES: 'Результати', KIDS: 'Діти', DAY: 'По днях', SUM: 'Підсумок', SET: 'Налаштування', ALIAS: 'Виправлення імен' };
+var NCOL = 19;          // стовпців у «Результати»
+var KID_DAY0 = 12;      // у «Діти» дні починаються зі стовпця L (12)
+var PINK = '#BE185D';
+
+/* ====================== МЕНЮ ====================== */
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Адвент')
+    .addItem('Підготувати таблицю (один раз)', 'setup')
+    .addItem('Оновити підсумок по класах', 'refreshSummary')
+    .addItem('Підготувати рядки в списку «Діти»', 'fillKeys')
+    .addToUi();
+}
+function say_(m) { try { SpreadsheetApp.getUi().alert(m); } catch (e) { Logger.log(m); } }
+
+/* ====================== ЗАПУСК ТАБЛИЦІ ====================== */
+function setup() {
+  var ss = SpreadsheetApp.getActive();
+  var names = [SH.SUM, SH.DAY, SH.KIDS, SH.RES, SH.LOG, SH.ALIAS, SH.SET];
+  names.forEach(function (n) { if (!ss.getSheetByName(n)) ss.insertSheet(n); });
+  ['Аркуш1', 'Sheet1', 'Лист1'].forEach(function (n) {
+    var s = ss.getSheetByName(n);
+    if (s && ss.getSheets().length > 1 && s.getLastRow() === 0) ss.deleteSheet(s);
+  });
+  setupSettings_(ss); setupRes_(ss); setupLog_(ss); setupKids_(ss); setupDay_(ss); setupSum_(ss); setupAlias_(ss);
+  names.forEach(function (n, i) { ss.setActiveSheet(ss.getSheetByName(n)); ss.moveActiveSheet(i + 1); });
+  ss.setActiveSheet(ss.getSheetByName(SH.SUM));
+  say_('Таблицю підготовлено. Далі: «Розгорнути» → «Нове розгортання» → «Веб-застосунок» (доступ «Усі»).');
+}
+function hdr_(sh, row, values) {
+  var r = sh.getRange(row, 1, 1, values.length);
+  r.setValues([values]).setBackground(PINK).setFontColor('#ffffff').setFontWeight('bold').setWrap(true).setVerticalAlignment('middle');
+}
+function setupSettings_(ss) {
+  var sh = ss.getSheetByName(SH.SET);
+  if (!sh.getRange('A2').getValue()) {
+    hdr_(sh, 1, ['Параметр', 'Значення', 'Пояснення']);
+    sh.getRange('B2').setNumberFormat('@');
+    sh.getRange('A2:C6').setValues([
+      ['Дата початку (РРРР-ММ-ДД)', '2026-12-01', 'У цей день відкривається перше віконечко'],
+      ['Спроб на завдання', 3, 'Скільки разів дитина може відповісти'],
+      ['Наздоганянь на дитину', 5, 'Скільки пропущених днів дитина може відкрити пізніше'],
+      ['Класи (через кому)', '5', 'Дітям клас не показується; усі записуються як «5». Не змінюйте'],
+      ['Тестовий день (порожньо = за календарем)', '', 'Для перевірки: впишіть число 1–25, і адвент вважатиме цей день сьогоднішнім. Після перевірки очистіть!']
+    ]);
+    sh.getRange('B2:B6').setBackground('#FFF7FA');
+  }
+  sh.setColumnWidth(1, 330); sh.setColumnWidth(2, 140); sh.setColumnWidth(3, 560);
+  sh.setFrozenRows(1);
+}
+function setupRes_(ss) {
+  var sh = ss.getSheetByName(SH.RES);
+  hdr_(sh, 1, ['id', 'Ключ', 'Клас', 'Прізвище', 'Ім’я', 'День', 'Результат', 'Стан (код)', 'Спроб', 'З першої спроби', 'Виходів з вікна',
+    'Поза вікном (с)', 'Наздоганяння', 'Початок', 'Завершення', 'Час (с)', 'Завдання', 'Правильна відповідь', 'Остання відповідь']);
+  sh.setFrozenRows(1);
+  sh.getRange('N2:O').setNumberFormat('dd.mm.yyyy hh:mm:ss');
+  sh.getRange('Q2:S').setNumberFormat('@');
+  [160, 140, 60, 120, 110, 50, 80, 80, 60, 90, 80, 90, 90, 130, 130, 70, 380, 130, 130].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  sh.hideColumns(1, 2);
+  addSymbolRules_(sh, sh.getRange('G2:G'));
+  var rules = sh.getConditionalFormatRules();
+  rules.push(SpreadsheetApp.newConditionalFormatRule().whenNumberGreaterThanOrEqualTo(2).setBackground('#fed7aa').setRanges([sh.getRange('K2:K')]).build());
+  sh.setConditionalFormatRules(rules);
+}
+function setupLog_(ss) {
+  var sh = ss.getSheetByName(SH.LOG);
+  hdr_(sh, 1, ['Час', 'День', 'Клас', 'Прізвище', 'Ім’я', 'Подія', 'Спроба №', 'Відповідь', 'Правильно?', 'Виходів', 'Поза вікном (с)', 'Примітка']);
+  sh.setFrozenRows(1);
+  sh.getRange('A2:A').setNumberFormat('dd.mm.yyyy hh:mm:ss');
+  sh.getRange('H2:H').setNumberFormat('@');
+  [140, 50, 60, 120, 110, 160, 70, 140, 80, 70, 90, 260].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+}
+function colL_(n) { var s = ''; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+function setupKids_(ss) {
+  var sh = ss.getSheetByName(SH.KIDS);
+  var head = ['Клас', 'Прізвище', 'Ім’я', 'Ключ', 'На ялинці', 'Днів виконано', 'Правильно', 'З першої спроби ★', 'Виходів', 'Наздоганянь', 'Сер. час (с)'];
+  for (var d = 1; d <= DAYS; d++) head.push(d);
+  hdr_(sh, 1, head);
+  sh.getRange(1, KID_DAY0, 1, DAYS).setNumberFormat('0').setHorizontalAlignment('center');
+  sh.setFrozenRows(1); sh.setFrozenColumns(3);
+  [60, 130, 110, 120, 70, 80, 80, 90, 70, 90, 80].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  sh.setColumnWidths(KID_DAY0, DAYS, 34);
+  sh.hideColumns(4);
+  sh.getRange(2, KID_DAY0, 400, DAYS).setHorizontalAlignment('center');
+  addSymbolRules_(sh, sh.getRange(2, KID_DAY0, 400, DAYS));
+  sh.getRange('E2:E').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['так', 'ні'], true).setAllowInvalid(true).build());
+  var n = sh.getLastRow();
+  for (var r = 2; r <= n; r++) ensureFormulas_(sh, r);
+}
+function addSymbolRules_(sh, range) {
+  var map = [['★', '#fde68a'], ['✓', '#bbf7d0'], ['✗', '#fecaca'], ['🚪', '#fed7aa'], ['…', '#e5e7eb']];
+  var rules = sh.getConditionalFormatRules();
+  map.forEach(function (m) {
+    rules.push(SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(m[0]).setBackground(m[1]).setRanges([range]).build());
+  });
+  sh.setConditionalFormatRules(rules);
+}
+function ensureFormulas_(sh, row) {
+  if (sh.getRange(row, 6).getFormula()) return;
+  var R = "'" + SH.RES + "'!", k = '$D' + row;
+  var f = [
+    '=COUNTIFS(' + R + '$B:$B,' + k + ',' + R + '$H:$H,"<>open")',
+    '=COUNTIFS(' + R + '$B:$B,' + k + ',' + R + '$H:$H,"correct")',
+    '=COUNTIFS(' + R + '$B:$B,' + k + ',' + R + '$J:$J,"так",' + R + '$H:$H,"correct")',
+    '=SUMIFS(' + R + '$K:$K,' + R + '$B:$B,' + k + ')',
+    '=COUNTIFS(' + R + '$B:$B,' + k + ',' + R + '$M:$M,"так")',
+    '=IFERROR(ROUND(AVERAGEIFS(' + R + '$P:$P,' + R + '$B:$B,' + k + ',' + R + '$H:$H,"<>open")),"")'
+  ];
+  sh.getRange(row, 6, 1, 6).setFormulas([f]);
+  var df = [];
+  for (var d = 1; d <= DAYS; d++) {
+    var c = colL_(KID_DAY0 + d - 1);
+    df.push('=IFERROR(INDEX(' + R + '$G:$G,MATCH($D' + row + '&"|"&' + c + '$1,' + R + '$A:$A,0)),"")');
+  }
+  sh.getRange(row, KID_DAY0, 1, DAYS).setFormulas([df]);
+}
+function setupDay_(ss) {
+  var sh = ss.getSheetByName(SH.DAY);
+  sh.getRange('A1').setValue('Оберіть день (1–25):').setFontWeight('bold');
+  var b1 = sh.getRange('B1');
+  if (!b1.getValue()) b1.setValue(1);
+  b1.setBackground('#FCE7F3').setFontWeight('bold').setHorizontalAlignment('center')
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireNumberBetween(1, DAYS).setAllowInvalid(false).build());
+  sh.getRange('C1').setFormula("=IFERROR(TEXT(DATEVALUE('" + SH.SET + "'!$B$2)+$B$1-1,\"dd.mm.yyyy\"),\"\")");
+  sh.getRange('A3').setValue('ХТО ВИКОНАВ').setFontWeight('bold').setFontColor(PINK);
+  sh.getRange('H3').setValue('ХТО ЩЕ НЕ ВИКОНАВ').setFontWeight('bold').setFontColor(PINK);
+  hdr_(sh, 4, ['Клас', 'Прізвище', 'Ім’я', 'Результат', 'Спроб', 'З першої', 'Виходів', 'Клас', 'Прізвище', 'Ім’я']);
+  sh.getRange('H4:J4').setBackground('#9ca3af');
+  sh.getRange('A5').setFormula("=IFERROR(QUERY('" + SH.RES + "'!$A$2:$S,\"select C,D,E,G,I,J,K where F = \"&$B$1&\" order by C,D,E\",0),\"Ніхто ще не виконав\")");
+  sh.getRange('H5').setFormula("=IFERROR(FILTER({'" + SH.KIDS + "'!$A$2:$A,'" + SH.KIDS + "'!$B$2:$B,'" + SH.KIDS + "'!$C$2:$C},INDEX('" + SH.KIDS + "'!$L$2:$AJ,0,$B$1)=\"\",'" + SH.KIDS + "'!$B$2:$B<>\"\",'" + SH.KIDS + "'!$E$2:$E<>\"ні\"),\"Усі виконали\")");
+  [60, 130, 110, 80, 60, 70, 70, 60, 130, 110].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  addSymbolRules_(sh, sh.getRange('D5:D200'));
+  sh.setFrozenRows(4);
+}
+function setupSum_(ss) {
+  var sh = ss.getSheetByName(SH.SUM);
+  sh.getRange('A1').setValue('Математичний адвент: підсумок').setFontSize(14).setFontWeight('bold').setFontColor(PINK);
+  sh.getRange('A2').setValue('★ — з першої спроби, ✓ — правильно, ✗ — не розв’язано за всі спроби, 🚪 — завдання закрито через виходи з вікна');
+  hdr_(sh, 3, ['День', 'Дата', 'Виконали', 'Правильно', 'З першої спроби ★', 'Виходили з вікна', 'Сер. час (с)']);
+  var R = "'" + SH.RES + "'!";
+  var rows = [], nums = [];
+  for (var d = 1; d <= DAYS; d++) {
+    var r = d + 3;
+    nums.push([d]);
+    rows.push([
+      "=IFERROR(DATEVALUE('" + SH.SET + "'!$B$2)+A" + r + "-1,\"\")",
+      '=COUNTIFS(' + R + '$F:$F,A' + r + ',' + R + '$H:$H,"<>open")',
+      '=COUNTIFS(' + R + '$F:$F,A' + r + ',' + R + '$H:$H,"correct")',
+      '=COUNTIFS(' + R + '$F:$F,A' + r + ',' + R + '$H:$H,"correct",' + R + '$J:$J,"так")',
+      '=COUNTIFS(' + R + '$F:$F,A' + r + ',' + R + '$K:$K,">0")',
+      '=IFERROR(ROUND(AVERAGEIFS(' + R + '$P:$P,' + R + '$F:$F,A' + r + ',' + R + '$H:$H,"<>open")),"")']);
+  }
+  sh.getRange(4, 1, DAYS, 1).setValues(nums);
+  sh.getRange(4, 2, DAYS, 6).setFormulas(rows);
+  sh.getRange(4, 2, DAYS, 1).setNumberFormat('dd.mm');
+  [60, 80, 90, 90, 130, 130, 100].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  sh.setFrozenRows(3);
+  refreshSummary();
+}
+function refreshSummary() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(SH.SUM), S = settings_();
+  var top = 3 + DAYS + 3;
+  sh.getRange(top, 1, 40, 8).clearContent();
+  sh.getRange(top - 1, 1).setValue('ПО КЛАСАХ').setFontWeight('bold').setFontColor(PINK);
+  hdr_(sh, top, ['Клас', 'Дітей', 'Виконано завдань', 'Правильно', 'З першої ★', 'Виходів', 'Сер. завдань на дитину']);
+  var K = "'" + SH.KIDS + "'!", rows = [];
+  S.classes.forEach(function (c, i) {
+    var r = top + 1 + i;
+    rows.push([c,
+      '=COUNTIFS(' + K + '$A:$A,A' + r + ',' + K + '$B:$B,"<>")',
+      '=SUMIFS(' + K + '$F:$F,' + K + '$A:$A,A' + r + ')',
+      '=SUMIFS(' + K + '$G:$G,' + K + '$A:$A,A' + r + ')',
+      '=SUMIFS(' + K + '$H:$H,' + K + '$A:$A,A' + r + ')',
+      '=SUMIFS(' + K + '$I:$I,' + K + '$A:$A,A' + r + ')',
+      '=IFERROR(ROUND(C' + r + '/B' + r + ',1),"")']);
+  });
+  if (rows.length) sh.getRange(top + 1, 1, rows.length, 7).setFormulas(rows);
+}
+function setupAlias_(ss) {
+  var sh = ss.getSheetByName(SH.ALIAS);
+  if (!sh.getRange('A1').getValue()) {
+    hdr_(sh, 1, ['Як ввела дитина: клас', 'прізвище', 'ім’я', '→ Як має бути: клас', 'прізвище', 'ім’я']);
+    sh.getRange('H1').setValue('Сюди вносьте виправлення, якщо дитина помилилась у прізвищі чи імені, щоб прогрес не загубився. Зліва впишіть, як дитина ввела (клас, прізвище, ім’я), а справа, як має бути. Клас завжди 5. Наприклад: 5, Іваненко, Марко → 5, Іваненко, Марк.');
+    sh.getRange('H1').setWrap(true);
+  }
+  [110, 130, 110, 140, 130, 110, 20, 420].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  sh.setFrozenRows(1);
+}
+
+/* ====================== НАЛАШТУВАННЯ ТА ЧАС ====================== */
+function dateUtc_(s) { var p = String(s).split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function settings_() {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.SET), v = sh.getRange('B2:B6').getValues();
+  var start = v[0][0];
+  if (start instanceof Date) start = Utilities.formatDate(start, TZ, 'yyyy-MM-dd'); else start = String(start).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) start = '2026-12-01';
+  var att = parseInt(v[1][0], 10), cu = parseInt(v[2][0], 10), td = parseInt(v[4][0], 10);
+  return {
+    start: start, attempts: att > 0 ? att : 3, catchup: cu >= 0 ? cu : 5,
+    classes: String(v[3][0]).split(',').map(function (s) { return AR.clean(s); }).filter(Boolean),
+    testDay: td > 0 ? td : 0
+  };
+}
+function todayNum_(S) {
+  if (S.testDay > 0) return S.testDay;
+  var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  return Math.round((dateUtc_(now) - dateUtc_(S.start)) / 86400000) + 1;
+}
+
+/* ====================== ТАБЛИЦІ ДАНИХ ====================== */
+function kidsRows_() {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.KIDS), last = sh.getLastRow();
+  return last < 2 ? [] : sh.getRange(2, 1, last - 1, 5).getValues();
+}
+function fillKeys() {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.KIDS), rows = kidsRows_(), n = 0;
+  rows.forEach(function (r, i) {
+    if (r[1] && r[2]) {
+      var key = AR.makeKey(r[0], r[1], r[2]);
+      if (r[3] !== key) sh.getRange(i + 2, 4).setValue(key);
+      if (!r[4]) sh.getRange(i + 2, 5).setValue('так');
+      ensureFormulas_(sh, i + 2); n++;
+    }
+  });
+  say_('Підготовлено рядків: ' + n);
+}
+function aliasOf_(id) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.ALIAS), last = sh.getLastRow();
+  if (last < 2) return id;
+  var rows = sh.getRange(2, 1, last - 1, 6).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (r[1] && r[2] && r[4] && r[5] && AR.makeKey(r[0], r[1], r[2]) === id.key) {
+      var cls = AR.clean(r[3]) || id.cls, sur = AR.cap(r[4]), nam = AR.cap(r[5]);
+      return { cls: cls, sur: sur, nam: nam, key: AR.makeKey(cls, sur, nam) };
+    }
+  }
+  return id;
+}
+function findKid_(key, create, id) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.KIDS), rows = kidsRows_(), i;
+  for (i = 0; i < rows.length; i++) {
+    var r = rows[i], k = r[3];
+    if (!k && r[1] && r[2]) { k = AR.makeKey(r[0], r[1], r[2]); sh.getRange(i + 2, 4).setValue(k); }
+    if (k === key) {
+      ensureFormulas_(sh, i + 2);
+      return { row: i + 2, isNew: false, cls: String(r[0]), sur: String(r[1]), nam: String(r[2]), key: key };
+    }
+  }
+  if (!create) return null;
+  sh.appendRow([id.cls, id.sur, id.nam, id.key, 'так']);
+  var row = sh.getLastRow();
+  ensureFormulas_(sh, row);
+  return { row: row, isNew: true, cls: id.cls, sur: id.sur, nam: id.nam, key: id.key };
+}
+function resRows_() {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.RES), last = sh.getLastRow();
+  return last < 2 ? [] : sh.getRange(2, 1, last - 1, NCOL).getValues();
+}
+function rowToRec_(r) {
+  return {
+    key: r[1], day: Number(r[5]), status: String(r[7]), attempts: Number(r[8]) || 0, firstTry: r[9] === 'так',
+    exits: Number(r[10]) || 0, awaySec: Number(r[11]) || 0, catchup: r[12] === 'так',
+    started: r[13] ? new Date(r[13]).getTime() : 0, finished: r[14] ? new Date(r[14]).getTime() : 0,
+    qtext: String(r[16]), ctext: String(r[17]), last: String(r[18])
+  };
+}
+function recToRow_(rec, kid) {
+  return [rec.key + '|' + rec.day, rec.key, kid.cls, kid.sur, kid.nam, rec.day, AR.symbol(rec), rec.status, rec.attempts,
+    rec.firstTry ? 'так' : 'ні', rec.exits, rec.awaySec, rec.catchup ? 'так' : 'ні', new Date(rec.started),
+    rec.finished ? new Date(rec.finished) : '', rec.finished ? Math.round((rec.finished - rec.started) / 1000) : '',
+    rec.qtext, rec.ctext, rec.last];
+}
+function saveRec_(rec, kid) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SH.RES), id = rec.key + '|' + rec.day, last = sh.getLastRow(), row = 0;
+  if (last >= 2) {
+    var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = 0; i < ids.length; i++) { if (ids[i][0] === id) { row = i + 2; break; } }
+  }
+  if (!row) row = Math.max(2, last + 1);
+  sh.getRange(row, 1, 1, NCOL).setValues([recToRow_(rec, kid)]);
+}
+function log_(kid, day, event, attemptNo, answer, correct, exits, away, note) {
+  SpreadsheetApp.getActive().getSheetByName(SH.LOG).appendRow([new Date(), day, kid.cls, kid.sur, kid.nam, event,
+    attemptNo === '' ? '' : attemptNo, String(answer == null ? '' : answer), correct === '' ? '' : (correct ? 'так' : 'ні'), exits, away, note || '']);
+}
+function stateFor_(key, S) {
+  var rows = resRows_(), days = {}, used = 0;
+  rows.forEach(function (r) {
+    if (r[1] !== key) return;
+    var rec = rowToRec_(r);
+    days[rec.day] = { s: rec.status, a: rec.attempts, e: rec.exits };
+    if (rec.catchup) used++;
+  });
+  return { today: todayNum_(S), days: days, catchupLeft: Math.max(0, S.catchup - used), catchupMax: S.catchup, attempts: S.attempts };
+}
+function pub_(rec, S) { return { status: rec.status, attempts: rec.attempts, exits: rec.exits, maxAttempts: S.attempts }; }
+
+/* ====================== ДІЇ ====================== */
+function handle_(p) {
+  var S = settings_();
+  if (p.action === 'config') return { ok: true, today: todayNum_(S), start: S.start, classes: S.classes, attempts: S.attempts, catchup: S.catchup };
+  if (p.action === 'tree') return tree_(p);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    var out;
+    if (p.action === 'login') out = login_(p, S);
+    else if (p.action === 'open') out = open_(p, S);
+    else if (p.action === 'attempt') out = attempt_(p, S);
+    else if (p.action === 'exit') out = exit_(p, S);
+    else out = { ok: false, reason: 'bad_action' };
+    CacheService.getScriptCache().remove('tree');
+    return out;
+  } finally { lock.releaseLock(); }
+}
+function login_(p, S) {
+  var cls = AR.clean(p.cls), sur = AR.cap(p.sur), nam = AR.cap(p.nam);
+  if (!cls || !sur || !nam || sur.length > 40 || nam.length > 40) return { ok: false, reason: 'empty' };
+  var id = aliasOf_({ cls: cls, sur: sur, nam: nam, key: AR.makeKey(cls, sur, nam) });
+  var kid = findKid_(id.key, true, id);
+  return { ok: true, isNew: kid.isNew, me: { key: kid.key, cls: kid.cls, sur: kid.sur, nam: kid.nam }, state: stateFor_(kid.key, S) };
+}
+function open_(p, S) {
+  var kid = findKid_(String(p.key), false), day = Number(p.day);
+  if (!kid) return { ok: false, reason: 'no_kid' };
+  var rows = resRows_(), rec = null, used = 0;
+  rows.forEach(function (r) {
+    if (r[1] !== kid.key) return;
+    var x = rowToRec_(r);
+    if (x.catchup) used++;
+    if (x.day === day) rec = x;
+  });
+  var today = todayNum_(S), ci = AR.canOpen(rec, day, today, used, S.catchup);
+  if (!ci.ok) return { ok: false, reason: ci.reason, state: stateFor_(kid.key, S) };
+  var now = Date.now();
+  if (!rec) {
+    rec = AR.newRec(kid.key, day, now, ci.consume, String(p.qtext || '').slice(0, 600), String(p.ctext || '').slice(0, 200));
+    log_(kid, day, ci.consume ? 'відкрито (наздоганяння)' : 'відкрито', '', '', '', 0, 0, ci.consume ? 'використано наздоганяння' : '');
+  } else if (rec.status === 'open') {
+    AR.onResume(rec, now);
+    log_(kid, day, rec.status === 'exit' ? 'вихід №' + rec.exits + ': завдання закрито' : 'повернення до завдання (вихід №' + rec.exits + ')', '', '', '', rec.exits, rec.awaySec, '');
+  }
+  saveRec_(rec, kid);
+  return { ok: true, rec: pub_(rec, S), state: stateFor_(kid.key, S) };
+}
+function loadRec_(p, S) {
+  var kid = findKid_(String(p.key), false), day = Number(p.day);
+  if (!kid) return { err: { ok: false, reason: 'no_kid' } };
+  var rec = null;
+  resRows_().forEach(function (r) { if (r[1] === kid.key && Number(r[5]) === day) rec = rowToRec_(r); });
+  if (!rec) return { err: { ok: false, reason: 'not_opened' } };
+  return { kid: kid, rec: rec };
+}
+function attempt_(p, S) {
+  var x = loadRec_(p, S);
+  if (x.err) return x.err;
+  var rec = x.rec;
+  if (rec.status !== 'open') return { ok: true, rec: pub_(rec, S), state: stateFor_(rec.key, S) };
+  var correct = p.correct === true, ans = String(p.answer == null ? '' : p.answer).slice(0, 200);
+  AR.onAttempt(rec, correct, ans, Date.now(), S.attempts);
+  saveRec_(rec, x.kid);
+  log_(x.kid, rec.day, 'спроба', rec.attempts, ans, correct, rec.exits, rec.awaySec, rec.status === 'wrong' ? 'спроби вичерпано' : (correct && rec.firstTry ? 'з першої спроби' : ''));
+  return { ok: true, rec: pub_(rec, S), state: stateFor_(rec.key, S) };
+}
+function exit_(p, S) {
+  var x = loadRec_(p, S);
+  if (x.err) return x.err;
+  var rec = x.rec;
+  if (rec.status === 'open') {
+    var away = Math.min(Math.max(0, Number(p.awaySec) || 0), 86400);
+    AR.onExit(rec, away, Date.now());
+    saveRec_(rec, x.kid);
+    log_(x.kid, rec.day, rec.status === 'exit' ? 'вихід №' + rec.exits + ': завдання закрито' : 'вихід з вікна №' + rec.exits, '', '', '', rec.exits, rec.awaySec, 'поза вікном ' + away + ' с');
+  }
+  return { ok: true, rec: pub_(rec, S), state: stateFor_(rec.key, S) };
+}
+function tree_(p) {
+  var cache = CacheService.getScriptCache(), raw = cache.get('tree'), base;
+  if (raw) base = JSON.parse(raw);
+  else {
+    var done = {};
+    resRows_().forEach(function (r) { if (r[7] !== 'open') done[r[1]] = (done[r[1]] || 0) + 1; });
+    base = [];
+    kidsRows_().forEach(function (r) {
+      if (!r[1] || !r[2] || r[4] === 'ні') return;
+      var key = r[3] || AR.makeKey(r[0], r[1], r[2]);
+      base.push({ k: key, c: String(r[0]), f: String(r[2]), i: String(r[1]).charAt(0), d: done[key] || 0 });
+    });
+    try { cache.put('tree', JSON.stringify(base), 20); } catch (e) { }
+  }
+  var me = p && p.key ? String(p.key) : '', total = 0;
+  var kids = base.map(function (b) { total += b.d; return { c: b.c, f: b.f, i: b.i, d: b.d, me: b.k === me }; });
+  return { ok: true, kids: kids, total: total };
+}
+
+/* ====================== ВХІД ====================== */
+function doPost(e) {
+  var out;
+  try { out = handle_(JSON.parse(e.postData.contents)); }
+  catch (err) { out = { ok: false, reason: 'error', msg: String(err) }; }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+function doGet() {
+  return ContentService.createTextOutput(JSON.stringify({ ok: true, pong: true })).setMimeType(ContentService.MimeType.JSON);
+}
